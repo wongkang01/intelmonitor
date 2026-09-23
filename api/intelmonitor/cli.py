@@ -10,9 +10,26 @@ app = typer.Typer(no_args_is_help=True, add_completion=False)
 
 
 @app.command()
-def ingest() -> None:
-    """Fetch, cache, parse and dedup the 60-day corpus."""
-    typer.echo("ingest: not implemented yet (phase 1)")
+def ingest(
+    stats: Annotated[bool, typer.Option("--stats", help="Only print corpus stats")] = False,
+    t0: Annotated[
+        str | None, typer.Option("--t0", help="Override the stored T0, YYYY-MM-DD")
+    ] = None,
+) -> None:
+    """Fetch, cache, parse and dedup the 60-day corpus, then print its stats."""
+    from datetime import date
+
+    from intelmonitor.ingest.run import run_ingest
+    from intelmonitor.ingest.stats import ingest_stats
+    from intelmonitor.store.db import connect
+
+    if not stats:
+        result = run_ingest(date.fromisoformat(t0) if t0 else None)
+        typer.echo(
+            f"added {sum(result.added.values())} {dict(result.added)}, "
+            f"{result.duplicates} duplicates, {len(result.failures)} failures\n"
+        )
+    typer.echo(ingest_stats(connect()))
 
 
 @app.command()
