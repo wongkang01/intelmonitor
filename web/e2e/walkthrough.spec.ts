@@ -1,0 +1,405 @@
+// The POC walkthrough (poc-plan.md, Verification > E2E) against the running dev servers. It reads
+// whatever the pipeline produced through the API to decide what to click and what to expect, and
+// undoes its own changes at the end so it can run again.
+import { expect, test, type Locator, type Page } from "@playwright/test";
+import { mkdirSync } from "node:fs";
+import path from "node:path";
+
+import { api, API_URL, type Schema } from "../lib/api/client";
+import { shortDate } from "../lib/format";
+
+import { runDir, screenshotName, STEPS } from "./steps";
+
+/** Claude-backed actions (Generate, custom question drafts) can take minutes. */
+const LLM_TIMEOUT = 6 * 60_000;
+
+async function unwrap<T>(request: Promise<{ data?: T; error?: unknown; response: Response }>): Promise<T> {
+  const { data, error, response } = await request;
+  if (error !== undefined || data === undefined) {
+    throw new Error(`${response.url} answered ${response.status}: ${JSON.stringify(error)}`);
+  }
+  return data;
+}
+
+async function deleted(request: Promise<{ response: Response }>) {
+  const { response } = await request;
+  if (!response.ok && response.status !== 404) throw new Error(`${response.url} answered ${response.status}`);
+}
+
+const grid = (scope: Page | Locator) => scope.locator(".dash-grid [data-widget-id]");
+
+async function widgetIds(scope: Page | Locator): Promise<string[]> {
+  return grid(scope).evaluateAll((els) => els.map((el) => el.getAttribute("data-widget-id") ?? ""));
+}
+
+/** Presses on `from`, drags past the threshold, and drops on the right half of `to`. */
+async function drag(page: Page, from: Locator, to: Locator) {
+  const a = await from.boundingBox();
+  const b = await to.boundingBox();
+  if (!a || !b) throw new Error("drag: widget not on screen");
+  const start = { x: a.x + a.width / 2, y: a.y + Math.min(a.height / 2, 60) };
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(start.x + 12, start.y + 4, { steps: 3 });
+  await page.mouse.move(b.x + b.width * 0.8, b.y + Math.min(b.height / 2, 60), { steps: 20 });
+  await page.mouse.up();
+}
+
+const isPut = (url: string) => (r: { url(): string; request(): { method(): string } }) =>
+  r.url() === url && r.request().method() === "PUT";
+
+test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
+  test.setTimeout(30 * 60_000);
+  const dir = runDir();
+  mkdirSync(path.join(dir, "steps"), { recursive: true });
+  const apiBase = new URL("/", API_URL).href;
+  const cleanups: (() => Promise<void>)[] = [];
+  const pageErrors: string[] = [];
+  page.on("pageerror", (e) => pageErrors.push(e.message));
+
+  let index = 0;
+  const step = async (title: (typeof STEPS)[number], body: () => Promise<void>) => {
+    const i = index++;
+    expect(STEPS[i], "steps run in the order of STEPS").toBe(title);
+    await test.step(title, async () => {
+      try {
+        await body();
+      } finally {
+        await page.screenshot({ path: path.join(dir, screenshotName(i)), animations: "disabled" }).catch(() => undefined);
+      }
+    });
+  };
+
+  // What the pipeline produced: the latest run, and the entity with the most new developments.
+  const runs = await unwrap(api.GET("/runs"));
+  const latest = runs[0];
+  expect(latest, "the pipeline has a run").toBeTruthy();
+  expect(latest.previous_run_id, "the latest run has a run to compare against").toBeTruthy();
+  const subjects = await unwrap(api.GET("/subjects"));
+  const entity = [...subjects]
+    .filter((s) => s.type === "entity")
+    .sort((a, b) => b.new_developments - a.new_developments)[0];
+  expect(entity.new_developments, "some entity has new developments").toBeGreaterThan(0);
+  const dashboards = await unwrap(api.GET("/dashboards"));
+  const starter = dashboards.find((d) => d.name === "Singapore banks");
+  if (!starter) throw new Error("the Singapore banks starter dashboard is missing");
+  const stamp = path.basename(dir);
+
+  try {
+    await step(STEPS[0], async () => {
+      await page.goto("/");
+      const nav = page.getByRole("navigation", { name: "Main" });
+      await nav.getByRole("link", { name: "Singapore banks", exact: true }).click();
+      await expect(page).toHaveURL(`/dashboards/${starter.id}`);
+      await expect(page.getByRole("heading", { level: 1, name: "Singapore banks" })).toBeVisible();
+
+      const data = await unwrap(
+        api.GET("/dashboards/{dashboard_id}/data", { params: { path: { dashboard_id: starter.id } } }),
+      );
+      const since = data.find((w) => w.type === "since");
+      if (since?.type !== "since") throw new Error("the Singapore banks dashboard has no Since your last review widget");
+      expect(since.run.id).toBe(latest.id);
+      expect(since.run.previous_run_id).toBe(latest.previous_run_id);
+      const wc = since.what_changed;
+      expect(wc.new_count + wc.updated_count, "Run 2 has changes against Run 1").toBeGreaterThan(0);
+
+      const widget = page.getByRole("group", { name: "Since your last review" });
+      await expect(widget.locator(".hero")).toHaveText(new RegExp(`^${wc.new_count} new, ${wc.needs_attention_count} needs? attention$`));
+      const meta = since.scope.length === 1 ? since.scope[0].name : `Run of ${shortDate(since.run.as_of)}`;
+      await expect(widget.locator(".wm")).toHaveText(meta);
+      await expect(widget.locator(".row.dev").first()).toContainText(wc.developments[0].title);
+    });
+
+    await step(STEPS[1], async () => {
+      const widget = page.getByRole("group", { name: "Since your last review" });
+      const links = widget.locator(".row.dev a.stretch");
+      const hrefs = await links.evaluateAll((els) => els.map((el) => el.getAttribute("href") ?? ""));
+      // The first development whose sources carry a highlighted quote.
+      let chosen: { href: string; detail: Schema<"DevelopmentDetail">; quote: string } | null = null;
+      for (const href of hrefs) {
+        const id = new URL(href, baseURL).searchParams.get("evidence");
+        if (!id) continue;
+        const detail = await unwrap(api.GET("/developments/{development_id}", { params: { path: { development_id: id } } }));
+        const passage = detail.sources.flatMap((s) => s.findings).find((f) => f.passage.highlights.length > 0)?.passage;
+        if (!passage) continue;
+        const [h] = [...passage.highlights].sort((x, y) => x.start - y.start);
+        chosen = { href, detail, quote: passage.text.slice(h.start, h.end) };
+        break;
+      }
+      if (!chosen) throw new Error("no development on the widget has a highlighted quote");
+
+      await widget.locator(`a.stretch[href="${chosen.href}"]`).click();
+      await expect(page).toHaveURL(new RegExp(`\\?evidence=${encodeURIComponent(chosen.detail.id)}$`));
+      const drawer = page.getByTestId("evidence-drawer");
+      await expect(drawer.getByRole("heading", { name: "Evidence" })).toBeVisible();
+      await expect(drawer.getByRole("heading", { level: 3 })).toHaveText(chosen.detail.title);
+      await expect(drawer.locator(".source").first().locator("a").first()).toHaveText(chosen.detail.sources[0].title);
+      const mark = drawer.locator(".source blockquote mark").first();
+      await expect(mark).toBeVisible();
+      await expect(mark).toHaveText(chosen.quote.trim());
+      await expect(mark).toHaveCSS("background-color", /^rgba?\((?!0, 0, 0, 0\))/);
+    });
+
+    await step(STEPS[2], async () => {
+      await page.getByRole("button", { name: "Close evidence" }).click();
+      await expect(page.getByTestId("evidence-drawer")).toBeHidden();
+      cleanups.push(async () => {
+        await unwrap(
+          api.PUT("/dashboards/{dashboard_id}", {
+            params: { path: { dashboard_id: starter.id } },
+            body: { name: starter.name, subject_ids: starter.subject_ids, widgets: starter.widgets },
+          }),
+        );
+      });
+      const putUrl = new URL(`dashboards/${starter.id}`, apiBase).href;
+
+      await page.getByRole("button", { name: "Edit", exact: true }).click();
+      await expect(page.getByRole("button", { name: "Done" })).toBeVisible();
+      const before = await widgetIds(page);
+      expect(before.length).toBeGreaterThanOrEqual(3);
+      const [moving, target] = [before[1], before[2]];
+      const saved = page.waitForResponse(isPut(putUrl));
+      await drag(page, page.locator(`[data-widget-id="${moving}"]`), page.locator(`[data-widget-id="${target}"]`));
+      expect((await saved).ok()).toBe(true);
+      const dragged = await widgetIds(page);
+      expect(dragged.indexOf(moving), "the dragged widget moved").toBeGreaterThan(dragged.indexOf(target));
+
+      const last = dragged.at(-1) ?? "";
+      const removed = page.waitForResponse(isPut(putUrl));
+      await page.locator(`[data-widget-id="${last}"] button.minus`).click();
+      expect((await removed).ok()).toBe(true);
+      await expect(page.getByText("Widget removed")).toBeVisible();
+      const expected = dragged.filter((id) => id !== last);
+      await expect.poll(() => widgetIds(page)).toEqual(expected);
+
+      await page.reload();
+      await expect(page.getByRole("heading", { level: 1, name: "Singapore banks" })).toBeVisible();
+      await expect.poll(() => widgetIds(page)).toEqual(expected);
+    });
+
+    await step(STEPS[3], async () => {
+      const nav = page.getByRole("navigation", { name: "Main" });
+      await nav.getByRole("button", { name: "New dashboard" }).click();
+      const dialog = page.getByRole("dialog", { name: "New dashboard" });
+      await expect(dialog).toBeVisible();
+      await expect(dialog.getByRole("tab", { name: "Build" })).toHaveAttribute("aria-selected", "true");
+
+      const gallery = page.getByRole("dialog", { name: "Add a widget" });
+      for (let i = 0; i < 3; i++) {
+        await dialog.getByRole("button", { name: "Add widget", exact: true }).first().click();
+        await expect(gallery).toBeVisible();
+        if (i === 0) await gallery.locator("button.subj", { has: page.getByText(entity.name, { exact: true }) }).click();
+        await expect(gallery.getByRole("heading", { level: 3 })).toHaveText(entity.name);
+        const add = gallery.locator("section.gcard:not(.wide)").nth(i).getByRole("button", { name: /^Add / });
+        await expect(add).toBeEnabled();
+        await add.click();
+        await expect(gallery).toBeHidden();
+        await expect(grid(dialog)).toHaveCount(i + 1);
+      }
+
+      const before = await widgetIds(dialog);
+      await drag(page, dialog.locator(`[data-widget-id="${before[0]}"]`), dialog.locator(`[data-widget-id="${before[1]}"]`));
+      await expect.poll(() => widgetIds(dialog)).not.toEqual(before);
+      const order = await widgetIds(dialog);
+
+      const name = `E2E Build ${stamp}`;
+      await dialog.getByLabel("Name").fill(name);
+      await dialog.getByRole("button", { name: "Create dashboard" }).click();
+      await expect(dialog).toBeHidden();
+      await expect(page).toHaveURL(/\/dashboards\/[0-9a-f]+$/);
+      const id = new URL(page.url()).pathname.split("/").at(-1) ?? "";
+      cleanups.push(() => deleted(api.DELETE("/dashboards/{dashboard_id}", { params: { path: { dashboard_id: id } } })));
+      await expect(nav.getByRole("link", { name, exact: true })).toHaveAttribute("aria-current", "page");
+      await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
+      await expect.poll(() => widgetIds(page)).toEqual(order);
+      const created = await unwrap(api.GET("/dashboards/{dashboard_id}", { params: { path: { dashboard_id: id } } }));
+      expect(created.widgets.map((w) => w.id)).toEqual(order);
+    });
+
+    await step(STEPS[4], async () => {
+      const nav = page.getByRole("navigation", { name: "Main" });
+      await nav.getByRole("button", { name: "New dashboard" }).click();
+      const dialog = page.getByRole("dialog", { name: "New dashboard" });
+      await dialog.getByRole("tab", { name: "Generate" }).click();
+      const prompt = dialog.getByLabel("Describe your dashboard");
+      await expect(prompt).toBeFocused();
+      const ask = `Track ${entity.name}: what changed since my last review, its standing questions and recent developments`;
+      const undo = dialog.getByRole("button", { name: "Undo" });
+      const keep = dialog.getByRole("button", { name: "Keep" });
+      const failure = dialog.locator(".reply-text.c-attn");
+
+      await prompt.fill(ask);
+      await prompt.press("Enter");
+      await expect(undo.or(failure)).toBeVisible({ timeout: LLM_TIMEOUT });
+      await expect(failure).toBeHidden();
+      const first = await grid(dialog).count();
+      expect(first, "the agent added widgets").toBeGreaterThan(0);
+
+      await undo.click();
+      await expect(grid(dialog)).toHaveCount(0);
+      await expect(dialog.getByRole("status")).toHaveText("Undone.");
+
+      await prompt.fill(ask);
+      await prompt.press("Enter");
+      await expect(keep.or(failure)).toBeVisible({ timeout: LLM_TIMEOUT });
+      await expect(failure).toBeHidden();
+      await expect.poll(() => grid(dialog).count()).toBeGreaterThan(0);
+      const order = await widgetIds(dialog);
+      await keep.click();
+      await expect(keep).toBeHidden();
+
+      await dialog.getByRole("button", { name: "Create dashboard" }).click();
+      await expect(dialog).toBeHidden();
+      await expect(page).toHaveURL(/\/dashboards\/[0-9a-f]+$/);
+      const id = new URL(page.url()).pathname.split("/").at(-1) ?? "";
+      cleanups.push(() => deleted(api.DELETE("/dashboards/{dashboard_id}", { params: { path: { dashboard_id: id } } })));
+      const created = await unwrap(api.GET("/dashboards/{dashboard_id}", { params: { path: { dashboard_id: id } } }));
+      expect(created.widgets.map((w) => w.id)).toEqual(order);
+      await expect(nav.getByRole("link", { name: created.name, exact: true })).toHaveAttribute("aria-current", "page");
+      await expect.poll(() => widgetIds(page)).toEqual(order);
+    });
+
+    await step(STEPS[5], async () => {
+      const search = page.getByRole("combobox", { name: "Search or ask" });
+      await page.locator("body").click({ position: { x: 5, y: 5 } });
+      await page.keyboard.press("ControlOrMeta+k");
+      await expect(search).toBeFocused();
+      await search.pressSequentially(entity.name, { delay: 40 });
+      await expect(page.getByRole("option").first()).toContainText(entity.name);
+      await search.press("Enter");
+      await expect(page).toHaveURL(`/monitors/${entity.id}`);
+      await expect(page.getByRole("heading", { level: 1, name: entity.name, exact: true })).toBeVisible();
+
+      const actions = page.getByRole("region", { name: "Actions" });
+      const reviewed = page.waitForResponse((r) => r.url().endsWith("/reviews") && r.request().method() === "POST");
+      await actions.getByRole("button", { name: "Mark reviewed" }).click();
+      expect((await reviewed).ok()).toBe(true);
+      await expect(page.getByText(`${entity.name} marked reviewed`)).toBeVisible();
+      await expect(actions.getByText(/^Reviewed /)).toBeVisible();
+
+      const text = `E2E note ${stamp}`;
+      cleanups.push(async () => {
+        const notes = await unwrap(api.GET("/notes", { params: { query: { subject_id: entity.id } } }));
+        for (const n of notes.filter((n) => n.text === text)) {
+          await deleted(api.DELETE("/notes/{note_id}", { params: { path: { note_id: n.id } } }));
+        }
+      });
+      await actions.getByRole("textbox", { name: "Note" }).fill(text);
+      await actions.getByRole("button", { name: "Add note" }).click();
+      await expect(actions.locator(".note p", { hasText: text })).toBeVisible();
+      await expect(actions.getByRole("textbox", { name: "Note" })).toHaveValue("");
+    });
+
+    await step(STEPS[6], async () => {
+      const slots = await unwrap(api.GET("/custom-questions/slots"));
+      expect(slots.left, "a custom question slot is free").toBeGreaterThan(0);
+      const questions = page.getByRole("region", { name: "Standing questions" });
+      await questions.getByRole("button", { name: "Add a question" }).click();
+      const drafted = page.waitForResponse(
+        (r) => r.url() === new URL("custom-questions", apiBase).href && r.request().method() === "POST",
+        { timeout: LLM_TIMEOUT },
+      );
+      await questions
+        .getByLabel(`Your question about ${entity.name}`)
+        .fill(`What were the most material developments for ${entity.name} in this period, and what risks do they raise?`);
+      await questions.getByRole("button", { name: "Draft question" }).click();
+      const response = await drafted;
+      expect(response.ok(), await response.text()).toBe(true);
+      const draft: Schema<"CustomQuestion"> = await response.json();
+      cleanups.push(() =>
+        deleted(api.DELETE("/custom-questions/{question_id}", { params: { path: { question_id: draft.id } } })),
+      );
+
+      const preview = questions.getByRole("group", { name: "Custom question preview" });
+      await expect(preview).toBeVisible();
+      await expect(preview.locator(".cq-run")).toHaveCount(runs.length);
+      await expect(preview.locator(".cq-cites")).toContainText(/^Cites \d+ developments?/);
+      expect(draft.evidence.length, "the preview cites developments").toBeGreaterThan(0);
+      await preview.getByRole("button", { name: "Keep" }).click();
+      await expect(page.getByText(`${draft.label} added to ${entity.name}`)).toBeVisible();
+
+      const row = questions.locator(`.qrow[data-question-id="${draft.id}"]`);
+      await expect(row.locator(".tag.custom")).toHaveText("Custom");
+      await expect(row.locator(".qlabel b")).toHaveText(draft.label);
+      const latestAnswer = draft.runs.at(-1);
+      if (!latestAnswer) throw new Error("the custom question has no answers");
+      await expect(row.locator(".qanswer p")).toHaveText(latestAnswer.summary);
+      await row.getByRole("link", { name: "See evidence" }).click();
+
+      const drawer = page.getByTestId("evidence-drawer");
+      await expect(drawer.locator(".tag.custom")).toBeVisible();
+      await expect(drawer.getByRole("heading", { level: 3 })).toHaveText(latestAnswer.summary);
+      await expect(drawer.getByRole("heading", { level: 4 }).first()).toHaveText(/^Based on \d+ developments?$/);
+      await expect(drawer.locator(".ev-dev").first()).toBeVisible();
+      await expect(drawer.locator(".source blockquote mark").first()).toBeVisible();
+      await drawer.getByRole("button", { name: "Close evidence" }).click();
+      await expect(drawer).toBeHidden();
+    });
+
+    await step(STEPS[7], async () => {
+      await page.getByRole("region", { name: "Links" }).getByRole("link", { name: "Open graph view" }).click();
+      await expect(page).toHaveURL(`/monitors/${entity.id}/graph`);
+      const stage = page.getByTestId("graph-canvas");
+      const listed = page.getByTestId("graph-nodes").locator("[data-node]");
+      await expect(stage).toHaveAttribute("data-layout", "settled", { timeout: 30_000 });
+      const oneHop = await listed.count();
+      expect(oneHop).toBeGreaterThan(0);
+
+      const hops = page.getByRole("group", { name: "Hops" });
+      await hops.getByRole("button", { name: "2 hops" }).click();
+      await expect(hops.getByRole("button", { name: "2 hops" })).toHaveAttribute("aria-pressed", "true");
+      await expect.poll(() => listed.count()).toBeGreaterThan(oneHop);
+      await expect(listed.filter({ hasText: /, 2 hops/ }).first()).toBeVisible();
+      await expect(stage).toHaveAttribute("data-layout", "settled", { timeout: 30_000 });
+
+      // Only subject nodes, so any node the pointer finds opens a monitor page.
+      const types = page.getByRole("group", { name: "Node types" });
+      await types.getByRole("button", { name: "Developments" }).click();
+      await expect(types.getByRole("button", { name: "Developments" })).toHaveAttribute("aria-pressed", "false");
+      await expect(page.getByTestId("graph-nodes").locator('[data-node^="dev:"]')).toHaveCount(0);
+      await expect(stage).toHaveAttribute("data-layout", "settled", { timeout: 30_000 });
+
+      const hit = await findNode(page, stage);
+      await page.mouse.click(hit.x, hit.y);
+      await expect(page).toHaveURL(/\/monitors\/[^/?]+$/);
+      const opened = new URL(page.url()).pathname.split("/").at(-1) ?? "";
+      expect(opened).not.toBe(entity.id);
+      const subject = await unwrap(api.GET("/subjects/{subject_id}", { params: { path: { subject_id: opened } } }));
+      await expect(page.getByRole("heading", { level: 1, name: subject.name, exact: true })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "What changed since last review" })).toBeVisible();
+    });
+
+    expect(pageErrors, "no uncaught errors in the page").toEqual([]);
+  } finally {
+    const failures: string[] = [];
+    for (const cleanup of cleanups.reverse()) {
+      await cleanup().catch((e: unknown) => failures.push(e instanceof Error ? e.message : String(e)));
+    }
+    testInfo.annotations.push({ type: "cleanup", description: failures.length ? failures.join("; ") : "ok" });
+    if (failures.length) console.error(`E2E cleanup failed: ${failures.join("; ")}`);
+  }
+});
+
+/**
+ * Moves the pointer outward from the centre of the graph (where the current subject sits) until
+ * sigma reports a node under it, which sets the pointer cursor.
+ */
+async function findNode(page: Page, stage: Locator): Promise<{ x: number; y: number }> {
+  const box = await stage.boundingBox();
+  if (!box) throw new Error("graph canvas not on screen");
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  const STEP = 8;
+  const SKIP = 36;
+  for (let r = SKIP; r < Math.max(box.width, box.height) / 2; r += STEP) {
+    const count = Math.ceil((2 * Math.PI * r) / STEP);
+    for (let k = 0; k < count; k++) {
+      const x = cx + r * Math.cos((2 * Math.PI * k) / count);
+      const y = cy + r * Math.sin((2 * Math.PI * k) / count);
+      if (x < box.x + 4 || x > box.x + box.width - 4 || y < box.y + 4 || y > box.y + box.height - 4) continue;
+      await page.mouse.move(x, y);
+      if (await stage.evaluate((el) => el.style.cursor === "pointer")) return { x, y };
+    }
+  }
+  throw new Error("no graph node found under the pointer");
+}

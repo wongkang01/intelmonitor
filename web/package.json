@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "gen:api": "uv run --project ../api im openapi lib/api/openapi.json && openapi-typescript lib/api/openapi.json -o lib/api/schema.ts"
+    "gen:api": "uv run --project ../api im openapi lib/api/openapi.json && openapi-typescript lib/api/openapi.json -o lib/api/schema.ts",
+    "e2e": "NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS:-$HOME/.portless/ca.pem} playwright test"
   },
   "dependencies": {
     "@ag-ui/client": "^1.0.0",
@@ -25,6 +26,7 @@
     "sigma": "^3.0.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
