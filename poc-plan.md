@@ -284,7 +284,7 @@ mocks/              design mocks
 - **Generate agent:** Claude Agent SDK with in-process tools `add_widget`, `update_widget`, `remove_widget`, `reorder` and `list_subjects`. Tool arguments are validated against the widget schemas. The server maps the agent's stream to AG-UI events (`TEXT_MESSAGE_*`, `TOOL_CALL_*`, `STATE_DELTA`) over SSE.
 - **Web AG-UI client:** bare `@ag-ui/core` and `@ag-ui/client`, no CopilotKit. One hook applies state deltas to the dashboard spec and tracks pending changes for Keep and Undo.
 - **Graph view:** sigma.js with graphology and ForceAtlas2. The layout runs until it settles and then stops.
-- **Dev servers:** `portless intelmonitor.web pnpm dev` and `portless intelmonitor.api uv run ...`, served at `https://intelmonitor.web.localhost` and `https://intelmonitor.api.localhost`.
+- **Dev servers:** `portless intelmonitor.web pnpm dev` and `portless intelmonitor.api uv run ...`, served at `https://intelmonitor.web.localhost` and `https://intelmonitor.api.localhost`. Run `scripts/proxy-start.sh` first so the Portless proxy listens on 443 without sudo.
 
 **Commands**
 
