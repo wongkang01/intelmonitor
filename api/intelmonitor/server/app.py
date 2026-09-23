@@ -18,6 +18,7 @@ from intelmonitor.server import dashboards as dash
 from intelmonitor.server.evidence import development_sources, document_detail, new_documents
 from intelmonitor.server.graph import neighbourhood
 from intelmonitor.server.models import (
+    AnswerEvidence,
     DataSources,
     DataSourceStats,
     DevelopmentDetail,
@@ -195,6 +196,24 @@ def list_developments(
 
 @app.get("/developments/{development_id}")
 def get_development(q: Q, development_id: str) -> DevelopmentDetail:
+    return _development_detail(q, development_id)
+
+
+@app.get("/subjects/{subject_id}/answers/{question_id}/evidence")
+def get_answer_evidence(q: Q, subject_id: str, question_id: str) -> AnswerEvidence:
+    """One answer in the latest run with the developments and sources it relies on."""
+    answer = next((a for a in q.answers(subject_id) if a.question_id == question_id), None)
+    if answer is None:
+        raise NotFoundError(f"answer to {question_id} for {subject_id} in run {q.run.id}")
+    return AnswerEvidence(
+        subject=subject_ref(subject_id),
+        run=q.run,
+        answer=answer,
+        developments=[_development_detail(q, i) for i in answer.development_ids],
+    )
+
+
+def _development_detail(q: Queries, development_id: str) -> DevelopmentDetail:
     d = q.development(development_id)
     confidence = [
         SubjectConfidence(

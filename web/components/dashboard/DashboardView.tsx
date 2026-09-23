@@ -8,6 +8,7 @@ import type { Widget } from "@/lib/api/client";
 import { useDashboard, useRuns, useSaveDashboard, useSubjects, type Dashboard } from "@/lib/api/queries";
 import { typingIn } from "@/lib/dom";
 import { dateTime } from "@/lib/format";
+import { SubjectLinks } from "@/components/shell/SubjectLink";
 import { PlusIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
 
@@ -81,7 +82,7 @@ export function DashboardView({ id }: { id: string }) {
     });
   };
 
-  const names = d.subject_ids.map((sid) => subjects.data?.find((s) => s.id === sid)?.name ?? "");
+  const named = d.subject_ids.flatMap((sid) => subjects.data?.find((s) => s.id === sid) ?? []);
   const lastRun = runs.data?.[0]?.finished_at;
 
   return (
@@ -90,11 +91,15 @@ export function DashboardView({ id }: { id: string }) {
         <div className="grow">
           <h1>{d.name}</h1>
           <p>
-            {editing
-              ? "Drag to rearrange. Tap a widget for its settings, or the minus to remove it."
-              : [lastRun ? `Last run ${dateTime(lastRun)}` : "", names.filter(Boolean).join(", ")]
-                  .filter(Boolean)
-                  .join(". ")}
+            {editing ? (
+              "Drag to rearrange. Tap a widget for its settings, or the minus to remove it."
+            ) : (
+              <>
+                {lastRun && `Last run ${dateTime(lastRun)}`}
+                {lastRun && named.length > 0 && ". "}
+                <SubjectLinks subjects={named} />
+              </>
+            )}
           </p>
         </div>
         <button type="button" className="pill-btn" onClick={() => setAdding(true)}>

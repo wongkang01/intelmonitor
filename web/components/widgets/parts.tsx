@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import type { Schema } from "@/lib/api/client";
 import { plural, shortDate, STATE_LABEL, STATE_TONE, type State } from "@/lib/format";
 import { useEvidenceHref } from "@/components/shell/Evidence";
+import { SubjectLinks } from "@/components/shell/SubjectLink";
 
 /** Widget header: grey title top-left, optional link target, meta on the right. */
 export function Head({
@@ -53,18 +54,35 @@ export function DevelopmentBadge({ development: d }: { development: Schema<"Deve
   return null;
 }
 
-export function DevelopmentRow({ development: d }: { development: Schema<"DevelopmentSummary"> }) {
+/**
+ * A development as a row that opens its evidence. Subject names link to their pages; pass
+ * `subjects` to name others (a group's members) than the development's first two.
+ */
+export function DevelopmentRow({
+  development: d,
+  subjects = d.subjects.slice(0, 2),
+}: {
+  development: Schema<"DevelopmentSummary">;
+  subjects?: Schema<"SubjectRef">[];
+}) {
   const evidence = useEvidenceHref();
-  const subjects = d.subjects.slice(0, 2).map((s) => s.name);
-  const meta = [...subjects, d.category, plural(d.source_count, "source")].join(", ");
   return (
-    <Link href={evidence(d.id)} className="row" scroll={false}>
+    <div className="row dev">
       <DevelopmentBadge development={d} />
       <span className="tx">
-        <b>{d.title}</b>
-        <span>{meta}</span>
+        <Link href={evidence.development(d.id)} className="stretch" scroll={false}>
+          <b>{d.title}</b>
+        </Link>
+        <span>
+          {subjects.length > 0 && (
+            <>
+              <SubjectLinks subjects={subjects} />,{" "}
+            </>
+          )}
+          {d.category}, {plural(d.source_count, "source")}
+        </span>
       </span>
       {!d.needs_attention && !d.change && <span className="when">{shortDate(d.last_published)}</span>}
-    </Link>
+    </div>
   );
 }

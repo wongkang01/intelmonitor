@@ -41,6 +41,9 @@ export const keys = {
   runs: ["runs"],
   dataSources: ["data-sources"],
   development: (id: string) => ["development", id],
+  answerEvidence: (subjectId: string, questionId: string) => ["answer-evidence", subjectId, questionId],
+  monitorPage: (id: string) => ["monitor-page", id],
+  search: (text: string) => ["search", text],
   widgetData: ["widget-data"],
 } as const;
 
@@ -90,6 +93,38 @@ export const useDevelopment = (id: string | null) =>
       ),
     enabled: id !== null,
   });
+
+/** The answer behind a standing question and the developments it relies on. */
+export const useAnswerEvidence = (target: { subjectId: string; questionId: string } | null) =>
+  useQuery({
+    queryKey: keys.answerEvidence(target?.subjectId ?? "", target?.questionId ?? ""),
+    queryFn: () =>
+      unwrap(
+        api.GET("/subjects/{subject_id}/answers/{question_id}/evidence", {
+          params: { path: { subject_id: target?.subjectId ?? "", question_id: target?.questionId ?? "" } },
+        }),
+      ),
+    enabled: target !== null,
+  });
+
+export const useMonitorPage = (id: string) =>
+  useQuery({
+    queryKey: keys.monitorPage(id),
+    queryFn: () =>
+      unwrap(api.GET("/subjects/{subject_id}/page", { params: { path: { subject_id: id } } })),
+  });
+
+/** Subjects whose name or an alias matches `text`, best first. */
+export const searchOptions = (text: string) =>
+  queryOptions({
+    queryKey: keys.search(text.trim().toLowerCase()),
+    queryFn: () => unwrap(api.GET("/search", { params: { query: { q: text.trim() } } })),
+    staleTime: Infinity,
+  });
+
+/** Live search results while typing; idle for blank text. */
+export const useSearch = (text: string) =>
+  useQuery({ ...searchOptions(text), enabled: text.trim().length > 0, placeholderData: keepPreviousData });
 
 /**
  * One widget's data from the latest run, saved or not. The key leaves out id, order and size, so
@@ -192,6 +227,43 @@ export function useMarkReviewed() {
   return useMutation({
     mutationFn: (subjectIds: string[]) =>
       unwrap(api.POST("/reviews", { body: { subject_ids: subjectIds } })),
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.widgetData }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: keys.widgetData }),
+        client.invalidateQueries({ queryKey: ["monitor-page"] }),
+      ]),
+  });
+}
+
+/** Notes hang off a subject (monitor pages) or a development (the evidence drawer). */
+export type NoteTarget = { subject_id: string } | { development_id: string };
+
+function invalidateNotes(client: QueryClient) {
+  return Promise.all([
+    client.invalidateQueries({ queryKey: ["monitor-page"] }),
+    client.invalidateQueries({ queryKey: ["development"] }),
+    client.invalidateQueries({ queryKey: ["answer-evidence"] }),
+  ]);
+}
+
+export function useAddNote() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ target, text }: { target: NoteTarget; text: string }) =>
+      unwrap(api.POST("/notes", { body: { ...target, text } })),
+    onSuccess: () => invalidateNotes(client),
+  });
+}
+
+export function useDeleteNote() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (noteId: number) => {
+      const { error, response } = await api.DELETE("/notes/{note_id}", {
+        params: { path: { note_id: noteId } },
+      });
+      if (error !== undefined || !response.ok) throw new ApiError(response.status, error);
+    },
+    onSuccess: () => invalidateNotes(client),
   });
 }

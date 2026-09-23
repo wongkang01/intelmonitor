@@ -124,6 +124,7 @@ class QuestionStateChange(BaseModel):
     from_state: State
     to_state: State
     summary: str
+    development_ids: list[str] = Field(description="The developments the new answer relies on")
 
 
 class WhatChanged(BaseModel):
@@ -252,6 +253,16 @@ class DevelopmentDetail(DevelopmentSummary):
     subject_confidence: list[SubjectConfidence]
     sources: list[EvidenceSource] = Field(description="Primary sources first, then earliest")
     notes: list[Note]
+
+
+class AnswerEvidence(BaseModel):
+    """Everything behind one standing question answer: the answer and the developments it
+    relies on, each with its sources."""
+
+    subject: SubjectRef
+    run: RunRef
+    answer: QuestionAnswerView
+    developments: list[DevelopmentDetail] = Field(description="In the order the answer cites them")
 
 
 class DocumentDetail(BaseModel):

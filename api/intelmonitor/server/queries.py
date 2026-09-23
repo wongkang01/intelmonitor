@@ -368,6 +368,7 @@ class Queries:
                             from_state=a.change.previous_state,
                             to_state=a.state,
                             summary=a.summary,
+                            development_ids=a.development_ids,
                         )
                     )
         question_changes.sort(key=lambda c: STATE_RANK[c.to_state])

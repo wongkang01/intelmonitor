@@ -18,6 +18,7 @@ import {
 import { monitorHref, setEntities } from "@/lib/widgets";
 import { PlusIcon, XIcon } from "@/components/ui/icons";
 import { useEvidenceHref } from "@/components/shell/Evidence";
+import { SubjectLink } from "@/components/shell/SubjectLink";
 
 import { DevelopmentRow, Head, StateBadge, stateText } from "./parts";
 
@@ -56,7 +57,7 @@ function SinceBody({ data, widget, href }: BodyProps & { data: DataOf<"since"> }
     wc.updated_count ? `${wc.updated_count} updated` : null,
     plural(wc.question_changes.length, "answer") + " changed",
   ].filter(Boolean);
-  const meta = data.scope.length === 1 ? data.scope[0].name : `Run of ${shortDate(data.run.as_of)}`;
+  const meta = data.scope.length === 1 ? <SubjectLink subject={data.scope[0]} /> : `Run of ${shortDate(data.run.as_of)}`;
   return (
     <>
       <Head title="Since your last review" href={href} meta={meta} />
@@ -94,7 +95,6 @@ function QuestionBody({ data, widget, href }: BodyProps & { data: DataOf<"questi
   const a = data.answer;
   const evidence = useEvidenceHref();
   const small = widget.size === "S";
-  const first = a.development_ids[0];
   return (
     <>
       <Head title={`${a.label} · ${data.subject.name}`} href={href}>
@@ -107,8 +107,8 @@ function QuestionBody({ data, widget, href }: BodyProps & { data: DataOf<"questi
         {a.summary}
       </p>
       <span className="spacer" />
-      {first ? (
-        <Link href={evidence(first)} className="link" scroll={false}>
+      {a.development_ids.length > 0 ? (
+        <Link href={evidence.answer(data.subject.id, a.question_id)} className="link" scroll={false}>
           See evidence
         </Link>
       ) : (
@@ -121,6 +121,7 @@ function QuestionBody({ data, widget, href }: BodyProps & { data: DataOf<"questi
 const SEVERITY = { needs_attention: 0, watch: 1, new: 2, stable: 3 } as const;
 
 function SummaryBody({ data, widget, href }: BodyProps & { data: DataOf<"summary"> }) {
+  const evidence = useEvidenceHref();
   const large = widget.size === "L";
   // Most severe first; a medium widget shows the first six.
   const answers = [...data.answers].sort((x, y) => SEVERITY[x.state] - SEVERITY[y.state]);
@@ -131,18 +132,40 @@ function SummaryBody({ data, widget, href }: BodyProps & { data: DataOf<"summary
       <Head
         title="Standing questions"
         href={href}
-        meta={hidden > 0 ? `${data.subject.name}, ${hidden} more` : data.subject.name}
+        meta={
+          <>
+            <SubjectLink subject={data.subject} />
+            {hidden > 0 && `, ${hidden} more`}
+          </>
+        }
       />
       <div className="qgrid">
         {shown.map((a) => {
           const tone = STATE_TONE[a.state];
-          return (
-            <div key={a.question_id} className={`q ${tone === "watch" || tone === "attn" ? tone : ""}`}>
+          const className = `q ${tone === "watch" || tone === "attn" ? tone : ""}`;
+          const cell = (
+            <>
               <span>{a.label}</span>
               <b className={`c-${tone}`} title={stateText(a)}>
                 {stateText(a)}
               </b>
               {large && <p style={{ WebkitLineClamp: 2 }}>{a.summary}</p>}
+            </>
+          );
+          // Answers with sources open their evidence; the rest are plain cells.
+          return a.development_ids.length > 0 ? (
+            <Link
+              key={a.question_id}
+              href={evidence.answer(data.subject.id, a.question_id)}
+              scroll={false}
+              className={className}
+              aria-label={`${a.label}: ${stateText(a)}. See evidence`}
+            >
+              {cell}
+            </Link>
+          ) : (
+            <div key={a.question_id} className={className}>
+              {cell}
             </div>
           );
         })}
@@ -186,7 +209,7 @@ function DirectionBody({ data, widget, href }: BodyProps & { data: DataOf<"direc
   const first = data.weeks[0];
   return (
     <>
-      <Head title="Direction of travel" href={href} meta={data.subject.name} />
+      <Head title="Direction of travel" href={href} meta={<SubjectLink subject={data.subject} />} />
       <span className="big">{trend.word}</span>
       <svg
         className="spark"
@@ -221,15 +244,15 @@ function UpcomingBody({ data, widget, href }: BodyProps & { data: DataOf<"upcomi
   if (!next)
     return (
       <>
-        <Head title="Upcoming" href={href} meta={data.subject.name} />
+        <Head title="Upcoming" href={href} meta={<SubjectLink subject={data.subject} />} />
         <p className="muted">No dates in the next 90 days.</p>
       </>
     );
   if (widget.size === "S")
     return (
       <>
-        <Head title="Upcoming" href={href} meta={data.subject.name} />
-        <Link href={evidence(next.development_id)} scroll={false} style={{ color: "inherit", display: "contents" }}>
+        <Head title="Upcoming" href={href} meta={<SubjectLink subject={data.subject} />} />
+        <Link href={evidence.development(next.development_id)} scroll={false} style={{ color: "inherit", display: "contents" }}>
           <span className="big" style={{ fontSize: 28 }}>
             {shortDate(next.date)}
           </span>
@@ -246,11 +269,16 @@ function UpcomingBody({ data, widget, href }: BodyProps & { data: DataOf<"upcomi
       <Head
         title="Upcoming"
         href={href}
-        meta={data.items.length > 2 ? `${data.subject.name}, ${data.items.length} dates` : data.subject.name}
+        meta={
+          <>
+            <SubjectLink subject={data.subject} />
+            {data.items.length > 2 && `, ${data.items.length} dates`}
+          </>
+        }
       />
       <div className="rows">
         {data.items.slice(0, 2).map((item) => (
-          <Link key={`${item.development_id}-${item.date}`} href={evidence(item.development_id)} className="row" scroll={false}>
+          <Link key={`${item.development_id}-${item.date}`} href={evidence.development(item.development_id)} className="row" scroll={false}>
             <span className="date">{shortDate(item.date)}</span>
             <span className="tx">
               <b>{item.label}</b>

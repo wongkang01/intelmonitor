@@ -131,6 +131,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/subjects/{subject_id}/answers/{question_id}/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Answer Evidence
+         * @description One answer in the latest run with the developments and sources it relies on.
+         */
+        get: operations["get_answer_evidence"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/documents/{document_id}": {
         parameters: {
             query?: never;
@@ -493,6 +513,21 @@ export interface components {
             previous_state: ("stable" | "watch" | "needs_attention" | "new") | null;
             /** Previous Summary */
             previous_summary: string | null;
+        };
+        /**
+         * AnswerEvidence
+         * @description Everything behind one standing question answer: the answer and the developments it
+         *     relies on, each with its sources.
+         */
+        AnswerEvidence: {
+            subject: components["schemas"]["SubjectRef"];
+            run: components["schemas"]["RunRef"];
+            answer: components["schemas"]["QuestionAnswerView"];
+            /**
+             * Developments
+             * @description In the order the answer cites them
+             */
+            developments: components["schemas"]["DevelopmentDetail"][];
         };
         /**
          * AssistantMessage
@@ -1357,6 +1392,11 @@ export interface components {
             to_state: "stable" | "watch" | "needs_attention" | "new";
             /** Summary */
             summary: string;
+            /**
+             * Development Ids
+             * @description The developments the new answer relies on
+             */
+            development_ids: string[];
         };
         /** QuestionWidget */
         QuestionWidget: {
@@ -2304,6 +2344,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DevelopmentDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_answer_evidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: string;
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerEvidence"];
                 };
             };
             /** @description Validation Error */

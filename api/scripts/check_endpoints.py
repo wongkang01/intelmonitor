@@ -153,6 +153,15 @@ def check_subject(c: Check, sid: str) -> dict[str, int]:
     need(devs, f"{sid}: no developments")
     check_evidence(c, devs[0]["id"])
 
+    cited = next(q for q in page["questions"] if q["development_ids"])
+    evidence = c.get(f"/subjects/{sid}/answers/{cited['question_id']}/evidence")
+    need(evidence["answer"]["summary"] == cited["summary"], f"{sid}: answer evidence")
+    need(
+        [d["id"] for d in evidence["developments"]] == cited["development_ids"],
+        f"{sid}: answer evidence developments",
+    )
+    check_evidence(c, cited["development_ids"][0])
+
     for w in widgets_for(sid, kind, page):
         data = c.call("POST", "/widgets/data", json={"widget": w, "dashboard_subject_ids": [sid]})
         check_widget(data)

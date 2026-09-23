@@ -287,6 +287,55 @@
         }
       }
     },
+    "/subjects/{subject_id}/answers/{question_id}/evidence": {
+      "get": {
+        "summary": "Get Answer Evidence",
+        "description": "One answer in the latest run with the developments and sources it relies on.",
+        "operationId": "get_answer_evidence",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerEvidence"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/documents/{document_id}": {
       "get": {
         "summary": "Get Document",
@@ -1463,6 +1512,36 @@
           "previous_summary"
         ],
         "title": "AnswerChange"
+      },
+      "AnswerEvidence": {
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "answer": {
+            "$ref": "#/components/schemas/QuestionAnswerView"
+          },
+          "developments": {
+            "items": {
+              "$ref": "#/components/schemas/DevelopmentDetail"
+            },
+            "type": "array",
+            "title": "Developments",
+            "description": "In the order the answer cites them"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "run",
+          "answer",
+          "developments"
+        ],
+        "title": "AnswerEvidence",
+        "description": "Everything behind one standing question answer: the answer and the developments it\nrelies on, each with its sources."
       },
       "AssistantMessage": {
         "properties": {
@@ -3722,6 +3801,14 @@
           "summary": {
             "type": "string",
             "title": "Summary"
+          },
+          "development_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Development Ids",
+            "description": "The developments the new answer relies on"
           }
         },
         "type": "object",
@@ -3732,7 +3819,8 @@
           "custom",
           "from_state",
           "to_state",
-          "summary"
+          "summary",
+          "development_ids"
         ],
         "title": "QuestionStateChange"
       },
