@@ -459,7 +459,8 @@ export interface paths {
         put?: never;
         /**
          * Generate
-         * @description AG-UI run for the New dashboard Generate tab. Phase 3 stub; see agent/generate.py.
+         * @description AG-UI run for the New dashboard Generate tab: the page sends the conversation and the
+         *     draft dashboard as state, and gets text, tool call and STATE_DELTA events back over SSE.
          */
         post: operations["generate"];
         delete?: never;

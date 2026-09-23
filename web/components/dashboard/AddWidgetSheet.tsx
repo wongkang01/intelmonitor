@@ -45,13 +45,15 @@ export function AddWidgetSheet({
   );
 }
 
-function Gallery({
+/** The gallery itself, also shown over the New dashboard Build preview. */
+export function Gallery({
   onClose,
   onAdd,
   initialSubjectId,
 }: {
   onClose: () => void;
-  onAdd: (widget: Widget) => void;
+  /** Gets the new widget and the subject it was added from. */
+  onAdd: (widget: Widget, subjectId: string) => void;
   initialSubjectId: string | null;
 }) {
   const subjects = useSubjects();
@@ -117,7 +119,13 @@ function Gallery({
   );
 }
 
-function Offers({ subject, onAdd }: { subject: Schema<"SubjectSummary">; onAdd: (widget: Widget) => void }) {
+function Offers({
+  subject,
+  onAdd,
+}: {
+  subject: Schema<"SubjectSummary">;
+  onAdd: (widget: Widget, subjectId: string) => void;
+}) {
   const catalog = useCatalog();
   const detail = useSubject(subject.id);
   const answers = useAnswers(subject.id);
@@ -174,7 +182,7 @@ function Offers({ subject, onAdd }: { subject: Schema<"SubjectSummary">; onAdd: 
                 className="btn primary sm"
                 disabled={!draft}
                 aria-label={`Add ${info?.name ?? "widget"}`}
-                onClick={() => draft && onAdd({ ...draft, id: newWidgetId() })}
+                onClick={() => draft && onAdd({ ...draft, id: newWidgetId() }, subject.id)}
               >
                 Add
               </button>

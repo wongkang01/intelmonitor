@@ -167,3 +167,18 @@ export function widgetHref(widget: Widget, dashboardSubjectIds: string[]): strin
 }
 
 export const monitorHref = (subjectId: string) => `/monitors/${subjectId}`;
+
+/** The subjects a set of widgets follows, in order: widget subjects, else watchlist entities. */
+export function subjectsUsed(widgets: Widget[]): string[] {
+  const subjects = widgets.flatMap((w) => settingsSubject(w) ?? []);
+  const ids = subjects.length ? subjects : widgets.flatMap((w) => (w.type === "watchlist" ? w.settings.entity_ids : []));
+  return [...new Set(ids)];
+}
+
+/** A dashboard name from subject names: "OCBC", "OCBC and DBS", "OCBC and 2 more". */
+export function defaultName(names: string[]): string {
+  if (names.length === 0) return "New dashboard";
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names[0]} and ${names.length - 1} more`;
+}

@@ -478,5 +478,6 @@ def data_sources(q: Q) -> DataSources:
 
 @app.post("/agent/generate", response_class=StreamingResponse)
 async def generate(run: RunAgentInput) -> StreamingResponse:
-    """AG-UI run for the New dashboard Generate tab. Phase 3 stub; see agent/generate.py."""
+    """AG-UI run for the New dashboard Generate tab: the page sends the conversation and the
+    draft dashboard as state, and gets text, tool call and STATE_DELTA events back over SSE."""
     return StreamingResponse(encode_events(run), media_type="text/event-stream")

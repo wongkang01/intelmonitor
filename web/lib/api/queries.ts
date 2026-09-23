@@ -214,6 +214,18 @@ export function useSaveDashboard(onError?: () => void) {
   );
 }
 
+/** Creates a dashboard from a spec; the sidebar list refetches to show it. */
+export function useCreateDashboard() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (spec: Schema<"DashboardSpec">) => unwrap(api.POST("/dashboards", { body: spec })),
+    onSuccess: (created) => {
+      client.setQueryData(keys.dashboard(created.id), created);
+      return client.invalidateQueries({ queryKey: keys.dashboards });
+    },
+  });
+}
+
 export function useSaveProfile() {
   const client = useQueryClient();
   return useMutation({

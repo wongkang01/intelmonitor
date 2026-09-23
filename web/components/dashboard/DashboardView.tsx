@@ -124,7 +124,7 @@ export function DashboardView({ id }: { id: string }) {
         dashboardSubjectIds={d.subject_ids}
         editing={editing}
         settingsFor={settingsFor}
-        highlight={highlight}
+        highlight={highlight ? [highlight] : []}
         onReorder={(ids) => {
           const byId = new Map(current().map((w) => [w.id, w]));
           commit(ids.flatMap((wid) => byId.get(wid) ?? []));

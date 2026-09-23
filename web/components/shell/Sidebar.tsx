@@ -10,6 +10,8 @@ import { TYPE_COLOR, TYPE_PLURAL } from "@/lib/format";
 import { monitorHref, type SubjectType } from "@/lib/widgets";
 import { BrandIcon, ChevronIcon, DashboardIcon, PlusIcon } from "@/components/ui/icons";
 
+import { NewDashboard } from "@/components/dashboard/NewDashboard";
+
 import { ProfileMenu } from "./ProfileMenu";
 
 const TYPES: SubjectType[] = ["topic", "group", "entity"];
@@ -19,6 +21,7 @@ export function Sidebar() {
   const dashboards = useDashboards();
   const subjects = useSubjects();
   const [expanded, setExpanded] = useState<Set<SubjectType>>(new Set());
+  const [creating, setCreating] = useState(false);
 
   const toggle = (type: SubjectType) =>
     setExpanded((prev) => {
@@ -41,8 +44,7 @@ export function Sidebar() {
           <div className="navhead" id="nav-dashboards">
             Dashboards
           </div>
-          {/* Opens the New dashboard popup (phase 6). */}
-          <button type="button" className="navitem new">
+          <button type="button" className="navitem new" onClick={() => setCreating(true)}>
             <PlusIcon />
             New dashboard
           </button>
@@ -107,6 +109,7 @@ export function Sidebar() {
         </div>
       </div>
       <ProfileMenu />
+      <NewDashboard open={creating} onClose={() => setCreating(false)} />
     </nav>
   );
 }

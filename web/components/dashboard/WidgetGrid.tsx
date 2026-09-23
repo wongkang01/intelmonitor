@@ -89,7 +89,8 @@ export function WidgetGrid({
   dashboardSubjectIds: string[];
   editing: boolean;
   settingsFor: string | null;
-  highlight: string | null;
+  /** Widgets to outline, such as one just added; the last one is scrolled into view. */
+  highlight: readonly string[];
   onReorder: (ids: string[]) => void;
   onRemove: (id: string) => void;
   onChange: (widget: Widget) => void;
@@ -132,12 +133,13 @@ export function WidgetGrid({
   });
 
   // Bring a newly added widget into view.
+  const lastHighlight = highlight.at(-1);
   useEffect(() => {
-    if (!highlight) return;
+    if (!lastHighlight) return;
     grid.current
-      ?.querySelector(`[data-widget-id="${highlight}"]`)
+      ?.querySelector(`[data-widget-id="${lastHighlight}"]`)
       ?.scrollIntoView({ block: "nearest", behavior: reducedMotion() ? "auto" : "smooth" });
-  }, [highlight]);
+  }, [lastHighlight]);
 
   const placeLifted = () => {
     const g = gesture.current;
@@ -293,7 +295,7 @@ export function WidgetGrid({
             editing={editing}
             settingsOpen={editing && settingsFor === w.id}
             dragging={drag?.id === w.id}
-            highlighted={highlight === w.id}
+            highlighted={highlight.includes(w.id)}
             onChange={onChange}
             onRemove={() => onRemove(w.id)}
             onCloseSettings={() => onSettings(null)}

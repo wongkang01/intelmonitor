@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from intelmonitor.config import get_settings
 
 
-def _scrub_parent_env() -> None:
+def scrub_parent_env() -> None:
     """Keep the SDK's CLI subprocess from inheriting a parent Claude Code session or an empty
     API key, either of which stops it from running on the user's Claude login."""
     for key in list(os.environ):
@@ -32,7 +32,7 @@ async def ask_claude[T: BaseModel](
     prompt: str, schema: type[T], system: str | None = None
 ) -> ClaudeReply[T]:
     """Run one tool-free Claude turn and validate its structured output against `schema`."""
-    _scrub_parent_env()
+    scrub_parent_env()
     options = ClaudeAgentOptions(
         model=get_settings().anthropic_model,
         system_prompt=system,

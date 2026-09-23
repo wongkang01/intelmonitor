@@ -2,7 +2,8 @@
 returns data. Writes artifacts/api-check/<timestamp>/results.json.
 
 Usage (from api/): uv run python scripts/check_endpoints.py [--base https://intelmonitor.api.localhost]
-The custom question check makes Claude and Jev calls the first time; reruns hit the cache.
+The custom question check makes Claude and Jev calls the first time; reruns hit the cache. The
+AG-UI check runs the Generate agent, one Claude session.
 """
 
 import argparse
@@ -288,7 +289,7 @@ def check_profile_menu(c: Check) -> None:
     c.call("PUT", "/profile", json=profile)
 
 
-def check_agent(c: Check) -> None:
+def check_agent(c: Check) -> str:
     body: dict[str, object] = {
         "threadId": "check",
         "runId": "check-1",
@@ -303,7 +304,9 @@ def check_agent(c: Check) -> None:
         json.loads(line[6:])["type"] for line in text.splitlines() if line.startswith("data: ")
     ]
     need(events[0] == "RUN_STARTED" and events[-1] == "RUN_FINISHED", f"AG-UI events {events}")
-    need("TEXT_MESSAGE_CONTENT" in events, "AG-UI text message")
+    for kind in ("TEXT_MESSAGE_CONTENT", "TOOL_CALL_START", "STATE_DELTA"):
+        need(kind in events, f"AG-UI {kind}")
+    return f"{events.count('STATE_DELTA')} state deltas"
 
 
 def main() -> int:
@@ -321,7 +324,7 @@ def main() -> int:
         ("analyst actions", lambda: check_actions(c)),
         ("custom questions", lambda: check_custom_questions(c)),
         ("profile menu", lambda: check_profile_menu(c)),
-        ("AG-UI generate stub", lambda: check_agent(c)),
+        ("AG-UI generate", lambda: check_agent(c)),
     ]
     outcomes: list[dict[str, object]] = []
     for name, step in steps:

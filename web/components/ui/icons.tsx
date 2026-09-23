@@ -88,3 +88,25 @@ export const XIcon = () => (
     <path d="M3 3l6 6M9 3l-6 6" stroke="#6E6E76" strokeWidth="1.8" strokeLinecap="round" />
   </svg>
 );
+
+/** The AI sparkle that marks Generate. `twin` adds the small second star. */
+export const SparkleIcon = ({ size = 14, twin = false }: { size?: number; twin?: boolean }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
+    <path
+      d="M8 1.5c.4 3.3 1.9 5.1 5.5 6.5-3.6 1.4-5.1 3.2-5.5 6.5-.4-3.3-1.9-5.1-5.5-6.5 3.6-1.4 5.1-3.2 5.5-6.5Z"
+      fill="#6B4FD8"
+    />
+    {twin && (
+      <path
+        d="M13 1.2c.15 1.1.6 1.7 1.8 2.1-1.2.4-1.65 1-1.8 2.1-.15-1.1-.6-1.7-1.8-2.1 1.2-.4 1.65-1 1.8-2.1Z"
+        fill="#6B4FD8"
+      />
+    )}
+  </svg>
+);
+
+export const SendIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M8 13V3M3.5 7.5 8 3l4.5 4.5" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
