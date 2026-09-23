@@ -1,0 +1,368 @@
+/* Modal sheets, dialogs, the widget gallery and the evidence drawer. */
+dialog.modal {
+  padding: 0;
+  border: 0;
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 24px 80px rgba(18, 22, 38, 0.28);
+  overflow: clip;
+}
+dialog.modal[open] {
+  display: flex;
+  flex-direction: column;
+  animation: sheet-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+dialog.modal::backdrop {
+  background: rgba(28, 28, 30, 0.28);
+}
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+}
+dialog.sheet {
+  width: 80vw;
+  height: 80vh;
+  min-width: 900px;
+  max-width: 1400px;
+  border-radius: 28px;
+}
+dialog.panel {
+  width: 560px;
+  max-width: calc(100vw - 48px);
+  max-height: 80vh;
+  border-radius: 22px;
+}
+.sheet-head {
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px 0 28px;
+  border-bottom: 1px solid var(--line);
+}
+.sheet-head h2 {
+  margin: 0;
+  flex-grow: 1;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.close {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 22px;
+  background: var(--chip);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.close:hover {
+  background: #e6e6eb;
+}
+.panel-body {
+  padding: 20px 28px 24px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.panel-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0 28px 24px;
+}
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.form-field input,
+.form-field select {
+  height: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--field2);
+  padding: 0 14px;
+  font-size: 15px;
+  color: var(--ink);
+  font-weight: 400;
+}
+.form-field input:focus-visible,
+.form-field select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(10, 100, 216, 0.35);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.table th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+  padding: 0 8px 8px 0;
+}
+.table td {
+  padding: 9px 8px 9px 0;
+  border-top: 1px solid var(--line);
+  white-space: nowrap;
+}
+.table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.keys {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px 16px;
+  align-items: center;
+  margin: 0;
+  font-size: 14px;
+}
+.keys dt {
+  justify-self: start;
+}
+.keys dd {
+  margin: 0;
+}
+kbd {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--chip);
+}
+
+/* Add widget gallery */
+.gsheet-body {
+  flex-grow: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+}
+.subjects {
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 22px 12px 16px 18px;
+  gap: 8px;
+}
+.subjects .search {
+  width: 100%;
+  height: 38px;
+}
+.subjects .list {
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-height: 0;
+  flex-grow: 1;
+}
+.groupname {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+  padding: 10px 10px 4px;
+}
+.subj {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  flex-shrink: 0;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 14px;
+  text-align: left;
+  width: 100%;
+}
+.subj > span:nth-child(2) {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.subj:hover {
+  background: var(--bg);
+}
+.subj[aria-current="true"] {
+  background: var(--chip);
+  font-weight: 600;
+}
+.subj .meta {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--new);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.gallery {
+  overflow: auto;
+  padding: 18px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-height: 0;
+}
+.gallery-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gallery-head h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.gcards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 28px;
+}
+.gcard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.gcard-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.gcard .desc {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--ink2);
+  margin-top: -6px;
+}
+.gprev {
+  background: var(--bg);
+  border-radius: 18px;
+  padding: 14px;
+}
+.gprev .grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  pointer-events: none;
+}
+.gprev .fit {
+  position: relative;
+  overflow: clip;
+}
+.gprev .scaler {
+  transform-origin: top left;
+}
+.gcard-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gcard-bottom .grow {
+  flex-grow: 1;
+}
+
+/* Evidence drawer */
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 45;
+  width: 520px;
+  max-width: 100vw;
+  box-sizing: border-box;
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+  display: flex;
+  flex-direction: column;
+  animation: drawer-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes drawer-in {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+}
+.drawer .sheet-head {
+  padding: 0 16px 0 24px;
+}
+.drawer .sheet-head h2 {
+  font-size: 17px;
+}
+.drawer-body {
+  flex-grow: 1;
+  overflow: auto;
+  padding: 20px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.drawer-body h3 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.drawer-body h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.source {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--bg);
+}
+.source a {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 19px;
+}
+.source blockquote {
+  margin: 0;
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--ink);
+}
+.source mark {
+  background: #fff1b8;
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+/* Headings that take focus when their drawer opens need no ring. */
+h2[tabindex="-1"]:focus {
+  outline: none;
+}

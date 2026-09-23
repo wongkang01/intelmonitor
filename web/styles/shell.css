@@ -1,0 +1,354 @@
+/* App shell: sidebar, profile menu, top bar, page head. Values from mocks/new-dashboard.html. */
+.app {
+  min-width: 1024px;
+  height: 100vh;
+  display: flex;
+  position: relative;
+}
+
+nav.side {
+  width: 248px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 20px 14px 14px;
+  background: var(--sidebar);
+  border-right: 1px solid #dcdce2;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.side-scroll {
+  flex-grow: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin: -4px -6px;
+  padding: 4px 6px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.brand i {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.navsec {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.navhead {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+  padding: 0 10px 6px;
+}
+.navitem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 14px;
+  text-align: left;
+  width: 100%;
+  min-width: 0;
+}
+.navitem > span:not(.dot):not(.count) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.navitem:hover {
+  background: #e2e2e8;
+}
+.navitem[aria-current="page"] {
+  background: #dcdce3;
+  font-weight: 600;
+}
+.navitem .count {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--ink2);
+}
+.navitem.new {
+  color: var(--accent);
+  font-weight: 600;
+}
+.navitem .chev {
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+.navitem[aria-expanded="true"] .chev {
+  transform: rotate(90deg);
+}
+.navitem.sub {
+  height: 32px;
+  padding-left: 28px;
+  font-size: 13px;
+}
+.navitem.sub .count {
+  font-size: 12px;
+  color: var(--new);
+  font-weight: 600;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.profile-wrap {
+  margin-top: auto;
+  position: relative;
+}
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 48px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+}
+.profile:hover,
+.profile[aria-expanded="true"] {
+  background: #e2e2e8;
+}
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #3a3a40;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.profile .who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex-grow: 1;
+}
+.profile .who b {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.profile .who span {
+  font-size: 12px;
+  color: var(--ink2);
+}
+.menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 56px;
+  z-index: 30;
+  padding: 6px;
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: var(--shadow-pop);
+  display: flex;
+  flex-direction: column;
+  animation: menu-in 0.14s ease-out;
+}
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  font-size: 14px;
+  text-align: left;
+}
+.menu button:hover,
+.menu button:focus-visible {
+  background: var(--chip);
+}
+.menu .kbd {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink2);
+}
+
+main.main {
+  flex-grow: 1;
+  min-width: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+.topbar {
+  height: 72px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 36px;
+}
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 560px;
+  max-width: 100%;
+  height: 42px;
+  box-sizing: border-box;
+  padding: 0 12px 0 14px;
+  background: var(--field);
+  border-radius: 12px;
+}
+.search:focus-within {
+  box-shadow: 0 0 0 3px rgba(10, 100, 216, 0.35);
+}
+.search input {
+  flex-grow: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-size: 15px;
+  outline: none;
+}
+.search input::placeholder {
+  color: #5f5f67;
+}
+.search input:focus-visible {
+  outline: none;
+}
+.kbdchip {
+  font-size: 12px;
+  color: var(--ink2);
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.pagehead {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 4px 36px 20px;
+}
+.pagehead .grow {
+  flex-grow: 1;
+  min-width: 0;
+}
+.pagehead h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 700;
+  letter-spacing: -0.022em;
+}
+.pagehead p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--ink2);
+}
+.pill-btn {
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(18, 22, 38, 0.08);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.pill-btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+.pill-btn.primary:hover {
+  background: var(--accent-hover);
+}
+.page-message {
+  padding: 0 36px;
+  color: var(--ink2);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 14px;
+  padding: 8px 8px 8px 18px;
+  min-height: 44px;
+  box-sizing: border-box;
+  border-radius: 14px;
+  box-shadow: var(--shadow-pop);
+  animation: toast-in 0.2s ease-out;
+}
+.toast:not(:has(button)) {
+  padding-right: 18px;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+.toast button {
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+.toast button:hover {
+  background: rgba(255, 255, 255, 0.22);
+}

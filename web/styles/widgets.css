@@ -1,0 +1,574 @@
+/* Widget grid and widget bodies. Values from mocks/new-dashboard.html. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 170px;
+  grid-auto-flow: dense;
+  gap: 20px;
+}
+.grid.dash-grid {
+  padding: 0 36px 36px;
+}
+
+.w {
+  position: relative;
+  box-sizing: border-box;
+  background: var(--surface);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  min-width: 0;
+  transition: box-shadow 0.3s ease;
+}
+.w.S {
+  grid-column: span 1;
+}
+.w.M {
+  grid-column: span 2;
+}
+.w.L {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+.w.tappable {
+  cursor: pointer;
+}
+.w.changed {
+  box-shadow:
+    0 0 0 2px var(--accent),
+    var(--shadow);
+}
+.w.editable {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.w.dragging {
+  opacity: 0.35;
+}
+.w.lifted {
+  position: fixed;
+  z-index: 70;
+  pointer-events: none;
+  cursor: grabbing;
+  box-shadow: var(--shadow-pop);
+  transform: scale(1.02);
+}
+.w.enter {
+  animation: rise 0.28s ease-out both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* A widget's content. The face flips to settings in edit mode. */
+.face {
+  container-type: inline-size;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.w.L .face {
+  padding: 20px 22px;
+}
+.face.flip {
+  animation: flip 0.26s ease-out;
+}
+@keyframes flip {
+  from {
+    opacity: 0.3;
+    transform: perspective(900px) rotateY(-80deg);
+  }
+}
+.editable .face .wh {
+  padding-left: 26px;
+}
+
+.wh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 20px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+.wt {
+  flex-shrink: 0;
+  max-width: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+a.wt:hover {
+  color: var(--ink);
+}
+.wm {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+  min-width: 0;
+}
+.wh .wt + .tag {
+  flex-shrink: 0;
+}
+
+.minus {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+.minus span {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #6e6e73;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.minus:hover span {
+  background: #48484d;
+}
+
+.hero {
+  margin: 0;
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+}
+.hero.one-line {
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hero.sm {
+  font-size: 18px;
+  line-height: 23px;
+}
+.rows {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.rows.scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  min-width: 0;
+  color: var(--ink);
+}
+.row.tight {
+  padding: 7px 0;
+}
+a.row:hover b {
+  color: var(--accent);
+}
+.row .tx {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex-grow: 1;
+}
+.row .tx b {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row .tx span {
+  font-size: 12px;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row .when {
+  font-size: 12px;
+  color: var(--ink2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.row .date {
+  font-size: 18px;
+  font-weight: 700;
+  width: 64px;
+  flex-shrink: 0;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.b-new {
+  background: var(--new-bg);
+  color: var(--new);
+}
+.b-watch {
+  background: var(--watch-bg);
+  color: var(--watch);
+}
+.b-attn {
+  background: var(--attn-bg);
+  color: var(--attn);
+}
+.b-stable {
+  color: var(--stable);
+  padding-left: 0;
+  padding-right: 0;
+}
+.c-stable {
+  color: var(--stable);
+}
+.c-new {
+  color: var(--new);
+}
+.c-watch {
+  color: var(--watch);
+}
+.c-attn {
+  color: var(--attn);
+}
+
+.qgrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  min-height: 0;
+}
+.q {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+}
+.q span {
+  font-size: 12px;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.q b {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.q.watch {
+  background: var(--watch-bg);
+}
+.q.attn {
+  background: var(--attn-bg);
+}
+.q p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.big {
+  font-size: 26px;
+  line-height: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.cap {
+  font-size: 12px;
+  color: var(--ink2);
+}
+.body-text {
+  flex-shrink: 0;
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* A small widget narrower than on a 1440 px screen: its state text may wrap, so keep one line of
+   summary to leave room for the evidence link. */
+@container (max-width: 200px) {
+  .body-text.summary {
+    -webkit-line-clamp: 1 !important;
+  }
+}
+.spacer {
+  flex-grow: 1;
+}
+.link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+}
+.link:disabled {
+  color: var(--ink2);
+  cursor: default;
+}
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.foot .cap {
+  margin-left: auto;
+}
+.ini {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--chip);
+  font-size: 11px;
+  font-weight: 600;
+  color: #3a3a40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.addfield {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: var(--field2);
+  flex-shrink: 0;
+}
+.addfield:focus-within {
+  box-shadow: 0 0 0 3px rgba(10, 100, 216, 0.35);
+}
+.addfield input {
+  border: 0;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  flex-grow: 1;
+  min-width: 0;
+}
+.addfield input:focus-visible {
+  outline: none;
+}
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  margin: -6px;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.icon-btn::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+.icon-btn:hover {
+  background: var(--chip);
+}
+.pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 4px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+}
+.pick:hover,
+.pick[aria-selected="true"] {
+  background: var(--bg);
+}
+.pick .cap {
+  margin-left: auto;
+}
+.tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.tag.topic {
+  background: var(--topic-bg);
+  color: #5236b8;
+}
+.tag.group {
+  background: var(--new-bg);
+  color: var(--new);
+}
+.tag.entity {
+  background: var(--chip);
+  color: #3a3a40;
+}
+.tag.sugg {
+  background: var(--topic-bg);
+  color: #5236b8;
+}
+.tag.custom {
+  background: var(--chip);
+  color: #3a3a40;
+}
+.muted {
+  color: var(--ink2);
+  font-size: 13px;
+}
+.spark {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Settings face */
+.face.settings,
+.w.L .face.settings {
+  padding: 14px 20px;
+  gap: 6px;
+  overflow: auto;
+}
+.settings label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.settings label span {
+  width: 56px;
+  flex-shrink: 0;
+}
+.settings select {
+  flex-grow: 1;
+  height: 30px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--field2);
+  padding: 0 8px;
+  font-size: 13px;
+  color: var(--ink);
+  min-width: 0;
+}
+.seg {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--field);
+}
+.seg button {
+  height: 32px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink2);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.seg button[aria-pressed="true"],
+.seg button[aria-selected="true"] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(18, 22, 38, 0.12);
+}
+.seg.small button {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+.btn {
+  height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 22px;
+  background: var(--chip);
+  font-size: 14px;
+  font-weight: 600;
+}
+.btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn.primary:hover {
+  background: var(--accent-hover);
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.btn.sm {
+  height: 34px;
+  padding: 0 16px;
+  font-size: 13px;
+}
