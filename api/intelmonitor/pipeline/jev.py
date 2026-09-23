@@ -7,6 +7,9 @@ from typesafe_sdk import AsyncTypeSafeClient, Question, SystemOneResponse
 
 from intelmonitor.config import get_settings
 
+# The SDK default (10 s) is too short for a full screening fan-out over a long document.
+JEV_TIMEOUT_SECONDS = 180.0
+
 
 @lru_cache
 def jev_client() -> AsyncTypeSafeClient:
@@ -15,6 +18,7 @@ def jev_client() -> AsyncTypeSafeClient:
         api_key=settings.openrouter_api_key,
         base_url=settings.typesafe_base_url,
         model=settings.typesafe_default_model,
+        timeout=JEV_TIMEOUT_SECONDS,
     )
 
 

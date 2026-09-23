@@ -43,4 +43,4 @@ async def run_smoke() -> None:
         SmokeFinding,
         system="You extract findings for a financial supervisor's monitoring dashboard.",
     )
-    print("Claude:", claude.model_dump_json())
+    print("Claude:", claude.output.model_dump_json(), claude.model_version, claude.cost_usd)

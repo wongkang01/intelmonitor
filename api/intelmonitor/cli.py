@@ -37,14 +37,25 @@ def run(
     as_of: Annotated[str | None, typer.Option("--as-of", help="Run date, YYYY-MM-DD")] = None,
     both: Annotated[bool, typer.Option("--both", help="Compute Run 1 and Run 2")] = False,
 ) -> None:
-    """Compute one pipeline run, or both."""
-    typer.echo(f"run: not implemented yet (phase 2) as_of={as_of} both={both}")
+    """Compute one pipeline run, or both (Run 1 as of T0 - 7 days, then Run 2 as of T0)."""
+    from datetime import date
+
+    from intelmonitor.pipeline.run import compute_run, run_dates
+    from intelmonitor.store.db import connect
+
+    if both == (as_of is not None):
+        raise typer.BadParameter("pass either --as-of <date> or --both")
+    dates = list(run_dates(connect())) if both else [date.fromisoformat(str(as_of))]
+    for d in dates:
+        asyncio.run(compute_run(d, lambda line: typer.echo(line)))
 
 
 @app.command()
 def report() -> None:
     """Write the pipeline report to artifacts/pipeline/<timestamp>/report.md."""
-    typer.echo("report: not implemented yet (phase 2)")
+    from intelmonitor.pipeline.report import write_report
+
+    typer.echo(write_report())
 
 
 @app.command()

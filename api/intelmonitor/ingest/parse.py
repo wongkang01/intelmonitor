@@ -39,6 +39,30 @@ def response_text(response: CachedResponse) -> str:
     return html_to_text(response.text(), response.url)
 
 
+# Common English words of three or more letters; shorter ones ("as", "an") also occur reversed
+# in other languages ("sa", "na" in Tagalog) and would flip correct lines.
+_COMMON_WORDS = frozenset(
+    "the and that for with from its are was has have had will would this not their which said "
+    "also been were into more than over about after under while such other they there these "
+    "year per cent billion million bank banks growth rate rates market could should".split()
+)
+
+
+def unreverse_lines(text: str) -> str:
+    """Some news sites obfuscate paragraphs by writing them backwards. A line whose reversal reads
+    as far more English than the line itself is turned back around."""
+
+    def fix(line: str) -> str:
+        words = re.findall(r"[a-z']+", line.lower())
+        if len(words) < 6:
+            return line
+        forward = sum(w in _COMMON_WORDS for w in words)
+        backward = sum(w in _COMMON_WORDS for w in re.findall(r"[a-z']+", line[::-1].lower()))
+        return line[::-1] if backward >= 2 and backward > 2 * forward else line
+
+    return "\n".join(fix(line) for line in text.split("\n"))
+
+
 def canonical_url(url: str) -> str:
     """Scheme-less, www-less, lowercase host, no fragment, tracking params or trailing slash."""
     parts = urlsplit(url.strip())

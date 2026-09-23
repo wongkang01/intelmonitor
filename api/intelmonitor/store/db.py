@@ -29,14 +29,172 @@ CREATE TABLE IF NOT EXISTS source_documents (
     ingested_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS source_documents_published ON source_documents (published_at);
+
+-- Pipeline. Screening, tags and findings are per document and shared by every run; everything
+-- keyed by run_id is rebuilt for that run from the documents published on or before its date.
+
+CREATE TABLE IF NOT EXISTS runs (
+    id TEXT PRIMARY KEY,               -- the as-of date, YYYY-MM-DD
+    as_of TEXT NOT NULL,
+    previous_run_id TEXT,              -- the run this one is diffed against
+    status TEXT NOT NULL,              -- running, complete or failed
+    documents INTEGER NOT NULL,        -- documents published on or before as_of
+    started_at TEXT NOT NULL,
+    finished_at TEXT,
+    error TEXT
+);
+
+CREATE TABLE IF NOT EXISTS document_tags (
+    document_id TEXT PRIMARY KEY REFERENCES source_documents (id),
+    relevance REAL NOT NULL,           -- Jev noul
+    relevant INTEGER NOT NULL,         -- final decision after routing
+    relevance_source TEXT NOT NULL,    -- jev or claude
+    category TEXT NOT NULL,
+    category_confidence REAL NOT NULL,
+    stage TEXT,                        -- only for regulatory items
+    stage_confidence REAL,
+    adverse REAL NOT NULL,             -- Jev noul
+    direction TEXT NOT NULL,           -- positive, negative or neutral
+    direction_confidence REAL NOT NULL,
+    subject_scores TEXT NOT NULL,      -- JSON {subject_id: noul}
+    jurisdictions TEXT NOT NULL,       -- JSON {jurisdiction: noul}
+    screened_chars INTEGER NOT NULL,   -- characters of text Jev saw
+    truncated INTEGER NOT NULL         -- 1 when screened on title plus leading chunks
+);
+
+CREATE TABLE IF NOT EXISTS document_subjects (
+    document_id TEXT NOT NULL REFERENCES source_documents (id),
+    subject_id TEXT NOT NULL,
+    confidence REAL NOT NULL,          -- Jev noul, or 1.0 / 0.0 when Claude decided
+    source TEXT NOT NULL,              -- jev or claude
+    PRIMARY KEY (document_id, subject_id)
+);
+
+CREATE TABLE IF NOT EXISTS findings (
+    id TEXT PRIMARY KEY,               -- <document_id>-<index>
+    document_id TEXT NOT NULL REFERENCES source_documents (id),
+    statement TEXT NOT NULL,
+    category TEXT NOT NULL,
+    event_date TEXT,                   -- YYYY-MM-DD
+    subjects TEXT NOT NULL,            -- JSON [subject_id]
+    quotes TEXT NOT NULL,              -- JSON [{text, start, end}], offsets into the document text
+    dates TEXT NOT NULL                -- JSON [{date, label}] mentioned in the document
+);
+CREATE INDEX IF NOT EXISTS findings_document ON findings (document_id);
+
+CREATE TABLE IF NOT EXISTS developments (
+    run_id TEXT NOT NULL REFERENCES runs (id),
+    id TEXT NOT NULL,                  -- id of its earliest finding, stable across runs
+    title TEXT NOT NULL,
+    category TEXT NOT NULL,
+    stage TEXT,
+    event_date TEXT,
+    first_published TEXT NOT NULL,
+    last_published TEXT NOT NULL,
+    materiality_level INTEGER NOT NULL, -- 0 Trivial to 4 Critical
+    materiality_score REAL NOT NULL,    -- Jev expected score
+    materiality_confidence REAL NOT NULL,
+    needs_attention INTEGER NOT NULL,   -- materiality_level >= 3
+    adverse REAL NOT NULL,
+    direction TEXT NOT NULL,
+    PRIMARY KEY (run_id, id)
+);
+
+CREATE TABLE IF NOT EXISTS development_subjects (
+    run_id TEXT NOT NULL,
+    development_id TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    confidence REAL NOT NULL,
+    source TEXT NOT NULL,
+    PRIMARY KEY (run_id, development_id, subject_id)
+);
+
+CREATE TABLE IF NOT EXISTS development_sources (
+    run_id TEXT NOT NULL,
+    development_id TEXT NOT NULL,
+    finding_id TEXT NOT NULL REFERENCES findings (id),
+    document_id TEXT NOT NULL REFERENCES source_documents (id),
+    PRIMARY KEY (run_id, development_id, finding_id)
+);
+
+CREATE TABLE IF NOT EXISTS question_answers (
+    run_id TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    question_id TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    state TEXT NOT NULL,               -- stable, watch, needs_attention or new
+    new_count INTEGER NOT NULL,        -- items behind a "new" state
+    development_ids TEXT NOT NULL,     -- JSON [development_id]
+    PRIMARY KEY (run_id, subject_id, question_id)
+);
+
+CREATE TABLE IF NOT EXISTS upcoming_dates (
+    run_id TEXT NOT NULL,
+    development_id TEXT NOT NULL,
+    finding_id TEXT NOT NULL,
+    date TEXT NOT NULL,                -- YYYY-MM-DD, on or after the run date
+    label TEXT NOT NULL,
+    PRIMARY KEY (run_id, finding_id, date, label)
+);
+
+CREATE TABLE IF NOT EXISTS run_changes (
+    run_id TEXT NOT NULL,
+    base_run_id TEXT NOT NULL,
+    kind TEXT NOT NULL,                -- new_development, updated_development, question_state
+    subject_id TEXT,                   -- set for question_state
+    ref_id TEXT NOT NULL,              -- development id or question id
+    detail TEXT NOT NULL               -- JSON
+);
+CREATE INDEX IF NOT EXISTS run_changes_run ON run_changes (run_id, kind);
+
+CREATE TABLE IF NOT EXISTS graph_nodes (
+    run_id TEXT NOT NULL,
+    id TEXT NOT NULL,                  -- subject id, or dev:<development_id>
+    type TEXT NOT NULL,                -- topic, group, entity or development
+    label TEXT NOT NULL,
+    data TEXT NOT NULL,                -- JSON
+    PRIMARY KEY (run_id, id)
+);
+
+CREATE TABLE IF NOT EXISTS graph_edges (
+    run_id TEXT NOT NULL,
+    from_id TEXT NOT NULL,
+    to_id TEXT NOT NULL,
+    type TEXT NOT NULL,                -- MEMBER_OF, EXPOSED_TO or AFFECTS
+    source TEXT NOT NULL,              -- seed, jev or claude
+    confidence REAL NOT NULL,
+    PRIMARY KEY (run_id, from_id, to_id, type)
+);
+
+CREATE TABLE IF NOT EXISTS inference_records (
+    id INTEGER PRIMARY KEY,
+    run_id TEXT,                       -- the run that made the call
+    stage TEXT NOT NULL,               -- screen, route, extract, same_event, materiality, answer
+    engine TEXT NOT NULL,              -- jev or claude
+    model TEXT NOT NULL,               -- requested model
+    model_version TEXT,                -- model reported by the response
+    input_ref TEXT NOT NULL,           -- e.g. doc:<id>, pair:<a>|<b>, subject:<id>
+    input_hash TEXT NOT NULL,          -- sha256 of the full input; a cache hit skips the call
+    output TEXT,                       -- JSON
+    confidence REAL,
+    input_tokens INTEGER,
+    output_tokens INTEGER,
+    cost_usd REAL,
+    duration_ms INTEGER NOT NULL,
+    status TEXT NOT NULL,              -- ok, error, or refused (a usage-policy refusal)
+    error TEXT,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS inference_records_cache ON inference_records (stage, input_hash, status);
 """
 
 
 def connect(path: Path = DB_PATH) -> sqlite3.Connection:
     """Open the store and make sure the schema exists."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path)
+    conn = sqlite3.connect(path, timeout=30)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")  # the API reads while a pipeline run writes
     conn.executescript(SCHEMA)
     return conn
 

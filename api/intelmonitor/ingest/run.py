@@ -17,7 +17,13 @@ from intelmonitor.config import get_settings
 from intelmonitor.ingest.candidates import candidate_counts, normalize, subject_matchers
 from intelmonitor.ingest.http import CachedHttp, FetchError
 from intelmonitor.ingest.models import Listing, RawDocument, Window
-from intelmonitor.ingest.parse import canonical_url, content_hash, document_id, domain_of
+from intelmonitor.ingest.parse import (
+    canonical_url,
+    content_hash,
+    document_id,
+    domain_of,
+    unreverse_lines,
+)
 from intelmonitor.ingest.sources.official import fetch_listing, official_listings
 from intelmonitor.ingest.sources.search import (
     EXA_RESULTS_PER_QUERY,
@@ -163,6 +169,7 @@ def run_ingest(t0_override: date | None = None, log: Callable[[str], None] = pri
 
 def _store(conn: sqlite3.Connection, doc: RawDocument) -> bool:
     canonical = canonical_url(doc.url)
+    text = unreverse_lines(doc.text)
     published = doc.published_at
     if published.tzinfo is None:
         published = published.replace(tzinfo=UTC)
@@ -179,8 +186,8 @@ def _store(conn: sqlite3.Connection, doc: RawDocument) -> bool:
             domain=domain_of(doc.url),
             title=doc.title,
             published_at=published.astimezone(UTC),
-            text=doc.text,
-            content_hash=content_hash(doc.text),
+            text=text,
+            content_hash=content_hash(text),
             ingested_at=datetime.now(UTC),
         ),
     )
