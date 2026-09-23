@@ -1,18 +1,7 @@
-import Link from "next/link";
+import { GraphView } from "@/components/graph/GraphView";
 
-import { monitorHref } from "@/lib/widgets";
-
-// Graph view route, opened from a monitor page's Links section. Phase 7 fills it in.
+// Graph view route, opened from "Open graph view" in a monitor page's Links section.
 export default async function GraphPage({ params }: PageProps<"/monitors/[id]/graph">) {
   const { id } = await params;
-  return (
-    <div className="pagehead">
-      <div className="grow">
-        <h1>Graph view</h1>
-        <p>
-          The graph view is not built yet. <Link href={monitorHref(id)}>Back to the monitor page</Link>
-        </p>
-      </div>
-    </div>
-  );
+  return <GraphView key={id} id={id} />;
 }

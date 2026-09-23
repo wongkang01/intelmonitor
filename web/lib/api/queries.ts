@@ -12,6 +12,7 @@ import {
 import { useCallback } from "react";
 
 import { api, type Schema, type Widget, type WidgetData } from "./client";
+import type { operations } from "./schema";
 
 export class ApiError extends Error {
   constructor(
@@ -45,7 +46,11 @@ export const keys = {
   monitorPage: (id: string) => ["monitor-page", id],
   search: (text: string) => ["search", text],
   widgetData: ["widget-data"],
+  graph: (query: GraphQuery) => ["graph", query],
 } as const;
+
+/** Query parameters of GET /graph: center subject, hops (1 or 2) and optional filters. */
+export type GraphQuery = NonNullable<operations["get_graph"]["parameters"]["query"]>;
 
 export const useSubjects = () =>
   useQuery({ queryKey: keys.subjects, queryFn: () => unwrap(api.GET("/subjects")) });
@@ -112,6 +117,14 @@ export const useMonitorPage = (id: string) =>
     queryKey: keys.monitorPage(id),
     queryFn: () =>
       unwrap(api.GET("/subjects/{subject_id}/page", { params: { path: { subject_id: id } } })),
+  });
+
+/** The graph neighbourhood around a subject. Keeps the previous graph while filters refetch. */
+export const useGraph = (query: GraphQuery) =>
+  useQuery({
+    queryKey: keys.graph(query),
+    queryFn: () => unwrap(api.GET("/graph", { params: { query } })),
+    placeholderData: keepPreviousData,
   });
 
 /** Subjects whose name or an alias matches `text`, best first. */
