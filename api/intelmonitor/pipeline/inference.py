@@ -9,6 +9,7 @@ import sqlite3
 import time
 from collections.abc import Mapping
 from datetime import UTC, datetime
+from weakref import WeakKeyDictionary
 
 from pydantic import BaseModel, TypeAdapter
 from typesafe_sdk import Answer, Choice, ChoiceAnswer, Noul, NoulAnswer, Score, ScoreAnswer
@@ -69,18 +70,32 @@ def score(answers: JevAnswers, name: str) -> ScoreAnswer:
     return answer
 
 
+type _Limits = tuple[asyncio.Semaphore, asyncio.Semaphore]
+_limits: WeakKeyDictionary[asyncio.AbstractEventLoop, _Limits] = WeakKeyDictionary()
+
+
+def _engine_limits() -> _Limits:
+    """The (Jev, Claude) semaphores shared by every Inference on the running event loop, so
+    parallel API requests stay within the same caps as one pipeline run."""
+    loop = asyncio.get_running_loop()
+    if (limits := _limits.get(loop)) is None:
+        limits = _limits[loop] = (
+            asyncio.Semaphore(JEV_CONCURRENCY),
+            asyncio.Semaphore(CLAUDE_CONCURRENCY),
+        )
+    return limits
+
+
 def _hash(payload: object) -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
 
 class Inference:
-    """Model calls for one run. Concurrency is capped per engine across all callers."""
+    """Model calls for one run. Concurrency is capped per engine across all callers on the loop."""
 
     def __init__(self, conn: sqlite3.Connection, run_id: str | None) -> None:
         self.conn = conn
         self.run_id = run_id
-        self._jev_limit = asyncio.Semaphore(JEV_CONCURRENCY)
-        self._claude_limit = asyncio.Semaphore(CLAUDE_CONCURRENCY)
         self.calls = 0
         self.cache_hits = 0
 
@@ -104,7 +119,7 @@ class Inference:
         )
         if (cached := self._cached(stage, key)) is not None:
             return _ANSWERS.validate_json(cached)
-        async with self._jev_limit:
+        async with _engine_limits()[0]:
             started = time.monotonic()
             try:
                 response = await ask_jev(state, questions)
@@ -149,7 +164,7 @@ class Inference:
             return schema.model_validate_json(cached)
         if self._cached(stage, key, status="refused") is not None:
             raise ClaudeRefused(f"{stage} {input_ref}: refused earlier")
-        async with self._claude_limit:
+        async with _engine_limits()[1]:
             for attempt in range(1, _CLAUDE_ATTEMPTS + 1):
                 started = time.monotonic()
                 try:

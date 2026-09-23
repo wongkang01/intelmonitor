@@ -1,7 +1,9 @@
 """Step 8: custom standing questions. Claude turns what the user typed into a question config,
 then the answer job runs on demand over the stored corpus for every complete run, oldest first:
 Jev scores each document tagged to the subject inside the lookback ("Does this document help
-answer: ...?"), and Claude answers from the top matches, citing the run's developments."""
+answer: ...?"), and Claude answers from the top matches, citing the run's developments. When
+nothing in the lookback matches, the answer is Stable and cites the latest earlier matches, so a
+quiet question still shows where things stand."""
 
 import asyncio
 import json
@@ -19,6 +21,8 @@ from intelmonitor.pipeline.subjects import all_subjects
 DEFAULT_LOOKBACK_DAYS = 14
 MAX_LOOKBACK_DAYS = 60
 TOP_DOCUMENTS = 8
+# Earlier matches cited by a Stable answer, searched back to MAX_LOOKBACK_DAYS before the run.
+EARLIER_DOCUMENTS = 3
 MIN_MATCH = 0.5
 
 
@@ -85,19 +89,19 @@ class Candidate:
 
 
 def candidates(
-    conn: sqlite3.Connection, run_id: str, as_of: date, config: CustomConfig
+    conn: sqlite3.Connection, run_id: str, config: CustomConfig, after: date, until: date
 ) -> list[Candidate]:
-    """Documents in the lookback with findings tagged to the subject (or a group's members)
-    that belong to one of the run's developments."""
+    """Documents published after `after` and up to `until` with findings tagged to the subject
+    (or a group's members) that belong to one of the run's developments."""
     ids = scope(all_subjects()[config.subject_id])
-    since = as_of - timedelta(days=config.lookback_days)
     out: dict[str, Candidate] = {}
     for r in conn.execute(
         "SELECT f.statement, f.subjects, f.quotes, s.development_id, d.id, d.title, d.domain, "
         "substr(d.published_at, 1, 10) AS published FROM development_sources s "
         "JOIN findings f ON f.id = s.finding_id JOIN source_documents d ON d.id = s.document_id "
-        "WHERE s.run_id = ? AND substr(d.published_at, 1, 10) > ? ORDER BY d.published_at, f.id",
-        (run_id, since.isoformat()),
+        "WHERE s.run_id = ? AND substr(d.published_at, 1, 10) > ? "
+        "AND substr(d.published_at, 1, 10) <= ? ORDER BY d.published_at, f.id",
+        (run_id, after.isoformat(), until.isoformat()),
     ):
         if not ids & set(json.loads(r["subjects"])):
             continue
@@ -127,6 +131,15 @@ async def match(inf: Inference, question: str, c: Candidate) -> float:
     return noul(answers, "helps")
 
 
+async def best(
+    inf: Inference, question: str, found: list[Candidate], limit: int
+) -> list[Candidate]:
+    """The `limit` candidates Jev scores as most helpful, at least MIN_MATCH."""
+    scores = await asyncio.gather(*(match(inf, question, c) for c in found))
+    ranked = sorted(zip(scores, found, strict=True), key=lambda p: -p[0])
+    return [c for s, c in ranked if s >= MIN_MATCH][:limit]
+
+
 class CustomAnswer(BaseModel):
     summary: str
     state: State
@@ -140,7 +153,11 @@ ANSWER_SYSTEM = (
 
 
 def answer_prompt(
-    config: CustomConfig, as_of: date, top: list[Candidate], previous: tuple[str, str] | None
+    config: CustomConfig,
+    as_of: date,
+    top: list[Candidate],
+    earlier: list[Candidate],
+    previous: tuple[str, str] | None,
 ) -> str:
     subject = all_subjects()[config.subject_id]
 
@@ -150,22 +167,29 @@ def answer_prompt(
         devs = ", ".join(f"D:{i}" for i in sorted(c.development_ids))
         return f"- {c.published} {c.domain}: {c.title}\n  developments: {devs}\n{findings}"
 
-    docs = "\n".join(describe(c) for c in top)
     parts = [
         f"Run date: {as_of}. Subject: {subject.description}.",
         f"Question: {config.question}",
         f"Lookback: {config.lookback_days} days.",
         "",
-        "Best-matching documents:",
-        docs or "(none)",
+        "Best-matching documents in the lookback:",
+        "\n".join(describe(c) for c in top) or "(none)",
     ]
+    if earlier:
+        parts += [
+            "",
+            "Earlier matching documents, before the lookback. Nothing in the lookback bears on "
+            "the question, so the state is stable; say so and give the latest earlier position "
+            "with its date, citing its developments:",
+            "\n".join(describe(c) for c in earlier),
+        ]
     if previous:
         parts += ["", f"Answer at the previous run: {previous[0]}: {previous[1]}"]
     parts += [
         "",
         """Return:
-- summary: one line of at most 25 words, plain and specific. If the documents do not bear on
-  the question, say so briefly.
+- summary: one line of at most 25 words, plain and specific. If no document bears on the
+  question, say so briefly.
 - state, calm by default:
   - needs_attention: something could hurt a tracked subject or needs supervisory follow-up now.
   - watch: something adverse or uncertain is developing that could become material.
@@ -177,6 +201,16 @@ def answer_prompt(
     return "\n".join(parts)
 
 
+@dataclass(frozen=True)
+class RunAnswer:
+    run_id: str
+    summary: str
+    state: State
+    new_count: int
+    development_ids: list[str]
+    document_ids: list[str]
+
+
 async def answer_run(
     conn: sqlite3.Connection,
     question_id: str,
@@ -184,49 +218,72 @@ async def answer_run(
     as_of: date,
     config: CustomConfig,
     previous: tuple[str, str] | None,
-) -> tuple[str, str]:
-    """Answer one run and store it; returns (state, summary) for the next run's context."""
+) -> RunAnswer:
     inf = Inference(conn, run_id)
-    found = candidates(conn, run_id, as_of, config)
-    scores = await asyncio.gather(*(match(inf, config.question, c) for c in found))
-    ranked = sorted(zip(scores, found, strict=True), key=lambda p: -p[0])
-    top = [c for s, c in ranked if s >= MIN_MATCH][:TOP_DOCUMENTS]
+    since = as_of - timedelta(days=config.lookback_days)
+    found = candidates(conn, run_id, config, since, as_of)
+    top = await best(inf, config.question, found, TOP_DOCUMENTS)
+    earlier: list[Candidate] = []
+    if not top:
+        before = candidates(conn, run_id, config, as_of - timedelta(days=MAX_LOOKBACK_DAYS), since)
+        earlier = await best(inf, config.question, before, EARLIER_DOCUMENTS)
     out = await inf.claude(
         "custom_answer",
         f"question:{question_id}",
-        answer_prompt(config, as_of, top, previous),
+        answer_prompt(config, as_of, top, earlier, previous),
         CustomAnswer,
         ANSWER_SYSTEM,
     )
-    eligible = {i for c in top for i in c.development_ids}
+    recent = {i for c in top for i in c.development_ids}
+    eligible = recent | {i for c in earlier for i in c.development_ids}
     cited = [i for i in dict.fromkeys(d.removeprefix("D:") for d in out.development_ids)]
     cited = [i for i in cited if i in eligible]
-    conn.execute(
-        "INSERT OR REPLACE INTO custom_question_answers (question_id, run_id, summary, state, "
-        "new_count, development_ids, document_ids) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (
-            question_id,
-            run_id,
-            out.summary.strip(),
-            out.state,
-            len(cited) if out.state == "new" else 0,
-            json.dumps(cited),
-            json.dumps([c.document_id for c in top]),
-        ),
+    # Earlier documents are context only: with nothing in the lookback the answer is Stable.
+    state = out.state if top else "stable"
+    return RunAnswer(
+        run_id=run_id,
+        summary=out.summary.strip(),
+        state=state,
+        new_count=sum(i in recent for i in cited) if state == "new" else 0,
+        development_ids=cited,
+        document_ids=[c.document_id for c in top + earlier],
     )
-    conn.commit()
-    return out.state, out.summary
 
 
-async def answer_custom_question(
+async def answer_all_runs(
     conn: sqlite3.Connection, question_id: str, config: CustomConfig
-) -> None:
-    """Answer the question for every complete run, oldest first, replacing earlier answers."""
-    conn.execute("DELETE FROM custom_question_answers WHERE question_id = ?", (question_id,))
+) -> list[RunAnswer]:
+    """Answer the question for every complete run, oldest first. Nothing is written, so callers
+    store the answers in the same short transaction as the question itself."""
+    answers: list[RunAnswer] = []
     previous: tuple[str, str] | None = None
     for r in conn.execute(
         "SELECT id, as_of FROM runs WHERE status = 'complete' ORDER BY as_of"
     ).fetchall():
-        previous = await answer_run(
+        a = await answer_run(
             conn, question_id, r["id"], date.fromisoformat(r["as_of"]), config, previous
         )
+        answers.append(a)
+        previous = (a.state, a.summary)
+    return answers
+
+
+def store_answers(conn: sqlite3.Connection, question_id: str, answers: list[RunAnswer]) -> None:
+    """Replace the question's answers. Does not commit."""
+    conn.execute("DELETE FROM custom_question_answers WHERE question_id = ?", (question_id,))
+    conn.executemany(
+        "INSERT INTO custom_question_answers (question_id, run_id, summary, state, new_count, "
+        "development_ids, document_ids) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [
+            (
+                question_id,
+                a.run_id,
+                a.summary,
+                a.state,
+                a.new_count,
+                json.dumps(a.development_ids),
+                json.dumps(a.document_ids),
+            )
+            for a in answers
+        ],
+    )

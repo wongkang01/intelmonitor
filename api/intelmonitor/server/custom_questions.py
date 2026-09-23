@@ -12,8 +12,9 @@ from pydantic import BaseModel, Field
 from intelmonitor.pipeline.custom import (
     MAX_LOOKBACK_DAYS,
     CustomConfig,
-    answer_custom_question,
+    answer_all_runs,
     draft_config,
+    store_answers,
 )
 from intelmonitor.pipeline.inference import Inference
 from intelmonitor.server.models import (
@@ -169,10 +170,13 @@ def list_questions(q: Queries, subject_id: str | None, status: Status | None) ->
 
 
 async def create_draft(q: Queries, request: CustomQuestionRequest) -> CustomQuestion:
+    """Draft the config and answer every run, then store the draft and its answers together.
+    No transaction stays open across the model calls, so parallel drafts do not lock the store."""
     if kept_count(q.conn) >= MAX_CUSTOM_QUESTIONS:
         raise CapReachedError()
     config = await draft_config(Inference(q.conn, None), request.text, request.subject_id)
     question_id = f"{CUSTOM_PREFIX}{uuid.uuid4().hex[:10]}"
+    answers = await answer_all_runs(q.conn, question_id, config)
     at = now()
     q.conn.execute(
         "INSERT INTO custom_questions (id, subject_id, question, label, lookback_days, request, "
@@ -188,12 +192,8 @@ async def create_draft(q: Queries, request: CustomQuestionRequest) -> CustomQues
             at,
         ),
     )
+    store_answers(q.conn, question_id, answers)
     q.conn.commit()
-    try:
-        await answer_custom_question(q.conn, question_id, config)
-    except Exception:
-        delete(q.conn, question_id)
-        raise
     return view(q, question_id)
 
 
@@ -204,7 +204,8 @@ def keep(q: Queries, question_id: str) -> CustomQuestion:
 
 
 async def edit(q: Queries, question_id: str, change: CustomQuestionEdit) -> CustomQuestion:
-    """Apply the edit; a new wording or lookback answers the question again for every run."""
+    """Apply the edit; a new wording or lookback answers the question again for every run first,
+    and the edit and its answers are stored together."""
     r = _row(q.conn, question_id)
     config = CustomConfig(
         subject_id=r["subject_id"],
@@ -212,14 +213,18 @@ async def edit(q: Queries, question_id: str, change: CustomQuestionEdit) -> Cust
         label=change.label or r["label"],
         lookback_days=change.lookback_days or r["lookback_days"],
     )
+    answers = None
+    if config.question != r["question"] or config.lookback_days != r["lookback_days"]:
+        answers = await answer_all_runs(q.conn, question_id, config)
+        _row(q.conn, question_id)  # deleted while answering
     q.conn.execute(
         "UPDATE custom_questions SET question = ?, label = ?, lookback_days = ?, updated_at = ? "
         "WHERE id = ?",
         (config.question, config.label, config.lookback_days, now(), question_id),
     )
+    if answers is not None:
+        store_answers(q.conn, question_id, answers)
     q.conn.commit()
-    if config.question != r["question"] or config.lookback_days != r["lookback_days"]:
-        await answer_custom_question(q.conn, question_id, config)
     return view(q, question_id)
 
 
