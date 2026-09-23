@@ -194,6 +194,21 @@ They carry `classification: public` so the classification-based engine routing f
 - Target 300 to 600 documents after dedup.
 - Search queries are generated from `subjects.yaml` (name, aliases, topic keywords), not written by hand per subject.
 
+**MAS statistics APIs (after the POC).** Subscribed and tested, but out of POC scope (see Scope).
+Base URL is `MAS_API_BASE_URL` (`https://eservices.mas.gov.sg/apimg-gw`); each key goes in a `keyid` header.
+Paths are fixed per API and belong in code, not `.env`.
+All figures are system-wide aggregates for commercial banks in Singapore, not per bank.
+
+| Key variable | Table | Frequency | Path after the base URL |
+| --- | --- | --- | --- |
+| `MAS_EXCHANGE_RATES_API_KEY` | Exchange Rates, End of Period, Daily | Daily | `/server/monthly_statistical_bulletin_non610ora/exchange_rates_end_of_period_daily/views/exchange_rates_end_of_period_daily` |
+| `MAS_BANK_ASSET_QUALITY_API_KEY` | I.12A Commercial Banks, Non-Performing Loans by Sector | Quarterly | `/server/monthly_statistical_bulletin/table_i_12a_commercial_banks_non_performing_loans_by_sector_npl/views/table_i_12a_commercial_banks_non_performing_loans_by_sector_npl` |
+| `MAS_BANK_LIQUIDITY_API_KEY` | I.18 Commercial Banks, Non-Bank Loan to Deposit Ratios | Monthly | `/server/monthly_statistical_bulletin/table_i_18_commercial_banks_non_bank_loan_to_deposit_ratios_ltd/views/table_i_18_commercial_banks_non_bank_loan_to_deposit_ratios_ltd` |
+| `MAS_BANK_EXPOSURE_API_KEY` | I.5B Commercial Banks, Loans and Advances to Non-Residents by Industry | Monthly | `/server/monthly_statistical_bulletin/table_i_5b_commercial_banks_loans_and_advances_to_non_residents_by_industry/views/table_i_5b_commercial_banks_loans_and_advances_to_non_residents_by_industry` |
+
+Results come back oldest first, so recent data needs `$orderby` (for example `year DESC,month DESC`) with `$count`.
+The exchange rate API requires at least one filter, such as `end_of_day=YYYY-MM-DD`.
+
 **Parsing.** HTML goes through a readability extractor, PDFs through pymupdf.
 Documents are deduplicated by canonical URL and content hash.
 
