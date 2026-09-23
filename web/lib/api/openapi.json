@@ -1,0 +1,5756 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "IntelMonitor API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subjects": {
+      "get": {
+        "summary": "List Subjects",
+        "operationId": "list_subjects",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SubjectSummary"
+                  },
+                  "type": "array",
+                  "title": "Response List Subjects"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subjects/{subject_id}": {
+      "get": {
+        "summary": "Get Subject",
+        "operationId": "get_subject",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Subject Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubjectDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subjects/{subject_id}/page": {
+      "get": {
+        "summary": "Get Monitor Page",
+        "operationId": "get_monitor_page",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Subject Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "summary": "Search",
+        "description": "Subjects by name and alias: exact matches first, then prefixes, then word prefixes, then\nsubstrings.",
+        "operationId": "search",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchHit"
+                  },
+                  "title": "Response Search"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/developments": {
+      "get": {
+        "summary": "List Developments",
+        "description": "The latest run's developments in display order, optionally for some subjects (groups\ninclude their members) or only those new or updated since the previous run.",
+        "operationId": "list_developments",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "changed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Changed"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DevelopmentSummary"
+                  },
+                  "title": "Response List Developments"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/developments/{development_id}": {
+      "get": {
+        "summary": "Get Development",
+        "operationId": "get_development",
+        "parameters": [
+          {
+            "name": "development_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Development Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DevelopmentDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/{document_id}": {
+      "get": {
+        "summary": "Get Document",
+        "operationId": "get_document",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/graph": {
+      "get": {
+        "summary": "Get Graph",
+        "description": "The neighbourhood of `center` at 1 or 2 hops. Filters: node types, link types, and a\ntime window on development nodes (last source within `window_days` of the run date).",
+        "operationId": "get_graph",
+        "parameters": [
+          {
+            "name": "center",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Center"
+            }
+          },
+          {
+            "name": "hops",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 2,
+              "minimum": 1,
+              "default": 1,
+              "title": "Hops"
+            }
+          },
+          {
+            "name": "node_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "topic",
+                      "group",
+                      "entity",
+                      "development"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Node Type"
+            }
+          },
+          {
+            "name": "link_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "MEMBER_OF",
+                      "EXPOSED_TO",
+                      "AFFECTS"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Link Type"
+            }
+          },
+          {
+            "name": "window_days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 365,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Window Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Graph"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/widgets/catalog": {
+      "get": {
+        "summary": "Widget Catalog",
+        "operationId": "widget_catalog",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WidgetTypeInfo"
+                  },
+                  "type": "array",
+                  "title": "Response Widget Catalog"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/widgets/data": {
+      "post": {
+        "summary": "Get Widget Data",
+        "description": "Fill one widget, saved or not (the gallery previews unsaved widgets).",
+        "operationId": "get_widget_data",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WidgetDataRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SinceData"
+                    },
+                    {
+                      "$ref": "#/components/schemas/QuestionData"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SummaryData"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DevelopmentsData"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DirectionData"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WatchlistData"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UpcomingData"
+                    }
+                  ],
+                  "title": "Response Get Widget Data",
+                  "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                      "since": "#/components/schemas/SinceData",
+                      "question": "#/components/schemas/QuestionData",
+                      "summary": "#/components/schemas/SummaryData",
+                      "developments": "#/components/schemas/DevelopmentsData",
+                      "direction": "#/components/schemas/DirectionData",
+                      "watchlist": "#/components/schemas/WatchlistData",
+                      "upcoming": "#/components/schemas/UpcomingData"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboards": {
+      "get": {
+        "summary": "List Dashboards",
+        "operationId": "list_dashboards",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Dashboard"
+                  },
+                  "type": "array",
+                  "title": "Response List Dashboards"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Dashboard",
+        "operationId": "create_dashboard",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardSpec"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboards/{dashboard_id}": {
+      "get": {
+        "summary": "Get Dashboard",
+        "operationId": "get_dashboard",
+        "parameters": [
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Dashboard Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Dashboard",
+        "operationId": "update_dashboard",
+        "parameters": [
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Dashboard Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardSpec"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Dashboard",
+        "operationId": "delete_dashboard",
+        "parameters": [
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Dashboard Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboards/{dashboard_id}/data": {
+      "get": {
+        "summary": "Get Dashboard Data",
+        "description": "Every widget's data in widget order.",
+        "operationId": "get_dashboard_data",
+        "parameters": [
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Dashboard Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/SinceData"
+                      },
+                      {
+                        "$ref": "#/components/schemas/QuestionData"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SummaryData"
+                      },
+                      {
+                        "$ref": "#/components/schemas/DevelopmentsData"
+                      },
+                      {
+                        "$ref": "#/components/schemas/DirectionData"
+                      },
+                      {
+                        "$ref": "#/components/schemas/WatchlistData"
+                      },
+                      {
+                        "$ref": "#/components/schemas/UpcomingData"
+                      }
+                    ],
+                    "discriminator": {
+                      "propertyName": "type",
+                      "mapping": {
+                        "since": "#/components/schemas/SinceData",
+                        "question": "#/components/schemas/QuestionData",
+                        "summary": "#/components/schemas/SummaryData",
+                        "developments": "#/components/schemas/DevelopmentsData",
+                        "direction": "#/components/schemas/DirectionData",
+                        "watchlist": "#/components/schemas/WatchlistData",
+                        "upcoming": "#/components/schemas/UpcomingData"
+                      }
+                    }
+                  },
+                  "title": "Response Get Dashboard Data"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reviews": {
+      "post": {
+        "summary": "Mark Reviewed",
+        "operationId": "mark_reviewed",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Review"
+                  },
+                  "type": "array",
+                  "title": "Response Mark Reviewed"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notes": {
+      "get": {
+        "summary": "List Notes",
+        "operationId": "list_notes",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "development_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Development Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Note"
+                  },
+                  "title": "Response List Notes"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add Note",
+        "operationId": "add_note",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Note"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notes/{note_id}": {
+      "delete": {
+        "summary": "Delete Note",
+        "operationId": "delete_note",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Note Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/custom-questions": {
+      "get": {
+        "summary": "List Custom Questions",
+        "operationId": "list_custom_questions",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "draft",
+                    "kept"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomQuestion"
+                  },
+                  "title": "Response List Custom Questions"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Draft Custom Question",
+        "description": "Claude drafts the config and the answer job runs for every run; the result is a draft\nwith its preview answer until the user keeps it.",
+        "operationId": "draft_custom_question",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomQuestionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomQuestion"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/custom-questions/{question_id}": {
+      "get": {
+        "summary": "Get Custom Question",
+        "operationId": "get_custom_question",
+        "parameters": [
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomQuestion"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Edit Custom Question",
+        "operationId": "edit_custom_question",
+        "parameters": [
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomQuestionEdit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomQuestion"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Custom Question",
+        "description": "Discard a draft or delete a kept question, and drop widgets that show it.",
+        "operationId": "delete_custom_question",
+        "parameters": [
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/custom-questions/{question_id}/keep": {
+      "post": {
+        "summary": "Keep Custom Question",
+        "operationId": "keep_custom_question",
+        "parameters": [
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomQuestion"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile": {
+      "get": {
+        "summary": "Get Profile",
+        "operationId": "get_profile",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Profile",
+        "operationId": "update_profile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Profile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs": {
+      "get": {
+        "summary": "List Runs",
+        "operationId": "list_runs",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RunInfo"
+                  },
+                  "type": "array",
+                  "title": "Response List Runs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/data-sources": {
+      "get": {
+        "summary": "Data Sources",
+        "operationId": "data_sources",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataSources"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/generate": {
+      "post": {
+        "summary": "Generate",
+        "description": "AG-UI run for the New dashboard Generate tab. Phase 3 stub; see agent/generate.py.",
+        "operationId": "generate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunAgentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActivityMessage": {
+        "properties": {
+          "subagentRunId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subagentrunid"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "const": "activity",
+            "title": "Role",
+            "default": "activity"
+          },
+          "activityType": {
+            "type": "string",
+            "title": "Activitytype"
+          },
+          "content": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Content"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "id",
+          "activityType",
+          "content"
+        ],
+        "title": "ActivityMessage",
+        "description": "Structured progress that is not conversation content, materialised as a\nmessage so it keeps its place in the sequence. Stands alone rather than\ncomposing BaseMessage, because its content is an object rather than a\nstring."
+      },
+      "AnswerChange": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "first_answer",
+              "state_changed",
+              "unchanged"
+            ],
+            "title": "Kind"
+          },
+          "previous_state": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "stable",
+                  "watch",
+                  "needs_attention",
+                  "new"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous State"
+          },
+          "previous_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "previous_state",
+          "previous_summary"
+        ],
+        "title": "AnswerChange"
+      },
+      "AssistantMessage": {
+        "properties": {
+          "subagentRunId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subagentrunid"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "const": "assistant",
+            "title": "Role",
+            "default": "assistant"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "encryptedValue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Encryptedvalue"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "toolCalls": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ToolCall"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Toolcalls"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "AssistantMessage",
+        "description": "A message from the agent. Content is optional because a turn may consist\nonly of tool calls."
+      },
+      "AudioPart": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "audio",
+            "title": "Type",
+            "default": "audio"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "source": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DataSource"
+              },
+              {
+                "$ref": "#/components/schemas/UrlSource"
+              },
+              {
+                "$ref": "#/components/schemas/FileSource"
+              }
+            ],
+            "title": "Source",
+            "discriminator": {
+              "propertyName": "type",
+              "mapping": {
+                "data": "#/components/schemas/DataSource",
+                "file": "#/components/schemas/FileSource",
+                "url": "#/components/schemas/UrlSource"
+              }
+            }
+          },
+          "metadata": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "AudioPart",
+        "description": "An audio part."
+      },
+      "CommonIssue": {
+        "properties": {
+          "development": {
+            "$ref": "#/components/schemas/DevelopmentSummary"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Members"
+          }
+        },
+        "type": "object",
+        "required": [
+          "development",
+          "members"
+        ],
+        "title": "CommonIssue"
+      },
+      "Context": {
+        "properties": {
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "description",
+          "value"
+        ],
+        "title": "Context",
+        "description": "A named piece of ambient information given to the agent for the run,\ndistinct from the conversation."
+      },
+      "CustomQuestion": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "request": {
+            "type": "string",
+            "title": "Request"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "lookback_days": {
+            "type": "integer",
+            "title": "Lookback Days"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "kept"
+            ],
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuestionAnswerView"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Latest run, with its change badge"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/CustomRunAnswer"
+            },
+            "type": "array",
+            "title": "Runs",
+            "description": "One answer per run, oldest first"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/DevelopmentSummary"
+            },
+            "type": "array",
+            "title": "Evidence",
+            "description": "Developments the answer cites"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "subject",
+          "request",
+          "question",
+          "label",
+          "lookback_days",
+          "status",
+          "created_at",
+          "updated_at",
+          "answer",
+          "runs",
+          "evidence"
+        ],
+        "title": "CustomQuestion"
+      },
+      "CustomQuestionEdit": {
+        "properties": {
+          "question": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "lookback_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 60.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lookback Days"
+          }
+        },
+        "type": "object",
+        "title": "CustomQuestionEdit"
+      },
+      "CustomQuestionRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 5,
+            "title": "Text",
+            "description": "What the user typed"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id",
+            "description": "The monitor page's subject; empty lets Claude pick one"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "CustomQuestionRequest"
+      },
+      "CustomRunAnswer": {
+        "properties": {
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "stable",
+              "watch",
+              "needs_attention",
+              "new"
+            ],
+            "title": "State"
+          },
+          "development_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Development Ids"
+          },
+          "document_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Document Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run",
+          "summary",
+          "state",
+          "development_ids",
+          "document_ids"
+        ],
+        "title": "CustomRunAnswer"
+      },
+      "Dashboard": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "subject_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Subject Ids",
+            "description": "The subjects the dashboard follows"
+          },
+          "widgets": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/SinceWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/QuestionWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/SummaryWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/DevelopmentsWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/DirectionWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/WatchlistWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/UpcomingWidget"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "developments": "#/components/schemas/DevelopmentsWidget",
+                  "direction": "#/components/schemas/DirectionWidget",
+                  "question": "#/components/schemas/QuestionWidget",
+                  "since": "#/components/schemas/SinceWidget",
+                  "summary": "#/components/schemas/SummaryWidget",
+                  "upcoming": "#/components/schemas/UpcomingWidget",
+                  "watchlist": "#/components/schemas/WatchlistWidget"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Widgets"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "starter": {
+            "type": "boolean",
+            "title": "Starter"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "subject_ids",
+          "widgets",
+          "id",
+          "starter",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Dashboard"
+      },
+      "DashboardSpec": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "subject_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Subject Ids",
+            "description": "The subjects the dashboard follows"
+          },
+          "widgets": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/SinceWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/QuestionWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/SummaryWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/DevelopmentsWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/DirectionWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/WatchlistWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/UpcomingWidget"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "developments": "#/components/schemas/DevelopmentsWidget",
+                  "direction": "#/components/schemas/DirectionWidget",
+                  "question": "#/components/schemas/QuestionWidget",
+                  "since": "#/components/schemas/SinceWidget",
+                  "summary": "#/components/schemas/SummaryWidget",
+                  "upcoming": "#/components/schemas/UpcomingWidget",
+                  "watchlist": "#/components/schemas/WatchlistWidget"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Widgets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "subject_ids",
+          "widgets"
+        ],
+        "title": "DashboardSpec"
+      },
+      "DataSource": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "data",
+            "title": "Type",
+            "default": "data"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "mimeType": {
+            "type": "string",
+            "title": "Mimetype"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "value",
+          "mimeType"
+        ],
+        "title": "DataSource",
+        "description": "Bytes carried inline."
+      },
+      "DataSourceStats": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "collection": {
+            "type": "string",
+            "enum": [
+              "dms",
+              "official",
+              "news"
+            ],
+            "title": "Collection"
+          },
+          "documents": {
+            "type": "integer",
+            "title": "Documents"
+          },
+          "relevant_documents": {
+            "type": "integer",
+            "title": "Relevant Documents"
+          },
+          "first_published": {
+            "type": "string",
+            "format": "date",
+            "title": "First Published"
+          },
+          "last_published": {
+            "type": "string",
+            "format": "date",
+            "title": "Last Published"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "collection",
+          "documents",
+          "relevant_documents",
+          "first_published",
+          "last_published"
+        ],
+        "title": "DataSourceStats"
+      },
+      "DataSources": {
+        "properties": {
+          "t0": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "T0"
+          },
+          "total_documents": {
+            "type": "integer",
+            "title": "Total Documents"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/DataSourceStats"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "t0",
+          "total_documents",
+          "sources"
+        ],
+        "title": "DataSources"
+      },
+      "DeveloperMessage": {
+        "properties": {
+          "subagentRunId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subagentrunid"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "const": "developer",
+            "title": "Role",
+            "default": "developer"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "encryptedValue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Encryptedvalue"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "id",
+          "content"
+        ],
+        "title": "DeveloperMessage",
+        "description": "Instructions from the application developer."
+      },
+      "DevelopmentDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "signal",
+                  "consultation",
+                  "proposed",
+                  "enacted",
+                  "enforced"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "event_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Date"
+          },
+          "first_published": {
+            "type": "string",
+            "format": "date",
+            "title": "First Published"
+          },
+          "last_published": {
+            "type": "string",
+            "format": "date",
+            "title": "Last Published"
+          },
+          "materiality_level": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Materiality Level"
+          },
+          "materiality_label": {
+            "type": "string",
+            "title": "Materiality Label"
+          },
+          "needs_attention": {
+            "type": "boolean",
+            "title": "Needs Attention"
+          },
+          "adverse": {
+            "type": "boolean",
+            "title": "Adverse"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "negative",
+              "neutral"
+            ],
+            "title": "Direction"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Subjects"
+          },
+          "source_count": {
+            "type": "integer",
+            "title": "Source Count"
+          },
+          "change": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "new",
+                  "updated"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change",
+            "description": "Change since the previous run"
+          },
+          "new_source_count": {
+            "type": "integer",
+            "title": "New Source Count"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "materiality_confidence": {
+            "type": "number",
+            "title": "Materiality Confidence"
+          },
+          "subject_confidence": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectConfidence"
+            },
+            "type": "array",
+            "title": "Subject Confidence"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceSource"
+            },
+            "type": "array",
+            "title": "Sources",
+            "description": "Primary sources first, then earliest"
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/Note"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "category",
+          "stage",
+          "event_date",
+          "first_published",
+          "last_published",
+          "materiality_level",
+          "materiality_label",
+          "needs_attention",
+          "adverse",
+          "direction",
+          "subjects",
+          "source_count",
+          "change",
+          "new_source_count",
+          "run",
+          "materiality_confidence",
+          "subject_confidence",
+          "sources",
+          "notes"
+        ],
+        "title": "DevelopmentDetail"
+      },
+      "DevelopmentSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "signal",
+                  "consultation",
+                  "proposed",
+                  "enacted",
+                  "enforced"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "event_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Date"
+          },
+          "first_published": {
+            "type": "string",
+            "format": "date",
+            "title": "First Published"
+          },
+          "last_published": {
+            "type": "string",
+            "format": "date",
+            "title": "Last Published"
+          },
+          "materiality_level": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Materiality Level"
+          },
+          "materiality_label": {
+            "type": "string",
+            "title": "Materiality Label"
+          },
+          "needs_attention": {
+            "type": "boolean",
+            "title": "Needs Attention"
+          },
+          "adverse": {
+            "type": "boolean",
+            "title": "Adverse"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "negative",
+              "neutral"
+            ],
+            "title": "Direction"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Subjects"
+          },
+          "source_count": {
+            "type": "integer",
+            "title": "Source Count"
+          },
+          "change": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "new",
+                  "updated"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change",
+            "description": "Change since the previous run"
+          },
+          "new_source_count": {
+            "type": "integer",
+            "title": "New Source Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "category",
+          "stage",
+          "event_date",
+          "first_published",
+          "last_published",
+          "materiality_level",
+          "materiality_label",
+          "needs_attention",
+          "adverse",
+          "direction",
+          "subjects",
+          "source_count",
+          "change",
+          "new_source_count"
+        ],
+        "title": "DevelopmentSummary"
+      },
+      "DevelopmentsData": {
+        "properties": {
+          "widget_id": {
+            "type": "string",
+            "title": "Widget Id"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "type": {
+            "type": "string",
+            "const": "developments",
+            "title": "Type"
+          },
+          "scope": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Scope"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "developments": {
+            "items": {
+              "$ref": "#/components/schemas/DevelopmentSummary"
+            },
+            "type": "array",
+            "title": "Developments",
+            "description": "At most 20, in display order"
+          }
+        },
+        "type": "object",
+        "required": [
+          "widget_id",
+          "run",
+          "type",
+          "scope",
+          "total",
+          "developments"
+        ],
+        "title": "DevelopmentsData"
+      },
+      "DevelopmentsSettings": {
+        "properties": {
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id",
+            "description": "Empty: every subject on the dashboard"
+          }
+        },
+        "type": "object",
+        "title": "DevelopmentsSettings"
+      },
+      "DevelopmentsWidget": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Order",
+            "description": "Position in the dashboard; the layout packs by order"
+          },
+          "type": {
+            "type": "string",
+            "const": "developments",
+            "title": "Type"
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "M",
+              "L"
+            ],
+            "title": "Size"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/DevelopmentsSettings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "order",
+          "type",
+          "size",
+          "settings"
+        ],
+        "title": "DevelopmentsWidget"
+      },
+      "DirectionData": {
+        "properties": {
+          "widget_id": {
+            "type": "string",
+            "title": "Widget Id"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "type": {
+            "type": "string",
+            "const": "direction",
+            "title": "Type"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "min_materiality_level": {
+            "type": "integer",
+            "title": "Min Materiality Level"
+          },
+          "weeks": {
+            "items": {
+              "$ref": "#/components/schemas/WeekCount"
+            },
+            "type": "array",
+            "title": "Weeks",
+            "description": "Oldest first; the last week ends on the run date"
+          },
+          "trend": {
+            "type": "string",
+            "enum": [
+              "rising",
+              "flat",
+              "falling"
+            ],
+            "title": "Trend"
+          },
+          "this_week": {
+            "type": "integer",
+            "title": "This Week"
+          },
+          "previous_average": {
+            "type": "number",
+            "title": "Previous Average",
+            "description": "Average of the three weeks before this one"
+          },
+          "caption": {
+            "type": "string",
+            "title": "Caption"
+          }
+        },
+        "type": "object",
+        "required": [
+          "widget_id",
+          "run",
+          "type",
+          "subject",
+          "min_materiality_level",
+          "weeks",
+          "trend",
+          "this_week",
+          "previous_average",
+          "caption"
+        ],
+        "title": "DirectionData"
+      },
+      "DirectionSettings": {
+        "properties": {
+          "subject_id": {
+            "type": "string",
+            "title": "Subject Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_id"
+        ],
+        "title": "DirectionSettings"
+      },
+      "DirectionWidget": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Order",
+            "description": "Position in the dashboard; the layout packs by order"
+          },
+          "type": {
+            "type": "string",
+            "const": "direction",
+            "title": "Type"
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "S",
+              "M"
+            ],
+            "title": "Size"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/DirectionSettings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "order",
+          "type",
+          "size",
+          "settings"
+        ],
+        "title": "DirectionWidget"
+      },
+      "DocumentDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "domain": {
+            "type": "string",
+            "title": "Domain"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "collection": {
+            "type": "string",
+            "enum": [
+              "dms",
+              "official",
+              "news"
+            ],
+            "title": "Collection"
+          },
+          "doc_type": {
+            "type": "string",
+            "title": "Doc Type"
+          },
+          "classification": {
+            "type": "string",
+            "title": "Classification"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Published At"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "quotes": {
+            "items": {
+              "$ref": "#/components/schemas/Quote"
+            },
+            "type": "array",
+            "title": "Quotes",
+            "description": "Every verified quote in the document, by offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "url",
+          "domain",
+          "source",
+          "collection",
+          "doc_type",
+          "classification",
+          "published_at",
+          "text",
+          "quotes"
+        ],
+        "title": "DocumentDetail"
+      },
+      "DocumentPart": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "document",
+            "title": "Type",
+            "default": "document"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "source": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DataSource"
+              },
+              {
+                "$ref": "#/components/schemas/UrlSource"
+              },
+              {
+                "$ref": "#/components/schemas/FileSource"
+              }
+            ],
+            "title": "Source",
+            "discriminator": {
+              "propertyName": "type",
+              "mapping": {
+                "data": "#/components/schemas/DataSource",
+                "file": "#/components/schemas/FileSource",
+                "url": "#/components/schemas/UrlSource"
+              }
+            }
+          },
+          "metadata": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "DocumentPart",
+        "description": "A document part."
+      },
+      "EvidenceFinding": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "event_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Date"
+          },
+          "quotes": {
+            "items": {
+              "$ref": "#/components/schemas/Quote"
+            },
+            "type": "array",
+            "title": "Quotes",
+            "description": "Offsets into the full document text"
+          },
+          "passage": {
+            "$ref": "#/components/schemas/Passage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "statement",
+          "event_date",
+          "quotes",
+          "passage"
+        ],
+        "title": "EvidenceFinding"
+      },
+      "EvidenceSource": {
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "title": "Document Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "domain": {
+            "type": "string",
+            "title": "Domain"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "collection": {
+            "type": "string",
+            "enum": [
+              "dms",
+              "official",
+              "news"
+            ],
+            "title": "Collection"
+          },
+          "doc_type": {
+            "type": "string",
+            "title": "Doc Type"
+          },
+          "classification": {
+            "type": "string",
+            "title": "Classification"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Published At"
+          },
+          "new_in_run": {
+            "type": "boolean",
+            "title": "New In Run",
+            "description": "Added to the development since the previous run"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceFinding"
+            },
+            "type": "array",
+            "title": "Findings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "document_id",
+          "title",
+          "url",
+          "domain",
+          "source",
+          "collection",
+          "doc_type",
+          "classification",
+          "published_at",
+          "new_in_run",
+          "findings"
+        ],
+        "title": "EvidenceSource"
+      },
+      "FileSource": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "file",
+            "title": "Type",
+            "default": "file"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "mimeType": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mimetype"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "FileSource",
+        "description": "Bytes already at the provider, named by a handle the provider issued: an\nOpenAI or Anthropic file id, a Gemini file URI, a storage URL only that\nprovider can read. No bytes travel and nothing is fetched. Only the\nprovider that minted the handle can resolve it; a peer that cannot drops\nthe part as it drops any part it cannot use."
+      },
+      "FunctionCall": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "arguments": {
+            "type": "string",
+            "title": "Arguments"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "name",
+          "arguments"
+        ],
+        "title": "FunctionCall",
+        "description": "The name and arguments of a tool call."
+      },
+      "Graph": {
+        "properties": {
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "center": {
+            "type": "string",
+            "title": "Center"
+          },
+          "hops": {
+            "type": "integer",
+            "title": "Hops"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/GraphNode"
+            },
+            "type": "array",
+            "title": "Nodes"
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/GraphEdge"
+            },
+            "type": "array",
+            "title": "Edges"
+          },
+          "truncated_developments": {
+            "type": "integer",
+            "title": "Truncated Developments",
+            "description": "Development nodes left out by the cap"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run",
+          "center",
+          "hops",
+          "nodes",
+          "edges",
+          "truncated_developments"
+        ],
+        "title": "Graph"
+      },
+      "GraphEdge": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "MEMBER_OF",
+              "EXPOSED_TO",
+              "AFFECTS"
+            ],
+            "title": "Type"
+          },
+          "origin": {
+            "type": "string",
+            "title": "Origin",
+            "description": "seed, jev or claude"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "target",
+          "type",
+          "origin",
+          "confidence"
+        ],
+        "title": "GraphEdge"
+      },
+      "GraphNode": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Subject id, or dev:<development id>"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "topic",
+              "group",
+              "entity",
+              "development"
+            ],
+            "title": "Type"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "bank",
+                  "central_bank",
+                  "stablecoin_issuer",
+                  "country"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "hop": {
+            "type": "integer",
+            "title": "Hop"
+          },
+          "has_new": {
+            "type": "boolean",
+            "title": "Has New",
+            "description": "A development: new or updated this run. A subject: affected by one."
+          },
+          "needs_attention": {
+            "type": "boolean",
+            "title": "Needs Attention"
+          },
+          "materiality_level": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Materiality Level"
+          },
+          "last_published": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Published"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "label",
+          "kind",
+          "hop",
+          "has_new",
+          "needs_attention",
+          "materiality_level",
+          "last_published"
+        ],
+        "title": "GraphNode"
+      },
+      "GroupInsights": {
+        "properties": {
+          "lookback_days": {
+            "type": "integer",
+            "title": "Lookback Days"
+          },
+          "common_issues": {
+            "items": {
+              "$ref": "#/components/schemas/CommonIssue"
+            },
+            "type": "array",
+            "title": "Common Issues"
+          },
+          "outliers": {
+            "items": {
+              "$ref": "#/components/schemas/Outlier"
+            },
+            "type": "array",
+            "title": "Outliers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lookback_days",
+          "common_issues",
+          "outliers"
+        ],
+        "title": "GroupInsights"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ImagePart": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "image",
+            "title": "Type",
+            "default": "image"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "source": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DataSource"
+              },
+              {
+                "$ref": "#/components/schemas/UrlSource"
+              },
+              {
+                "$ref": "#/components/schemas/FileSource"
+              }
+            ],
+            "title": "Source",
+            "discriminator": {
+              "propertyName": "type",
+              "mapping": {
+                "data": "#/components/schemas/DataSource",
+                "file": "#/components/schemas/FileSource",
+                "url": "#/components/schemas/UrlSource"
+              }
+            }
+          },
+          "metadata": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "ImagePart",
+        "description": "An image part."
+      },
+      "JsonValue": {},
+      "MonitorPage": {
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/SubjectDetail"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "what_changed": {
+            "$ref": "#/components/schemas/WhatChanged"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionAnswerView"
+            },
+            "type": "array",
+            "title": "Questions",
+            "description": "Built-in questions, then custom"
+          },
+          "custom_question_slots": {
+            "type": "integer",
+            "title": "Custom Question Slots",
+            "description": "Custom questions the user can still add"
+          },
+          "upcoming": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingItem"
+            },
+            "type": "array",
+            "title": "Upcoming"
+          },
+          "stage_track": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StageTrack"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Topics only"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupInsights"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Groups only"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/Note"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "run",
+          "what_changed",
+          "questions",
+          "custom_question_slots",
+          "upcoming",
+          "stage_track",
+          "group",
+          "reviewed_at",
+          "notes"
+        ],
+        "title": "MonitorPage"
+      },
+      "Note": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "development_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Development Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "subject_id",
+          "development_id",
+          "text",
+          "run_id",
+          "created_at"
+        ],
+        "title": "Note"
+      },
+      "NoteRequest": {
+        "properties": {
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "development_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Development Id"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "NoteRequest"
+      },
+      "Outlier": {
+        "properties": {
+          "member": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "developments": {
+            "type": "integer",
+            "title": "Developments"
+          },
+          "needs_attention": {
+            "type": "integer",
+            "title": "Needs Attention"
+          }
+        },
+        "type": "object",
+        "required": [
+          "member",
+          "reason",
+          "developments",
+          "needs_attention"
+        ],
+        "title": "Outlier"
+      },
+      "Passage": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "highlights": {
+            "items": {
+              "$ref": "#/components/schemas/Span"
+            },
+            "type": "array",
+            "title": "Highlights"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "highlights"
+        ],
+        "title": "Passage",
+        "description": "An excerpt of the source around a finding's quotes; highlights are offsets into `text`."
+      },
+      "Profile": {
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "default_dashboard_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Dashboard Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "display_name",
+          "role",
+          "default_dashboard_id"
+        ],
+        "title": "Profile"
+      },
+      "QuestionAnswerView": {
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "lookback_days": {
+            "type": "integer",
+            "title": "Lookback Days"
+          },
+          "custom": {
+            "type": "boolean",
+            "title": "Custom"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "stable",
+              "watch",
+              "needs_attention",
+              "new"
+            ],
+            "title": "State"
+          },
+          "new_count": {
+            "type": "integer",
+            "title": "New Count"
+          },
+          "development_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Development Ids"
+          },
+          "change": {
+            "$ref": "#/components/schemas/AnswerChange"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id",
+          "label",
+          "question",
+          "lookback_days",
+          "custom",
+          "summary",
+          "state",
+          "new_count",
+          "development_ids",
+          "change"
+        ],
+        "title": "QuestionAnswerView"
+      },
+      "QuestionData": {
+        "properties": {
+          "widget_id": {
+            "type": "string",
+            "title": "Widget Id"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "type": {
+            "type": "string",
+            "const": "question",
+            "title": "Type"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "answer": {
+            "$ref": "#/components/schemas/QuestionAnswerView"
+          }
+        },
+        "type": "object",
+        "required": [
+          "widget_id",
+          "run",
+          "type",
+          "subject",
+          "answer"
+        ],
+        "title": "QuestionData"
+      },
+      "QuestionSettings": {
+        "properties": {
+          "subject_id": {
+            "type": "string",
+            "title": "Subject Id"
+          },
+          "question_id": {
+            "type": "string",
+            "title": "Question Id",
+            "description": "A built-in question id, or a custom question id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_id",
+          "question_id"
+        ],
+        "title": "QuestionSettings"
+      },
+      "QuestionStateChange": {
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "custom": {
+            "type": "boolean",
+            "title": "Custom"
+          },
+          "from_state": {
+            "type": "string",
+            "enum": [
+              "stable",
+              "watch",
+              "needs_attention",
+              "new"
+            ],
+            "title": "From State"
+          },
+          "to_state": {
+            "type": "string",
+            "enum": [
+              "stable",
+              "watch",
+              "needs_attention",
+              "new"
+            ],
+            "title": "To State"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "question_id",
+          "label",
+          "custom",
+          "from_state",
+          "to_state",
+          "summary"
+        ],
+        "title": "QuestionStateChange"
+      },
+      "QuestionWidget": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Order",
+            "description": "Position in the dashboard; the layout packs by order"
+          },
+          "type": {
+            "type": "string",
+            "const": "question",
+            "title": "Type"
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "S",
+              "M"
+            ],
+            "title": "Size"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/QuestionSettings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "order",
+          "type",
+          "size",
+          "settings"
+        ],
+        "title": "QuestionWidget"
+      },
+      "Quote": {
+        "properties": {
+          "start": {
+            "type": "integer",
+            "title": "Start"
+          },
+          "end": {
+            "type": "integer",
+            "title": "End"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "text"
+        ],
+        "title": "Quote"
+      },
+      "ReasoningMessage": {
+        "properties": {
+          "subagentRunId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subagentrunid"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "const": "reasoning",
+            "title": "Role",
+            "default": "reasoning"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "encryptedValue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Encryptedvalue"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "id",
+          "content"
+        ],
+        "title": "ReasoningMessage",
+        "description": "A span of the agent's reasoning, materialised as a message. Stands alone\nrather than composing BaseMessage, because it carries no name."
+      },
+      "ResumeEntry": {
+        "properties": {
+          "interruptId": {
+            "type": "string",
+            "title": "Interruptid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "resolved",
+              "cancelled"
+            ],
+            "title": "Status"
+          },
+          "payload": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payload"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "interruptId",
+          "status"
+        ],
+        "title": "ResumeEntry",
+        "description": "An answer to one interrupt, sent on the run that continues from it."
+      },
+      "Review": {
+        "properties": {
+          "subject_id": {
+            "type": "string",
+            "title": "Subject Id"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_id",
+          "run_id",
+          "created_at"
+        ],
+        "title": "Review"
+      },
+      "ReviewRequest": {
+        "properties": {
+          "subject_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Subject Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_ids"
+        ],
+        "title": "ReviewRequest"
+      },
+      "RunAgentInput": {
+        "properties": {
+          "threadId": {
+            "type": "string",
+            "title": "Threadid"
+          },
+          "runId": {
+            "type": "string",
+            "title": "Runid"
+          },
+          "protocolVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protocolversion"
+          },
+          "parentRunId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parentrunid"
+          },
+          "state": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "messages": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/DeveloperMessage"
+                },
+                {
+                  "$ref": "#/components/schemas/SystemMessage"
+                },
+                {
+                  "$ref": "#/components/schemas/AssistantMessage"
+                },
+                {
+                  "$ref": "#/components/schemas/UserMessage"
+                },
+                {
+                  "$ref": "#/components/schemas/ToolMessage"
+                },
+                {
+                  "$ref": "#/components/schemas/ActivityMessage"
+                },
+                {
+                  "$ref": "#/components/schemas/ReasoningMessage"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "role",
+                "mapping": {
+                  "activity": "#/components/schemas/ActivityMessage",
+                  "assistant": "#/components/schemas/AssistantMessage",
+                  "developer": "#/components/schemas/DeveloperMessage",
+                  "reasoning": "#/components/schemas/ReasoningMessage",
+                  "system": "#/components/schemas/SystemMessage",
+                  "tool": "#/components/schemas/ToolMessage",
+                  "user": "#/components/schemas/UserMessage"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Messages"
+          },
+          "tools": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Tool"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tools"
+          },
+          "context": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Context"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
+          "forwardedProps": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Forwardedprops"
+          },
+          "resume": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ResumeEntry"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resume"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "threadId",
+          "runId",
+          "messages"
+        ],
+        "title": "RunAgentInput",
+        "description": "A request to run an agent. Also echoed back as RUN_STARTED.input. Only\nthreadId, runId and messages are required: those are the three the SDKs\nalready agree on, and for tools and context an absent key and an empty\narray mean the same thing, so requiring them would catch nothing a\nproducer could get wrong."
+      },
+      "RunInfo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "previous_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Run Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "documents": {
+            "type": "integer",
+            "title": "Documents"
+          },
+          "developments": {
+            "type": "integer",
+            "title": "Developments"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "duration_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "as_of",
+          "previous_run_id",
+          "status",
+          "documents",
+          "developments",
+          "started_at",
+          "finished_at",
+          "duration_seconds"
+        ],
+        "title": "RunInfo"
+      },
+      "RunRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "previous_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Run Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "as_of",
+          "previous_run_id"
+        ],
+        "title": "RunRef"
+      },
+      "SearchHit": {
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "matched": {
+            "type": "string",
+            "title": "Matched",
+            "description": "The name or alias that matched"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "matched"
+        ],
+        "title": "SearchHit"
+      },
+      "SinceData": {
+        "properties": {
+          "widget_id": {
+            "type": "string",
+            "title": "Widget Id"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "type": {
+            "type": "string",
+            "const": "since",
+            "title": "Type"
+          },
+          "scope": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Scope"
+          },
+          "what_changed": {
+            "$ref": "#/components/schemas/WhatChanged"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "widget_id",
+          "run",
+          "type",
+          "scope",
+          "what_changed",
+          "reviewed_at"
+        ],
+        "title": "SinceData"
+      },
+      "SinceSettings": {
+        "properties": {
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id",
+            "description": "Empty: every subject on the dashboard"
+          }
+        },
+        "type": "object",
+        "title": "SinceSettings"
+      },
+      "SinceWidget": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Order",
+            "description": "Position in the dashboard; the layout packs by order"
+          },
+          "type": {
+            "type": "string",
+            "const": "since",
+            "title": "Type"
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "M",
+              "L"
+            ],
+            "title": "Size"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/SinceSettings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "order",
+          "type",
+          "size",
+          "settings"
+        ],
+        "title": "SinceWidget"
+      },
+      "Span": {
+        "properties": {
+          "start": {
+            "type": "integer",
+            "title": "Start"
+          },
+          "end": {
+            "type": "integer",
+            "title": "End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "Span"
+      },
+      "StageBucket": {
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": [
+              "signal",
+              "consultation",
+              "proposed",
+              "enacted",
+              "enforced"
+            ],
+            "title": "Stage"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "developments": {
+            "items": {
+              "$ref": "#/components/schemas/DevelopmentSummary"
+            },
+            "type": "array",
+            "title": "Developments",
+            "description": "Most material first, at most 3"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stage",
+          "count",
+          "developments"
+        ],
+        "title": "StageBucket"
+      },
+      "StageTrack": {
+        "properties": {
+          "lookback_days": {
+            "type": "integer",
+            "title": "Lookback Days"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/StageBucket"
+            },
+            "type": "array",
+            "title": "Stages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lookback_days",
+          "stages"
+        ],
+        "title": "StageTrack"
+      },
+      "SubjectConfidence": {
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "confidence",
+          "source"
+        ],
+        "title": "SubjectConfidence"
+      },
+      "SubjectDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "topic",
+              "group",
+              "entity"
+            ],
+            "title": "Type"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "bank",
+                  "central_bank",
+                  "stablecoin_issuer",
+                  "country"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "aliases": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Aliases"
+          },
+          "new_developments": {
+            "type": "integer",
+            "title": "New Developments",
+            "description": "New or updated developments in the latest run"
+          },
+          "needs_attention": {
+            "type": "integer",
+            "title": "Needs Attention",
+            "description": "Developments needing attention in the latest run"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "domains": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Domains"
+          },
+          "links": {
+            "$ref": "#/components/schemas/SubjectLinks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "type",
+          "kind",
+          "aliases",
+          "new_developments",
+          "needs_attention",
+          "description",
+          "domains",
+          "links"
+        ],
+        "title": "SubjectDetail"
+      },
+      "SubjectLinks": {
+        "properties": {
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Topics"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Groups"
+          },
+          "entities": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Entities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topics",
+          "groups",
+          "entities"
+        ],
+        "title": "SubjectLinks"
+      },
+      "SubjectRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "topic",
+              "group",
+              "entity"
+            ],
+            "title": "Type"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "bank",
+                  "central_bank",
+                  "stablecoin_issuer",
+                  "country"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "type",
+          "kind"
+        ],
+        "title": "SubjectRef"
+      },
+      "SubjectSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "topic",
+              "group",
+              "entity"
+            ],
+            "title": "Type"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "bank",
+                  "central_bank",
+                  "stablecoin_issuer",
+                  "country"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "aliases": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Aliases"
+          },
+          "new_developments": {
+            "type": "integer",
+            "title": "New Developments",
+            "description": "New or updated developments in the latest run"
+          },
+          "needs_attention": {
+            "type": "integer",
+            "title": "Needs Attention",
+            "description": "Developments needing attention in the latest run"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "type",
+          "kind",
+          "aliases",
+          "new_developments",
+          "needs_attention"
+        ],
+        "title": "SubjectSummary"
+      },
+      "SummaryData": {
+        "properties": {
+          "widget_id": {
+            "type": "string",
+            "title": "Widget Id"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "type": {
+            "type": "string",
+            "const": "summary",
+            "title": "Type"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionAnswerView"
+            },
+            "type": "array",
+            "title": "Answers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "widget_id",
+          "run",
+          "type",
+          "subject",
+          "answers"
+        ],
+        "title": "SummaryData"
+      },
+      "SummarySettings": {
+        "properties": {
+          "subject_id": {
+            "type": "string",
+            "title": "Subject Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_id"
+        ],
+        "title": "SummarySettings"
+      },
+      "SummaryWidget": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Order",
+            "description": "Position in the dashboard; the layout packs by order"
+          },
+          "type": {
+            "type": "string",
+            "const": "summary",
+            "title": "Type"
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "M",
+              "L"
+            ],
+            "title": "Size"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/SummarySettings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "order",
+          "type",
+          "size",
+          "settings"
+        ],
+        "title": "SummaryWidget"
+      },
+      "SystemMessage": {
+        "properties": {
+          "subagentRunId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subagentrunid"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "const": "system",
+            "title": "Role",
+            "default": "system"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "encryptedValue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Encryptedvalue"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "id",
+          "content"
+        ],
+        "title": "SystemMessage",
+        "description": "Instructions from the system."
+      },
+      "TextPart": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "text",
+            "title": "Type",
+            "default": "text"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "metadata": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "TextPart",
+        "description": "A text part."
+      },
+      "Tool": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "parameters": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameters"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "name",
+          "description"
+        ],
+        "title": "Tool",
+        "description": "A tool the agent may call."
+      },
+      "ToolCall": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "const": "function",
+            "title": "Type",
+            "default": "function"
+          },
+          "function": {
+            "$ref": "#/components/schemas/FunctionCall"
+          },
+          "encryptedValue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Encryptedvalue"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "id",
+          "function"
+        ],
+        "title": "ToolCall",
+        "description": "A call an assistant message made. Carries no subagent attribution of its\nown and inherits its containing message's, since several calls can share\none parent."
+      },
+      "ToolMessage": {
+        "properties": {
+          "subagentRunId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subagentrunid"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "const": "tool",
+            "title": "Role",
+            "default": "tool"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TextPart"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ImagePart"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AudioPart"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VideoPart"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DocumentPart"
+                    }
+                  ],
+                  "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                      "audio": "#/components/schemas/AudioPart",
+                      "document": "#/components/schemas/DocumentPart",
+                      "image": "#/components/schemas/ImagePart",
+                      "text": "#/components/schemas/TextPart",
+                      "video": "#/components/schemas/VideoPart"
+                    }
+                  }
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Content"
+          },
+          "toolCallId": {
+            "type": "string",
+            "title": "Toolcallid"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "encryptedValue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Encryptedvalue"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "id",
+          "content",
+          "toolCallId"
+        ],
+        "title": "ToolMessage",
+        "description": "What a tool returned, as a message in the conversation. Stands alone\nrather than composing BaseMessage, because it carries no name."
+      },
+      "UpcomingData": {
+        "properties": {
+          "widget_id": {
+            "type": "string",
+            "title": "Widget Id"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "type": {
+            "type": "string",
+            "const": "upcoming",
+            "title": "Type"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "widget_id",
+          "run",
+          "type",
+          "subject",
+          "items"
+        ],
+        "title": "UpcomingData"
+      },
+      "UpcomingItem": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "development_id": {
+            "type": "string",
+            "title": "Development Id"
+          },
+          "development_title": {
+            "type": "string",
+            "title": "Development Title"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Subjects"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "label",
+          "development_id",
+          "development_title",
+          "subjects"
+        ],
+        "title": "UpcomingItem"
+      },
+      "UpcomingSettings": {
+        "properties": {
+          "subject_id": {
+            "type": "string",
+            "title": "Subject Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_id"
+        ],
+        "title": "UpcomingSettings"
+      },
+      "UpcomingWidget": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Order",
+            "description": "Position in the dashboard; the layout packs by order"
+          },
+          "type": {
+            "type": "string",
+            "const": "upcoming",
+            "title": "Type"
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "S",
+              "M"
+            ],
+            "title": "Size"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/UpcomingSettings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "order",
+          "type",
+          "size",
+          "settings"
+        ],
+        "title": "UpcomingWidget"
+      },
+      "UrlSource": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "url",
+            "title": "Type",
+            "default": "url"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "mimeType": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mimetype"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "UrlSource",
+        "description": "Bytes referenced by URL, fetched by whoever needs them."
+      },
+      "UserMessage": {
+        "properties": {
+          "subagentRunId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subagentrunid"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "const": "user",
+            "title": "Role",
+            "default": "user"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "encryptedValue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Encryptedvalue"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TextPart"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ImagePart"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AudioPart"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VideoPart"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DocumentPart"
+                    }
+                  ],
+                  "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                      "audio": "#/components/schemas/AudioPart",
+                      "document": "#/components/schemas/DocumentPart",
+                      "image": "#/components/schemas/ImagePart",
+                      "text": "#/components/schemas/TextPart",
+                      "video": "#/components/schemas/VideoPart"
+                    }
+                  }
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Content"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "id",
+          "content"
+        ],
+        "title": "UserMessage",
+        "description": "A message from the person using the application."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VideoPart": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "video",
+            "title": "Type",
+            "default": "video"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "source": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DataSource"
+              },
+              {
+                "$ref": "#/components/schemas/UrlSource"
+              },
+              {
+                "$ref": "#/components/schemas/FileSource"
+              }
+            ],
+            "title": "Source",
+            "discriminator": {
+              "propertyName": "type",
+              "mapping": {
+                "data": "#/components/schemas/DataSource",
+                "file": "#/components/schemas/FileSource",
+                "url": "#/components/schemas/UrlSource"
+              }
+            }
+          },
+          "metadata": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "VideoPart",
+        "description": "A video part."
+      },
+      "WatchlistData": {
+        "properties": {
+          "widget_id": {
+            "type": "string",
+            "title": "Widget Id"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "type": {
+            "type": "string",
+            "const": "watchlist",
+            "title": "Type"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/WatchlistEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "widget_id",
+          "run",
+          "type",
+          "entries"
+        ],
+        "title": "WatchlistData"
+      },
+      "WatchlistEntry": {
+        "properties": {
+          "entity": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Groups"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "stable",
+              "watch",
+              "needs_attention",
+              "new"
+            ],
+            "title": "State"
+          },
+          "new_developments": {
+            "type": "integer",
+            "title": "New Developments"
+          },
+          "needs_attention": {
+            "type": "integer",
+            "title": "Needs Attention"
+          },
+          "headline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuestionAnswerView"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Its most severe non-stable answer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "entity",
+          "groups",
+          "state",
+          "new_developments",
+          "needs_attention",
+          "headline"
+        ],
+        "title": "WatchlistEntry"
+      },
+      "WatchlistSettings": {
+        "properties": {
+          "entity_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Entity Ids",
+            "description": "Entities in display order"
+          }
+        },
+        "type": "object",
+        "required": [
+          "entity_ids"
+        ],
+        "title": "WatchlistSettings"
+      },
+      "WatchlistWidget": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Order",
+            "description": "Position in the dashboard; the layout packs by order"
+          },
+          "type": {
+            "type": "string",
+            "const": "watchlist",
+            "title": "Type"
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "M",
+              "L"
+            ],
+            "title": "Size"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/WatchlistSettings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "order",
+          "type",
+          "size",
+          "settings"
+        ],
+        "title": "WatchlistWidget"
+      },
+      "WeekCount": {
+        "properties": {
+          "week_start": {
+            "type": "string",
+            "title": "Week Start",
+            "description": "First day of the 7-day bucket, YYYY-MM-DD"
+          },
+          "week_end": {
+            "type": "string",
+            "title": "Week End",
+            "description": "Last day of the bucket, the run date for the last one"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "week_start",
+          "week_end",
+          "count"
+        ],
+        "title": "WeekCount"
+      },
+      "WhatChanged": {
+        "properties": {
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "new_count": {
+            "type": "integer",
+            "title": "New Count"
+          },
+          "updated_count": {
+            "type": "integer",
+            "title": "Updated Count"
+          },
+          "needs_attention_count": {
+            "type": "integer",
+            "title": "Needs Attention Count"
+          },
+          "developments": {
+            "items": {
+              "$ref": "#/components/schemas/DevelopmentSummary"
+            },
+            "type": "array",
+            "title": "Developments",
+            "description": "New and updated developments, needing attention first, then most material"
+          },
+          "question_changes": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionStateChange"
+            },
+            "type": "array",
+            "title": "Question Changes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run",
+          "new_count",
+          "updated_count",
+          "needs_attention_count",
+          "developments",
+          "question_changes"
+        ],
+        "title": "WhatChanged"
+      },
+      "WidgetDataRequest": {
+        "properties": {
+          "widget": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SinceWidget"
+              },
+              {
+                "$ref": "#/components/schemas/QuestionWidget"
+              },
+              {
+                "$ref": "#/components/schemas/SummaryWidget"
+              },
+              {
+                "$ref": "#/components/schemas/DevelopmentsWidget"
+              },
+              {
+                "$ref": "#/components/schemas/DirectionWidget"
+              },
+              {
+                "$ref": "#/components/schemas/WatchlistWidget"
+              },
+              {
+                "$ref": "#/components/schemas/UpcomingWidget"
+              }
+            ],
+            "title": "Widget",
+            "discriminator": {
+              "propertyName": "type",
+              "mapping": {
+                "developments": "#/components/schemas/DevelopmentsWidget",
+                "direction": "#/components/schemas/DirectionWidget",
+                "question": "#/components/schemas/QuestionWidget",
+                "since": "#/components/schemas/SinceWidget",
+                "summary": "#/components/schemas/SummaryWidget",
+                "upcoming": "#/components/schemas/UpcomingWidget",
+                "watchlist": "#/components/schemas/WatchlistWidget"
+              }
+            }
+          },
+          "dashboard_subject_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Dashboard Subject Ids",
+            "description": "Scope for widgets whose subject is empty"
+          }
+        },
+        "type": "object",
+        "required": [
+          "widget"
+        ],
+        "title": "WidgetDataRequest"
+      },
+      "WidgetTypeInfo": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "since",
+              "question",
+              "summary",
+              "developments",
+              "direction",
+              "watchlist",
+              "upcoming"
+            ],
+            "title": "Type"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "sizes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "S",
+                "M",
+                "L"
+              ]
+            },
+            "type": "array",
+            "title": "Sizes"
+          },
+          "fits": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "topic",
+                "group",
+                "entity"
+              ]
+            },
+            "type": "array",
+            "title": "Fits",
+            "description": "Subject types the gallery offers it for"
+          },
+          "settings_schema": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "type": "object",
+            "title": "Settings Schema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "name",
+          "description",
+          "sizes",
+          "fits",
+          "settings_schema"
+        ],
+        "title": "WidgetTypeInfo"
+      }
+    }
+  }
+}

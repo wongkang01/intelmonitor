@@ -1,0 +1,38 @@
+# Starter dashboards, seeded once so the first screen is never blank. Each one is a
+# DashboardSpec (api/intelmonitor/server/widgets.py); widgets are packed by order.
+
+- id: singapore-banks
+  name: Singapore banks
+  subject_ids: [singapore-banks, banking-regulation]
+  widgets:
+    - {id: sgb-since, order: 0, type: since, size: L, settings: {}}
+    - {id: sgb-summary, order: 1, type: summary, size: M, settings: {subject_id: singapore-banks}}
+    - {id: sgb-direction, order: 2, type: direction, size: S, settings: {subject_id: banking-regulation}}
+    - {id: sgb-upcoming, order: 3, type: upcoming, size: S, settings: {subject_id: banking-regulation}}
+    - {id: sgb-watchlist, order: 4, type: watchlist, size: L, settings: {entity_ids: [dbs, ocbc, uob]}}
+    - {id: sgb-developments, order: 5, type: developments, size: M, settings: {}}
+    - {id: sgb-question, order: 6, type: question, size: S, settings: {subject_id: banking-regulation, question_id: banking-regulation.enforcement}}
+
+- id: stablecoin-watch
+  name: Stablecoin watch
+  subject_ids: [stablecoins, stablecoin-issuers]
+  widgets:
+    - {id: scw-since, order: 0, type: since, size: L, settings: {}}
+    - {id: scw-watchlist, order: 1, type: watchlist, size: L, settings: {entity_ids: [circle, tether, paxos, straitsx]}}
+    - {id: scw-summary, order: 2, type: summary, size: M, settings: {subject_id: stablecoins}}
+    - {id: scw-direction, order: 3, type: direction, size: S, settings: {subject_id: stablecoins}}
+    - {id: scw-question, order: 4, type: question, size: S, settings: {subject_id: stablecoins, question_id: stablecoins.reserves-peg}}
+    - {id: scw-upcoming, order: 5, type: upcoming, size: M, settings: {subject_id: stablecoins}}
+    - {id: scw-developments, order: 6, type: developments, size: M, settings: {}}
+
+- id: geopolitics-sea
+  name: Geopolitics in SEA
+  subject_ids: [geopolitics, sea-countries]
+  widgets:
+    - {id: geo-since, order: 0, type: since, size: L, settings: {}}
+    - {id: geo-watchlist, order: 1, type: watchlist, size: L, settings: {entity_ids: [singapore, malaysia, indonesia, thailand, vietnam, philippines]}}
+    - {id: geo-summary, order: 2, type: summary, size: M, settings: {subject_id: sea-countries}}
+    - {id: geo-direction, order: 3, type: direction, size: S, settings: {subject_id: geopolitics}}
+    - {id: geo-question, order: 4, type: question, size: S, settings: {subject_id: geopolitics, question_id: geopolitics.escalation}}
+    - {id: geo-upcoming, order: 5, type: upcoming, size: M, settings: {subject_id: geopolitics}}
+    - {id: geo-developments, order: 6, type: developments, size: M, settings: {}}

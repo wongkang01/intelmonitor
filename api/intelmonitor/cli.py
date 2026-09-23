@@ -74,6 +74,19 @@ def serve(
 
 
 @app.command()
+def openapi(
+    out: Annotated[str, typer.Argument(help="Where to write the OpenAPI JSON schema")],
+) -> None:
+    """Write the API's OpenAPI schema, the source for the web client's generated types."""
+    import json
+    from pathlib import Path
+
+    from intelmonitor.server.app import app as api
+
+    Path(out).write_text(json.dumps(api.openapi(), indent=2) + "\n")
+
+
+@app.command()
 def smoke() -> None:
     """Make one Jev call and one Claude Agent SDK call and print both structured answers."""
     from intelmonitor.smoke import run_smoke

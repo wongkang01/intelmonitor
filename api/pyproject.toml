@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "IntelMonitor POC: ingest, pipeline, API and Generate agent"
 requires-python = ">=3.12"
 dependencies = [
+    "ag-ui-protocol>=1.0.0",
     "claude-agent-sdk>=0.2.158",
     "fastapi>=0.141.1",
     "fastembed>=0.8.1",

@@ -186,13 +186,59 @@ CREATE TABLE IF NOT EXISTS inference_records (
     created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS inference_records_cache ON inference_records (stage, input_hash, status);
+
+-- App state written through the API.
+
+CREATE TABLE IF NOT EXISTS dashboards (
+    id TEXT PRIMARY KEY,
+    spec TEXT NOT NULL,                -- JSON DashboardSpec: name, subject ids and widgets
+    starter INTEGER NOT NULL,          -- 1 for the seeded starter dashboards
+    position INTEGER NOT NULL,         -- sidebar order
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS analyst_actions (
+    id INTEGER PRIMARY KEY,
+    kind TEXT NOT NULL,                -- review or note
+    subject_id TEXT,
+    development_id TEXT,
+    text TEXT,                         -- set for notes
+    run_id TEXT,                       -- the latest run when the action was taken
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS analyst_actions_subject ON analyst_actions (subject_id, kind);
+
+CREATE TABLE IF NOT EXISTS custom_questions (
+    id TEXT PRIMARY KEY,               -- custom-<hex>
+    subject_id TEXT NOT NULL,
+    question TEXT NOT NULL,
+    label TEXT NOT NULL,
+    lookback_days INTEGER NOT NULL,
+    request TEXT NOT NULL,             -- what the user typed
+    status TEXT NOT NULL,              -- draft until the user keeps it, then kept
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS custom_question_answers (
+    question_id TEXT NOT NULL REFERENCES custom_questions (id),
+    run_id TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    state TEXT NOT NULL,               -- stable, watch, needs_attention or new
+    new_count INTEGER NOT NULL,
+    development_ids TEXT NOT NULL,     -- JSON [development_id] in that run
+    document_ids TEXT NOT NULL,        -- JSON [document_id]: the top matches Claude read
+    PRIMARY KEY (question_id, run_id)
+);
 """
 
 
 def connect(path: Path = DB_PATH) -> sqlite3.Connection:
     """Open the store and make sure the schema exists."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path, timeout=30)
+    # The API opens one connection per request, which FastAPI may use from a worker thread.
+    conn = sqlite3.connect(path, timeout=30, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")  # the API reads while a pipeline run writes
     conn.executescript(SCHEMA)
