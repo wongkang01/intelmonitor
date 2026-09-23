@@ -297,6 +297,23 @@ class Queries:
         ]
         return built_in + custom
 
+    def answer(self, subject_id: str, question_id: str) -> QuestionAnswerView:
+        """One question's answer in the latest run. Custom questions count whether kept or still
+        a draft, so previews (the gallery, Generate) fill and open their evidence too."""
+        row = self.conn.execute(
+            "SELECT * FROM custom_questions WHERE id = ? AND subject_id = ?",
+            (question_id, subject_id),
+        ).fetchone()
+        defs = (
+            [QuestionDefView(row["id"], row["label"], row["question"], row["lookback_days"], True)]
+            if row
+            else [d for d in self.question_defs(subject_id) if d.id == question_id]
+        )
+        found = self.answers(subject_id, defs)
+        if not found:
+            raise NotFoundError(f"answer to {question_id} for {subject_id} in run {self.run.id}")
+        return found[0]
+
     def _answer_rows(self, run_id: str | None, subject_id: str) -> dict[str, sqlite3.Row]:
         if run_id is None:
             return {}

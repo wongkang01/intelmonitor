@@ -22,7 +22,6 @@ from intelmonitor.server.models import (
 from intelmonitor.server.queries import (
     MATERIAL_LEVEL,
     STATE_RANK,
-    NotFoundError,
     Queries,
     subject_links,
     subject_ref,
@@ -318,17 +317,12 @@ def widget_data(q: Queries, widget: Widget, dashboard_subject_ids: list[str]) ->
                 reviewed_at=q.reviewed_at(ids),
             )
         case QuestionWidget(settings=s):
-            answer = next(
-                (a for a in q.answers(s.subject_id) if a.question_id == s.question_id), None
-            )
-            if answer is None:
-                raise NotFoundError(f"question {s.question_id} for {s.subject_id}")
             return QuestionData(
                 widget_id=widget.id,
                 run=q.run,
                 type="question",
                 subject=subject_ref(s.subject_id),
-                answer=answer,
+                answer=q.answer(s.subject_id, s.question_id),
             )
         case SummaryWidget(settings=s):
             return SummaryData(

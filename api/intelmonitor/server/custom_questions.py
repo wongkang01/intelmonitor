@@ -35,6 +35,18 @@ Status = Literal["draft", "kept"]
 class CapReachedError(RuntimeError):
     """The user already keeps MAX_CUSTOM_QUESTIONS custom questions."""
 
+    def __init__(self) -> None:
+        super().__init__(
+            f"You have {MAX_CUSTOM_QUESTIONS} custom questions, the most allowed. "
+            "Delete one to add another."
+        )
+
+
+class CustomQuestionSlots(BaseModel):
+    limit: int = Field(description="The most custom questions a user can keep")
+    kept: int
+    left: int
+
 
 class CustomQuestionRequest(BaseModel):
     text: str = Field(min_length=5, max_length=500, description="What the user typed")
@@ -83,6 +95,35 @@ def kept_count(conn: sqlite3.Connection) -> int:
     return conn.execute("SELECT count(*) FROM custom_questions WHERE status = 'kept'").fetchone()[0]
 
 
+def slots(conn: sqlite3.Connection) -> CustomQuestionSlots:
+    kept = kept_count(conn)
+    return CustomQuestionSlots(
+        limit=MAX_CUSTOM_QUESTIONS, kept=kept, left=max(0, MAX_CUSTOM_QUESTIONS - kept)
+    )
+
+
+def keep_ids(conn: sqlite3.Connection, question_ids: list[str]) -> None:
+    """Keeps the drafts among `question_ids`, all or none: raises CapReachedError when they would
+    go over the cap. Used by Keep and by saving a dashboard whose widgets show drafts."""
+    marks = ",".join("?" * len(question_ids))
+    drafts = [
+        r["id"]
+        for r in conn.execute(
+            f"SELECT id FROM custom_questions WHERE status = 'draft' AND id IN ({marks})",
+            question_ids,
+        )
+    ]
+    if not drafts:
+        return
+    if kept_count(conn) + len(drafts) > MAX_CUSTOM_QUESTIONS:
+        raise CapReachedError()
+    conn.executemany(
+        "UPDATE custom_questions SET status = 'kept', updated_at = ? WHERE id = ?",
+        [(now(), i) for i in drafts],
+    )
+    conn.commit()
+
+
 def view(q: Queries, question_id: str) -> CustomQuestion:
     r = _row(q.conn, question_id)
     qdef = QuestionDefView(r["id"], r["label"], r["question"], r["lookback_days"], True)
@@ -129,7 +170,7 @@ def list_questions(q: Queries, subject_id: str | None, status: Status | None) ->
 
 async def create_draft(q: Queries, request: CustomQuestionRequest) -> CustomQuestion:
     if kept_count(q.conn) >= MAX_CUSTOM_QUESTIONS:
-        raise CapReachedError(f"at most {MAX_CUSTOM_QUESTIONS} custom questions")
+        raise CapReachedError()
     config = await draft_config(Inference(q.conn, None), request.text, request.subject_id)
     question_id = f"{CUSTOM_PREFIX}{uuid.uuid4().hex[:10]}"
     at = now()
@@ -157,14 +198,8 @@ async def create_draft(q: Queries, request: CustomQuestionRequest) -> CustomQues
 
 
 def keep(q: Queries, question_id: str) -> CustomQuestion:
-    if _row(q.conn, question_id)["status"] != "kept":
-        if kept_count(q.conn) >= MAX_CUSTOM_QUESTIONS:
-            raise CapReachedError(f"at most {MAX_CUSTOM_QUESTIONS} custom questions")
-        q.conn.execute(
-            "UPDATE custom_questions SET status = 'kept', updated_at = ? WHERE id = ?",
-            (now(), question_id),
-        )
-        q.conn.commit()
+    _row(q.conn, question_id)
+    keep_ids(q.conn, [question_id])
     return view(q, question_id)
 
 

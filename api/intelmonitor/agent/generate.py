@@ -99,8 +99,11 @@ Follow-up requests edit the current dashboard in place: update, remove or reorde
 widgets by id, and add only what is asked. Rebuild from scratch only when the user asks for a \
 different dashboard.
 
-If a request does not fit the catalog, add the closest widget and say so, or call \
-create_custom_widget for an angle no standing question covers.
+If a request does not fit the catalog, add the closest widget and say so. When the user wants \
+an angle no standing question covers (check the subject's questions with list_subjects), call \
+create_custom_widget with that angle as one question and the subject it is about: it drafts a \
+custom standing question, answers it and adds a Standing question widget for it. Create at \
+most two per request.
 
 Write no text before or between tool calls. When done, reply with one plain sentence of at most \
 25 words on what the dashboard is for. Do not recap the widgets or use lists or markdown: the \

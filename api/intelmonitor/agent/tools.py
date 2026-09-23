@@ -12,9 +12,10 @@ from claude_agent_sdk.types import McpSdkServerConfig
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
 from intelmonitor.pipeline.subjects import all_subjects, questions_for
+from intelmonitor.server import custom_questions as cq
 from intelmonitor.server.models import State
 from intelmonitor.server.queries import NoRunError, Queries, subject_links
-from intelmonitor.server.widgets import Widget, WidgetType, catalog
+from intelmonitor.server.widgets import CUSTOM_PREFIX, Widget, WidgetType, catalog
 from intelmonitor.store.db import connect
 
 SERVER_NAME = "dashboard"
@@ -57,6 +58,22 @@ def widget_name(widget_type: str) -> str:
     return next((t.name for t in catalog() if t.type == widget_type), widget_type)
 
 
+def _question_label(subject_id: str, question_id: str) -> str | None:
+    if not question_id.startswith(CUSTOM_PREFIX):
+        return next(
+            (q.label for q in questions_for(all_subjects()[subject_id]) if q.id == question_id),
+            None,
+        )
+    conn = connect()
+    try:
+        row = conn.execute(
+            "SELECT label FROM custom_questions WHERE id = ?", (question_id,)
+        ).fetchone()
+        return f"{row['label']}, custom" if row else None
+    finally:
+        conn.close()
+
+
 def describe(widget: Widget) -> str:
     """Plain words for a widget, such as "Standing question (Enforcement), small, Banking
     regulation"."""
@@ -64,12 +81,9 @@ def describe(widget: Widget) -> str:
     name = widget_name(widget.type)
     parts = [SIZE_WORD[widget.size]]
     if widget.type == "question":
-        s = subjects[widget.settings.subject_id]
-        label = next(
-            (q.label for q in questions_for(s) if q.id == widget.settings.question_id), None
-        )
+        label = _question_label(widget.settings.subject_id, widget.settings.question_id)
         name = f"{name} ({label})" if label else name
-        parts.append(s.name)
+        parts.append(subjects[widget.settings.subject_id].name)
     elif widget.type == "watchlist":
         names = [subjects[e].name for e in widget.settings.entity_ids]
         more = f" and {len(names) - 3} more" if len(names) > 3 else ""
@@ -124,6 +138,31 @@ class DashboardEditor:
         self.changes.append(f"Added {describe(widget)}.")
         self._on_patch([{"op": "add", "path": f"/widgets/{at}", "value": _dump(widget)}])
         return _ok(f"Added {widget.id}. {self._state()}")
+
+    async def add_custom(
+        self, text: str, subject_id: str, size: str, position: int | None
+    ) -> ToolResult:
+        """Drafts a custom question (config plus answers for every run) and adds its widget."""
+        conn = connect()
+        try:
+            request = cq.CustomQuestionRequest(text=text, subject_id=subject_id)
+            draft = await cq.create_draft(Queries(conn), request)
+        except ValidationError as e:
+            return _error(f"Invalid question: {_validation_message(e)}")
+        except cq.CapReachedError as e:
+            return _error(f"{e} Suggest the closest built-in widget instead.")
+        finally:
+            conn.close()
+        settings = {"subject_id": draft.subject.id, "question_id": draft.id}
+        added = self.add("question", size, settings, position)
+        if added.get("is_error"):
+            return added
+        latest = draft.runs[-1] if draft.runs else None
+        answer = f" Latest answer: {STATE_LABEL[latest.state]}, {latest.summary}" if latest else ""
+        return _ok(
+            f"Drafted custom question {draft.id} ({draft.label}): {draft.question} "
+            f"Lookback {draft.lookback_days} days.{answer}\n{added['content'][0]['text']}"
+        )
 
     def update(
         self, widget_id: str, size: str | None, settings: dict[str, Any] | None
@@ -202,9 +241,13 @@ def list_subjects(subject_ids: list[str] | None) -> ToolResult:
             }
             if subject_ids:
                 row["questions"] = [
-                    {"id": a.question_id, "label": a.label, "state": STATE_LABEL[a.state]}
+                    {
+                        "id": a.question_id,
+                        "label": a.label,
+                        "state": STATE_LABEL[a.state],
+                        **({"custom": True, "question": a.question} if a.custom else {}),
+                    }
                     for a in q.answers(sid)
-                    if not a.custom
                 ]
             out.append(row)
         return _ok(json.dumps(out))
@@ -305,22 +348,33 @@ def build_server(editor: DashboardEditor) -> tuple[McpSdkServerConfig, list[str]
 
     @tool(
         "create_custom_widget",
-        "Propose a custom standing question for an angle no built-in question covers.",
+        "Create a custom standing question for an angle no standing question covers, and add a "
+        "Standing question widget that shows it. The question is drafted and answered for "
+        "every run, which takes up to a minute. It becomes the user's once they keep the "
+        "change and create the dashboard.",
         {
             "type": "object",
             "properties": {
-                "question": {"type": "string"},
-                "subject_id": {"type": "string"},
+                "question": {
+                    "type": "string",
+                    "description": "The angle in the user's words, as one question",
+                },
+                "subject_id": {"type": "string", "description": "A subject id"},
+                "size": {"type": "string", "enum": ["S", "M"]},
+                "position": {
+                    "type": "integer",
+                    "description": "0-based index in the layout order; omit to append",
+                },
             },
             "required": ["question", "subject_id"],
         },
     )
     async def create_custom_widget(args: dict[str, Any]) -> ToolResult:
-        # Stub until custom questions reach Generate: point the user to the monitor page.
-        return _error(
-            "Custom questions cannot be created from Generate yet. Suggest the closest built-in "
-            "widget, and tell the user they can add the question with 'Add a question' on the "
-            "subject's monitor page."
+        return await editor.add_custom(
+            str(args["question"]),
+            str(args["subject_id"]),
+            str(args.get("size") or "S"),
+            args.get("position"),
         )
 
     tools: list[SdkMcpTool[Any]] = [

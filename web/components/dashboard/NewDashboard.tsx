@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 
 import type { Widget } from "@/lib/api/client";
-import { useCreateDashboard, useSubjects } from "@/lib/api/queries";
+import { errorMessage, useCreateDashboard, useSubjects } from "@/lib/api/queries";
 import { useDashboardDraft, type DashboardDraft } from "@/lib/agent";
 import { defaultName, subjectsUsed } from "@/lib/widgets";
 import { PlusIcon, SendIcon, SparkleIcon } from "@/components/ui/icons";
@@ -91,7 +91,7 @@ function NewDashboardBody({
           router.push(`/dashboards/${created.id}`);
           toast({ message: `Created ${created.name}` });
         },
-        onError: () => toast({ message: "Could not create the dashboard" }),
+        onError: (e) => toast({ message: errorMessage(e, "Could not create the dashboard") }),
       },
     );
   };

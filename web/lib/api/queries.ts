@@ -47,6 +47,7 @@ export const keys = {
   search: (text: string) => ["search", text],
   widgetData: ["widget-data"],
   graph: (query: GraphQuery) => ["graph", query],
+  customSlots: ["custom-question-slots"],
 } as const;
 
 /** Query parameters of GET /graph: center subject, hops (1 or 2) and optional filters. */
@@ -234,7 +235,8 @@ export function useCreateDashboard() {
     mutationFn: (spec: Schema<"DashboardSpec">) => unwrap(api.POST("/dashboards", { body: spec })),
     onSuccess: (created) => {
       client.setQueryData(keys.dashboard(created.id), created);
-      return client.invalidateQueries({ queryKey: keys.dashboards });
+      // Creating keeps any draft custom questions its widgets show (from Generate).
+      return invalidateCustom(client);
     },
   });
 }
@@ -292,3 +294,77 @@ export function useDeleteNote() {
     onSuccess: () => invalidateNotes(client),
   });
 }
+
+export type CustomQuestion = Schema<"CustomQuestion">;
+
+/** The API's message for a failed request, such as the custom question cap. */
+export function errorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ApiError && typeof error.detail === "object" && error.detail !== null && "detail" in error.detail) {
+    const detail = error.detail.detail;
+    if (typeof detail === "string" && error.status !== 422) return detail;
+  }
+  return fallback;
+}
+
+/** How many custom questions the user keeps and may still add. */
+export const useCustomSlots = () =>
+  useQuery({ queryKey: keys.customSlots, queryFn: () => unwrap(api.GET("/custom-questions/slots")) });
+
+/** Everything that shows custom questions or their answers. */
+function invalidateCustom(client: QueryClient) {
+  return Promise.all(
+    [["monitor-page"], keys.widgetData, ["answers"], ["answer-evidence"], keys.customSlots, keys.dashboards, ["dashboard"]].map(
+      (queryKey) => client.invalidateQueries({ queryKey }),
+    ),
+  );
+}
+
+/** Claude drafts a config from the user's text and answers it for every run; nothing shows it until Keep. */
+export const useDraftCustomQuestion = () =>
+  useMutation({
+    mutationFn: (request: Schema<"CustomQuestionRequest">) => unwrap(api.POST("/custom-questions", { body: request })),
+  });
+
+export function useKeepCustomQuestion() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      unwrap(api.POST("/custom-questions/{question_id}/keep", { params: { path: { question_id: id } } })),
+    onSuccess: () => invalidateCustom(client),
+  });
+}
+
+/** A new wording or lookback answers the question again for every run. */
+export function useEditCustomQuestion() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, change }: { id: string; change: Schema<"CustomQuestionEdit"> }) =>
+      unwrap(api.PATCH("/custom-questions/{question_id}", { params: { path: { question_id: id } }, body: change })),
+    onSuccess: (saved) => {
+      client.setQueryData(["custom-question", saved.id], saved);
+      return invalidateCustom(client);
+    },
+  });
+}
+
+/** Discards a draft or deletes a kept question; the API also drops widgets that show it. */
+export function useDeleteCustomQuestion() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error, response } = await api.DELETE("/custom-questions/{question_id}", {
+        params: { path: { question_id: id } },
+      });
+      if (error !== undefined || !response.ok) throw new ApiError(response.status, error);
+    },
+    onSuccess: () => invalidateCustom(client),
+  });
+}
+
+export const useCustomQuestion = (id: string | null) =>
+  useQuery({
+    queryKey: ["custom-question", id ?? ""],
+    queryFn: () =>
+      unwrap(api.GET("/custom-questions/{question_id}", { params: { path: { question_id: id ?? "" } } })),
+    enabled: id !== null,
+  });

@@ -1,0 +1,100 @@
+/* Custom standing questions: the composer and preview, and the edit dialog. */
+.cq {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.cq .form-field textarea,
+.panel-body .form-field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  resize: vertical;
+  min-height: 64px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--field2);
+  font: inherit;
+  font-size: 15px;
+  line-height: 21px;
+  color: var(--ink);
+  font-weight: 400;
+}
+.cq-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.cq .grow,
+.cq-row .grow,
+.panel-foot .grow {
+  flex-grow: 1;
+}
+.cq-config {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 6px 12px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+.cq-config dt {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.cq-config dd {
+  margin: 0;
+}
+.cq-run {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.cq-run p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+.cq-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.cq-cites {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cq-row {
+  display: flex;
+  gap: 12px;
+}
+.cq-row input[type="number"] {
+  width: 120px;
+}
+.panel-foot .cap {
+  align-self: center;
+}
+.btn.danger {
+  background: var(--attn-bg);
+  color: var(--attn);
+}
+.qlabel .link {
+  font-size: 12px;
+}
+.qrow.compose {
+  display: block;
+  padding-top: 14px;
+}
+.gcard.wide {
+  grid-column: 1 / -1;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}

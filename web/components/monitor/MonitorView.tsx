@@ -10,6 +10,7 @@ import type { Schema } from "@/lib/api/client";
 import { useMarkReviewed, useMonitorPage } from "@/lib/api/queries";
 import { dateTime, daysBetween, inDays, plural, shortDate, STATE_LABEL, STATE_TONE, TYPE_COLOR, TYPE_LABEL, TYPE_PLURAL } from "@/lib/format";
 import { monitorHref, type SubjectType } from "@/lib/widgets";
+import { CustomQuestionComposer, CustomQuestionEditor } from "@/components/custom/CustomQuestion";
 import { useEvidenceHref } from "@/components/shell/Evidence";
 import { Notes } from "@/components/shell/Notes";
 import { SubjectLink } from "@/components/shell/SubjectLink";
@@ -129,6 +130,9 @@ function WhatChanged({ page }: { page: Page }) {
 
 function Questions({ page }: { page: Page }) {
   const evidence = useEvidenceHref();
+  const toast = useToast();
+  const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
   const changed = page.questions.filter((a) => a.change.kind === "state_changed").length;
   return (
     <section className="panel" aria-labelledby="questions">
@@ -146,7 +150,14 @@ function Questions({ page }: { page: Page }) {
             <div key={a.question_id} className="qrow" data-question-id={a.question_id}>
               <div className="qlabel">
                 <b title={a.question}>{a.label}</b>
-                {a.custom && <span className="tag custom">Custom</span>}
+                {a.custom && (
+                  <>
+                    <span className="tag custom">Custom</span>
+                    <button type="button" className="link" onClick={() => setEditing(a.question_id)} aria-label={`Edit ${a.label}`}>
+                      Edit
+                    </button>
+                  </>
+                )}
               </div>
               <div className="qanswer">
                 <p>{a.summary}</p>
@@ -174,13 +185,32 @@ function Questions({ page }: { page: Page }) {
           );
         })}
         {page.questions.length === 0 && <p className="muted">No answers in this run.</p>}
-        <div className="qrow add">
-          <button type="button" className="link" disabled title="Custom questions arrive in a later build">
-            Add a question
-          </button>
-          <span className="cap">{plural(page.custom_question_slots, "custom question")} left</span>
-        </div>
+        {adding ? (
+          <div className="qrow compose">
+            <CustomQuestionComposer
+              subject={page.subject}
+              autoFocus
+              onCancel={() => setAdding(false)}
+              onKept={(q) => {
+                setAdding(false);
+                toast({ message: `${q.label} added to ${page.subject.name}` });
+              }}
+            />
+          </div>
+        ) : (
+          <div className="qrow add">
+            <button type="button" className="link" onClick={() => setAdding(true)}>
+              Add a question
+            </button>
+            <span className="cap">
+              {page.custom_question_slots > 0
+                ? `${plural(page.custom_question_slots, "custom question")} left`
+                : "No custom questions left. Delete one to add another."}
+            </span>
+          </div>
+        )}
       </div>
+      <CustomQuestionEditor questionId={editing} onClose={() => setEditing(null)} />
     </section>
   );
 }

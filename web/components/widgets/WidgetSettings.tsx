@@ -2,10 +2,12 @@
 
 // The back of a widget in edit mode: subject, question and size, applied as they change.
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 import type { Widget } from "@/lib/api/client";
 import { answersOptions, useAnswers, useCatalog, useSubjects } from "@/lib/api/queries";
 import { TYPE_PLURAL } from "@/lib/format";
+import { CustomQuestionEditor } from "@/components/custom/CustomQuestion";
 import {
   allowsDashboardScope,
   resize,
@@ -36,6 +38,8 @@ export function WidgetSettings({
   const subjectId = settingsSubject(widget);
   const answers = useAnswers(widget.type === "question" ? subjectId : null);
   const sizes: Size[] = SIZES[widget.type];
+  const [editing, setEditing] = useState<string | null>(null);
+  const custom = widget.type === "question" ? answers.data?.find((a) => a.question_id === widget.settings.question_id && a.custom) : undefined;
 
   const changeSubject = async (id: string) => {
     if (widget.type !== "question") return onChange(setSubject(widget, id || null));
@@ -86,6 +90,12 @@ export function WidgetSettings({
           </select>
         </label>
       )}
+      {custom && (
+        <button type="button" className="link" onClick={() => setEditing(custom.question_id)}>
+          Edit custom question
+        </button>
+      )}
+      <CustomQuestionEditor questionId={editing} onClose={() => setEditing(null)} />
       {widget.type === "watchlist" && (
         <p className="muted" style={{ margin: 0 }}>
           Add and remove entities in the widget itself.

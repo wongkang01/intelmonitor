@@ -6,6 +6,7 @@ import "@/styles/widgets.css";
 import "@/styles/sheet.css";
 import "@/styles/monitor.css";
 import "@/styles/graph.css";
+import "@/styles/custom.css";
 
 import { Providers } from "./providers";
 

@@ -141,7 +141,7 @@ def get_monitor_page(q: Q, subject_id: str) -> MonitorPage:
         run=q.run,
         what_changed=q.what_changed([subject_id]),
         questions=q.answers(subject_id),
-        custom_question_slots=max(0, cq.MAX_CUSTOM_QUESTIONS - cq.kept_count(q.conn)),
+        custom_question_slots=cq.slots(q.conn).left,
         upcoming=q.upcoming([subject_id]),
         stage_track=q.stage_track(subject_id) if s.type == "topic" else None,
         group=q.group_insights(subject_id) if s.type == "group" else None,
@@ -202,9 +202,7 @@ def get_development(q: Q, development_id: str) -> DevelopmentDetail:
 @app.get("/subjects/{subject_id}/answers/{question_id}/evidence")
 def get_answer_evidence(q: Q, subject_id: str, question_id: str) -> AnswerEvidence:
     """One answer in the latest run with the developments and sources it relies on."""
-    answer = next((a for a in q.answers(subject_id) if a.question_id == question_id), None)
-    if answer is None:
-        raise NotFoundError(f"answer to {question_id} for {subject_id} in run {q.run.id}")
+    answer = q.answer(subject_id, question_id)
     return AnswerEvidence(
         subject=subject_ref(subject_id),
         run=q.run,
@@ -385,6 +383,11 @@ async def draft_custom_question(q: Q, request: cq.CustomQuestionRequest) -> cq.C
     """Claude drafts the config and the answer job runs for every run; the result is a draft
     with its preview answer until the user keeps it."""
     return await cq.create_draft(q, request)
+
+
+@app.get("/custom-questions/slots")
+def custom_question_slots(q: Q) -> cq.CustomQuestionSlots:
+    return cq.slots(q.conn)
 
 
 @app.get("/custom-questions/{question_id}")

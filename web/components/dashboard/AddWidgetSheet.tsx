@@ -19,6 +19,7 @@ import {
   type SubjectType,
   type WidgetType,
 } from "@/lib/widgets";
+import { CustomQuestionComposer } from "@/components/custom/CustomQuestion";
 import { SearchIcon } from "@/components/ui/icons";
 import { CloseButton, Modal } from "@/components/ui/Modal";
 import { WidgetCard } from "@/components/widgets/WidgetCard";
@@ -190,7 +191,52 @@ function Offers({
           </section>
         );
       })}
+      <CustomOffer subject={subject} onAdd={onAdd} />
     </div>
+  );
+}
+
+/** "Custom question": the user writes a question, previews it, and Keep adds its widget. */
+function CustomOffer({
+  subject,
+  onAdd,
+}: {
+  subject: Schema<"SubjectSummary">;
+  onAdd: (widget: Widget, subjectId: string) => void;
+}) {
+  const [size, setSize] = useState<(typeof SIZES.question)[number]>("S");
+  return (
+    <section className="gcard wide" aria-label="Custom question">
+      <div className="gcard-top">
+        <span>Custom question</span>
+      </div>
+      <div className="gcard-top desc">Your own standing question about {subject.name}, answered for both runs</div>
+      <div className="gcard-bottom">
+        <div className="seg small" role="group" aria-label="Custom question size">
+          {SIZES.question.map((s) => (
+            <button key={s} type="button" aria-pressed={size === s} onClick={() => setSize(s)}>
+              {SIZE_LABEL[s]}
+            </button>
+          ))}
+        </div>
+      </div>
+      <CustomQuestionComposer
+        subject={subject}
+        linkCitations={false}
+        onKept={(q) =>
+          onAdd(
+            {
+              id: newWidgetId(),
+              order: 0,
+              type: "question",
+              size,
+              settings: { subject_id: q.subject.id, question_id: q.id },
+            },
+            subject.id,
+          )
+        }
+      />
+    </section>
   );
 }
 

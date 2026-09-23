@@ -357,6 +357,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/custom-questions/slots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Custom Question Slots */
+        get: operations["custom_question_slots"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/custom-questions/{question_id}": {
         parameters: {
             query?: never;
@@ -660,6 +677,18 @@ export interface components {
              * @description The monitor page's subject; empty lets Claude pick one
              */
             subject_id?: string | null;
+        };
+        /** CustomQuestionSlots */
+        CustomQuestionSlots: {
+            /**
+             * Limit
+             * @description The most custom questions a user can keep
+             */
+            limit: number;
+            /** Kept */
+            kept: number;
+            /** Left */
+            left: number;
         };
         /** CustomRunAnswer */
         CustomRunAnswer: {
@@ -2876,6 +2905,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    custom_question_slots: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomQuestionSlots"];
                 };
             };
         };

@@ -8,8 +8,9 @@ import yaml
 from pydantic import TypeAdapter
 
 from intelmonitor.config import SEED_DIR
+from intelmonitor.server.custom_questions import keep_ids
 from intelmonitor.server.queries import NotFoundError, now
-from intelmonitor.server.widgets import Dashboard, DashboardSpec
+from intelmonitor.server.widgets import CUSTOM_PREFIX, Dashboard, DashboardSpec, QuestionWidget
 from intelmonitor.store.db import get_meta, set_meta
 
 
@@ -62,7 +63,21 @@ def get_dashboard(conn: sqlite3.Connection, dashboard_id: str) -> Dashboard:
     return _from_row(row)
 
 
+def _keep_custom_questions(conn: sqlite3.Connection, spec: DashboardSpec) -> None:
+    """A saved dashboard keeps the draft custom questions its widgets show (Generate adds
+    widgets for drafts, which become the user's questions once the dashboard is created)."""
+    keep_ids(
+        conn,
+        [
+            w.settings.question_id
+            for w in spec.widgets
+            if isinstance(w, QuestionWidget) and w.settings.question_id.startswith(CUSTOM_PREFIX)
+        ],
+    )
+
+
 def create_dashboard(conn: sqlite3.Connection, spec: DashboardSpec) -> Dashboard:
+    _keep_custom_questions(conn, spec)
     dashboard_id = uuid.uuid4().hex[:12]
     position = conn.execute("SELECT coalesce(max(position), -1) + 1 FROM dashboards").fetchone()[0]
     _insert(conn, dashboard_id, spec, starter=False, position=position)
@@ -70,6 +85,7 @@ def create_dashboard(conn: sqlite3.Connection, spec: DashboardSpec) -> Dashboard
 
 
 def update_dashboard(conn: sqlite3.Connection, dashboard_id: str, spec: DashboardSpec) -> Dashboard:
+    _keep_custom_questions(conn, spec)
     cursor = conn.execute(
         "UPDATE dashboards SET spec = ?, updated_at = ? WHERE id = ?",
         (spec.model_dump_json(), now(), dashboard_id),

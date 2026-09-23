@@ -1125,6 +1125,24 @@
         }
       }
     },
+    "/custom-questions/slots": {
+      "get": {
+        "summary": "Custom Question Slots",
+        "operationId": "custom_question_slots",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomQuestionSlots"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/custom-questions/{question_id}": {
       "get": {
         "summary": "Get Custom Question",
@@ -1893,6 +1911,30 @@
           "text"
         ],
         "title": "CustomQuestionRequest"
+      },
+      "CustomQuestionSlots": {
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "description": "The most custom questions a user can keep"
+          },
+          "kept": {
+            "type": "integer",
+            "title": "Kept"
+          },
+          "left": {
+            "type": "integer",
+            "title": "Left"
+          }
+        },
+        "type": "object",
+        "required": [
+          "limit",
+          "kept",
+          "left"
+        ],
+        "title": "CustomQuestionSlots"
       },
       "CustomRunAnswer": {
         "properties": {
