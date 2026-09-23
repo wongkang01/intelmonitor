@@ -46,7 +46,7 @@ Jev does the high-volume decisions, Claude writes the findings and answers, and 
 - LLM-only baseline, labelled set and the experiment metrics.
 - Event scope, jurisdiction filter UI, personal watchlists as a separate object.
 - The "ask" half of ⌘K (question answering from the search box).
-- Structured market data in charts (FRED, CoinGecko, DefiLlama). Keys are kept in `.env` for later.
+- Structured market data in charts (MAS statistics APIs for exchange rates and bank assets, liquidity and exposure; FRED, CoinGecko, DefiLlama). Keys are kept in `.env` for later.
 - Analysis card and trend chart widget displays, exposure map widget.
 - Dark mode, phone layout, multiple users, scheduled runs.
 
@@ -233,7 +233,7 @@ flowchart TD
    Code checks every quote appears in the document text and drops findings whose quotes don't match.
 5. **Same event.** Candidate pairs come from findings that share a subject, fall within 10 days of each other, and are similar by local embeddings (fastembed).
    Jev decides each pair (noul), and code merges matches into one `Development` with all its sources.
-6. **Materiality.** Jev scores each development 1 to 5 (score). 4 and 5 mean "Needs attention".
+6. **Materiality.** Jev scores each development on five levels (Trivial, Minor, Notable, Significant, Critical). Score levels are sent as an array and come back indexed 0 to 4, so a score of 3 or more means "Needs attention".
 7. **Answers.** One Claude call per subject per run answers all of that subject's questions from the developments tagged to it inside each question's lookback.
    Each answer has a one-line summary, a state (Stable, Watch, Needs attention, or a count of new items), and the development ids it relies on.
 8. **Custom question job.** For a new custom question, Jev scores each candidate document tagged to the subject within the lookback ("Does this document help answer: ...?"), and Claude answers from the top matches for both run dates.
