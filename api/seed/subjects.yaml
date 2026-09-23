@@ -1,0 +1,156 @@
+# Subjects tracked by the POC: 3 topics, 5 groups, 22 entities (30 subjects).
+# Every entity sits in at least one group; every group links to at least one topic.
+# Aliases drive entity resolution and search query generation. Domains are the subject's own
+# site, used for gap searches limited to that domain.
+
+topics:
+  - id: banking-regulation
+    name: Banking regulation
+    covers: Basel III implementation, capital and liquidity, AML/CFT, operational and technology resilience, supervisory enforcement
+    keywords: [Basel III, capital requirements, liquidity coverage ratio, AML/CFT, anti-money laundering, operational resilience, technology risk, supervisory enforcement, bank penalty]
+  - id: geopolitics
+    name: Geopolitics
+    covers: US-China relations, tariffs, sanctions and export controls, South China Sea, regional security events with financial effects
+    keywords: [US-China relations, tariffs, sanctions, export controls, South China Sea, regional security, trade war]
+  - id: stablecoins
+    name: Stablecoins
+    covers: Stablecoin regulation and licensing, reserves and pegs, issuer activity, bank involvement, tokenised deposits
+    keywords: [stablecoin regulation, stablecoin licensing, stablecoin reserves, depeg, stablecoin issuer, tokenised deposits, tokenization]
+
+groups:
+  - id: singapore-banks
+    name: Singapore banks
+    topics: [banking-regulation, stablecoins, geopolitics]
+    members: [dbs, ocbc, uob]
+  - id: sea-regional-banks
+    name: SEA regional banks
+    topics: [banking-regulation, geopolitics]
+    members: [maybank, cimb, bangkok-bank]
+  - id: central-banks
+    name: Central banks
+    topics: [banking-regulation, stablecoins]
+    members: [mas, fed, ecb, pboc, hkma, bnm]
+  - id: stablecoin-issuers
+    name: Stablecoin issuers
+    topics: [stablecoins]
+    members: [circle, tether, paxos, straitsx]
+  - id: sea-countries
+    name: SEA countries
+    topics: [geopolitics]
+    members: [singapore, malaysia, indonesia, thailand, vietnam, philippines]
+
+# kind selects the entity question set in questions.yaml.
+entities:
+  - id: dbs
+    name: DBS
+    kind: bank
+    aliases: [DBS Bank, DBS Group, DBS Group Holdings, Development Bank of Singapore]
+    domains: [dbs.com]
+  - id: ocbc
+    name: OCBC
+    kind: bank
+    aliases: [OCBC Bank, Oversea-Chinese Banking Corporation, OCBC Group]
+    domains: [ocbc.com]
+  - id: uob
+    name: UOB
+    kind: bank
+    aliases: [United Overseas Bank, UOB Group]
+    domains: [uobgroup.com]
+  - id: maybank
+    name: Maybank
+    kind: bank
+    aliases: [Malayan Banking, Malayan Banking Berhad, Maybank Group]
+    domains: [maybank.com]
+  - id: cimb
+    name: CIMB
+    kind: bank
+    aliases: [CIMB Group, CIMB Group Holdings, CIMB Bank]
+    domains: [cimb.com]
+  - id: bangkok-bank
+    name: Bangkok Bank
+    kind: bank
+    aliases: [Bangkok Bank PCL, Bangkok Bank Public Company Limited, BBL]
+    domains: [bangkokbank.com]
+
+  - id: mas
+    name: MAS
+    kind: central_bank
+    aliases: [Monetary Authority of Singapore]
+    domains: [mas.gov.sg]
+  - id: fed
+    name: Fed
+    kind: central_bank
+    aliases: [Federal Reserve, Federal Reserve Board, Federal Reserve System, FOMC, US Federal Reserve]
+    domains: [federalreserve.gov]
+  - id: ecb
+    name: ECB
+    kind: central_bank
+    aliases: [European Central Bank, ECB Banking Supervision, SSM]
+    domains: [ecb.europa.eu, bankingsupervision.europa.eu]
+  - id: pboc
+    name: PBoC
+    kind: central_bank
+    aliases: [People's Bank of China, PBOC]
+    domains: [pbc.gov.cn]
+  - id: hkma
+    name: HKMA
+    kind: central_bank
+    aliases: [Hong Kong Monetary Authority]
+    domains: [hkma.gov.hk]
+  - id: bnm
+    name: BNM
+    kind: central_bank
+    aliases: [Bank Negara, Bank Negara Malaysia, Central Bank of Malaysia]
+    domains: [bnm.gov.my]
+
+  - id: circle
+    name: Circle
+    kind: stablecoin_issuer
+    aliases: [Circle Internet Financial, Circle Internet Group, USDC, EURC]
+    domains: [circle.com]
+  - id: tether
+    name: Tether
+    kind: stablecoin_issuer
+    aliases: [Tether Holdings, Tether Limited, USDT]
+    domains: [tether.to]
+  - id: paxos
+    name: Paxos
+    kind: stablecoin_issuer
+    aliases: [Paxos Trust Company, USDP, PYUSD, USDG]
+    domains: [paxos.com]
+  - id: straitsx
+    name: StraitsX
+    kind: stablecoin_issuer
+    aliases: [XSGD, XUSD, Xfers]
+    domains: [straitsx.com]
+
+  - id: singapore
+    name: Singapore
+    kind: country
+    aliases: [Republic of Singapore]
+    domains: [gov.sg]
+  - id: malaysia
+    name: Malaysia
+    kind: country
+    aliases: []
+    domains: [gov.my]
+  - id: indonesia
+    name: Indonesia
+    kind: country
+    aliases: [Republic of Indonesia]
+    domains: [go.id]
+  - id: thailand
+    name: Thailand
+    kind: country
+    aliases: [Kingdom of Thailand]
+    domains: [go.th]
+  - id: vietnam
+    name: Vietnam
+    kind: country
+    aliases: [Viet Nam]
+    domains: [gov.vn]
+  - id: philippines
+    name: Philippines
+    kind: country
+    aliases: [Republic of the Philippines]
+    domains: [gov.ph]

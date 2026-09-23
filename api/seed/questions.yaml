@@ -1,0 +1,78 @@
+# Built-in standing questions. Each set applies to one subject type, optionally narrowed to one
+# topic (subject) or one entity kind (kind). Labels are shown in widgets.
+# lookback_days: how far back an answer reads developments, counted from the run date.
+# Runs are weekly, so news-flow questions look back 7 days and state questions 30.
+
+sets:
+  - applies_to: {type: topic}
+    questions:
+      - {id: topic.new-developments, label: New developments, lookback_days: 7, question: "What material developments happened on this topic?"}
+      - {id: topic.direction, label: Direction, lookback_days: 14, question: "Is the picture getting more or less severe than at the last run?"}
+      - {id: topic.whos-moving, label: Who's moving, lookback_days: 30, question: "Which jurisdictions or bodies took action, and are they converging or splitting?"}
+      - {id: topic.upcoming, label: Upcoming, lookback_days: 60, question: "What deadlines, effective dates, meetings or consultation closes fall in the next 90 days?"}
+      - {id: topic.impact, label: Impact, lookback_days: 7, question: "Which tracked groups and entities are affected, and how?"}
+      - {id: topic.local-relevance, label: Local relevance, lookback_days: 7, question: "What does this mean for Singapore and MAS-supervised institutions?"}
+
+  - applies_to: {type: topic, subject: banking-regulation}
+    questions:
+      - {id: banking-regulation.stage, label: Stage, lookback_days: 30, question: "Is each item a signal, consultation, proposal, enacted rule or enforcement?"}
+      - {id: banking-regulation.enforcement, label: Enforcement, lookback_days: 30, question: "Were any enforcement actions or penalties announced against banks?"}
+
+  - applies_to: {type: topic, subject: geopolitics}
+    questions:
+      - {id: geopolitics.escalation, label: Escalation, lookback_days: 14, question: "Which flashpoints are escalating, and which are cooling?"}
+      - {id: geopolitics.sanctions-trade, label: Sanctions and trade, lookback_days: 14, question: "Were new sanctions, tariffs or export controls announced that touch tracked entities or countries?"}
+      - {id: geopolitics.financial-channels, label: Financial channels, lookback_days: 14, question: "Are there effects on capital flows, FX, payments or trade finance?"}
+
+  - applies_to: {type: topic, subject: stablecoins}
+    questions:
+      - {id: stablecoins.stage, label: Stage, lookback_days: 30, question: "Where is stablecoin regulation in each jurisdiction: signal, consultation, proposed, enacted or enforced?"}
+      - {id: stablecoins.reserves-peg, label: Reserves and peg, lookback_days: 30, question: "Were there depegs, reserve concerns or attestation findings?"}
+      - {id: stablecoins.bank-involvement, label: Bank involvement, lookback_days: 30, question: "Are banks issuing, custodying, settling or partnering on stablecoins or tokenised deposits?"}
+
+  - applies_to: {type: group}
+    questions:
+      - {id: group.common-issues, label: Common issues, lookback_days: 7, question: "Is the same issue showing up at several members?"}
+      - {id: group.exposure, label: Exposure, lookback_days: 7, question: "Which members are most and least exposed to new developments?"}
+      - {id: group.outliers, label: Outliers, lookback_days: 14, question: "Is any member behaving differently from its peers?"}
+      - {id: group.topics, label: Topics, lookback_days: 14, question: "Which tracked topics are affecting this group most right now?"}
+      - {id: group.peer-moves, label: Peer moves, lookback_days: 30, question: "Did any member make a move its peers are likely to follow?"}
+      - {id: group.contagion, label: Contagion, lookback_days: 14, question: "Could an issue at one member spread to others?"}
+
+  - applies_to: {type: entity, kind: bank}
+    questions:
+      - {id: bank.incidents, label: Incidents, lookback_days: 7, question: "Have any material operational or technology incidents occurred?"}
+      - {id: bank.adverse, label: Adverse, lookback_days: 7, question: "Is there anything that could hurt this bank?"}
+      - {id: bank.regulatory, label: Regulatory, lookback_days: 30, question: "Any regulatory actions, findings or new obligations?"}
+      - {id: bank.financial, label: Financial, lookback_days: 30, question: "Any material changes in earnings, capital, liquidity or asset quality?"}
+      - {id: bank.management, label: Management, lookback_days: 30, question: "Any senior management or board changes?"}
+      - {id: bank.strategy, label: Strategy, lookback_days: 30, question: "Any significant M&A, product or technology moves?"}
+      - {id: bank.digital-assets, label: Digital assets, lookback_days: 30, question: "Any stablecoin, tokenisation or crypto activity or exposure?"}
+      - {id: bank.geographic-exposure, label: Geographic exposure, lookback_days: 14, question: "Is the bank exposed to any escalating geopolitical situation?"}
+
+  - applies_to: {type: entity, kind: central_bank}
+    questions:
+      - {id: central-bank.policy-stance, label: Policy stance, lookback_days: 30, question: "Did the policy stance on rates, liquidity or FX change?"}
+      - {id: central-bank.regulation, label: Regulation, lookback_days: 30, question: "Any new rules, consultations or guidance for banks?"}
+      - {id: central-bank.enforcement, label: Enforcement, lookback_days: 30, question: "Any supervisory or enforcement actions?"}
+      - {id: central-bank.digital-money, label: Digital money, lookback_days: 30, question: "Any moves on CBDCs, stablecoins or tokenisation?"}
+      - {id: central-bank.signals, label: Signals, lookback_days: 14, question: "What did leadership signal in speeches or statements?"}
+      - {id: central-bank.cross-border, label: Cross-border, lookback_days: 30, question: "Any new cooperation agreements or joint statements?"}
+
+  - applies_to: {type: entity, kind: stablecoin_issuer}
+    questions:
+      - {id: issuer.reserves, label: Reserves, lookback_days: 30, question: "What do the latest attestations or disclosures say about reserves?"}
+      - {id: issuer.peg, label: Peg, lookback_days: 14, question: "Has the peg held, and were there redemption pressures?"}
+      - {id: issuer.licensing, label: Licensing, lookback_days: 30, question: "Did the issuer gain, lose or apply for any licence?"}
+      - {id: issuer.banking-partners, label: Banking partners, lookback_days: 30, question: "Any changes to banking, custody or settlement partners?"}
+      - {id: issuer.incidents, label: Incidents, lookback_days: 7, question: "Any hacks, freezes, outages or legal actions?"}
+      - {id: issuer.strategy, label: Strategy, lookback_days: 30, question: "Any new chains, markets, products or partnerships?"}
+
+  - applies_to: {type: entity, kind: country}
+    questions:
+      - {id: country.political-stability, label: Political stability, lookback_days: 14, question: "Any political events that change policy direction or stability?"}
+      - {id: country.economic-policy, label: Economic policy, lookback_days: 30, question: "Any material fiscal, monetary or FX policy moves?"}
+      - {id: country.trade-sanctions, label: Trade and sanctions, lookback_days: 14, question: "Is the country affected by new tariffs, sanctions or export controls?"}
+      - {id: country.security, label: Security, lookback_days: 14, question: "Any security or territorial incidents with financial implications?"}
+      - {id: country.financial-sector, label: Financial sector, lookback_days: 30, question: "Any stress or major regulatory change in the banking system?"}
+      - {id: country.digital-assets, label: Digital assets, lookback_days: 30, question: "Any change in stablecoin or crypto policy?"}
