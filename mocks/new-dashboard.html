@@ -1,0 +1,726 @@
+<title>IntelMonitor new dashboard</title>
+<style>
+:root{
+  --bg:#F5F5F7;--surface:#FFFFFF;--sidebar:#ECECF0;--ink:#1C1C1E;--ink2:#5B5B63;--ink3:#6E6E76;
+  --accent:#0A64D8;--accent-hover:#0850AE;--line:#EFEFF3;--field:#E8E8ED;--field2:#F2F2F5;--chip:#F0F0F3;
+  --new:#0A56BC;--new-bg:#E6F0FD;--watch:#8A4B00;--watch-bg:#FFF4E2;--attn:#B3261E;--attn-bg:#FDECEA;--stable:#1F6F43;
+  --topic:#6B4FD8;--topic-bg:#EFEBFC;--group:#0A64D8;--entity:#3A3A40;
+  --shadow:0 1px 2px rgba(18,22,38,.05),0 8px 24px rgba(18,22,38,.05);
+  --shadow-pop:0 2px 6px rgba(18,22,38,.08),0 16px 40px rgba(18,22,38,.14);
+  color-scheme:light;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:14px}
+button,input{font-family:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent);text-decoration:none}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid rgba(10,100,216,.45);outline-offset:2px}
+
+.variant-bar{height:44px;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--ink);color:#fff;font-size:13px}
+.variant-bar .seg{background:rgba(255,255,255,.12)}
+.variant-bar .seg button{color:#fff}
+.variant-bar .seg button[aria-pressed="true"]{background:#fff;color:var(--ink)}
+.variant-bar .note{color:#B8B8C0;margin-left:auto}
+
+.stage{height:calc(100% - 44px);overflow:auto}
+.app{min-width:1100px;height:100%;display:flex;position:relative}
+
+/* Sidebar */
+nav.side{width:248px;flex-shrink:0;box-sizing:border-box;padding:20px 14px 14px;background:var(--sidebar);border-right:1px solid #DCDCE2;display:flex;flex-direction:column;gap:22px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px;font-size:16px;font-weight:700;letter-spacing:-.01em}
+.brand i{width:28px;height:28px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center}
+.navsec{display:flex;flex-direction:column;gap:2px}
+.navhead{font-size:12px;font-weight:600;color:var(--ink2);padding:0 10px 6px}
+.navitem{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border:0;border-radius:9px;background:transparent;color:var(--ink);font-size:14px;text-align:left;width:100%}
+.navitem:hover{background:#E2E2E8}
+.navitem[aria-current="page"]{background:#DCDCE3;font-weight:600}
+.navitem .count{margin-left:auto;font-size:13px;color:var(--ink2)}
+.navitem.new{color:var(--accent);font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.profile-wrap{margin-top:auto;position:relative}
+.profile{display:flex;align-items:center;gap:10px;width:100%;height:48px;padding:0 10px;border:0;border-radius:12px;background:transparent;text-align:left}
+.profile:hover,.profile[aria-expanded="true"]{background:#E2E2E8}
+.avatar{width:30px;height:30px;border-radius:50%;background:#3A3A40;color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.profile .who{display:flex;flex-direction:column;min-width:0;flex-grow:1}
+.profile .who b{font-size:14px;font-weight:600}
+.profile .who span{font-size:12px;color:var(--ink2)}
+.menu{position:absolute;left:0;right:0;bottom:56px;z-index:30;padding:6px;background:var(--surface);border-radius:14px;box-shadow:var(--shadow-pop);display:flex;flex-direction:column}
+.menu button{display:flex;align-items:center;gap:10px;height:38px;padding:0 10px;border:0;border-radius:9px;background:transparent;font-size:14px;text-align:left}
+.menu button:hover{background:var(--chip)}
+.menu hr{border:0;border-top:1px solid var(--line);margin:4px 6px}
+.menu .kbd{margin-left:auto;font-size:12px;color:var(--ink2)}
+
+/* Main */
+main{flex-grow:1;min-width:0;overflow:auto;display:flex;flex-direction:column}
+.topbar{height:72px;flex-shrink:0;display:flex;align-items:center;padding:0 36px}
+.search{display:flex;align-items:center;gap:10px;width:560px;max-width:100%;height:42px;box-sizing:border-box;padding:0 12px 0 14px;background:var(--field);border-radius:12px}
+.search:focus-within{box-shadow:0 0 0 3px rgba(10,100,216,.35)}
+.search input{flex-grow:1;min-width:0;border:0;background:transparent;font-size:15px;outline:none}
+.search input::placeholder{color:#5F5F67}
+.kbdchip{font-size:12px;color:var(--ink2);padding:3px 7px;border-radius:6px;background:var(--bg)}
+.pagehead{display:flex;align-items:flex-end;gap:12px;padding:4px 36px 20px}
+.pagehead h1{margin:0;font-size:32px;line-height:38px;font-weight:700;letter-spacing:-.022em}
+.pagehead p{margin:4px 0 0;font-size:14px;color:var(--ink2)}
+.pill-btn{height:40px;padding:0 16px;border:0;border-radius:20px;background:var(--surface);color:var(--accent);font-size:14px;font-weight:600;box-shadow:0 1px 2px rgba(18,22,38,.08)}
+.pill-btn.primary{background:var(--accent);color:#fff}
+
+/* Widget grid */
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:170px;grid-auto-flow:dense;gap:20px}
+main .grid{padding:0 36px 36px}
+.w{position:relative;box-sizing:border-box;padding:18px 20px;background:var(--surface);border-radius:22px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;min-width:0;overflow:hidden}
+.w.S{grid-column:span 1}.w.M{grid-column:span 2}.w.L{grid-column:span 2;grid-row:span 2;padding:20px 22px}
+.w .wh{display:flex;align-items:center;gap:8px;height:20px;flex-shrink:0}
+.w .wt{font-size:13px;font-weight:600;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w .wm{margin-left:auto;font-size:12px;color:var(--ink2);white-space:nowrap}
+.w[draggable="true"] .wh{padding-left:26px}
+.w.changed{box-shadow:0 0 0 2px var(--accent),var(--shadow)}
+.w.off{opacity:.38}
+.w .minus{position:absolute;top:-4px;left:-4px;width:44px;height:44px;padding:0;border:0;background:transparent;display:flex;align-items:center;justify-content:center;z-index:3}
+.w .minus span{width:24px;height:24px;border-radius:50%;background:#6E6E73;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.w .pick{position:absolute;top:12px;right:12px;width:44px;height:44px;border:0;background:transparent;padding:0;display:flex;align-items:center;justify-content:center;z-index:3}
+.hero{margin:0;font-size:24px;line-height:30px;font-weight:600;letter-spacing:-.018em}
+.hero.sm{font-size:18px;line-height:23px}
+.rows{display:flex;flex-direction:column}
+.row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);min-width:0}
+.row .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.row .tx b{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .tx span{font-size:12px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0}
+.b-new{background:var(--new-bg);color:var(--new)}.b-watch{background:var(--watch-bg);color:var(--watch)}.b-attn{background:var(--attn-bg);color:var(--attn)}
+.b-stable{color:var(--stable);padding-left:0;padding-right:0}
+.qgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.q{padding:8px 12px;border-radius:12px;background:var(--bg);display:flex;flex-direction:column;gap:2px;min-width:0}
+.q span{font-size:12px;color:var(--ink2)}
+.q b{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.q.watch{background:var(--watch-bg)}
+.q p{margin:4px 0 0;font-size:12px;line-height:16px;color:var(--ink)}
+.c-stable{color:var(--stable)}.c-new{color:var(--new)}.c-watch{color:var(--watch)}.c-attn{color:var(--attn)}
+.big{font-size:26px;font-weight:700;letter-spacing:-.02em}
+.cap{font-size:12px;color:var(--ink2)}
+.ini{width:32px;height:32px;flex-shrink:0;border-radius:50%;background:var(--chip);font-size:11px;font-weight:600;color:#3A3A40;display:flex;align-items:center;justify-content:center}
+.addfield{display:flex;align-items:center;gap:8px;height:38px;box-sizing:border-box;padding:0 12px;border-radius:10px;background:var(--field2);flex-shrink:0}
+.addfield input{border:0;background:transparent;outline:none;font-size:14px;flex-grow:1;min-width:0}
+.tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:6px}
+.tag.topic{background:var(--topic-bg);color:#5236B8}.tag.group{background:var(--new-bg);color:var(--new)}.tag.entity{background:var(--chip);color:#3A3A40}
+
+/* Modal */
+.scrim{position:fixed;inset:44px 0 0 0;z-index:40;background:rgba(28,28,30,.28);display:flex;align-items:center;justify-content:center}
+.sheet{width:80vw;height:80vh;min-width:960px;box-sizing:border-box;background:var(--surface);border-radius:28px;box-shadow:0 24px 80px rgba(18,22,38,.28);display:flex;flex-direction:column;overflow:clip}
+.sheet-head{height:64px;flex-shrink:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 16px 0 28px;border-bottom:1px solid var(--line)}
+.sheet-head h2{margin:0;font-size:20px;font-weight:700;letter-spacing:-.015em}
+.close{justify-self:end;width:44px;height:44px;border:0;border-radius:22px;background:var(--chip);display:flex;align-items:center;justify-content:center}
+.seg{display:flex;gap:2px;padding:3px;border-radius:12px;background:var(--field)}
+.seg button{height:32px;padding:0 16px;border:0;border-radius:9px;background:transparent;font-size:14px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:7px}
+.seg button[aria-selected="true"],.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(18,22,38,.12)}
+.seg.small button{height:28px;padding:0 10px;font-size:12px}
+.sheet-body{flex-grow:1;min-height:0;display:flex;flex-direction:column}
+.sheet-foot{height:72px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 24px 0 28px;border-top:1px solid var(--line)}
+.sheet-foot .grow{flex-grow:1}
+.btn{height:44px;padding:0 20px;border:0;border-radius:22px;background:var(--chip);font-size:14px;font-weight:600}
+.btn.primary{background:var(--accent);color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+.hint{font-size:13px;color:var(--ink2)}
+
+/* Build: widget gallery + dashboard canvas */
+#pane-build{position:relative}
+.build{display:grid;grid-template-columns:210px 340px minmax(0,1fr);flex-grow:1;min-height:0}
+.build.b{grid-template-columns:minmax(0,1fr)}
+.subjects{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;padding:16px 10px 16px 14px;gap:8px}
+.subjects .list{overflow:auto;display:flex;flex-direction:column;gap:1px;min-height:0;flex-grow:1}
+.groupname{font-size:12px;font-weight:600;color:var(--ink2);padding:10px 10px 4px}
+.subj{display:flex;align-items:center;gap:10px;min-height:38px;padding:0 10px;border:0;border-radius:10px;background:transparent;font-size:14px;text-align:left;width:100%}
+.subj:hover{background:var(--bg)}
+.subj[aria-current="true"]{background:var(--chip);font-weight:600}
+.subj .meta{margin-left:auto;font-size:12px;color:var(--new);font-weight:600;white-space:nowrap}
+.gallery{overflow:auto;padding:18px 20px;display:flex;flex-direction:column;gap:22px;min-height:0;border-right:1px solid var(--line)}
+.gallery-head{display:flex;align-items:center;gap:8px}
+.gallery-head h3{margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em}
+.gcards{display:flex;flex-direction:column;gap:22px}
+.b .gcards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 28px}
+.gcard{display:flex;flex-direction:column;gap:10px}
+.gcard-top{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.gcard .desc{font-weight:400;font-size:12px;color:var(--ink2);margin-top:-6px}
+.tag.sugg{background:var(--topic-bg);color:#5236B8}
+.gprev{background:var(--bg);border-radius:18px;padding:14px}
+.gprev .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.gcard-bottom{display:flex;align-items:center;gap:8px}
+.btn.sm{height:34px;padding:0 16px;font-size:13px}
+.canvas{display:flex;flex-direction:column;min-height:0;padding:16px 20px;gap:12px;background:var(--bg)}
+.canvas-head{display:flex;align-items:center;gap:10px;min-height:34px}
+.canvas-head b{font-size:14px}
+.canvas-scroll{flex-grow:1;overflow:auto;min-height:0}
+.fit{position:relative;overflow:clip}
+.scaler{transform-origin:top left}
+.canvas .grid{gap:16px}
+.empty{height:100%;min-height:220px;box-sizing:border-box;border:2px dashed #D1D1D6;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--ink2);font-size:14px}
+.w[draggable="true"]{cursor:grab}
+.w.dragging{opacity:.35}
+.w:focus-visible{outline:3px solid rgba(10,100,216,.45);outline-offset:2px}
+.gsheet{position:absolute;inset:0;z-index:5;background:rgba(28,28,30,.18);display:flex;padding:20px}
+.gsheet-card{flex-grow:1;display:grid;grid-template-columns:210px minmax(0,1fr);background:var(--surface);border-radius:24px;box-shadow:0 16px 60px rgba(18,22,38,.24);overflow:clip;min-height:0}
+.gsheet .gallery{border-right:0}
+.field{display:flex;align-items:center;gap:10px}
+.field label{font-size:13px;font-weight:600;color:var(--ink2)}
+.field input{height:40px;width:300px;border:0;border-radius:12px;background:var(--field2);padding:0 14px;font-size:15px;outline:none}
+.field input:focus{box-shadow:0 0 0 3px rgba(10,100,216,.35)}
+
+/* Generate */
+.gen{flex-grow:1;min-height:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px 28px;box-sizing:border-box;gap:18px}
+.gen.active{justify-content:flex-start;align-items:stretch;padding-bottom:20px}
+.gen-intro{display:flex;flex-direction:column;align-items:center;gap:10px}
+.gen-intro h3{margin:0;font-size:26px;font-weight:700;letter-spacing:-.02em}
+.gen.active .gen-intro,.gen.active .gen-sugg{display:none}
+.gen-results{display:none;flex-grow:1;min-height:0;overflow:auto;flex-direction:column;gap:14px}
+.gen.active .gen-results{display:flex}
+.gen-results .grid{gap:16px;padding:4px}
+.reply{display:flex;align-items:flex-start;gap:10px;font-size:14px;line-height:20px}
+.reply .ai{width:26px;height:26px;border-radius:8px;background:var(--topic-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.changebar{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+.changebar .btn{height:34px;padding:0 14px;font-size:13px}
+.prompt{width:720px;max-width:100%;align-self:center;display:flex;align-items:flex-end;gap:10px;box-sizing:border-box;padding:10px 10px 10px 18px;background:var(--surface);border-radius:22px;box-shadow:0 0 0 1px #E3E3E8,0 8px 28px rgba(18,22,38,.08);flex-shrink:0}
+.prompt:focus-within{box-shadow:0 0 0 2px var(--accent),0 8px 28px rgba(18,22,38,.08)}
+.prompt input{flex-grow:1;min-width:0;border:0;outline:none;background:transparent;font-size:16px;height:40px}
+.send{width:40px;height:40px;border:0;border-radius:20px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.send:disabled{background:#C7C7CC;cursor:default}
+.gen-sugg{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;width:720px;max-width:100%}
+.gen-sugg button{height:34px;padding:0 14px;border:0;border-radius:17px;background:var(--chip);font-size:13px}
+.gen-sugg button:hover{background:#E6E6EB}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.enter{animation:rise .28s ease-out both}
+@media (prefers-reduced-motion:reduce){.enter{animation:none}}
+
+.toast{pointer-events:none;position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:60;background:var(--ink);color:#fff;font-size:14px;padding:12px 18px;border-radius:14px;box-shadow:var(--shadow-pop)}
+</style>
+
+<div class="variant-bar">
+  <span>Build tab layout</span>
+  <div class="seg small" role="group" aria-label="Build tab layout">
+    <button id="v-a" aria-pressed="true">A · Side by side</button>
+    <button id="v-b" aria-pressed="false">B · Gallery sheet</button>
+  </div>
+  <span class="note">Mock with sample data</span>
+</div>
+
+<div class="stage">
+<div class="app">
+  <nav class="side" aria-label="Main">
+    <div class="brand"><i><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#fff" stroke-width="1.6"/><path d="M8 4.5V8l2.4 1.6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></i>IntelMonitor</div>
+    <div class="navsec">
+      <div class="navhead">Dashboards</div>
+      <button class="navitem new" id="open-new"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>New dashboard</button>
+      <div id="dash-list" class="navsec"></div>
+    </div>
+    <div class="navsec">
+      <div class="navhead">Monitors</div>
+      <button class="navitem"><span class="dot" style="background:var(--topic)"></span>Topics<span class="count">3</span></button>
+      <button class="navitem"><span class="dot" style="background:var(--group)"></span>Groups<span class="count">5</span></button>
+      <button class="navitem"><span class="dot" style="background:var(--entity)"></span>Entities<span class="count">22</span></button>
+    </div>
+    <div class="profile-wrap">
+      <div class="menu" id="menu" role="menu" hidden>
+        <button role="menuitem"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.2" stroke="#3A3A40" stroke-width="1.5"/><path d="M8 1.8v1.8M8 12.4v1.8M1.8 8h1.8M12.4 8h1.8M3.6 3.6l1.3 1.3M11.1 11.1l1.3 1.3M3.6 12.4l1.3-1.3M11.1 4.9l1.3-1.3" stroke="#3A3A40" stroke-width="1.5" stroke-linecap="round"/></svg>Settings</button>
+        <button role="menuitem"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><ellipse cx="8" cy="4" rx="5" ry="2" stroke="#3A3A40" stroke-width="1.5"/><path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2" stroke="#3A3A40" stroke-width="1.5"/></svg>Data sources</button>
+        <button role="menuitem"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#3A3A40" stroke-width="1.5"/><path d="M8 5v3l2 1.3" stroke="#3A3A40" stroke-width="1.5" stroke-linecap="round"/></svg>Run history</button>
+        <button role="menuitem"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.8" y="4" width="12.4" height="8" rx="2" stroke="#3A3A40" stroke-width="1.5"/><path d="M4.5 10h7" stroke="#3A3A40" stroke-width="1.5" stroke-linecap="round"/></svg>Keyboard shortcuts<span class="kbd">?</span></button>
+        <hr>
+        <button role="menuitem"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 2.5H3.5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1H6M10.5 5l3 3-3 3M13.5 8H6" stroke="#3A3A40" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Sign out</button>
+      </div>
+      <button class="profile" id="profile" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">
+        <span class="avatar">WK</span>
+        <span class="who"><b>Wong Kang</b><span>Supervision analyst</span></span>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 7.5 6 4.5l3 3" stroke="#6E6E76" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="topbar">
+      <label class="search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.8" stroke="#5F5F67" stroke-width="1.6"/><path d="M10.6 10.6 14 14" stroke="#5F5F67" stroke-width="1.6" stroke-linecap="round"/></svg><input type="search" id="top-search" aria-label="Search or ask" placeholder="Search or ask about a topic, group or entity"><span class="kbdchip">⌘K</span></label>
+    </div>
+    <div class="pagehead">
+      <div style="flex-grow:1"><h1 id="dash-title"></h1><p id="dash-meta"></p></div>
+      <button class="pill-btn" id="edit-btn">Edit</button>
+    </div>
+    <div class="grid" id="dash-grid"></div>
+  </main>
+</div>
+</div>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet-head">
+      <h2 id="sheet-title">New dashboard</h2>
+      <div class="seg" role="tablist" aria-label="How to build">
+        <button role="tab" id="tab-build" aria-selected="true" aria-controls="pane-build">Build</button>
+        <button role="tab" id="tab-gen" aria-selected="false" aria-controls="pane-gen"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5c.4 3.3 1.9 5.1 5.5 6.5-3.6 1.4-5.1 3.2-5.5 6.5-.4-3.3-1.9-5.1-5.5-6.5 3.6-1.4 5.1-3.2 5.5-6.5Z" fill="#6B4FD8"/><path d="M13 1.2c.15 1.1.6 1.7 1.8 2.1-1.2.4-1.65 1-1.8 2.1-.15-1.1-.6-1.7-1.8-2.1 1.2-.4 1.65-1 1.8-2.1Z" fill="#6B4FD8"/></svg>Generate</button>
+      </div>
+      <button class="close" id="close" aria-label="Close"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="#3A3A40" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </div>
+
+    <div class="sheet-body" id="pane-build" role="tabpanel" aria-labelledby="tab-build"></div>
+
+    <div class="sheet-body" id="pane-gen" role="tabpanel" aria-labelledby="tab-gen" hidden>
+      <div class="gen" id="gen">
+        <div class="gen-intro">
+          <span class="reply"><span class="ai" style="width:40px;height:40px;border-radius:12px"><svg width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5c.4 3.3 1.9 5.1 5.5 6.5-3.6 1.4-5.1 3.2-5.5 6.5-.4-3.3-1.9-5.1-5.5-6.5 3.6-1.4 5.1-3.2 5.5-6.5Z" fill="#6B4FD8"/></svg></span></span>
+          <h3>What do you want to track?</h3>
+        </div>
+        <div class="gen-results" id="gen-results">
+          <div class="reply"><span class="ai"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5c.4 3.3 1.9 5.1 5.5 6.5-3.6 1.4-5.1 3.2-5.5 6.5-.4-3.3-1.9-5.1-5.5-6.5 3.6-1.4 5.1-3.2 5.5-6.5Z" fill="#6B4FD8"/></svg></span><div id="gen-reply" style="flex-grow:1;padding-top:3px"></div>
+            <div class="changebar" id="changebar" hidden><button class="btn" id="undo">Undo</button><button class="btn primary" id="keep">Keep</button></div>
+          </div>
+          <div class="grid" id="gen-grid"></div>
+        </div>
+        <form class="prompt" id="prompt">
+          <input id="prompt-input" aria-label="Describe your dashboard" placeholder="Describe a dashboard, e.g. stablecoin risk for SG banks" autocomplete="off">
+          <button class="send" id="send" aria-label="Send" disabled><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </form>
+        <div class="gen-sugg" id="gen-sugg">
+          <button type="button">Stablecoin risk for Singapore banks</button>
+          <button type="button">Geopolitics across SEA countries</button>
+          <button type="button">Central banks on banking regulation</button>
+        </div>
+      </div>
+      <div class="sheet-foot"><span class="hint" id="gen-hint">Nothing is saved until you keep it.</span><span class="grow"></span><button class="btn primary" id="gen-create" disabled>Create dashboard</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// ---------- Sample subjects (mock only) ----------
+const TOPICS=[{n:'Banking regulation'},{n:'Geopolitics'},{n:'Stablecoins'}].map(s=>({...s,k:'topic'}));
+const GROUPS=[
+ {n:'Singapore banks',m:['DBS','OCBC','UOB'],t:['Banking regulation','Stablecoins']},
+ {n:'SEA regional banks',m:['Maybank','CIMB','Bangkok Bank'],t:['Banking regulation','Geopolitics']},
+ {n:'Central banks',m:['MAS','Fed','ECB','PBoC','HKMA','BNM'],t:['Banking regulation','Stablecoins']},
+ {n:'Stablecoin issuers',m:['Circle','Tether','Paxos','StraitsX'],t:['Stablecoins']},
+ {n:'SEA countries',m:['Singapore','Malaysia','Indonesia','Thailand','Vietnam','Philippines'],t:['Geopolitics']},
+].map(s=>({...s,k:'group'}));
+const FULL={DBS:'DBS Group Holdings',OCBC:'Oversea-Chinese Banking Corporation',UOB:'United Overseas Bank',Maybank:'Malayan Banking Berhad',CIMB:'CIMB Group Holdings','Bangkok Bank':'Bangkok Bank PCL',MAS:'Monetary Authority of Singapore',Fed:'Federal Reserve',ECB:'European Central Bank',PBoC:"People's Bank of China",HKMA:'Hong Kong Monetary Authority',BNM:'Bank Negara Malaysia',Circle:'Circle Internet Group',Tether:'Tether Holdings',Paxos:'Paxos Trust Company',StraitsX:'StraitsX, issuer of XSGD'};
+const ENTITIES=GROUPS.flatMap(g=>g.m.map(n=>({n,k:'entity',g:g.n,full:FULL[n]||'Country'})));
+const ALL=[...TOPICS,...GROUPS,...ENTITIES];
+const byName=n=>ALL.find(s=>s.n===n);
+const COLOR={topic:'var(--topic)',group:'var(--group)',entity:'var(--entity)'};
+const STATUS={OCBC:'attn',DBS:'new',UOB:'stable',HKMA:'attn',Tether:'new',StraitsX:'new',Maybank:'watch',Vietnam:'watch',Philippines:'new',Fed:'new',MAS:'watch',Thailand:'watch'};
+const STATUS_LABEL={attn:'Needs attention',new:'1 new',watch:'Watch',stable:'Stable'};
+
+const DEVS=[
+ {t:'HKMA grants its first stablecoin issuer licences',m:'HKMA, regulatory, 5 sources',b:'attn',tags:['Stablecoins','HKMA','Central banks','Stablecoin issuers']},
+ {t:'OCBC flags higher credit costs on regional property',m:'OCBC, financial, 3 sources',b:'attn',tags:['OCBC','Singapore banks']},
+ {t:'MAS consults on revised operational resilience notice',m:'Banking regulation, 4 sources',b:'watch',tags:['Banking regulation','MAS','Central banks','Singapore banks','DBS','UOB']},
+ {t:'US tariff review names Vietnam and Thailand electronics',m:'Geopolitics, 6 sources',b:'new',tags:['Geopolitics','Vietnam','Thailand','SEA countries','Bangkok Bank']},
+ {t:'StraitsX lists XSGD on a second regional exchange',m:'StraitsX, strategy, 2 sources',b:'new',tags:['Stablecoins','StraitsX','Stablecoin issuers','Singapore']},
+ {t:'DBS widens its tokenised deposit pilot',m:'DBS, strategy, 2 sources',b:'new',tags:['DBS','Singapore banks','Stablecoins']},
+ {t:'Maybank restores services after core banking outage',m:'Maybank, incident, 4 sources',b:'watch',tags:['Maybank','SEA regional banks','Malaysia','BNM']},
+ {t:'Philippines protests South China Sea vessel incident',m:'Geopolitics, 7 sources',b:'new',tags:['Geopolitics','Philippines','SEA countries']},
+ {t:'Tether attestation shows higher Treasury share',m:'Tether, financial, 3 sources',b:'new',tags:['Tether','Stablecoins','Stablecoin issuers']},
+ {t:'Fed signals changes to bank capital proposal',m:'Fed, regulatory, 5 sources',b:'new',tags:['Fed','Central banks','Banking regulation']},
+];
+const DIRECTION={
+ 'Banking regulation':{w:'Rising',c:'var(--watch)',p:[36,34,35,30,26,20,14,8],cap:'Up in 5 of the last 8 weeks'},
+ 'Geopolitics':{w:'Rising',c:'var(--attn)',p:[30,32,28,26,22,24,16,10],cap:'Up in 4 of the last 8 weeks'},
+ 'Stablecoins':{w:'Flat',c:'var(--ink3)',p:[22,20,24,21,22,19,21,20],cap:'No clear trend in 8 weeks'},
+};
+const UPCOMING={
+ 'Banking regulation':[['14 Oct','Operational resilience consultation closes','In 20 days'],['1 Jan','Basel III output floor phase-in starts','In 99 days']],
+ 'Geopolitics':[['9 Oct','US tariff review hearing on SEA electronics','In 15 days'],['26 Oct','ASEAN summit, Kuala Lumpur','In 32 days']],
+ 'Stablecoins':[['1 Nov','HKMA stablecoin rules, second phase','In 38 days'],['30 Nov','MAS stablecoin framework review','In 67 days']],
+};
+const WIDGETS={
+ since:{name:'Since your last review',sizes:['M','L']},
+ summary:{name:'Monitor summary',sizes:['M','L']},
+ developments:{name:'Developments',sizes:['M','L']},
+ watchlist:{name:'Watchlist',sizes:['M','L']},
+ direction:{name:'Direction of travel',sizes:['S','M']},
+ upcoming:{name:'Upcoming',sizes:['S','M']},
+ question:{name:'Standing question',sizes:['S','M']},
+};
+
+// ---------- Helpers ----------
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const initials=n=>n.split(/\s+/).map(x=>x[0]).join('').slice(0,3).toUpperCase();
+const uid=()=>Math.random().toString(36).slice(2,9);
+const CHECK='<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2 5 8.6l4.5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const X='<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="#6E6E76" stroke-width="1.8" stroke-linecap="round"/></svg>';
+function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2600)}
+
+// Expand selected subjects to everything they touch, for filtering sample content.
+function scopeNames(subs){
+  const out=new Set(subs);
+  subs.forEach(n=>{const s=byName(n);if(s?.k==='group')s.m.forEach(x=>out.add(x));});
+  return out;
+}
+function devsFor(subs){
+  const sc=scopeNames(subs);
+  const hit=DEVS.filter(d=>d.tags.some(t=>sc.has(t)));
+  return hit.length?hit:DEVS;
+}
+function entitiesFor(subs){
+  const ents=new Set();
+  subs.forEach(n=>{const s=byName(n);if(!s)return;if(s.k==='entity')ents.add(n);if(s.k==='group')s.m.forEach(x=>ents.add(x));});
+  if(!ents.size)subs.forEach(n=>GROUPS.filter(g=>g.t.includes(n)).forEach(g=>g.m.slice(0,2).forEach(x=>ents.add(x))));
+  return [...ents];
+}
+function topicOf(subject){
+  const s=byName(subject);
+  if(!s)return 'Banking regulation';
+  if(s.k==='topic')return s.n;
+  if(s.k==='group')return s.t[0];
+  return byName(s.g).t[0];
+}
+
+// ---------- Widget renderers ----------
+function badge(b){return `<span class="badge b-${b}">${STATUS_LABEL[b]==='1 new'?'New':STATUS_LABEL[b]}</span>`}
+function head(title,meta){return `<div class="wh"><span class="wt">${esc(title)}</span>${meta?`<span class="wm">${esc(meta)}</span>`:''}</div>`}
+const R={
+ since(w,subs){
+  const d=devsFor(subs),attn=d.filter(x=>x.b==='attn').length,n=Math.min(d.length,w.size==='L'?3:1);
+  const line=`${d.length} new, ${attn} ${attn===1?'needs':'need'} attention`;
+  return head('Since your last review',w.subject||'23 Sep, 06:00')+`<p class="hero ${w.size==='M'?'sm':''}">${line}</p><div class="rows">${d.slice(0,n).map(x=>`<div class="row">${badge(x.b)}<div class="tx"><b>${esc(x.t)}</b><span>${esc(x.m)}</span></div></div>`).join('')}</div>`+(w.size==='L'?`<span style="flex-grow:1"></span><a href="#" style="font-size:13px;font-weight:600">Mark all reviewed</a>`:'');
+ },
+ summary(w){
+  const s=byName(w.subject);const qs=s?.k==='topic'
+   ?[['New developments','3 new','new'],['Stage','Proposed','watch'],['Direction','Tighter','watch'],['Who is moving','MAS, HKMA','new'],['Upcoming','2 dates','stable'],['Local relevance','High','attn']]
+   :s?.k==='group'
+   ?[['Common issues','1 shared','watch'],['Exposure','OCBC most','attn'],['Outliers','None','stable'],['Topics','Regulation up','watch'],['Incidents','Stable','stable'],['Adverse','1 needs review','attn']]
+   :[['Incidents','Stable','stable'],['Adverse','1 needs review','attn'],['Regulatory','Stable → Watch','watch'],['Financial','Stable','stable'],['Management','1 new','new'],['Strategy','1 new','new']];
+  const notes={watch:'Draft notice names this scope.',attn:'Adverse item flagged by 3 sources.',new:'First seen this run.',stable:'No material change.'};
+  return head('Standing questions',w.subject)+`<div class="qgrid">${qs.map(([a,b,c])=>`<div class="q ${c==='watch'?'watch':''}"><span>${a}</span><b class="c-${c}">${b}</b>${w.size==='L'?`<p>${notes[c]}</p>`:''}</div>`).join('')}</div>`;
+ },
+ developments(w,subs){
+  const d=devsFor(w.subject?[w.subject]:subs).slice(0,w.size==='L'?5:2);
+  return head('Developments',w.subject)+`<div class="rows">${d.map(x=>`<div class="row">${badge(x.b)}<div class="tx"><b>${esc(x.t)}</b><span>${esc(x.m)}</span></div></div>`).join('')}</div>`;
+ },
+ watchlist(w,subs){
+  const e=entitiesFor(w.subject?[w.subject]:subs).slice(0,w.size==='L'?5:2);
+  return head('Watchlist',`${e.length} tracked`)+(w.size==='L'?`<label class="addfield"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#0A64D8" stroke-width="1.8" stroke-linecap="round"/></svg><input aria-label="Add an entity" placeholder="Add a bank, central bank or country"></label>`:'')+`<div class="rows" style="overflow:auto">${e.map(n=>{const st=STATUS[n]||'stable';return `<div class="row" style="padding:7px 0"><span class="ini">${initials(n)}</span><div class="tx" style="flex-grow:1"><b>${esc(n)}</b><span>${esc(byName(n)?.full||'')}</span></div>${st==='stable'?'<span class="badge b-stable">Stable</span>':badge(st)}</div>`}).join('')}</div>`;
+ },
+ direction(w){
+  const t=topicOf(w.subject),d=DIRECTION[t],W=w.size==='S'?225:470;
+  const pts=d.p.map((y,i)=>`${Math.round(i*W/7)},${y}`).join(' ');
+  return head(`${t} attention`)+`<span class="big">${d.w}</span><svg width="100%" height="44" viewBox="0 0 ${W} 44" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${d.c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg><span class="cap">${d.cap}</span>`;
+ },
+ upcoming(w){
+  const t=topicOf(w.subject),u=UPCOMING[t];
+  if(w.size==='S')return head('Upcoming',t)+`<span class="big" style="font-size:28px">${u[0][0]}</span><span style="font-size:14px;line-height:19px;font-weight:500">${u[0][1]}</span><span style="flex-grow:1"></span><span class="cap">${u[0][2]}</span>`;
+  return head('Upcoming',t)+`<div class="rows">${u.map(x=>`<div class="row"><span style="font-size:18px;font-weight:700;width:64px;flex-shrink:0">${x[0]}</span><div class="tx"><b>${x[1]}</b><span>${x[2]}</span></div></div>`).join('')}</div>`;
+ },
+ question(w){
+  return head(`Regulatory · ${w.subject}`)+`<span class="big c-watch" style="font-size:22px">Stable → Watch</span><span style="font-size:13px;line-height:18px">New MAS notice referenced in 2 sources.</span><span style="flex-grow:1"></span><a href="#" style="font-size:13px;font-weight:600">See evidence</a>`;
+ },
+};
+// opts: drag (reorderable + removable), changed (outline), enter (one-shot fade-in).
+function widgetHTML(w,subs,opts={}){
+  const cls=['w',w.size,opts.changed?'changed':'',opts.enter?'enter':''].join(' ');
+  const minus=opts.drag?`<button class="minus" data-remove="${w.id}" aria-label="Remove ${esc(WIDGETS[w.type].name)}"><span><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span></button>`:'';
+  const drag=opts.drag?' draggable="true" tabindex="0" aria-roledescription="Movable widget. Use arrow keys to move."':'';
+  return `<section class="${cls}" data-id="${w.id}"${drag} aria-label="${esc(WIDGETS[w.type].name)}${w.subject?', '+esc(w.subject):''}">${minus}${R[w.type](w,w.subject?[w.subject]:subs)}</section>`;
+}
+
+// Suggested widgets for a selection. Same logic the Generate agent would use as its starting point.
+function suggest(subs){
+  if(!subs.length)return [];
+  const k=subs.map(n=>byName(n));
+  const topics=k.filter(s=>s.k==='topic'),groups=k.filter(s=>s.k==='group'),ents=k.filter(s=>s.k==='entity');
+  const out=[{type:'since',size:'L',subject:null}];
+  if(groups.length||ents.length>1)out.push({type:'watchlist',size:'L',subject:null});
+  groups.forEach(g=>out.push({type:'summary',size:'M',subject:g.n}));
+  if(ents.length===1)out.push({type:'summary',size:'M',subject:ents[0].n});
+  const tset=topics.length?topics.map(t=>t.n):[...new Set([...groups,...ents].map(s=>topicOf(s.n)))].slice(0,1);
+  tset.forEach(t=>{out.push({type:'direction',size:'S',subject:t});out.push({type:'upcoming',size:'S',subject:t});});
+  out.push({type:'developments',size:'M',subject:null});
+  return out.map(w=>({...w,id:uid()}));
+}
+function defaultName(subs){
+  if(!subs.length)return 'New dashboard';
+  if(subs.length===1)return subs[0];
+  if(subs.length===2)return `${subs[0]} and ${subs[1]}`;
+  return `${subs[0]} and ${subs.length-1} more`;
+}
+
+// ---------- Grid reordering ----------
+// Order is the only layout state: CSS grid packs S/M/L from the top left, so dragging just changes list order.
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function flip(grid,change){
+  const before=new Map([...grid.children].map(el=>[el.dataset.id,el.getBoundingClientRect()]));
+  change();
+  if(reduced)return;
+  const scale=grid.getBoundingClientRect().width/(grid.offsetWidth||1)||1;
+  [...grid.children].forEach(el=>{
+    const b=before.get(el.dataset.id);if(!b)return;
+    const a=el.getBoundingClientRect(),dx=(b.left-a.left)/scale,dy=(b.top-a.top)/scale;
+    if(!dx&&!dy)return;
+    el.style.transition='none';el.style.transform=`translate(${dx}px,${dy}px)`;el.getBoundingClientRect();
+    el.style.transition='transform .22s ease';el.style.transform='';
+  });
+}
+function sortable(grid,getList,setList,rerender){
+  let dragId=null;
+  grid.addEventListener('dragstart',e=>{
+    const el=e.target.closest?.('[data-id]');if(!el||e.target!==el)return;
+    dragId=el.dataset.id;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',dragId);
+    requestAnimationFrame(()=>el.classList.add('dragging'));
+  });
+  grid.addEventListener('dragover',e=>{
+    if(!dragId)return;e.preventDefault();
+    const t=e.target.closest('[data-id]'),d=grid.querySelector(`[data-id="${dragId}"]`);
+    if(!t||!d||t===d||t.parentElement!==grid)return;
+    const r=t.getBoundingClientRect(),after=e.clientX>r.left+r.width/2;
+    if(after?t.nextElementSibling===d:t.previousElementSibling===d)return;
+    flip(grid,()=>grid.insertBefore(d,after?t.nextElementSibling:t));
+  });
+  grid.addEventListener('drop',e=>e.preventDefault());
+  grid.addEventListener('dragend',()=>{
+    if(!dragId)return;
+    grid.querySelector('.dragging')?.classList.remove('dragging');
+    const list=getList(),order=[...grid.children].map(c=>c.dataset.id);
+    setList(order.map(id=>list.find(w=>w.id===id)).filter(Boolean));dragId=null;
+  });
+  grid.addEventListener('keydown',e=>{
+    const el=e.target;if(!el.matches?.('[data-id][draggable]'))return;
+    const dir={ArrowLeft:-1,ArrowUp:-1,ArrowRight:1,ArrowDown:1}[e.key];if(!dir)return;
+    e.preventDefault();
+    const list=[...getList()],i=list.findIndex(w=>w.id===el.dataset.id),j=i+dir;
+    if(j<0||j>=list.length)return;
+    [list[i],list[j]]=[list[j],list[i]];setList(list);
+    flip(grid,rerender);grid.querySelector(`[data-id="${el.dataset.id}"]`)?.focus();
+  });
+}
+// Scales a fixed-width layout down to fit its pane, so previews keep real proportions.
+function fitAll(root){
+  root.querySelectorAll('.fit').forEach(wrap=>{
+    const sc=wrap.firstElementChild,avail=wrap.clientWidth,vw=+wrap.dataset.fit||avail,k=Math.min(1,avail/vw);
+    sc.style.width=(k<1?vw:avail)+'px';sc.style.transform=k<1?`scale(${k})`:'';
+    wrap.style.height=sc.offsetHeight*k+'px';
+  });
+}
+
+// ---------- Dashboards ----------
+const dashboards=[
+ {id:'d1',name:'Singapore banks',subs:['Singapore banks','Banking regulation'],widgets:[
+  {id:uid(),type:'since',size:'L'},{id:uid(),type:'summary',size:'M',subject:'Singapore banks'},
+  {id:uid(),type:'direction',size:'S',subject:'Banking regulation'},{id:uid(),type:'upcoming',size:'S',subject:'Banking regulation'},
+  {id:uid(),type:'watchlist',size:'L'},{id:uid(),type:'developments',size:'M'}]},
+ {id:'d2',name:'Stablecoin watch',subs:['Stablecoins','Stablecoin issuers'],widgets:null},
+ {id:'d3',name:'Geopolitics in SEA',subs:['Geopolitics','SEA countries'],widgets:null},
+];
+dashboards.forEach(d=>{if(!d.widgets)d.widgets=suggest(d.subs)});
+let current='d1',editing=false;
+function renderNav(){
+  $('dash-list').innerHTML=dashboards.map(d=>`<button class="navitem" data-dash="${d.id}" ${d.id===current?'aria-current="page"':''}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1.5" stroke="${d.id===current?'#0A64D8':'#6E6E76'}" stroke-width="1.5"/><rect x="9" y="2" width="5" height="5" rx="1.5" stroke="${d.id===current?'#0A64D8':'#6E6E76'}" stroke-width="1.5"/><rect x="2" y="9" width="12" height="5" rx="1.5" stroke="${d.id===current?'#0A64D8':'#6E6E76'}" stroke-width="1.5"/></svg>${esc(d.name)}</button>`).join('');
+}
+function renderDash(){
+  const d=dashboards.find(x=>x.id===current);
+  $('dash-title').textContent=d.name;
+  const ents=entitiesFor(d.subs).length;
+  $('dash-meta').textContent=editing?'Drag to rearrange. Tap the minus to remove.':`Last run 23 Sep at 06:00. ${d.subs.join(', ')}. ${ents} entities.`;
+  $('edit-btn').textContent=editing?'Done':'Edit';
+  $('edit-btn').classList.toggle('primary',editing);
+  $('dash-grid').innerHTML=d.widgets.map(w=>widgetHTML(w,d.subs,{drag:editing})).join('');
+}
+$('dash-list').addEventListener('click',e=>{const b=e.target.closest('[data-dash]');if(!b)return;current=b.dataset.dash;editing=false;renderNav();renderDash();});
+$('edit-btn').onclick=()=>{editing=!editing;renderDash()};
+sortable($('dash-grid'),()=>dashboards.find(x=>x.id===current).widgets,l=>dashboards.find(x=>x.id===current).widgets=l,renderDash);
+$('dash-grid').addEventListener('click',e=>{
+  const b=e.target.closest('[data-remove]');if(!b)return;
+  const d=dashboards.find(x=>x.id===current);d.widgets=d.widgets.filter(w=>w.id!==b.dataset.remove);renderDash();toast('Widget removed');
+});
+
+// ---------- Profile menu ----------
+const menu=$('menu'),prof=$('profile');
+prof.onclick=()=>{const open=menu.hidden;menu.hidden=!open;prof.setAttribute('aria-expanded',open);if(open)menu.querySelector('button').focus();};
+document.addEventListener('click',e=>{if(!menu.hidden&&!e.target.closest('.profile-wrap')){menu.hidden=true;prof.setAttribute('aria-expanded','false')}});
+
+// ---------- Modal + tabs ----------
+let variant='a';
+function openSheet(){$('scrim').hidden=false;resetBuild();resetGen();selectTab('build');$('tab-build').focus();}
+function closeSheet(){$('scrim').hidden=true;$('open-new').focus();}
+$('open-new').onclick=openSheet;
+$('close').onclick=closeSheet;
+$('scrim').addEventListener('mousedown',e=>{if(e.target===$('scrim'))closeSheet()});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){if(!menu.hidden){menu.hidden=true;prof.setAttribute('aria-expanded','false');prof.focus();}else if(B?.sheet){B.sheet=false;renderBuild();}else if(!$('scrim').hidden)closeSheet();}
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('top-search').focus();}
+});
+function selectTab(t){
+  $('tab-build').setAttribute('aria-selected',t==='build');$('tab-gen').setAttribute('aria-selected',t==='gen');
+  $('pane-build').hidden=t!=='build';$('pane-gen').hidden=t!=='gen';
+  if(t==='gen')setTimeout(()=>$('prompt-input').focus(),0);else fitAll($('pane-build'));
+}
+$('tab-build').onclick=()=>selectTab('build');$('tab-gen').onclick=()=>selectTab('gen');
+['a','b'].forEach(v=>$('v-'+v).onclick=()=>{variant=v;$('v-a').setAttribute('aria-pressed',v==='a');$('v-b').setAttribute('aria-pressed',v==='b');B.sheet=false;renderBuild();});
+
+function createDashboard(name,subs,widgets){
+  const d={id:uid(),name:name||defaultName(subs),subs,widgets:widgets.map(w=>({...w}))};
+  dashboards.push(d);current=d.id;editing=false;closeSheet();renderNav();renderDash();toast(`Created ${d.name}`);
+}
+
+// ---------- Build ----------
+// iPadOS-style: pick a subject (like an app), see the widgets it offers, add one, then drag to arrange.
+let B;
+const SIZE_LABEL={S:'Small',M:'Medium',L:'Large'};
+const OFFERS={
+  topic:[['since','L'],['direction','S'],['upcoming','S'],['summary','M'],['developments','M']],
+  group:[['since','L'],['watchlist','L'],['summary','M'],['developments','M']],
+  entity:[['summary','M'],['question','S'],['since','M'],['developments','M']],
+};
+const DESC={since:'What changed since you last looked',summary:'Every standing question at a glance',developments:'Consolidated events with sources',watchlist:'Members and their status',direction:'Rising, flat or falling',upcoming:'Deadlines and effective dates',question:'One question and its change'};
+function resetBuild(){B={subject:'Singapore banks',q:'',widgets:[],sizes:{},name:'',nameTouched:false,sheet:false,last:null};renderBuild();}
+function offersFor(n){
+  return OFFERS[byName(n).k].map(([type,size],i)=>({id:`offer-${type}`,type,size:B.sizes[n+':'+type]||size,subject:n,suggested:i<2}));
+}
+const newCount=n=>{const sc=scopeNames([n]);return DEVS.filter(d=>d.tags.some(t=>sc.has(t))).length};
+const buildSubs=()=>[...new Set(B.widgets.map(w=>w.subject))];
+const match=s=>!B.q||s.n.toLowerCase().includes(B.q)||(s.full||'').toLowerCase().includes(B.q)||(s.g||'').toLowerCase().includes(B.q);
+function subjectsHTML(){
+  const sec=(label,list)=>list.length?`<div class="groupname">${label}</div>${list.map(s=>{const c=newCount(s.n);return `<button class="subj" data-subj="${esc(s.n)}" aria-current="${s.n===B.subject}"><span class="dot" style="background:${COLOR[s.k]}"></span><span>${esc(s.n)}</span>${c?`<span class="meta">${c} new</span>`:''}</button>`}).join('')}`:'';
+  return `<div class="subjects"><label class="search" style="width:100%;height:38px"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.8" stroke="#5F5F67" stroke-width="1.6"/><path d="M10.6 10.6 14 14" stroke="#5F5F67" stroke-width="1.6" stroke-linecap="round"/></svg><input id="b-search" aria-label="Filter subjects" placeholder="Search" value="${esc(B.q)}"></label>
+    <div class="list">${sec('Topics',TOPICS.filter(match))}${sec('Groups',GROUPS.filter(match))}${sec('Entities',ENTITIES.filter(match))}</div></div>`;
+}
+function galleryHTML(closable){
+  const s=byName(B.subject);
+  return `<div class="gallery"><div class="gallery-head"><h3>${esc(s.n)}</h3><span class="tag ${s.k}">${s.k[0].toUpperCase()+s.k.slice(1)}</span>${closable?'<button class="close" id="b-close-sheet" aria-label="Close gallery" style="margin-left:auto"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="#3A3A40" stroke-width="1.8" stroke-linecap="round"/></svg></button>':''}</div><div class="gcards">${offersFor(s.n).map(o=>{const def=WIDGETS[o.type];return `<div class="gcard">
+    <div class="gcard-top"><span>${def.name}</span>${o.suggested?'<span class="tag sugg">Suggested</span>':''}</div>
+    <div class="gcard-top desc">${DESC[o.type]}</div>
+    <div class="gprev"><div class="fit" data-fit="440"><div class="scaler"><div class="grid">${widgetHTML(o,[s.n])}</div></div></div></div>
+    <div class="gcard-bottom">${def.sizes.length>1?`<div class="seg small" role="group" aria-label="${def.name} size">${def.sizes.map(z=>`<button data-gsize="${o.type}:${z}" aria-pressed="${o.size===z}">${SIZE_LABEL[z]}</button>`).join('')}</div>`:''}<span style="flex-grow:1"></span><button class="btn primary sm" data-add="${o.type}">Add</button></div>
+  </div>`}).join('')}</div></div>`;
+}
+function canvasHTML(){
+  const add=variant==='b'?`<button class="btn primary sm" id="b-open" style="margin-left:auto;display:flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1.5v9M1.5 6h9" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>Add widget</button>`:'';
+  const body=B.widgets.length
+    ?`<div class="fit" data-fit="${variant==='a'?880:0}"><div class="scaler"><div class="grid" id="b-grid">${gridHTML()}</div></div></div>`
+    :`<div class="empty">${variant==='a'?'Pick a subject, then add widgets.':'<span>Start with a widget.</span><button class="btn primary" id="b-open">Add widget</button>'}</div>`;
+  return `<div class="canvas"><div class="canvas-head"><b>Preview</b><span class="hint">${B.widgets.length?'Drag to rearrange':''}</span>${add}</div><div class="canvas-scroll">${body}</div></div>`;
+}
+const gridHTML=()=>B.widgets.map(w=>widgetHTML(w,[w.subject],{drag:true,changed:w.id===B.last,enter:w.id===B.last})).join('');
+function renderBuild(){
+  const pane=$('pane-build'),focusSearch=document.activeElement?.id==='b-search';
+  const n=B.widgets.length;
+  if(!B.nameTouched)B.name=defaultName(buildSubs());
+  pane.innerHTML=(variant==='a'
+    ?`<div class="build">${subjectsHTML()}${galleryHTML()}${canvasHTML()}</div>`
+    :`<div class="build b">${canvasHTML()}</div>${B.sheet?`<div class="gsheet" id="gsheet"><div class="gsheet-card" role="dialog" aria-label="Add a widget">${subjectsHTML()}<div style="display:flex;flex-direction:column;min-height:0">${galleryHTML(true)}</div></div></div>`:''}`)
+   +`<div class="sheet-foot"><div class="field"><label for="b-name">Name</label><input id="b-name" value="${esc(B.name)}" placeholder="Dashboard name"></div><span class="grow"></span><span class="hint">${n?`${n} widget${n>1?'s':''}`:''}</span><button class="btn primary" id="b-create" ${n?'':'disabled'}>Create dashboard</button></div>`;
+  if(variant==='b')pane.querySelector('.gsheet .gallery')?.classList.add('b');
+  fitAll(pane);
+  const g=$('b-grid');
+  if(g){sortable(g,()=>B.widgets,l=>B.widgets=l,()=>{g.innerHTML=gridHTML();fitAll(pane)});
+    // Scroll only the canvas; scrollIntoView would also shift overflow:hidden ancestors like the sheet.
+    const el=B.last&&g.querySelector(`[data-id="${B.last}"]`),sc=pane.querySelector('.canvas-scroll');
+    if(el&&sc){const r=el.getBoundingClientRect(),v=sc.getBoundingClientRect();if(r.bottom>v.bottom)sc.scrollTop+=r.bottom-v.bottom+8;}}
+  if(focusSearch){const s=$('b-search');s.focus();s.setSelectionRange(s.value.length,s.value.length);}
+}
+new ResizeObserver(()=>{if(!$('pane-build').hidden)fitAll($('pane-build'))}).observe($('pane-build'));
+$('pane-build').addEventListener('click',e=>{
+  const t=e.target;
+  const subj=t.closest('[data-subj]');if(subj){B.subject=subj.dataset.subj;renderBuild();return;}
+  const gs=t.closest('[data-gsize]');if(gs){const [type,z]=gs.dataset.gsize.split(':');B.sizes[B.subject+':'+type]=z;renderBuild();return;}
+  const add=t.closest('[data-add]');if(add){
+    const o=offersFor(B.subject).find(x=>x.type===add.dataset.add);
+    const w={id:uid(),type:o.type,size:o.size,subject:o.subject};
+    B.widgets.push(w);B.last=w.id;B.sheet=false;renderBuild();return;}
+  const rm=t.closest('[data-remove]');if(rm){B.widgets=B.widgets.filter(w=>w.id!==rm.dataset.remove);B.last=null;renderBuild();return;}
+  if(t.closest('#b-open')){B.sheet=true;renderBuild();return;}
+  if(t.closest('#b-close-sheet')||t.id==='gsheet'){B.sheet=false;renderBuild();return;}
+  if(t.closest('#b-create'))createDashboard(B.name,buildSubs(),B.widgets);
+});
+$('pane-build').addEventListener('input',e=>{
+  if(e.target.id==='b-search'){B.q=e.target.value.toLowerCase();renderBuild();}
+  if(e.target.id==='b-name'){B.name=e.target.value;B.nameTouched=true;}
+});
+
+// ---------- Generate ----------
+// Simulates the AG-UI stream: the agent emits add/remove widget calls, the page applies them and outlines each change.
+let G;
+function resetGen(){
+  G={subs:[],widgets:[],pending:null,changed:new Set(),busy:false};
+  $('gen').classList.remove('active');$('gen-grid').innerHTML='';$('gen-reply').textContent='';$('changebar').hidden=true;
+  $('prompt-input').value='';$('send').disabled=true;$('gen-create').disabled=true;$('gen-hint').textContent='Nothing is saved until you keep it.';
+  $('prompt-input').placeholder='Describe a dashboard, e.g. stablecoin risk for SG banks';
+}
+function renderGen(enterIds=new Set()){
+  $('gen-grid').innerHTML=G.widgets.map(w=>widgetHTML(w,G.subs,{drag:!G.busy,changed:G.changed.has(w.id),enter:enterIds.has(w.id)})).join('');
+  $('changebar').hidden=!G.pending;
+  $('gen-create').disabled=!G.widgets.length||!!G.pending;
+  $('gen-hint').textContent=G.pending?'Keep or undo the last change first.':G.widgets.length?`${G.widgets.length} widgets`:'Nothing is saved until you keep it.';
+}
+const ALIASES={'sg banks':'Singapore banks','singapore banks':'Singapore banks','stablecoin':'Stablecoins','geopolitic':'Geopolitics','regulation':'Banking regulation','central bank':'Central banks','sea countries':'SEA countries','sea banks':'SEA regional banks','regional banks':'SEA regional banks','issuers':'Stablecoin issuers','sea':'SEA countries'};
+function parseSubjects(text){
+  const t=' '+text.toLowerCase()+' ';
+  const found=[];
+  ALL.forEach(s=>{if(t.includes(' '+s.n.toLowerCase()))found.push(s.n)});
+  Object.entries(ALIASES).forEach(([a,n])=>{if(t.includes(a)&&!found.includes(n))found.push(n)});
+  // Drop a group when a more specific group already matched (e.g. "SEA" inside "SEA regional banks").
+  // Drop names contained in a longer match ("Singapore" inside "Singapore banks") and "SEA" inside "SEA regional banks".
+  return found.filter(n=>!found.some(o=>o!==n&&o.toLowerCase().includes(n.toLowerCase())))
+    .filter(n=>!(n==='SEA countries'&&found.includes('SEA regional banks')&&!t.includes('countr')));
+}
+function moveInputDown(){
+  const box=$('prompt'),before=box.getBoundingClientRect().top;
+  $('gen').classList.add('active');
+  if(reduced)return;
+  const dy=before-box.getBoundingClientRect().top;
+  box.style.transition='none';box.style.transform=`translateY(${dy}px)`;
+  box.getBoundingClientRect();
+  box.style.transition='transform .55s cubic-bezier(.2,.8,.2,1)';box.style.transform='';
+}
+async function stream(ops,reply){
+  G.busy=true;$('send').disabled=true;
+  const snapshot=G.widgets.map(w=>({...w}));
+  G.changed=new Set();
+  $('gen-reply').textContent='';
+  for(const ch of reply){$('gen-reply').textContent+=ch;if(!reduced)await new Promise(r=>setTimeout(r,8));}
+  for(const op of ops){
+    await new Promise(r=>setTimeout(r,reduced?0:260));
+    if(op.op==='add'){G.widgets.push(op.w);G.changed.add(op.w.id);renderGen(new Set([op.w.id]));}
+    if(op.op==='remove'){G.widgets=G.widgets.filter(w=>w.id!==op.id);renderGen();}
+    if(op.op==='resize'){const w=G.widgets.find(x=>x.id===op.id);w.size=op.size;G.changed.add(w.id);renderGen();}
+  }
+  G.pending={snapshot};G.busy=false;renderGen();
+  $('prompt-input').placeholder='Ask for a change, e.g. remove the watchlist';
+}
+function plan(text){
+  const t=text.toLowerCase();
+  const typeHit=Object.entries(WIDGETS).find(([k,v])=>t.includes(v.name.toLowerCase())||t.includes(k));
+  if(G.widgets.length&&/\b(remove|drop|delete)\b/.test(t)&&typeHit){
+    const w=G.widgets.find(x=>x.type===typeHit[0]);
+    if(w)return {ops:[{op:'remove',id:w.id}],reply:`Removed ${typeHit[1].name}.`};
+  }
+  if(G.widgets.length&&/\b(bigger|larger|large)\b/.test(t)&&typeHit){
+    const w=G.widgets.find(x=>x.type===typeHit[0]);const z=typeHit[1].sizes.at(-1);
+    if(w)return {ops:[{op:'resize',id:w.id,size:z}],reply:`Made ${typeHit[1].name} ${z==='L'?'large':'medium'}.`};
+  }
+  if(G.widgets.length&&/\badd\b/.test(t)&&typeHit){
+    const subs=parseSubjects(text),def=typeHit[1];
+    const w={id:uid(),type:typeHit[0],size:def.sizes[0],subject:subs[0]||G.subs[0]};
+    return {ops:[{op:'add',w}],reply:`Added ${def.name}, ${def.sizes[0]==='S'?'small':'medium'}.`};
+  }
+  let subs=parseSubjects(text);
+  if(!subs.length)subs=G.subs.length?G.subs:['Singapore banks'];
+  const ws=suggest(subs);
+  const ops=[...G.widgets.map(w=>({op:'remove',id:w.id})),...ws.map(w=>({op:'add',w}))];
+  G.subs=subs;
+  return {ops,reply:`Tracking ${subs.join(', ')}. Added ${ws.map(w=>WIDGETS[w.type].name+' ('+{S:'small',M:'medium',L:'large'}[w.size]+')').join(', ')}.`};
+}
+$('prompt-input').addEventListener('input',e=>{$('send').disabled=G.busy||!e.target.value.trim()});
+$('prompt').addEventListener('submit',e=>{
+  e.preventDefault();const text=$('prompt-input').value.trim();if(!text||G.busy)return;
+  if(G.pending)G.pending=null; // a new request keeps the previous change
+  if(!$('gen').classList.contains('active'))moveInputDown();
+  $('prompt-input').value='';
+  const p=plan(text);stream(p.ops,p.reply);
+});
+sortable($('gen-grid'),()=>G.widgets,l=>G.widgets=l,()=>renderGen());
+$('gen-grid').addEventListener('click',e=>{const b=e.target.closest('[data-remove]');if(!b||G.busy)return;G.widgets=G.widgets.filter(w=>w.id!==b.dataset.remove);renderGen();});
+$('gen-sugg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('prompt-input').value=b.textContent;$('prompt').requestSubmit();});
+$('undo').onclick=()=>{G.widgets=G.pending.snapshot;G.pending=null;G.changed=new Set();$('gen-reply').textContent='Undone.';renderGen();};
+$('keep').onclick=()=>{G.pending=null;G.changed=new Set();renderGen();};
+$('gen-create').onclick=()=>createDashboard(defaultName(G.subs),G.subs,G.widgets);
+
+renderNav();renderDash();
+</script>

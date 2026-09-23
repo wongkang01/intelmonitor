@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>IntelMonitor dashboard</title>
+
+
+
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,sans-serif;background:#F5F5F7;color:#1C1C1E;-webkit-font-smoothing:antialiased}
+a{color:#0A64D8;text-decoration:none}a:hover{color:#0850AE}
+button{font-family:inherit}
+input{font-family:inherit}
+input::placeholder{color:#5F5F67}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid rgba(10,100,216,.45);outline-offset:2px}
+.search:focus-within{box-shadow:0 0 0 3px rgba(10,100,216,.35)}
+@keyframes wig{0%{transform:rotate(-.5deg)}50%{transform:rotate(.5deg)}100%{transform:rotate(-.5deg)}}
+.wig{animation:wig .34s ease-in-out infinite}
+.wig:nth-child(2n){animation-delay:-.17s}
+@media (prefers-reduced-motion: reduce){.wig{animation:none}}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; position: relative; display: flex; background: #F5F5F7; overflow: hidden;">
+
+<nav aria-label="Main" style="width: 248px; flex-shrink: 0; box-sizing: border-box; padding: 20px 14px; background: #ECECF0; border-right: 1px solid #DCDCE2; display: flex; flex-direction: column; gap: 22px;">
+<div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px;">
+<span style="width: 28px; height: 28px; border-radius: 8px; background: #0A64D8; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#fff" stroke-width="1.6"></circle><path d="M8 4.5V8l2.4 1.6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"></path></svg></span>
+<span style="font-size: 16px; font-weight: 700; letter-spacing: -0.01em;">IntelMonitor</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px;">
+<div style="font-size: 12px; font-weight: 600; color: #5B5B63; padding: 0 10px 6px;">Dashboards</div>
+<a href="#" aria-current="page" style="display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: 9px; background: #DCDCE3; color: #1C1C1E; font-size: 14px; font-weight: 600;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1.5" stroke="#0A64D8" stroke-width="1.5"></rect><rect x="9" y="2" width="5" height="5" rx="1.5" stroke="#0A64D8" stroke-width="1.5"></rect><rect x="2" y="9" width="12" height="5" rx="1.5" stroke="#0A64D8" stroke-width="1.5"></rect></svg>Singapore banks</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: 9px; color: #1C1C1E; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1.5" stroke="#6E6E76" stroke-width="1.5"></rect><rect x="9" y="2" width="5" height="5" rx="1.5" stroke="#6E6E76" stroke-width="1.5"></rect><rect x="2" y="9" width="12" height="5" rx="1.5" stroke="#6E6E76" stroke-width="1.5"></rect></svg>AI regulation watch</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: 9px; color: #1C1C1E; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1.5" stroke="#6E6E76" stroke-width="1.5"></rect><rect x="9" y="2" width="5" height="5" rx="1.5" stroke="#6E6E76" stroke-width="1.5"></rect><rect x="2" y="9" width="12" height="5" rx="1.5" stroke="#6E6E76" stroke-width="1.5"></rect></svg>My watchlist</a>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px;">
+<div style="font-size: 12px; font-weight: 600; color: #5B5B63; padding: 0 10px 6px;">Monitors</div>
+<a href="#" style="display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: 9px; color: #1C1C1E; font-size: 14px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #6B4FD8;"></span><span style="flex-grow: 1;">Topics</span><span style="font-size: 13px; color: #5B5B63;">3</span></a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: 9px; color: #1C1C1E; font-size: 14px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #0A64D8;"></span><span style="flex-grow: 1;">Groups</span><span style="font-size: 13px; color: #5B5B63;">5</span></a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: 9px; color: #1C1C1E; font-size: 14px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #3A3A40;"></span><span style="flex-grow: 1;">Entities</span><span style="font-size: 13px; color: #5B5B63;">10</span></a>
+</div>
+<span style="flex-grow: 1;"></span>
+<a href="NewDashboard.dc.html" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 44px; border-radius: 12px; background: #FFFFFF; color: #1C1C1E; font-size: 14px; font-weight: 600; box-shadow: 0 1px 2px rgba(18,22,38,.08);"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#0A64D8" stroke-width="1.8" stroke-linecap="round"></path></svg>New dashboard</a>
+</nav>
+
+<main style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;">
+<div style="height: 72px; flex-shrink: 0; display: flex; align-items: center; padding: 0 36px;">
+<label class="search" style="display: flex; align-items: center; gap: 10px; width: 560px; height: 42px; box-sizing: border-box; padding: 0 12px 0 14px; background: #E8E8ED; border-radius: 12px;">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.8" stroke="#5F5F67" stroke-width="1.6"></circle><path d="M10.6 10.6 14 14" stroke="#5F5F67" stroke-width="1.6" stroke-linecap="round"></path></svg>
+<input type="search" aria-label="Search or ask" placeholder="Search or ask about a topic, group or entity" style="flex-grow: 1; min-width: 0; border: 0; background: transparent; font-size: 15px; color: #1C1C1E; outline: none;">
+<span style="font-size: 12px; color: #5B5B63; padding: 3px 7px; border-radius: 6px; background: #F5F5F7;">⌘K</span>
+</label>
+</div>
+
+<div style="display: flex; align-items: flex-end; gap: 12px; padding: 4px 36px 20px;">
+<div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1;">
+<h1 style="margin: 0; font-size: 32px; line-height: 38px; font-weight: 700; letter-spacing: -0.022em;">Singapore banks</h1>
+<sc-if value="{{notEditing}}" hint-placeholder-val="{{ true }}"><p style="margin: 0; font-size: 14px; color: #5B5B63;">Last run 23 Sep at 06:00. 5 entities, 1 topic linked.</p></sc-if>
+<sc-if value="{{editing}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 14px; color: #5B5B63;">Tap the minus to remove a widget, or add a new one.</p></sc-if>
+</div>
+<sc-if value="{{editing}}" hint-placeholder-val="{{ false }}"><button style="height: 40px; padding: 0 16px; border: 0; border-radius: 20px; background: #FFFFFF; color: #0A64D8; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(18,22,38,.08);"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1.5v9M1.5 6h9" stroke="#0A64D8" stroke-width="1.8" stroke-linecap="round"></path></svg>Add widget</button></sc-if>
+<button style="{{editBtnStyle}}">{{editLabel}}</button>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 170px; grid-auto-flow: dense; gap: 20px; padding: 0 36px 36px;">
+
+<sc-if value="{{showA}}" hint-placeholder-val="{{ true }}">
+<section class="{{wig}}" aria-label="Since your last review" style="grid-column: span 2; grid-row: span 2; position: relative; box-sizing: border-box; padding: 20px 22px; background: #FFFFFF; border-radius: 22px; box-shadow: 0 1px 2px rgba(18,22,38,.05), 0 8px 24px rgba(18,22,38,.05); display: flex; flex-direction: column; gap: 14px;">
+<sc-if value="{{editing}}" hint-placeholder-val="{{ false }}"><button aria-label="Remove Since your last review" style="position: absolute; top: -18px; left: -18px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3;"><span style="width: 24px; height: 24px; border-radius: 50%; background: #6E6E73; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.2);"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="#fff" stroke-width="2" stroke-linecap="round"></path></svg></span></button></sc-if>
+<div style="display: flex; align-items: center; gap: 8px; height: 20px;"><span style="font-size: 13px; font-weight: 600; color: #5B5B63;">Since your last review</span><span style="flex-grow: 1;"></span><span style="font-size: 12px; color: #5B5B63;">23 Sep, 06:00</span></div>
+<sc-if value="{{notReviewed}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 16px; flex-grow: 1;">
+<p style="margin: 0; font-size: 26px; line-height: 32px; font-weight: 600; letter-spacing: -0.018em; max-width: 470px;">3 new developments across your banks. One needs your attention.</p>
+<div style="display: flex; flex-direction: column;">
+<div style="display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid #EFEFF3;"><span style="font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: #FDECEA; color: #B3261E; white-space: nowrap;">Needs attention</span><div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;"><span style="font-size: 14px; font-weight: 600;">Draft rules on AI model risk name all three banks</span><span style="font-size: 12px; color: #5B5B63;">AI safety regulation, 5 sources</span></div></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid #EFEFF3;"><span style="font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: #E6F0FD; color: #0A56BC;">New</span><div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;"><span style="font-size: 14px; font-weight: 600;">OCBC appoints a new chief financial officer</span><span style="font-size: 12px; color: #5B5B63;">OCBC, management, 3 sources</span></div></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid #EFEFF3;"><span style="font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: #E6F0FD; color: #0A56BC;">New</span><div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;"><span style="font-size: 14px; font-weight: 600;">UOB announces a digital banking partnership</span><span style="font-size: 12px; color: #5B5B63;">UOB, strategy, 2 sources</span></div></div>
+</div>
+<span style="flex-grow: 1;"></span>
+<div style="display: flex; gap: 8px;"><button style="height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: #0A64D8; color: #FFFFFF; font-size: 13px; font-weight: 600; cursor: pointer;">Mark all reviewed</button><button style="height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: #F0F0F3; color: #1C1C1E; font-size: 13px; font-weight: 600; cursor: pointer;">See evidence</button></div>
+</div>
+</sc-if>
+<sc-if value="{{reviewed}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px; flex-grow: 1; justify-content: center;">
+<p style="margin: 0; font-size: 26px; line-height: 32px; font-weight: 600; letter-spacing: -0.018em;">You're up to date.</p>
+<p style="margin: 0; font-size: 14px; color: #5B5B63; max-width: 380px;">New developments from the next run will show here first.</p>
+</div>
+</sc-if>
+</section>
+</sc-if>
+
+<sc-if value="{{showB}}" hint-placeholder-val="{{ true }}">
+<section class="{{wig}}" aria-label="Standing questions" style="grid-column: span 2; position: relative; box-sizing: border-box; padding: 18px 20px; background: #FFFFFF; border-radius: 22px; box-shadow: 0 1px 2px rgba(18,22,38,.05), 0 8px 24px rgba(18,22,38,.05); display: flex; flex-direction: column; gap: 10px;">
+<sc-if value="{{editing}}" hint-placeholder-val="{{ false }}"><button aria-label="Remove Standing questions" style="position: absolute; top: -18px; left: -18px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3;"><span style="width: 24px; height: 24px; border-radius: 50%; background: #6E6E73; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.2);"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="#fff" stroke-width="2" stroke-linecap="round"></path></svg></span></button></sc-if>
+<div style="display: flex; align-items: center; height: 20px;"><span style="font-size: 13px; font-weight: 600; color: #5B5B63;">Standing questions</span></div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+<div style="padding: 8px 12px; border-radius: 12px; background: #F5F5F7; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 12px; color: #5B5B63;">Incidents</span><span style="font-size: 14px; font-weight: 600; color: #1F6F43;">Stable</span></div>
+<div style="padding: 8px 12px; border-radius: 12px; background: #F5F5F7; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 12px; color: #5B5B63;">Adverse</span><span style="font-size: 14px; font-weight: 600; color: #B3261E;">1 needs review</span></div>
+<div style="padding: 8px 12px; border-radius: 12px; background: #FFF4E2; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 12px; color: #6B4600;">Regulatory</span><span style="font-size: 14px; font-weight: 600; color: #8A4B00;">Stable → Watch</span></div>
+<div style="padding: 8px 12px; border-radius: 12px; background: #F5F5F7; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 12px; color: #5B5B63;">Financial</span><span style="font-size: 14px; font-weight: 600; color: #1F6F43;">Stable</span></div>
+<div style="padding: 8px 12px; border-radius: 12px; background: #F5F5F7; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 12px; color: #5B5B63;">Management</span><span style="font-size: 14px; font-weight: 600; color: #0A56BC;">1 new</span></div>
+<div style="padding: 8px 12px; border-radius: 12px; background: #F5F5F7; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 12px; color: #5B5B63;">Strategy</span><span style="font-size: 14px; font-weight: 600; color: #0A56BC;">1 new</span></div>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{showC}}" hint-placeholder-val="{{ true }}">
+<section class="{{wig}}" aria-label="Regulatory attention" style="position: relative; box-sizing: border-box; padding: 18px 20px; background: #FFFFFF; border-radius: 22px; box-shadow: 0 1px 2px rgba(18,22,38,.05), 0 8px 24px rgba(18,22,38,.05); display: flex; flex-direction: column; gap: 6px;">
+<sc-if value="{{editing}}" hint-placeholder-val="{{ false }}"><button aria-label="Remove Regulatory attention" style="position: absolute; top: -18px; left: -18px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3;"><span style="width: 24px; height: 24px; border-radius: 50%; background: #6E6E73; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.2);"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="#fff" stroke-width="2" stroke-linecap="round"></path></svg></span></button></sc-if>
+<span style="font-size: 13px; font-weight: 600; color: #5B5B63;">Regulatory attention</span>
+<span style="font-size: 24px; font-weight: 700; letter-spacing: -0.02em;">Rising</span>
+<svg width="100%" height="44" viewBox="0 0 225 44" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,36 32,34 64,35 96,30 128,26 160,20 192,14 225,8" fill="none" stroke="#B25E00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+<span style="font-size: 12px; color: #5B5B63;">Up in 5 of the last 8 weeks</span>
+</section>
+</sc-if>
+
+<sc-if value="{{showD}}" hint-placeholder-val="{{ true }}">
+<section class="{{wig}}" aria-label="Upcoming" style="position: relative; box-sizing: border-box; padding: 18px 20px; background: #FFFFFF; border-radius: 22px; box-shadow: 0 1px 2px rgba(18,22,38,.05), 0 8px 24px rgba(18,22,38,.05); display: flex; flex-direction: column; gap: 6px;">
+<sc-if value="{{editing}}" hint-placeholder-val="{{ false }}"><button aria-label="Remove Upcoming" style="position: absolute; top: -18px; left: -18px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3;"><span style="width: 24px; height: 24px; border-radius: 50%; background: #6E6E73; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.2);"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="#fff" stroke-width="2" stroke-linecap="round"></path></svg></span></button></sc-if>
+<span style="font-size: 13px; font-weight: 600; color: #5B5B63;">Upcoming</span>
+<span style="font-size: 28px; font-weight: 700; letter-spacing: -0.022em;">14 Oct</span>
+<span style="font-size: 14px; line-height: 19px; font-weight: 500;">Consultation on AI model risk closes</span>
+<span style="flex-grow: 1;"></span>
+<span style="font-size: 12px; color: #5B5B63;">In 21 days</span>
+</section>
+</sc-if>
+
+<sc-if value="{{showE}}" hint-placeholder-val="{{ true }}">
+<section class="{{wig}}" aria-label="Watchlist" style="grid-column: span 2; grid-row: span 2; position: relative; box-sizing: border-box; padding: 20px 22px; background: #FFFFFF; border-radius: 22px; box-shadow: 0 1px 2px rgba(18,22,38,.05), 0 8px 24px rgba(18,22,38,.05); display: flex; flex-direction: column; gap: 12px;">
+<sc-if value="{{editing}}" hint-placeholder-val="{{ false }}"><button aria-label="Remove Watchlist" style="position: absolute; top: -18px; left: -18px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3;"><span style="width: 24px; height: 24px; border-radius: 50%; background: #6E6E73; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.2);"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="#fff" stroke-width="2" stroke-linecap="round"></path></svg></span></button></sc-if>
+<div style="display: flex; align-items: center; height: 20px;"><span style="font-size: 13px; font-weight: 600; color: #5B5B63;">Watchlist</span><span style="flex-grow: 1;"></span><span style="font-size: 12px; color: #5B5B63;">{{watchCount}}</span></div>
+<div style="position: relative;">
+<label class="search" style="display: flex; align-items: center; gap: 8px; height: 38px; box-sizing: border-box; padding: 0 12px; border-radius: 10px; background: #F2F2F5;">
+<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 2v10M2 7h10" stroke="#0A64D8" stroke-width="1.8" stroke-linecap="round"></path></svg>
+<input type="text" aria-label="Add a bank or company" placeholder="Add a bank or company" value="{{query}}" style="flex-grow: 1; min-width: 0; border: 0; background: transparent; font-size: 14px; color: #1C1C1E; outline: none;">
+</label>
+<sc-if value="{{hasSug}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; top: 44px; left: 0; right: 0; z-index: 5; padding: 6px; background: #FFFFFF; border-radius: 14px; box-shadow: 0 2px 6px rgba(18,22,38,.08), 0 16px 40px rgba(18,22,38,.14); display: flex; flex-direction: column;">
+<sc-for list="{{sug}}" as="s" hint-placeholder-count="3">
+<button style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 10px; border: 0; border-radius: 9px; background: transparent; text-align: left; cursor: pointer; font-size: 14px; color: #1C1C1E;"><span style="width: 26px; height: 26px; border-radius: 50%; background: #F0F0F3; font-size: 11px; font-weight: 600; color: #3A3A40; display: flex; align-items: center; justify-content: center;">{{s.initials}}</span>{{s.name}}<span style="flex-grow: 1;"></span><span style="font-size: 12px; color: #0A64D8; font-weight: 600;">Add</span></button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+<div style="display: flex; flex-direction: column; flex-grow: 1; min-height: 0; overflow: auto;">
+<sc-for list="{{watch}}" as="w" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 12px; min-height: 46px; border-top: 1px solid #EFEFF3;">
+<span style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background: #F0F0F3; font-size: 12px; font-weight: 600; color: #3A3A40; display: flex; align-items: center; justify-content: center;">{{w.initials}}</span>
+<div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1;"><span style="font-size: 14px; font-weight: 600;">{{w.name}}</span><span style="font-size: 12px; color: #5B5B63; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{w.full}}</span></div>
+<span style="{{w.pill}}">{{w.status}}</span>
+<button aria-label="Remove {{w.name}}" style="width: 36px; height: 36px; flex-shrink: 0; border: 0; border-radius: 18px; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center;"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="#6E6E76" stroke-width="1.6" stroke-linecap="round"></path></svg></button>
+</div>
+</sc-for>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{showF}}" hint-placeholder-val="{{ true }}">
+<section class="{{wig}}" aria-label="Links" style="grid-column: span 2; position: relative; box-sizing: border-box; padding: 18px 20px; background: #FFFFFF; border-radius: 22px; box-shadow: 0 1px 2px rgba(18,22,38,.05), 0 8px 24px rgba(18,22,38,.05); display: flex; flex-direction: column; gap: 6px;">
+<sc-if value="{{editing}}" hint-placeholder-val="{{ false }}"><button aria-label="Remove Links" style="position: absolute; top: -18px; left: -18px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3;"><span style="width: 24px; height: 24px; border-radius: 50%; background: #6E6E73; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.2);"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="#fff" stroke-width="2" stroke-linecap="round"></path></svg></span></button></sc-if>
+<div style="display: flex; align-items: center; height: 20px;"><span style="font-size: 13px; font-weight: 600; color: #5B5B63;">Links</span><span style="flex-grow: 1;"></span><a href="#" style="font-size: 13px; font-weight: 600;">Open graph view</a></div>
+<svg width="100%" height="104" viewBox="0 0 510 104" aria-label="Singapore banks links to DBS, OCBC, UOB, AI safety regulation and Cloud provider A">
+<path d="M190 52 C150 52 120 16 82 16" fill="none" stroke="#C7C7CC" stroke-width="1.5"></path>
+<path d="M190 52 L82 52" fill="none" stroke="#C7C7CC" stroke-width="1.5"></path>
+<path d="M190 52 C150 52 120 88 82 88" fill="none" stroke="#C7C7CC" stroke-width="1.5"></path>
+<path d="M320 52 C348 52 352 26 374 26" fill="none" stroke="#C7C7CC" stroke-width="1.5"></path>
+<path d="M320 52 C348 52 352 80 374 80" fill="none" stroke="#C7C7CC" stroke-width="1.5" stroke-dasharray="4 4"></path>
+<circle cx="76" cy="16" r="6" fill="#3A3A40"></circle><text x="62" y="20" text-anchor="end" font-size="12" fill="#1C1C1E">DBS</text>
+<circle cx="76" cy="52" r="6" fill="#3A3A40"></circle><text x="62" y="56" text-anchor="end" font-size="12" fill="#1C1C1E">OCBC</text>
+<circle cx="76" cy="88" r="6" fill="#3A3A40"></circle><text x="62" y="92" text-anchor="end" font-size="12" fill="#1C1C1E">UOB</text>
+<rect x="190" y="38" width="130" height="28" rx="14" fill="#E6F0FD"></rect><text x="255" y="56" text-anchor="middle" font-size="12" font-weight="600" fill="#0A56BC">Singapore banks</text>
+<circle cx="380" cy="26" r="6" fill="#6B4FD8"></circle><text x="394" y="30" font-size="12" fill="#1C1C1E">AI safety regulation</text>
+<circle cx="380" cy="80" r="6" fill="#0E7C7B"></circle><text x="394" y="84" font-size="12" fill="#1C1C1E">Cloud provider A</text>
+</svg>
+</section>
+</sc-if>
+
+<sc-if value="{{showG}}" hint-placeholder-val="{{ true }}">
+<section class="{{wig}}" aria-label="AI safety regulation stage" style="grid-column: span 2; position: relative; box-sizing: border-box; padding: 18px 20px; background: #FFFFFF; border-radius: 22px; box-shadow: 0 1px 2px rgba(18,22,38,.05), 0 8px 24px rgba(18,22,38,.05); display: flex; flex-direction: column; gap: 12px;">
+<sc-if value="{{editing}}" hint-placeholder-val="{{ false }}"><button aria-label="Remove AI safety regulation stage" style="position: absolute; top: -18px; left: -18px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3;"><span style="width: 24px; height: 24px; border-radius: 50%; background: #6E6E73; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.2);"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="#fff" stroke-width="2" stroke-linecap="round"></path></svg></span></button></sc-if>
+<div style="display: flex; align-items: center; height: 20px; gap: 8px;"><span style="font-size: 13px; font-weight: 600; color: #5B5B63;">AI safety regulation</span><span style="font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 6px; background: #EFEBFC; color: #5236B8;">Topic</span></div>
+<div style="position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0;">
+<div style="position: absolute; left: 10%; right: 10%; top: 6px; height: 2px; background: #E5E5EA;"></div>
+<div style="position: absolute; left: 10%; width: 40%; top: 6px; height: 2px; background: #6B4FD8;"></div>
+<div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;"><span style="width: 14px; height: 14px; border-radius: 50%; background: #6B4FD8;"></span><span style="font-size: 12px; color: #5B5B63;">Signal</span></div>
+<div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;"><span style="width: 14px; height: 14px; border-radius: 50%; background: #6B4FD8;"></span><span style="font-size: 12px; color: #5B5B63;">Consultation</span></div>
+<div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;"><span style="width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 4px solid #6B4FD8; box-shadow: 0 0 0 4px #EFEBFC;"></span><span style="font-size: 12px; font-weight: 700; color: #1C1C1E;">Proposed</span></div>
+<div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;"><span style="width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 2px solid #D1D1D6;"></span><span style="font-size: 12px; color: #5B5B63;">Enacted</span></div>
+<div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;"><span style="width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 2px solid #D1D1D6;"></span><span style="font-size: 12px; color: #5B5B63;">Enforced</span></div>
+</div>
+<p style="margin: 0; font-size: 14px; line-height: 20px; color: #1C1C1E;">Moved from consultation to proposed on 18 Sep. All three of your banks are named in the draft.</p>
+</section>
+</sc-if>
+
+<sc-for list="{{added}}" as="it" hint-placeholder-count="0">
+<section class="{{wig}}" aria-label="{{it.name}}" style="{{it.style}}">
+<sc-if value="{{editing}}" hint-placeholder-val="{{ false }}"><button aria-label="Remove {{it.name}}" style="position: absolute; top: -18px; left: -18px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3;"><span style="width: 24px; height: 24px; border-radius: 50%; background: #6E6E73; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.2);"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="#fff" stroke-width="2" stroke-linecap="round"></path></svg></span></button></sc-if>
+<span style="font-size: 13px; font-weight: 600; color: #5B5B63;">{{it.name}}</span>
+<span style="font-size: 18px; line-height: 23px; font-weight: 600; letter-spacing: -0.01em;">{{it.sample}}</span>
+<sc-if value="{{it.showMore}}" hint-placeholder-val="{{ true }}"><span style="font-size: 13px; line-height: 18px; color: #5B5B63;">{{it.sample2}}</span></sc-if>
+</section>
+</sc-for>
+
+</div>
+</main>
+
+<sc-if value="{{gallery}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 20; background: rgba(28,28,30,.28); display: flex; align-items: center; justify-content: center;">
+<div role="dialog" aria-modal="true" aria-label="Add a widget" style="width: 880px; height: 600px; box-sizing: border-box; background: #FFFFFF; border-radius: 28px; box-shadow: 0 24px 80px rgba(18,22,38,.28); display: flex; flex-direction: column; overflow: hidden;">
+<div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; padding: 0 16px 0 28px; border-bottom: 1px solid #EFEFF3;">
+<h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.015em; flex-grow: 1;">Add a widget</h2>
+<button aria-label="Close" style="width: 44px; height: 44px; border: 0; border-radius: 22px; background: #F0F0F3; cursor: pointer; display: flex; align-items: center; justify-content: center;"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="#3A3A40" stroke-width="1.8" stroke-linecap="round"></path></svg></button>
+</div>
+<div style="flex-grow: 1; min-height: 0; display: flex;">
+<div style="width: 300px; flex-shrink: 0; box-sizing: border-box; padding: 12px; border-right: 1px solid #EFEFF3; display: flex; flex-direction: column; gap: 2px; overflow: auto;">
+<sc-for list="{{types}}" as="t" hint-placeholder-count="8">
+<button style="{{t.style}}"><span style="font-size: 14px; font-weight: 600; color: #1C1C1E;">{{t.name}}</span><span style="font-size: 12px; line-height: 16px; color: #5B5B63;">{{t.desc}}</span></button>
+</sc-for>
+</div>
+<div style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 16px; align-items: center;">
+<div style="flex-grow: 1; width: 100%; border-radius: 20px; background: #F2F2F5; display: flex; align-items: center; justify-content: center;">
+<div style="{{previewStyle}}">
+<span style="font-size: 13px; font-weight: 600; color: #5B5B63;">{{selName}}</span>
+<span style="font-size: 18px; line-height: 23px; font-weight: 600; letter-spacing: -0.01em;">{{selSample}}</span>
+<sc-if value="{{previewMore}}" hint-placeholder-val="{{ true }}"><span style="font-size: 13px; line-height: 18px; color: #5B5B63;">{{selSample2}}</span></sc-if>
+</div>
+</div>
+<div role="group" aria-label="Widget size" style="display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: #E8E8ED;">
+<sc-for list="{{sizes}}" as="z" hint-placeholder-count="3">
+<button style="{{z.style}}">{{z.label}}</button>
+</sc-for>
+</div>
+<button style="height: 48px; width: 280px; border: 0; border-radius: 24px; background: #0A64D8; color: #FFFFFF; font-size: 15px; font-weight: 600; cursor: pointer;">Add widget</button>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+
+</body>
+</html>
