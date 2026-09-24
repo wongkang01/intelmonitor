@@ -8,11 +8,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 
 import type { Widget } from "@/lib/api/client";
-import { errorMessage, useCreateDashboard, useSubjects } from "@/lib/api/queries";
+import { errorMessage, useCatalog, useCreateDashboard, useSubjects } from "@/lib/api/queries";
 import { useDashboardDraft } from "@/lib/agent";
 import { defaultName, subjectsUsed } from "@/lib/widgets";
-import { PlusIcon, SendIcon, SparkleIcon } from "@/components/ui/icons";
-import { CloseButton, Modal } from "@/components/ui/Modal";
+import { ChevronLeftIcon, PlusIcon, SendIcon, SparkleIcon } from "@/components/ui/icons";
+import { CloseButton, Modal, type CloseReason } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 
 import { Gallery } from "./AddWidgetSheet";
@@ -29,7 +29,6 @@ const EXAMPLES = [
   "Central banks on banking regulation",
 ];
 const HIGHLIGHT_MS = 1600;
-const UNDO_MS = 5000;
 /** Generated changes to at most this many widgets are outlined; bigger ones are only listed. */
 const OUTLINE_MAX = 2;
 
@@ -48,9 +47,8 @@ function useSessionState() {
   const [tab, setTab] = useState<Tab>("build");
   const [typedName, setTypedName] = useState<string | null>(null);
   const [lastPrompt, setLastPrompt] = useState("");
-  // The widgets before the latest prompt, so a kept change can still be undone until the next one.
-  const [before, setBefore] = useState<Widget[]>([]);
-  const [kept, setKept] = useState<number | null>(null);
+  // Widgets in the draft when the latest prompt was sent: none means a first build.
+  const [before, setBefore] = useState(0);
 
   return {
     draft,
@@ -60,25 +58,10 @@ function useSessionState() {
     setTypedName,
     lastPrompt,
     before,
-    kept,
     send: (prompt: string) => {
-      setBefore(draft.widgets);
-      setKept(null);
+      setBefore(draft.widgets.length);
       setLastPrompt(prompt);
       void draft.send(prompt);
-    },
-    keep: () => {
-      setKept(draft.changed.size);
-      draft.keep();
-    },
-    undoKept: () => {
-      draft.edit(before);
-      setKept(null);
-    },
-    /** Manual edits from either tab. */
-    edit: (widgets: Widget[]) => {
-      setKept(null);
-      draft.edit(widgets);
     },
   };
 }
@@ -87,33 +70,13 @@ type SessionState = ReturnType<typeof useSessionState>;
 function Session({ open, onClose, onReset }: { open: boolean; onClose: () => void; onReset: () => void }) {
   const state = useSessionState();
   // The body handles Esc and backdrop clicks first: it closes the gallery or asks before closing.
-  const dismissRef = useRef<(fromBackdrop: boolean) => boolean>(() => false);
-  // Modal reports Esc and backdrop clicks the same way; a capturing listener tells them apart.
-  const backdropDown = useRef(false);
-
-  useEffect(() => {
-    if (!open) return;
-    const down = (e: MouseEvent) => {
-      backdropDown.current = e.target instanceof HTMLDialogElement;
-    };
-    const key = () => {
-      backdropDown.current = false;
-    };
-    window.addEventListener("mousedown", down, true);
-    window.addEventListener("keydown", key, true);
-    return () => {
-      window.removeEventListener("mousedown", down, true);
-      window.removeEventListener("keydown", key, true);
-    };
-  }, [open]);
+  const dismissRef = useRef<(reason: CloseReason) => boolean>(() => false);
 
   return (
     <Modal
       open={open}
-      onClose={() => {
-        const fromBackdrop = backdropDown.current;
-        backdropDown.current = false;
-        if (!dismissRef.current(fromBackdrop)) onClose();
+      onClose={(reason) => {
+        if (!dismissRef.current(reason)) onClose();
       }}
       labelledBy="new-dashboard-title"
       className="sheet"
@@ -132,19 +95,19 @@ function NewDashboardBody({
   state: SessionState;
   onClose: () => void;
   onReset: () => void;
-  dismissRef: React.RefObject<(fromBackdrop: boolean) => boolean>;
+  dismissRef: React.RefObject<(reason: CloseReason) => boolean>;
 }) {
   const router = useRouter();
   const toast = useToast();
   const subjects = useSubjects();
+  const catalog = useCatalog();
   const create = useCreateDashboard();
   const { draft, tab, setTab } = state;
   const [gallery, setGallery] = useState(false);
   const [asking, setAsking] = useState(false);
-  const [removed, setRemoved] = useState<{ widgets: Widget[]; key: number } | null>(null);
 
   useEffect(() => {
-    dismissRef.current = (fromBackdrop) => {
+    dismissRef.current = (reason) => {
       if (asking) {
         setAsking(false);
         return true;
@@ -153,19 +116,13 @@ function NewDashboardBody({
         setGallery(false);
         return true;
       }
-      if (fromBackdrop && draft.widgets.length > 0) {
+      if (reason === "backdrop" && draft.widgets.length > 0) {
         setAsking(true);
         return true;
       }
       return false;
     };
   }, [dismissRef, asking, gallery, tab, draft.widgets.length]);
-
-  useEffect(() => {
-    if (!removed) return;
-    const t = window.setTimeout(() => setRemoved(null), UNDO_MS);
-    return () => window.clearTimeout(t);
-  }, [removed]);
 
   const subjectIds = subjectsUsed(draft.widgets);
   const names = subjectIds.flatMap((id) => subjects.data?.find((s) => s.id === id)?.name ?? []);
@@ -193,8 +150,15 @@ function NewDashboardBody({
   };
 
   const onRemove = (id: string) => {
-    setRemoved({ widgets: draft.widgets, key: Date.now() });
-    state.edit(draft.widgets.filter((w) => w.id !== id));
+    const all = draft.widgets;
+    const removed = all.find((w) => w.id === id);
+    if (!removed) return;
+    draft.edit(all.filter((w) => w.id !== id));
+    const name = catalog.data?.find((t) => t.type === removed.type)?.name;
+    toast({
+      message: name ? `Removed ${name}` : "Widget removed",
+      action: { label: "Undo", run: () => draft.edit(all) },
+    });
   };
 
   const onTabKey = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -238,20 +202,6 @@ function NewDashboardBody({
           <BuildPane state={state} subjectIds={subjectIds} gallery={gallery} setGallery={setGallery} onRemove={onRemove} />
         ) : (
           <GeneratePane state={state} subjectIds={subjectIds} onRemove={onRemove} />
-        )}
-        {removed && (
-          <div className="nd-toast" key={removed.key} role="status">
-            <span>Widget removed</span>
-            <button
-              type="button"
-              onClick={() => {
-                state.edit(removed.widgets);
-                setRemoved(null);
-              }}
-            >
-              Undo
-            </button>
-          </div>
         )}
       </div>
       <div className="nd-foot" inert={asking}>
@@ -300,16 +250,16 @@ function ChangeStatus({ state }: { state: SessionState }) {
         <button type="button" className="btn btn-ghost btn-sm" onClick={draft.undo}>
           Undo
         </button>
-        <button type="button" className="btn btn-sm" onClick={state.keep}>
+        <button type="button" className="btn btn-sm" onClick={draft.keep}>
           Keep
         </button>
       </>
     );
-  } else if (state.kept !== null) {
+  } else if (draft.kept !== null) {
     content = (
       <>
-        <span>{state.kept ? `Kept ${widgetCount(state.kept)}` : "Kept the change"}</span>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={state.undoKept}>
+        <span>{draft.kept ? `Kept ${widgetCount(draft.kept)}` : "Kept the change"}</span>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={draft.undoKept}>
           Undo
         </button>
       </>
@@ -392,13 +342,13 @@ function useDraftGrid(state: SessionState, onRemove: (id: string) => void) {
     onSettings: setSettingsFor,
     onReorder: (ids: string[]) => {
       const byId = new Map(widgets.map((w) => [w.id, w]));
-      state.edit(ids.flatMap((id) => byId.get(id) ?? []));
+      state.draft.edit(ids.flatMap((id) => byId.get(id) ?? []));
     },
     onRemove: (id: string) => {
       onRemove(id);
       if (settingsFor === id) setSettingsFor(null);
     },
-    onChange: (widget: Widget) => state.edit(widgets.map((w) => (w.id === widget.id ? widget : w))),
+    onChange: (widget: Widget) => state.draft.edit(widgets.map((w) => (w.id === widget.id ? widget : w))),
     onLongPress: () => {},
   };
 }
@@ -436,10 +386,8 @@ function BuildPane({
       <>
         <div className="nd-gbar">
           {!empty && (
-            <button type="button" className="nd-link" onClick={() => setGallery(false)}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                <path d="M7.5 2.5 4 6l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+            <button type="button" className="link nd-back" onClick={() => setGallery(false)}>
+              <ChevronLeftIcon />
               Back to preview
             </button>
           )}
@@ -450,9 +398,8 @@ function BuildPane({
         <div className="nd-gallery">
           <Gallery
             initialSubjectId={lastSubject ?? subjectIds[0] ?? null}
-            onClose={() => setGallery(false)}
             onAdd={(widget, subjectId) => {
-              state.edit([...draft.widgets, widget]);
+              draft.edit([...draft.widgets, widget]);
               setAdded(widget.id);
               setLastSubject(subjectId);
               setGallery(false);
@@ -535,21 +482,21 @@ function GeneratePane({
 
   const { summary, note, changes } = readReply(draft.reply || (draft.running ? "Working on your dashboard" : ""));
   // Outline only small edits to an existing draft; a first build or a big change is listed instead.
-  const outline = state.before.length > 0 && draft.changed.size <= OUTLINE_MAX ? [...draft.changed] : [];
+  const outline = state.before > 0 && draft.changed.size <= OUTLINE_MAX ? [...draft.changed] : [];
 
   return (
     <div className={`nd-gen${active ? " active" : ""}`}>
       {!active && <h3 className="nd-gen-title">What do you want to track?</h3>}
       {active && (
         <>
-          <div className="nd-thread">
+          <div className="nd-thread" aria-live="polite">
             {state.lastPrompt && <p className="nd-you">{state.lastPrompt}</p>}
             {draft.error ? (
               <p className="nd-error">Could not generate: {draft.error}</p>
             ) : changes.length ? (
               <details key={draft.prompts}>
                 <summary>
-                  <b>{summary}</b> <span className="nd-link">Details</span>
+                  <b>{summary}</b> <span className="link">Details</span>
                 </summary>
                 {note && <p className="nd-note">{note}</p>}
                 <ul>

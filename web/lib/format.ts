@@ -10,7 +10,7 @@ export const STATE_LABEL: Record<State, string> = {
   new: "New",
 };
 
-/** The badge palette key for a state: `b-<key>` and `c-<key>` classes in styles/widgets.css. */
+/** The badge palette key for a state: `b-<key>` and `c-<key>` classes in app/globals.css. */
 export const STATE_TONE: Record<State, "stable" | "watch" | "attn" | "new"> = {
   stable: "stable",
   watch: "watch",
@@ -41,6 +41,45 @@ export function dateTime(iso: string): string {
   return `${dayMonth(at)} at ${time.format(at)}`;
 }
 
+// Timestamps below are shown in the viewer's local time.
+const weekday = new Intl.DateTimeFormat("en-GB", { weekday: "short" });
+const RELATIVE_DAY: Record<number, string> = { [-1]: "Yesterday", 0: "Today", 1: "Tomorrow" };
+
+/** Whole calendar days from today to `at`: 0 today, -1 yesterday, 1 tomorrow. */
+function dayOffset(at: Date) {
+  const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  return Math.round((midnight(at) - midnight(new Date())) / 86_400_000);
+}
+
+/** "04:01" for an API timestamp. */
+export const clock = (iso: string) => time.format(new Date(iso));
+
+/** "Today 04:01", "Yesterday 04:01" or "23 Sep at 04:01" for an API timestamp. */
+export function relativeTime(iso: string): string {
+  const near = RELATIVE_DAY[dayOffset(new Date(iso))];
+  return near ? `${near} ${clock(iso)}` : dateTime(iso);
+}
+
+/** The short past form: "04:01" today, then "yesterday", then "23 Sep". */
+export function shortTime(iso: string): string {
+  const at = new Date(iso);
+  const offset = dayOffset(at);
+  if (offset === 0) return clock(iso);
+  if (offset === -1) return "yesterday";
+  return dayMonth(at);
+}
+
+/** A time ahead: "tomorrow, 06:00" or "Thu 1 Oct, 06:00". */
+export function aheadTime(iso: string): string {
+  const at = new Date(iso);
+  const near = RELATIVE_DAY[dayOffset(at)];
+  return `${near ? near.toLowerCase() : `${weekday.format(at)} ${dayMonth(at)}`}, ${clock(iso)}`;
+}
+
+/** "14 s" or "3 min". */
+export const duration = (seconds: number) =>
+  seconds < 60 ? `${Math.round(seconds)} s` : `${Math.round(seconds / 60)} min`;
+
 /** Whole days from `from` to `to`, both API dates. */
 export const daysBetween = (from: string, to: string) =>
   Math.round((day(to).getTime() - day(from).getTime()) / 86_400_000);
@@ -67,13 +106,10 @@ export const initials = (name: string) =>
 
 export const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-type SubjectType = Schema<"SubjectRef">["type"];
+/** An answer summary for display: drops the machine "Yes:" lead-in ("Yes: BNM fined…" reads "BNM fined…"). */
+export const answerText = (summary: string) => capitalize(summary.replace(/^yes\s*[:,.;–-]\s*/i, ""));
 
-export const TYPE_COLOR: Record<SubjectType, string> = {
-  topic: "var(--topic)",
-  group: "var(--group)",
-  entity: "var(--entity)",
-};
+type SubjectType = Schema<"SubjectRef">["type"];
 
 export const TYPE_LABEL: Record<SubjectType, string> = {
   topic: "Topic",

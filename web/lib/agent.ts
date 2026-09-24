@@ -3,7 +3,8 @@
 // The New dashboard draft, shared by the Build and Generate tabs. Generate runs the agent over
 // AG-UI (bare @ag-ui/client): each prompt sends the conversation and the current draft as state,
 // so manual edits flow back to the agent; the agent's STATE_DELTA events land in the draft as they
-// arrive, and a run's changes stay pending, outlined, until Keep or Undo.
+// arrive, and a run's changes stay pending until Keep or Undo. A kept change can still be undone
+// until the next prompt or manual edit.
 import { HttpAgent } from "@ag-ui/client";
 import { useEffect, useRef, useState } from "react";
 
@@ -38,6 +39,9 @@ export interface DashboardDraft {
   send: (prompt: string) => Promise<void>;
   keep: () => void;
   undo: () => void;
+  /** Widgets the last Keep kept, until the next prompt or manual edit; null when there is none. */
+  kept: number | null;
+  undoKept: () => void;
   running: boolean;
   /** A generated change is waiting for Keep or Undo. */
   pending: boolean;
@@ -55,6 +59,7 @@ export function useDashboardDraft(): DashboardDraft {
   const [widgets, setWidgets] = useState<Widget[]>([]);
   const latest = useRef<Widget[]>([]);
   const [undoTo, setUndoTo] = useState<Widget[] | null>(null);
+  const [kept, setKept] = useState<{ from: Widget[]; count: number } | null>(null);
   const [changed, setChanged] = useState<ReadonlySet<string>>(new Set());
   const [running, setRunning] = useState(false);
   const [reply, setReply] = useState("");
@@ -63,9 +68,14 @@ export function useDashboardDraft(): DashboardDraft {
 
   useEffect(() => () => agent.abortRun(), [agent]);
 
-  const edit = (next: Widget[]) => {
+  const apply = (next: Widget[]) => {
     latest.current = next;
     setWidgets(next);
+  };
+
+  const edit = (next: Widget[]) => {
+    setKept(null);
+    apply(next);
   };
 
   const settle = () => {
@@ -77,6 +87,7 @@ export function useDashboardDraft(): DashboardDraft {
     if (agent.isRunning) return;
     const start = latest.current;
     settle();
+    setKept(null);
     setReply("");
     setError(null);
     setRunning(true);
@@ -90,7 +101,7 @@ export function useDashboardDraft(): DashboardDraft {
         {
           onStateChanged: ({ state }) => {
             if (!isDraftState(state)) return;
-            edit(state.widgets);
+            apply(state.widgets);
             setChanged(changedIds(start, state.widgets));
           },
           // The buffer holds the message before this event's delta.
@@ -109,10 +120,9 @@ export function useDashboardDraft(): DashboardDraft {
     if (!sameLayout(start, latest.current)) setUndoTo(start);
   };
 
-  const undo = () => {
-    if (!undoTo) return;
-    edit(undoTo);
-    settle();
+  /** Restores `to` and tells the agent its last changes are gone. */
+  const revert = (to: Widget[]) => {
+    apply(to);
     setReply("Undone.");
     agent.addMessage({
       id: crypto.randomUUID(),
@@ -121,12 +131,31 @@ export function useDashboardDraft(): DashboardDraft {
     });
   };
 
+  const undo = () => {
+    if (!undoTo) return;
+    revert(undoTo);
+    settle();
+  };
+
+  const keep = () => {
+    if (undoTo) setKept({ from: undoTo, count: changed.size });
+    settle();
+  };
+
+  const undoKept = () => {
+    if (!kept) return;
+    revert(kept.from);
+    setKept(null);
+  };
+
   return {
     widgets,
     edit,
     send,
-    keep: settle,
+    keep,
     undo,
+    kept: kept?.count ?? null,
+    undoKept,
     running,
     pending: undoTo !== null,
     changed,

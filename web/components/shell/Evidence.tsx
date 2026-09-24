@@ -9,7 +9,7 @@ import { Fragment, useEffect, useRef, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useAnswerEvidence, useDevelopment } from "@/lib/api/queries";
-import { longDate, plural } from "@/lib/format";
+import { answerText, longDate, plural } from "@/lib/format";
 import { typingIn } from "@/lib/dom";
 import { CloseButton } from "@/components/ui/Modal";
 import { Dotted, StateChange } from "@/components/monitor/parts";
@@ -94,11 +94,11 @@ function AnswerEvidenceView({ evidence }: { evidence: Schema<"AnswerEvidence"> }
           <Dotted parts={[a.label, <SubjectLink key="s" subject={evidence.subject} />, `last ${a.lookback_days} days`]} />
         </span>
       </p>
-      <h3 className="ev-answer">{a.summary}</h3>
+      <h3 className="ev-answer">{answerText(a.summary)}</h3>
       <p className="meta">{a.question}</p>
       <p className="ev-state">
         <StateChange state={a.state} from={before} />
-        {before && a.change.previous_summary && <span className="meta">, was: {a.change.previous_summary}</span>}
+        {before && a.change.previous_summary && <span className="meta">, was: {answerText(a.change.previous_summary)}</span>}
       </p>
       <h4 className="ev-label">
         {evidence.developments.length ? `Based on ${plural(evidence.developments.length, "development")}` : "Sources"}

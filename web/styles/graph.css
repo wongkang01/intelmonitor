@@ -62,7 +62,9 @@
 .gsel .chev {
   margin-left: 2px;
   color: var(--ink2);
-  transform: rotate(90deg);
+}
+.gsel[aria-expanded="true"] .chev {
+  transform: rotate(180deg);
 }
 .gmenu-pop {
   position: absolute;
@@ -216,10 +218,6 @@
 .graph-group .count {
   margin-left: auto;
   font-variant-numeric: tabular-nums;
-}
-.graph-list .row {
-  display: grid;
-  color: var(--ink);
 }
 .graph-list .stat {
   flex-direction: column;

@@ -9,7 +9,7 @@ import { useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useMarkReviewed, useMonitorPage } from "@/lib/api/queries";
-import { capitalize, dateTime, daysBetween, inDays, plural, shortDate, TYPE_PLURAL } from "@/lib/format";
+import { answerText, capitalize, dateTime, daysBetween, inDays, plural, shortDate, TYPE_PLURAL } from "@/lib/format";
 import { monitorHref, type SubjectType } from "@/lib/widgets";
 import { CustomQuestionComposer, CustomQuestionEditor } from "@/components/custom/CustomQuestion";
 import { useEvidenceHref } from "@/components/shell/Evidence";
@@ -17,9 +17,8 @@ import { Notes } from "@/components/shell/Notes";
 import { SubjectLink, SubjectLinks } from "@/components/shell/SubjectLink";
 import { PlusIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
-import { StateBadge } from "@/components/widgets/parts";
+import { DevelopmentRow, StateBadge } from "@/components/widgets/parts";
 
-import { DevRow } from "./rows";
 import { StageTrack } from "./StageTrack";
 import { Dotted, Section, StateChange } from "./parts";
 
@@ -94,7 +93,7 @@ function WhatChanged({ page }: { page: Page }) {
       {wc.developments.length > 0 && (
         <div className="rows">
           {shown.map((d) => (
-            <DevRow key={d.id} development={d} />
+            <DevelopmentRow key={d.id} development={d} />
           ))}
         </div>
       )}
@@ -124,7 +123,7 @@ function WhatChanged({ page }: { page: Page }) {
                     )}
                   </div>
                   <div className="qanswer">
-                    <p>{c.summary}</p>
+                    <p>{answerText(c.summary)}</p>
                   </div>
                   <p className="meta qmeta">
                     <Dotted
@@ -180,7 +179,7 @@ function Questions({ page }: { page: Page }) {
                 </div>
                 <p className="qquestion">{a.question}</p>
                 <div className="qanswer">
-                  <p>{a.summary}</p>
+                  <p>{answerText(a.summary)}</p>
                 </div>
                 <p className="meta qmeta">
                   <Dotted
@@ -266,7 +265,7 @@ function GroupInsights({ group }: { group: Schema<"GroupInsights"> }) {
         {group.common_issues.length === 0 && <p className="mon-empty">No development touches more than one member.</p>}
         <div className="rows">
           {group.common_issues.map((c) => (
-            <DevRow key={c.development.id} development={c.development} subjects={c.members} />
+            <DevelopmentRow key={c.development.id} development={c.development} subjects={c.members} />
           ))}
         </div>
       </Section>

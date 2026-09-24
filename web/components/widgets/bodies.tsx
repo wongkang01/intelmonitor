@@ -7,7 +7,7 @@ import { useState, type KeyboardEvent } from "react";
 
 import type { Schema, Widget, WidgetData } from "@/lib/api/client";
 import { useMarkReviewed, useSubjects, type DataOf } from "@/lib/api/queries";
-import { dateTime, daysBetween, inDays, plural, shortDate } from "@/lib/format";
+import { answerText, dateTime, daysBetween, inDays, plural, shortDate } from "@/lib/format";
 import { monitorHref, setEntities } from "@/lib/widgets";
 import { PlusIcon, XIcon } from "@/components/ui/icons";
 import { useEvidenceHref } from "@/components/shell/Evidence";
@@ -141,7 +141,7 @@ function QuestionBody({ data, href }: BodyProps & { data: DataOf<"question"> }) 
       <p className="ans">
         <StateWords answer={a} />
       </p>
-      <p className="w-text summary">{a.summary}</p>
+      <p className="w-text summary">{answerText(a.summary)}</p>
       <div className="wf">
         {a.development_ids.length > 0 ? (
           <Link href={evidence.answer(data.subject.id, a.question_id)} className="link" scroll={false}>
@@ -208,14 +208,16 @@ function SummaryBody({ data, widget, href }: BodyProps & { data: DataOf<"summary
 }
 
 function DevelopmentsBody({ data, widget, href }: BodyProps & { data: DataOf<"developments"> }) {
-  const count = widget.size === "L" ? 5 : 2;
+  // Medium fits three one-line rows; Large shows five with two-line titles.
+  const large = widget.size === "L";
+  const count = large ? 5 : 3;
   const meta = data.scope.length === 1 ? <SubjectLink subject={data.scope[0]} /> : `${data.total} in scope`;
   return (
     <>
       <Head title="Developments" href={href} meta={meta} />
       <div className="rows">
         {data.developments.slice(0, count).map((d) => (
-          <DevelopmentRow key={d.id} development={d} meta={false} />
+          <DevelopmentRow key={d.id} development={d} meta={false} lines={large ? 2 : 1} />
         ))}
         {data.developments.length === 0 && <p className="muted">No developments in scope.</p>}
       </div>
@@ -367,7 +369,7 @@ function WatchlistBody({ data, widget, onChange }: BodyProps & { data: DataOf<"w
         )}
       </Head>
       {showField && (
-        <label className="addfield">
+        <label className="field addfield">
           <PlusIcon size={14} />
           <input
             aria-label="Add an entity"
@@ -433,12 +435,18 @@ function WatchRow({
         <span className={`w-text c${lines}`}>
           {e.headline ? (
             <>
-              <span className="ink2">{e.headline.label}:</span> {e.headline.summary}
+              <span className="ink2">{e.headline.label}:</span> {answerText(e.headline.summary)}
             </>
           ) : (
             e.groups.map((g) => g.name).join(", ")
           )}
         </span>
+        {lines === 2 && e.latest && (
+          <span className="ent-latest w-meta">
+            <span>{e.latest.title}</span>
+            <span>{shortDate(e.latest.last_published)}</span>
+          </span>
+        )}
       </span>
       <button type="button" className="btn-icon" aria-label={`Remove ${e.entity.name}`} onClick={onRemove}>
         <XIcon />

@@ -6,6 +6,9 @@
 // `.sheet-head` header that ends with <CloseButton />.
 import { useEffect, useRef, type ReactNode } from "react";
 
+/** What asked a modal to close: the Esc key or a click on the backdrop. */
+export type CloseReason = "escape" | "backdrop";
+
 export function Modal({
   open,
   onClose,
@@ -15,7 +18,7 @@ export function Modal({
   children,
 }: {
   open: boolean;
-  onClose: () => void;
+  onClose: (reason: CloseReason) => void;
   labelledBy?: string;
   label?: string;
   className: "sheet" | "panel";
@@ -38,14 +41,14 @@ export function Modal({
       aria-label={label}
       onCancel={(e) => {
         e.preventDefault();
-        onClose();
+        onClose("escape");
       }}
       onMouseDown={(e) => {
         if (e.target !== e.currentTarget) return;
         const r = e.currentTarget.getBoundingClientRect();
         const inside =
           e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-        if (!inside) onClose();
+        if (!inside) onClose("backdrop");
       }}
     >
       {open && children}

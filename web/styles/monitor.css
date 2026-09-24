@@ -1,7 +1,14 @@
-/* Monitor pages (components/monitor), the evidence drawer's content and subject links. The search
-   dropdown rules below belong to the top bar and should move to shell.css. */
+/* Monitor pages (components/monitor), the evidence drawer's content and subject links. */
 .subject-link {
   color: inherit;
+}
+/* A subject link on a line of its own gets a 44px tall hit area; links in row meta lines stay
+   inline so they do not cover the row's title. In a widget header it matches the header's room. */
+:is(.pagehead p, .mon-head p) .subject-link {
+  padding-block: 14px;
+}
+.wm .subject-link {
+  padding-block: var(--s-3) var(--s-4);
 }
 .subject-link:hover {
   text-decoration: underline;
@@ -16,87 +23,6 @@
   color: var(--ink);
 }
 
-/* A development row: the title link covers the row, subject links sit above it. The `.tx` rules
-   serve the widgets' DevelopmentRow; `.row-title.stretch` is the list-row grammar (monitor/rows.tsx). */
-.row.dev {
-  position: relative;
-}
-.row.dev .stretch {
-  color: inherit;
-  min-width: 0;
-  display: flex;
-}
-.row.dev .row-title.stretch {
-  display: -webkit-box;
-}
-.row.dev .stretch::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-}
-.row.dev:hover .stretch b {
-  color: var(--accent);
-}
-.row.dev.linked:hover .row-title {
-  text-decoration: underline;
-  text-decoration-color: var(--line-field);
-}
-.row.dev :is(.tx, .row-meta) a.subject-link {
-  position: relative;
-  z-index: 1;
-}
-a.q {
-  color: var(--ink);
-}
-a.q:hover {
-  box-shadow: inset 0 0 0 1px var(--line), 0 1px 3px rgba(18, 22, 38, 0.08);
-}
-
-/* Search */
-.search-wrap {
-  position: relative;
-  width: 560px;
-  max-width: 100%;
-}
-.search-wrap .search {
-  width: 100%;
-}
-.search-list {
-  position: absolute;
-  top: 48px;
-  left: 0;
-  right: 0;
-  z-index: 40;
-  padding: 6px;
-  background: var(--surface);
-  border-radius: 14px;
-  box-shadow: var(--shadow-pop);
-  display: flex;
-  flex-direction: column;
-}
-.search-list .muted {
-  margin: 8px 10px;
-}
-.search-hit {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 40px;
-  padding: 0 10px;
-  border-radius: 9px;
-  cursor: pointer;
-  font-size: 14px;
-}
-.search-hit b {
-  font-weight: 600;
-}
-.search-hit[aria-selected="true"] {
-  background: var(--chip);
-}
-.search-hit .type {
-  margin-left: auto;
-}
-
 /* In-page panel on the canvas (monitor columns, graph view). Scoped away from dialog.panel. */
 .panel:not(dialog) {
   background: var(--surface);
@@ -107,18 +33,6 @@ a.q:hover {
   flex-direction: column;
   gap: var(--s-3);
   min-width: 0;
-}
-.panel-head {
-  display: flex;
-  align-items: baseline;
-  gap: var(--s-2);
-}
-.panel-head h2 {
-  margin: 0;
-  flex-grow: 1;
-  font-size: var(--fs-lead);
-  line-height: var(--lh-lead);
-  font-weight: 600;
 }
 
 /* Monitor page head: 28px title over one quiet line. */
@@ -156,28 +70,6 @@ a.q:hover {
   position: sticky;
   top: 80px;
 }
-:where(.monitor, .mon-head, .drawer, .cq, .cq-edit) .meta {
-  font-size: var(--fs-meta);
-  line-height: var(--lh-meta);
-  color: var(--ink2);
-}
-:where(.monitor, .drawer, .cq) .link {
-  font-size: inherit;
-  font-weight: 500;
-}
-:where(.monitor, .drawer, .cq) .link:hover {
-  text-decoration: underline;
-}
-/* Text-link buttons and standalone links get a 44px hit area; links inside sentences do not. */
-:where(.monitor, .drawer, .cq) :is(button.link, .mon-sec > a.link) {
-  position: relative;
-}
-:where(.monitor, .drawer, .cq) :is(button.link, .mon-sec > a.link)::after {
-  content: "";
-  position: absolute;
-  inset: -13px -4px;
-}
-
 /* A ruled section: 15/600 header over a --line-strong rule, 32px between sections. */
 .mon-sec + .mon-sec {
   margin-top: var(--s-6);
@@ -249,14 +141,6 @@ a.q:hover {
 }
 .qmeta {
   margin: var(--s-1) 0 0;
-}
-/* Positioned so its screen-reader-only " to " stays inside the scrolling page. */
-.state-change {
-  position: relative;
-}
-.arr {
-  padding: 0 2px;
-  color: var(--ink2);
 }
 .row.qrow.compose {
   padding: var(--s-3) 0;
@@ -369,28 +253,7 @@ a.q:hover {
   margin: -5px 0 0;
 }
 
-/* Evidence drawer. The shell rules live in sheet.css; these bring it to the square, attached
-   drawer under the 56px top bar and should be merged back there. */
-.drawer {
-  top: 56px;
-  border-left: 1px solid var(--line-strong);
-  border-radius: 0;
-  box-shadow: var(--shadow-pop);
-}
-.drawer .sheet-head {
-  padding: 0 var(--s-3) 0 20px;
-}
-.drawer .sheet-head h2 {
-  font-size: var(--fs-lead);
-  line-height: var(--lh-lead);
-}
-.drawer-body {
-  display: block;
-  padding: var(--s-4) 20px var(--s-6);
-}
-.drawer-body p {
-  margin: 0;
-}
+/* Evidence drawer content (components/shell/Evidence.tsx). */
 .ev-context {
   display: flex;
   align-items: center;
@@ -446,13 +309,11 @@ a.q:hover {
 }
 
 /* Sources: ruled blocks, indented under a development; only the quoted span is tinted. */
-.drawer .source {
+.source {
   display: block;
   margin-top: var(--s-3);
   padding: var(--s-3) 0 0 var(--s-3);
   border-top: 1px solid var(--line);
-  border-radius: 0;
-  background: none;
 }
 .drawer-body > .source {
   padding-left: 0;
@@ -461,15 +322,15 @@ a.q:hover {
   margin-top: 0;
   border-top: 0;
 }
-.drawer .source a {
+.source a {
   font-size: var(--fs-body);
   line-height: var(--lh-body);
   font-weight: 500;
 }
-.drawer .source a:hover {
+.source a:hover {
   text-decoration: underline;
 }
-.drawer .source .meta {
+.source .meta {
   margin-top: 2px;
 }
 .finding p {
@@ -477,14 +338,14 @@ a.q:hover {
   font-weight: 500;
   max-width: 70ch;
 }
-.drawer .source blockquote {
+.source blockquote {
   margin: 6px 0 0;
   max-width: 70ch;
   font-size: var(--fs-body);
   line-height: var(--lh-body);
   color: var(--ink);
 }
-.drawer .source mark {
+.source mark {
   padding: 0 1px;
   border-radius: var(--r-badge);
   background: var(--mark);

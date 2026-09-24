@@ -79,7 +79,7 @@ export function Gallery({
   return (
     <div className="gsheet-body">
       <div className="subjects">
-        <label className="subj-search">
+        <label className="field subj-search">
           <SearchIcon />
           <input
             type="search"

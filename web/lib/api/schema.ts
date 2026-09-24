@@ -2295,6 +2295,8 @@ export interface components {
             needs_attention: number;
             /** @description Its most severe non-stable answer */
             headline: components["schemas"]["QuestionAnswerView"] | null;
+            /** @description Its most recently published development, if it has any */
+            latest: components["schemas"]["DevelopmentSummary"] | null;
         };
         /** WatchlistSettings */
         WatchlistSettings: {

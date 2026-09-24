@@ -12,7 +12,7 @@ import { useGraph, type GraphQuery } from "@/lib/api/queries";
 import { plural } from "@/lib/format";
 import { monitorHref } from "@/lib/widgets";
 import { useEvidenceHref } from "@/components/shell/Evidence";
-import { ChevronIcon } from "@/components/ui/icons";
+import { ChevronDownIcon } from "@/components/ui/icons";
 
 import { GraphCanvas } from "./GraphCanvas";
 
@@ -202,7 +202,7 @@ function FilterMenu<T extends string>({
         onClick={() => setOpen((o) => !o)}
       >
         <span className="gsel-name">{name}:</span> {summary}
-        <ChevronIcon />
+        <ChevronDownIcon />
       </button>
       {open && (
         <div className="gmenu-pop" id={menuId} role="group" aria-label={`${name} shown`}>

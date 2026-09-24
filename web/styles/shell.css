@@ -220,80 +220,6 @@ nav.side {
   margin-left: auto;
 }
 
-/* Profile dialogs' contents (ProfileDialogs.tsx wraps them in `.pdlg`). These restate the shared dialog
-   content rules in sheet.css at the new sizes; move them there when that file is restyled. */
-.pdlg {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-.pdlg form {
-  display: contents;
-}
-.pdlg .panel-body {
-  padding: var(--s-4) 20px 20px;
-  gap: var(--s-4);
-}
-.pdlg .panel-foot {
-  gap: var(--s-2);
-  padding: 0 20px 20px;
-}
-.pdlg .cap {
-  margin: 0;
-  font-size: var(--fs-meta);
-  line-height: var(--lh-meta);
-  color: var(--ink2);
-}
-.pdlg .form-field {
-  gap: var(--s-1);
-  font-size: var(--fs-meta);
-  line-height: var(--lh-meta);
-  font-weight: 500;
-}
-.pdlg .form-field :is(input, select) {
-  height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--line-field);
-  border-radius: var(--r-ctl);
-  background: var(--surface);
-  font-size: var(--fs-body);
-}
-.pdlg .form-field :is(input, select):focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  box-shadow: none;
-}
-.pdlg .table {
-  font-size: var(--fs-body);
-}
-.pdlg .table th {
-  padding: 0 var(--s-2) var(--s-2) 0;
-  font-size: var(--fs-meta);
-  line-height: var(--lh-meta);
-  font-weight: 500;
-}
-.pdlg .table td {
-  padding: var(--s-2) var(--s-2) var(--s-2) 0;
-  font-variant-numeric: tabular-nums;
-}
-.pdlg .table .num + :is(th, td):not(.num) {
-  padding-left: var(--s-4);
-}
-.pdlg .table :is(th, td):last-child {
-  padding-right: 0;
-}
-.pdlg .keys {
-  gap: var(--s-2) var(--s-4);
-  font-size: var(--fs-body);
-}
-.pdlg kbd.kbd {
-  margin-right: var(--s-1);
-  padding: 0 6px;
-  background: transparent;
-  font-weight: 400;
-}
-
 main.main {
   flex: 1;
   min-width: 0;
@@ -302,11 +228,13 @@ main.main {
   flex-direction: column;
 }
 
-/* Top bar: 56px, search field flexing from the left, then the run chip and the bell, 8px apart. */
+/* Top bar: 56px, search field flexing from the left, then the run chip and the bell, 8px apart.
+   It stacks above the evidence drawer (sheet.css, z-index 45), so its popovers and search results
+   draw over the drawer. */
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 30;
+  z-index: 50;
   height: 56px;
   flex: none;
   display: flex;
@@ -316,52 +244,18 @@ main.main {
   background: var(--canvas);
   border-bottom: 1px solid var(--line);
 }
-.topbar .search-wrap {
+.search-wrap {
   position: relative;
   flex: 1;
-  width: auto;
   min-width: 0;
 }
+/* `.field` (globals.css) with the ⌘K key or the clear button at its right end. */
 .search {
-  height: 32px;
-  display: flex;
-  align-items: center;
-  gap: var(--s-2);
-  padding: 0 5px 0 10px;
-  background: var(--surface);
-  border: 1px solid var(--line-field);
-  border-radius: var(--r-ctl);
-  color: var(--ink3);
-}
-.search:focus-within {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.search > svg {
-  flex: none;
-}
-.search input {
-  flex: 1;
-  min-width: 0;
-  height: 30px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--ink);
-  font-size: var(--fs-body);
-  outline: none;
-}
-.search input::placeholder {
-  color: var(--ink3);
-}
-.search input::-webkit-search-cancel-button {
-  appearance: none;
-}
-.search input:focus-visible {
-  outline: none;
+  padding-right: 5px;
 }
 /* The clear button takes the ⌘K slot while there is text: 22px inside the 32px field, 44px hit area. */
 .search .clear {
+  z-index: 1;
   width: 22px;
   height: 22px;
   border-radius: var(--r-badge);
@@ -369,25 +263,33 @@ main.main {
 .search .clear::after {
   inset: -11px;
 }
-.topbar .search-list {
+.search-list {
+  position: absolute;
   top: calc(100% + var(--s-2));
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
   padding: var(--s-1);
   background: var(--surface);
   border: 1px solid var(--line-strong);
   border-radius: var(--r-widget);
   box-shadow: var(--shadow-pop);
 }
-.topbar .search-hit {
+.search-hit {
   height: 32px;
+  display: flex;
+  align-items: center;
   gap: var(--s-2);
   padding: 0 var(--s-2);
   border-radius: var(--r-ctl);
-  font-size: var(--fs-body);
+  cursor: pointer;
 }
-.topbar .search-hit b {
+.search-hit b {
   font-weight: 500;
 }
-.topbar .search-hit[aria-selected="true"] {
+.search-hit[aria-selected="true"] {
   background: var(--hover);
 }
 .search-hit .alias,
@@ -395,7 +297,10 @@ main.main {
   font-size: var(--fs-meta);
   color: var(--ink2);
 }
-.topbar .search-list .empty {
+.search-hit .type {
+  margin-left: auto;
+}
+.search-list .empty {
   margin: 0;
   padding: var(--s-2);
   color: var(--ink2);
@@ -516,15 +421,6 @@ main.main {
   padding-right: var(--s-3);
   border-top: 1px solid var(--line);
 }
-.pop .cap {
-  font-size: var(--fs-meta);
-  line-height: var(--lh-meta);
-  color: var(--ink2);
-}
-.pop .grow {
-  flex: 1;
-  min-width: 0;
-}
 .pop .accent {
   color: var(--accent);
 }
@@ -550,10 +446,7 @@ main.main {
   color: var(--ink2);
 }
 .pop .row {
-  display: grid;
   grid-template-columns: var(--stat) minmax(0, 1fr);
-  align-items: start;
-  gap: 0 var(--s-3);
   padding: var(--s-2) var(--s-4);
 }
 .pop .row:hover {
@@ -628,10 +521,6 @@ main.main {
   gap: var(--s-2);
   padding: var(--s-5) var(--s-6);
 }
-.pagehead .grow {
-  flex: 1;
-  min-width: 0;
-}
 .pagehead h1 {
   margin: 0;
   font-size: var(--fs-title);
@@ -643,32 +532,6 @@ main.main {
   margin: 2px 0 0;
   font-size: var(--fs-body);
   color: var(--ink2);
-}
-/* TEMPORARY: the old pill button, drawn as the shared `.btn` until its pages switch to `.btn`. */
-.pill-btn {
-  position: relative;
-  height: 32px;
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 var(--s-3);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-ctl);
-  background: var(--surface);
-  color: var(--ink);
-  font: 500 var(--fs-body) / var(--lh-body) var(--font);
-}
-.pill-btn:hover {
-  background: var(--hover);
-}
-.pill-btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--surface);
-}
-.pill-btn.primary:hover {
-  background: var(--accent-strong);
 }
 .page-message {
   padding: 0 var(--s-6);

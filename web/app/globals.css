@@ -24,7 +24,6 @@
   --mark: oklch(0.94 0.07 95);
   /* Text and edges on an --ink fill (the toast). */
   --on-ink: oklch(0.97 0.004 260);
-  --on-ink2: oklch(0.8 0.01 260);
   --on-ink-link: oklch(0.8 0.1 258);
   --on-ink-hover: oklch(0.32 0.012 260);
 
@@ -65,23 +64,6 @@
   /* Layout: the fixed status column in every list row, and the sidebar width the toast anchors to. */
   --stat: 112px;
   --side-w: 232px;
-
-  /* TEMPORARY aliases for the old token names, so area stylesheets render until they move to the names
-     above. Delete each one once nothing references it:
-     --bg, --sidebar, --chip, --field, --field2, --accent-hover, --shadow, --topic, --topic-bg, --group,
-     --entity. --field and --field2 map to --rail, not --surface: an alias cannot add the border a
-     --surface field needs, and a borderless --surface field would vanish on a --surface panel. */
-  --bg: var(--canvas);
-  --sidebar: var(--rail);
-  --chip: var(--rail);
-  --field: var(--rail);
-  --field2: var(--rail);
-  --accent-hover: var(--accent-strong);
-  --shadow: var(--shadow-low);
-  --topic: var(--ink2);
-  --topic-bg: var(--rail);
-  --group: var(--ink2);
-  --entity: var(--ink);
 
   color-scheme: light;
 }
@@ -275,6 +257,52 @@ textarea.input {
   appearance: none;
 }
 
+/* A bordered field with a leading icon: `<label class="field"><svg/><input/></label>`. The label focuses
+   the input, so the whole field is the control, and ::after makes it 44px tall. */
+.field {
+  position: relative;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0 10px;
+  border: 1px solid var(--line-field);
+  border-radius: var(--r-ctl);
+  background: var(--surface);
+  color: var(--ink3);
+}
+.field::after {
+  content: "";
+  position: absolute;
+  inset: -7px 0;
+}
+.field:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.field > svg {
+  flex: none;
+}
+.field input {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--fs-body);
+}
+.field input::placeholder {
+  color: var(--ink3);
+}
+.field input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
 /* Segmented control, 28px: `<div class="seg" role="tablist|group">` with buttons marked by
    aria-selected or aria-pressed. No shadow on the selected segment. */
 .seg {
@@ -403,6 +431,9 @@ button.row {
   overflow: hidden;
   font-weight: 500;
 }
+.row-title.one {
+  -webkit-line-clamp: 1;
+}
 :is(a, button).row:hover .row-title {
   text-decoration: underline;
   text-decoration-color: var(--line-field);
@@ -413,6 +444,27 @@ button.row {
   font-size: var(--fs-meta);
   line-height: var(--lh-meta);
   color: var(--ink2);
+}
+/* A row that opens one thing: `<div class="row dev"><span class="row-title"><a class="stretch">` makes
+   the title link cover the row, while links in `.row-meta` stay clickable above it. */
+.row.dev {
+  position: relative;
+}
+.row.dev .stretch {
+  color: inherit;
+}
+.row.dev .stretch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.row.dev:has(.stretch):hover .row-title {
+  text-decoration: underline;
+  text-decoration-color: var(--line-field);
+}
+.row.dev .row-meta a {
+  position: relative;
+  z-index: 1;
 }
 .row-end {
   font-size: var(--fs-meta);
@@ -480,7 +532,8 @@ dialog.panel {
   font-weight: 600;
 }
 
-/* Toast (components/ui/Toast.tsx): bottom-left of the content column. */
+/* Toast (components/ui/Toast.tsx): bottom-left of the content column, or of the open modal dialog,
+   where `--toast-bottom` lifts it over the dialog's footer. */
 .toast-region .toast {
   position: fixed;
   left: calc(var(--side-w) + var(--s-6));
@@ -499,6 +552,11 @@ dialog.panel {
   box-shadow: var(--shadow-pop);
   font-size: var(--fs-body);
   animation: toast-fade 0.15s ease-out;
+}
+dialog .toast-region .toast {
+  position: absolute;
+  left: 20px;
+  bottom: var(--toast-bottom, 20px);
 }
 .toast-region .toast:not(:has(button)) {
   padding-right: var(--s-3);
@@ -531,12 +589,100 @@ dialog.panel {
   outline-color: var(--on-ink-link);
 }
 
-/* TEMPORARY: icons.tsx now draws in currentColor. These hosts sit on a filled accent or grey background
-   and relied on the icons' old white stroke. Delete each selector when its area restyles the host. */
-.brand i,
-.minus,
-.send {
-  color: var(--surface);
+/* Text link: accent at the surrounding size, 500, underlined on hover. A button or a link; the 44px
+   hit area is centered on the line whatever its height. */
+.link {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+.link::after {
+  content: "";
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  top: 50%;
+  height: 44px;
+  transform: translateY(-50%);
+}
+.link:hover {
+  text-decoration: underline;
+}
+.link:disabled {
+  color: var(--ink3);
+  cursor: default;
+  text-decoration: none;
+}
+
+/* Quiet text: `.meta` and `.cap` are 12/16 ink2 captions, `.muted` is body-size ink2 (empty states). */
+.meta,
+.cap {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}
+.muted {
+  color: var(--ink2);
+}
+.grow {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.push {
+  margin-left: auto;
+}
+
+/* Status colors for state words; the word always carries the meaning. */
+.c-stable {
+  color: var(--stable);
+}
+.c-new {
+  color: var(--new);
+}
+.c-watch {
+  color: var(--watch);
+}
+.c-attn {
+  color: var(--attn);
+}
+/* The grey arrow in "Watch → Needs attention". `.state-change` is positioned so its screen-reader-only
+   " to " stays inside a scrolling parent. */
+.arrow,
+.arr {
+  color: var(--ink2);
+  font-weight: 400;
+}
+.arr {
+  padding: 0 2px;
+}
+.state-change {
+  position: relative;
+}
+
+/* Touch: list rows, nav items and menu items grow to 44px. A mouse keeps mock A's 32 and 34px rows,
+   whose hit area is the whole full-width row. */
+@media (pointer: coarse) {
+  .navitem,
+  .subj,
+  .search-hit,
+  .menu button {
+    height: 44px;
+  }
+  .gmenu-item,
+  .pick {
+    min-height: 44px;
+  }
+  .row,
+  .qr {
+    min-height: 44px;
+    padding-block: 13px;
+  }
 }
 
 /* Motion only follows user actions, and none of it runs under reduced motion. */

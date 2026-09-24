@@ -5962,6 +5962,17 @@
               }
             ],
             "description": "Its most severe non-stable answer"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DevelopmentSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Its most recently published development, if it has any"
           }
         },
         "type": "object",
@@ -5971,7 +5982,8 @@
           "state",
           "new_developments",
           "needs_attention",
-          "headline"
+          "headline",
+          "latest"
         ],
         "title": "WatchlistEntry"
       },

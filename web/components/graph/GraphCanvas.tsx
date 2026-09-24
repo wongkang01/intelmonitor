@@ -9,6 +9,7 @@ import type Sigma from "sigma";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
+import { FitIcon } from "@/components/ui/icons";
 
 type GraphData = Schema<"Graph">;
 type NodeType = Schema<"GraphNode">["type"];
@@ -156,11 +157,11 @@ type Props = {
 
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** Fits every node in view: sigma's default camera frames the whole graph. */
-function fit(renderer: Renderer) {
+/** Fits every node in view: sigma's default camera frames the whole graph. Resolves once it is there. */
+async function fit(renderer: Renderer) {
   const camera = renderer.getCamera();
   if (reducedMotion()) camera.setState({ x: 0.5, y: 0.5, ratio: 1, angle: 0 });
-  else void camera.animatedReset({ duration: 250 });
+  else await camera.animatedReset({ duration: 250 });
 }
 
 export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props) {
@@ -171,7 +172,7 @@ export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props)
   const hoveredRef = useRef(hovered);
   const callbacks = useRef({ onHover, onOpen });
   const [renderer, setRenderer] = useState<Renderer | null>(null);
-  // The data whose layout has settled; a new neighbourhood reads as running until it settles.
+  // The data whose layout has settled and been framed; a new neighbourhood reads as running until then.
   const [settledFor, setSettledFor] = useState<GraphData | null>(null);
 
   useEffect(() => {
@@ -237,10 +238,14 @@ export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props)
     const g = graph.current;
     g.forEachNode((id, a) => positions.current.set(id, { x: a.x, y: a.y }));
     buildGraph(g, data, positions.current, palette.current);
-    return settle(g, !reducedMotion(), () => {
-      fit(renderer);
-      setSettledFor(data);
+    let live = true;
+    const stop = settle(g, !reducedMotion(), () => {
+      void fit(renderer).then(() => live && setSettledFor(data));
     });
+    return () => {
+      live = false;
+      stop();
+    };
   }, [renderer, data]);
 
   useEffect(() => {
@@ -256,6 +261,7 @@ export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props)
         className="graph-stage"
         data-testid="graph-canvas"
         data-layout={settledFor === data ? "settled" : "running"}
+        data-hovered={hovered ?? undefined}
         role="img"
         aria-label={`Graph of ${data.nodes.length} nodes and ${data.edges.length} links around ${
           data.nodes.find((n) => n.id === data.center)?.label ?? data.center
@@ -267,16 +273,9 @@ export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props)
         aria-label="Fit graph to view"
         title="Fit to view"
         disabled={!renderer}
-        onClick={() => renderer && fit(renderer)}
+        onClick={() => renderer && void fit(renderer)}
       >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path
-            d="M2.5 6V3.5a1 1 0 0 1 1-1H6M10 2.5h2.5a1 1 0 0 1 1 1V6M13.5 10v2.5a1 1 0 0 1-1 1H10M6 13.5H3.5a1 1 0 0 1-1-1V10"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        </svg>
+        <FitIcon />
       </button>
       {children}
     </div>

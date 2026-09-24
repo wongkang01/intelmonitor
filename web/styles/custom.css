@@ -6,21 +6,11 @@
   gap: var(--s-3);
   min-width: 0;
 }
-.cq .form-field {
-  font-size: var(--fs-meta);
-  line-height: var(--lh-meta);
-  font-weight: 500;
-}
 .cq-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: var(--s-2);
-}
-.cq .grow,
-.cq-row .grow,
-.panel-foot .grow {
-  flex-grow: 1;
 }
 .cq-note {
   margin: 0;
@@ -70,20 +60,6 @@
 }
 .panel-foot .meta {
   align-self: center;
-}
-/* LOCAL until sheet.css drops its borderless `.form-field input` fill: bordered `.input` fields. */
-.form-field :is(input, select).input {
-  height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--line-field);
-  border-radius: var(--r-ctl);
-  background: var(--surface);
-  font-size: var(--fs-body);
-}
-.form-field :is(input, select).input:focus-visible {
-  box-shadow: none;
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 /* Destructive secondary button. */
 .btn.btn-danger {

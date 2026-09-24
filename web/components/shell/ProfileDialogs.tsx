@@ -26,8 +26,7 @@ function Panel({ id, title, onClose, open, children }: DialogProps & { id: strin
         <h2 id={id}>{title}</h2>
         <CloseButton onClick={onClose} />
       </div>
-      {/* `.pdlg` scopes these dialogs' field, table and key styles in styles/shell.css. */}
-      <div className="pdlg">{children}</div>
+      {children}
     </Modal>
   );
 }

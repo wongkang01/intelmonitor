@@ -1,26 +1,6 @@
 /* Dashboard page head, the widget grid and the seven widget bodies (mocks/refine-a.html).
    Buttons, fields, the segmented control, badges and list rows come from app/globals.css. */
 
-/* Page head. TODO(verify): the title and meta type duplicate what shell.css `.pagehead` should
-   carry once the shell pass moves it to 28/600 over a 13px meta line; delete these then. */
-.pagehead.dash-head {
-  align-items: flex-end;
-  gap: var(--s-2);
-  padding: var(--s-5) var(--s-6);
-}
-.pagehead.dash-head h1 {
-  font-size: var(--fs-title);
-  line-height: var(--lh-title);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-}
-.pagehead.dash-head p {
-  margin-top: 2px;
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
-  color: var(--ink2);
-}
-
 /* Grid: 4 columns of 176px rows with a 16px gap, wider than the 12px widget inset. */
 .grid {
   display: grid;
@@ -53,12 +33,6 @@
 .w.tappable {
   cursor: pointer;
 }
-/* A widget just added or restored. */
-.w.changed {
-  box-shadow:
-    0 0 0 2px var(--accent),
-    var(--shadow-low);
-}
 .w.enter {
   animation: widget-in 0.2s ease-out both;
 }
@@ -83,6 +57,11 @@
 }
 .w.editable .wh {
   padding-right: 28px;
+}
+/* A widget just added, restored or changed by Generate: a 1px accent outline, over the edit outline. */
+.w.changed {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
 }
 /* The slot a dragged widget will drop into. */
 .w.dragging {
@@ -167,6 +146,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Title and meta links get a 44px tall hit area: up to the widget edge (the face clips there) and
+   into the gap below. The negative margins keep the header 16px; positioned, they sit over the
+   hero text, while rows below are positioned too and keep their own area. */
+a.wt,
+.wm:has(a) {
+  position: relative;
+  padding-block: var(--s-3) var(--s-4);
+  margin-block: calc(-1 * var(--s-3)) calc(-1 * var(--s-4));
+}
 a.wt:hover {
   color: var(--ink);
   text-decoration: underline;
@@ -193,9 +181,6 @@ a.wt:hover {
 .wh-end {
   order: 2;
 }
-.push {
-  margin-left: auto;
-}
 
 /* Type inside widgets: the Since hero is the only 22px line; answers lead at 15px. */
 .hero {
@@ -214,10 +199,6 @@ a.wt:hover {
 }
 .ans .w-meta {
   font-size: var(--fs-meta);
-  font-weight: 400;
-}
-.arrow {
-  color: var(--ink2);
   font-weight: 400;
 }
 .w-text {
@@ -269,6 +250,12 @@ a.wt:hover {
   flex-shrink: 0;
   min-width: 0;
 }
+/* The face clips at its edge, so footer links take their 44px hit area from the bottom edge up. */
+.wf .link::after {
+  top: auto;
+  bottom: calc(-1 * var(--s-3));
+  transform: none;
+}
 .wf .w-meta:not(:first-child) {
   margin-left: auto;
 }
@@ -276,20 +263,6 @@ a.wt:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-/* Status colors for state words; the word always carries the meaning. */
-.c-stable {
-  color: var(--stable);
-}
-.c-new {
-  color: var(--new);
-}
-.c-watch {
-  color: var(--watch);
-}
-.c-attn {
-  color: var(--attn);
 }
 
 /* Rows inside widgets use the shared `.row` grammar from globals.css. */
@@ -302,39 +275,6 @@ a.wt:hover {
   overflow-x: hidden;
   overflow-y: auto;
 }
-.row-title.one {
-  -webkit-line-clamp: 1;
-}
-/* A development row: the title link covers the row, subject links in the meta sit above it.
-   These beat monitor.css `.row.dev .stretch`, which predates the row grammar. */
-.row.dev {
-  position: relative;
-}
-.row.dev .row-title .stretch {
-  display: inline;
-  color: inherit;
-}
-.row.dev .row-title .stretch::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-}
-.row.dev:hover .row-title {
-  text-decoration: underline;
-  text-decoration-color: var(--line-field);
-}
-.row.dev .row-meta a {
-  position: relative;
-  z-index: 1;
-}
-a.row {
-  color: var(--ink);
-}
-a.row:hover .row-title {
-  text-decoration: underline;
-  text-decoration-color: var(--line-field);
-}
-
 /* Since your last review: rows grouped under one status label instead of a badge per row. */
 .gl {
   display: flex;
@@ -359,6 +299,12 @@ a.row:hover .row-title {
   margin-left: auto;
   font-size: var(--fs-meta);
 }
+/* The rows below the label own its lower edge, so the link's 44px hit area reaches up instead. */
+.gl .link::after {
+  top: auto;
+  bottom: -4px;
+  transform: none;
+}
 
 /* Standing questions: a plain two-column table of hairline rows, state right in its color. */
 .qtable {
@@ -369,6 +315,7 @@ a.row:hover .row-title {
   min-height: 0;
 }
 .qr {
+  position: relative;
   display: flex;
   align-items: baseline;
   gap: var(--s-2);
@@ -443,34 +390,8 @@ a.qr:hover .ql {
 
 /* Watchlist */
 .addfield {
-  display: flex;
-  align-items: center;
-  gap: var(--s-2);
-  height: 32px;
   flex-shrink: 0;
   margin-bottom: var(--s-2);
-  padding: 0 10px;
-  border: 1px solid var(--line-field);
-  border-radius: var(--r-ctl);
-  background: var(--surface);
-  color: var(--ink3);
-}
-.addfield:focus-within {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.addfield input {
-  flex-grow: 1;
-  min-width: 0;
-  height: 30px;
-  border: 0;
-  outline: none;
-  background: transparent;
-  color: var(--ink);
-  font-size: var(--fs-body);
-}
-.addfield input::placeholder {
-  color: var(--ink3);
 }
 .ent {
   position: relative;
@@ -510,6 +431,19 @@ a.qr:hover .ql {
 }
 .ent .w-text {
   margin-top: 2px;
+}
+/* Large only: the entity's latest development and its date. */
+.ent-latest {
+  display: flex;
+  gap: var(--s-2);
+  margin-top: 2px;
+}
+.ent-latest > span:first-child {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ent .btn-icon {
   z-index: 1;
@@ -573,137 +507,4 @@ a.qr:hover .ql {
 }
 .self-start {
   align-self: flex-start;
-}
-
-/* Shared inline pieces. TODO(verify): other areas still use these, so they live here until the
-   verify pass moves them to globals.css. */
-.link {
-  position: relative;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--accent);
-  font: 500 var(--fs-body) / var(--lh-body) var(--font);
-  text-align: left;
-  white-space: nowrap;
-}
-.link::after {
-  content: "";
-  position: absolute;
-  inset: -13px -4px;
-}
-.link:hover {
-  text-decoration: underline;
-}
-.link:disabled {
-  color: var(--ink3);
-  cursor: default;
-  text-decoration: none;
-}
-.cap {
-  font-size: var(--fs-meta);
-  line-height: var(--lh-meta);
-  color: var(--ink2);
-}
-.muted {
-  font-size: var(--fs-body);
-  color: var(--ink2);
-}
-.spacer {
-  flex-grow: 1;
-}
-/* Tags are words, never tinted by subject type. */
-.tag {
-  display: inline-flex;
-  align-items: center;
-  height: 18px;
-  padding: 0 6px;
-  border-radius: var(--r-badge);
-  background: var(--rail);
-  color: var(--ink2);
-  font: 500 var(--fs-meta) / 18px var(--font);
-  white-space: nowrap;
-}
-.hero.sm {
-  font-size: var(--fs-lead);
-  line-height: var(--lh-lead);
-}
-
-/* TEMPORARY legacy aliases for areas not yet on the globals.css names: `.btn primary` and
-   `.btn sm` map to `.btn-primary` and `.btn-sm`; `.icon-btn` to `.btn-icon`; a `.row` holding a
-   `.tx` column keeps the old flex layout instead of the status-column grid. Delete each one once
-   nothing uses it. */
-.btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--surface);
-}
-.btn.primary:hover {
-  background: var(--accent-strong);
-  border-color: var(--accent-strong);
-}
-.btn.primary:disabled,
-.btn.primary:disabled:hover {
-  background: var(--surface);
-  border-color: var(--line-strong);
-  color: var(--ink3);
-}
-.btn.sm {
-  height: 28px;
-  padding: 0 10px;
-}
-.icon-btn {
-  position: relative;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: var(--r-ctl);
-  background: transparent;
-  color: var(--ink2);
-}
-.icon-btn::after {
-  content: "";
-  position: absolute;
-  inset: -8px;
-}
-.icon-btn:hover {
-  background: var(--hover);
-  color: var(--ink);
-}
-.row:has(> .tx) {
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
-}
-.row .tx {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  flex-grow: 1;
-}
-.row .tx b {
-  font-weight: 500;
-}
-.row .tx > span {
-  font-size: var(--fs-meta);
-  line-height: var(--lh-meta);
-  color: var(--ink2);
-}
-.row .when {
-  flex-shrink: 0;
-  font-size: var(--fs-meta);
-  color: var(--ink2);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.row .date {
-  width: var(--stat);
-  flex-shrink: 0;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }

@@ -6,7 +6,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 
 import { api, API_URL, type Schema } from "../lib/api/client";
-import { shortDate } from "../lib/format";
+import { answerText, shortDate } from "../lib/format";
 
 import { runDir, screenshotName, STEPS } from "./steps";
 
@@ -105,7 +105,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
 
       const widget = page.getByRole("group", { name: "Since your last review" });
       await expect(widget.locator(".hero")).toHaveText(new RegExp(`^${wc.new_count} new, ${wc.needs_attention_count} needs? attention$`));
-      const meta = since.scope.length === 1 ? since.scope[0].name : `Run of ${shortDate(since.run.as_of)}`;
+      const meta = `Run of ${shortDate(latest.as_of)} against ${shortDate(latest.previous_run_id ?? "")}`;
       await expect(widget.locator(".wm")).toHaveText(meta);
       await expect(widget.locator(".row.dev").first()).toContainText(wc.developments[0].title);
     });
@@ -137,7 +137,17 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       const mark = drawer.locator(".source blockquote mark").first();
       await expect(mark).toBeVisible();
       await expect(mark).toHaveText(chosen.quote.trim());
-      await expect(mark).toHaveCSS("background-color", /^rgba?\((?!0, 0, 0, 0\))/);
+      // Tinted with the --mark token, whatever color space the browser reports it in.
+      const tint = await mark.evaluate((el) => {
+        const probe = document.createElement("span");
+        probe.style.backgroundColor = "var(--mark)";
+        el.append(probe);
+        const color = getComputedStyle(probe).backgroundColor;
+        probe.remove();
+        return color;
+      });
+      expect(tint, "the --mark token resolves to a color").not.toMatch(/^(transparent|rgba\(0, 0, 0, 0\))$/);
+      await expect(mark).toHaveCSS("background-color", tint);
     });
 
     await step(STEPS[2], async () => {
@@ -165,10 +175,13 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       expect(dragged.indexOf(moving), "the dragged widget moved").toBeGreaterThan(dragged.indexOf(target));
 
       const last = dragged.at(-1) ?? "";
+      const catalog = await unwrap(api.GET("/widgets/catalog"));
+      const lastName = catalog.find((t) => t.type === starter.widgets.find((w) => w.id === last)?.type)?.name;
+      if (!lastName) throw new Error(`widget ${last} has no catalog name`);
       const removed = page.waitForResponse(isPut(putUrl));
       await page.locator(`[data-widget-id="${last}"] button.minus`).click();
       expect((await removed).ok()).toBe(true);
-      await expect(page.getByText("Widget removed")).toBeVisible();
+      await expect(page.getByText(`Removed ${lastName}`, { exact: true })).toBeVisible();
       const expected = dragged.filter((id) => id !== last);
       await expect.poll(() => widgetIds(page)).toEqual(expected);
 
@@ -184,13 +197,17 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(dialog).toBeVisible();
       await expect(dialog.getByRole("tab", { name: "Build" })).toHaveAttribute("aria-selected", "true");
 
-      const gallery = page.getByRole("dialog", { name: "Add a widget" });
+      // An empty draft opens on the gallery; after that, Add widget brings it back.
+      const gallery = dialog.locator(".nd-gallery");
       for (let i = 0; i < 3; i++) {
-        await dialog.getByRole("button", { name: "Add widget", exact: true }).first().click();
+        if (i > 0) await dialog.getByRole("button", { name: "Add widget", exact: true }).click();
         await expect(gallery).toBeVisible();
         if (i === 0) await gallery.locator("button.subj", { has: page.getByText(entity.name, { exact: true }) }).click();
         await expect(gallery.getByRole("heading", { level: 3 })).toHaveText(entity.name);
-        const add = gallery.locator("section.gcard:not(.wide)").nth(i).getByRole("button", { name: /^Add / });
+        const add = gallery
+          .locator('section.offer:not([aria-label="Custom question"])')
+          .nth(i)
+          .getByRole("button", { name: /^Add / });
         await expect(add).toBeEnabled();
         await add.click();
         await expect(gallery).toBeHidden();
@@ -226,7 +243,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       const ask = `Track ${entity.name}: what changed since my last review, its standing questions and recent developments`;
       const undo = dialog.getByRole("button", { name: "Undo" });
       const keep = dialog.getByRole("button", { name: "Keep" });
-      const failure = dialog.locator(".reply-text.c-attn");
+      const failure = dialog.locator(".nd-error");
 
       await prompt.fill(ask);
       await prompt.press("Enter");
@@ -237,7 +254,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
 
       await undo.click();
       await expect(grid(dialog)).toHaveCount(0);
-      await expect(dialog.getByRole("status")).toHaveText("Undone.");
+      await expect(dialog.locator(".nd-thread b")).toHaveText("Undone.");
 
       await prompt.fill(ask);
       await prompt.press("Enter");
@@ -248,8 +265,11 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await keep.click();
       await expect(keep).toBeHidden();
 
+      // The Build dashboard from the previous step is still open, so wait for the URL to change.
+      const buildUrl = page.url();
       await dialog.getByRole("button", { name: "Create dashboard" }).click();
       await expect(dialog).toBeHidden();
+      await expect(page).not.toHaveURL(buildUrl);
       await expect(page).toHaveURL(/\/dashboards\/[0-9a-f]+$/);
       const id = new URL(page.url()).pathname.split("/").at(-1) ?? "";
       cleanups.push(() => deleted(api.DELETE("/dashboards/{dashboard_id}", { params: { path: { dashboard_id: id } } })));
@@ -312,23 +332,23 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
 
       const preview = questions.getByRole("group", { name: "Custom question preview" });
       await expect(preview).toBeVisible();
-      await expect(preview.locator(".cq-run")).toHaveCount(runs.length);
+      await expect(preview.locator(".cq-run")).toHaveCount(draft.runs.length);
       await expect(preview.locator(".cq-cites")).toContainText(/^Cites \d+ developments?/);
       expect(draft.evidence.length, "the preview cites developments").toBeGreaterThan(0);
       await preview.getByRole("button", { name: "Keep" }).click();
       await expect(page.getByText(`${draft.label} added to ${entity.name}`)).toBeVisible();
 
       const row = questions.locator(`.qrow[data-question-id="${draft.id}"]`);
-      await expect(row.locator(".tag.custom")).toHaveText("Custom");
+      await expect(row.locator(".badge", { hasText: /^Custom$/ })).toBeVisible();
       await expect(row.locator(".qlabel b")).toHaveText(draft.label);
       const latestAnswer = draft.runs.at(-1);
       if (!latestAnswer) throw new Error("the custom question has no answers");
-      await expect(row.locator(".qanswer p")).toHaveText(latestAnswer.summary);
+      await expect(row.locator(".qanswer p")).toHaveText(answerText(latestAnswer.summary));
       await row.getByRole("link", { name: "See evidence" }).click();
 
       const drawer = page.getByTestId("evidence-drawer");
-      await expect(drawer.locator(".tag.custom")).toBeVisible();
-      await expect(drawer.getByRole("heading", { level: 3 })).toHaveText(latestAnswer.summary);
+      await expect(drawer.locator(".badge", { hasText: /^Custom$/ })).toBeVisible();
+      await expect(drawer.getByRole("heading", { level: 3 })).toHaveText(answerText(latestAnswer.summary));
       await expect(drawer.getByRole("heading", { level: 4 }).first()).toHaveText(/^Based on \d+ developments?$/);
       await expect(drawer.locator(".ev-dev").first()).toBeVisible();
       await expect(drawer.locator(".source blockquote mark").first()).toBeVisible();
@@ -349,17 +369,21 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await hops.getByRole("button", { name: "2 hops" }).click();
       await expect(hops.getByRole("button", { name: "2 hops" })).toHaveAttribute("aria-pressed", "true");
       await expect.poll(() => listed.count()).toBeGreaterThan(oneHop);
-      await expect(listed.filter({ hasText: /, 2 hops/ }).first()).toBeVisible();
+      // Rows sit under "<Type>, 2 hops" group headings.
+      await expect(page.getByTestId("graph-nodes").getByRole("heading", { level: 3, name: /, 2 hops/ }).first()).toBeVisible();
       await expect(stage).toHaveAttribute("data-layout", "settled", { timeout: 30_000 });
 
       // Only subject nodes, so any node the pointer finds opens a monitor page.
-      const types = page.getByRole("group", { name: "Node types" });
-      await types.getByRole("button", { name: "Developments" }).click();
-      await expect(types.getByRole("button", { name: "Developments" })).toHaveAttribute("aria-pressed", "false");
+      await page.getByRole("button", { name: "Nodes: All" }).click();
+      const developments = page.getByRole("group", { name: "Nodes shown" }).getByRole("checkbox", { name: "Developments" });
+      await developments.uncheck();
+      await expect(developments).not.toBeChecked();
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("group", { name: "Nodes shown" })).toBeHidden();
       await expect(page.getByTestId("graph-nodes").locator('[data-node^="dev:"]')).toHaveCount(0);
       await expect(stage).toHaveAttribute("data-layout", "settled", { timeout: 30_000 });
 
-      const hit = await findNode(page, stage);
+      const hit = await findNode(page, stage, entity.id);
       await page.mouse.click(hit.x, hit.y);
       await expect(page).toHaveURL(/\/monitors\/[^/?]+$/);
       const opened = new URL(page.url()).pathname.split("/").at(-1) ?? "";
@@ -381,24 +405,24 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
 });
 
 /**
- * Moves the pointer outward from the centre of the graph (where the current subject sits) until
- * sigma reports a node under it, which sets the pointer cursor.
+ * Moves the pointer outward from the centre of the graph until sigma reports a node other than
+ * `skip` under it: the stage then names the hovered node in data-hovered.
  */
-async function findNode(page: Page, stage: Locator): Promise<{ x: number; y: number }> {
+async function findNode(page: Page, stage: Locator, skip: string): Promise<{ x: number; y: number }> {
   const box = await stage.boundingBox();
   if (!box) throw new Error("graph canvas not on screen");
   const cx = box.x + box.width / 2;
   const cy = box.y + box.height / 2;
   const STEP = 8;
-  const SKIP = 36;
-  for (let r = SKIP; r < Math.max(box.width, box.height) / 2; r += STEP) {
-    const count = Math.ceil((2 * Math.PI * r) / STEP);
+  for (let r = 0; r < Math.hypot(box.width, box.height) / 2; r += STEP) {
+    const count = Math.max(1, Math.ceil((2 * Math.PI * r) / STEP));
     for (let k = 0; k < count; k++) {
       const x = cx + r * Math.cos((2 * Math.PI * k) / count);
       const y = cy + r * Math.sin((2 * Math.PI * k) / count);
       if (x < box.x + 4 || x > box.x + box.width - 4 || y < box.y + 4 || y > box.y + box.height - 4) continue;
       await page.mouse.move(x, y);
-      if (await stage.evaluate((el) => el.style.cursor === "pointer")) return { x, y };
+      const hovered = await stage.getAttribute("data-hovered");
+      if (hovered && hovered !== skip) return { x, y };
     }
   }
   throw new Error("no graph node found under the pointer");

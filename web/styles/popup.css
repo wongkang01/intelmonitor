@@ -27,24 +27,10 @@
 .nd-num {
   font-variant-numeric: tabular-nums;
 }
-.nd-link {
-  position: relative;
+.nd-back {
   display: inline-flex;
   align-items: center;
   gap: var(--s-1);
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--accent);
-  font-weight: 500;
-}
-button.nd-link::after {
-  content: "";
-  position: absolute;
-  inset: -14px -4px;
-}
-button.nd-link:hover {
-  text-decoration: underline;
 }
 
 /* Shared footer: Name, the change line, Create dashboard. */
@@ -63,9 +49,6 @@ button.nd-link:hover {
 }
 .nd-foot .input {
   width: 260px;
-}
-.nd-foot .grow {
-  flex-grow: 1;
 }
 .nd-status {
   display: flex;
@@ -103,11 +86,13 @@ button.nd-link:hover {
   padding: 0;
   gap: var(--s-4);
 }
-/* A generated edit to one or two widgets gets a 1px accent outline (widgets.css draws 2px). */
-.nd-body .w.changed {
-  outline: 1px solid var(--accent);
-  outline-offset: 0;
-  box-shadow: var(--shadow-low);
+/* Generated widgets look like the finished dashboard: no edit outline at rest, and the remove mark
+   shows on hover or focus. They can still be dragged and removed. */
+.nd-gen .w.editable:not(.changed) {
+  outline: none;
+}
+.nd-gen .w.editable:not(:hover, :focus-within) .minus {
+  opacity: 0;
 }
 
 /* Build gallery: fills the body edge to edge with "Back to preview" in its bar, no second close. */
@@ -129,10 +114,6 @@ button.nd-link:hover {
 }
 .nd-gallery .gsheet-body {
   flex-grow: 1;
-}
-/* Gallery (AddWidgetSheet.tsx) always renders its own close; the popup's Back link replaces it. */
-.nd-gallery .gallery-head .close {
-  display: none;
 }
 
 /* Generate. Before the first send: heading, floating prompt and examples as one centered block. */
@@ -203,7 +184,7 @@ button.nd-link:hover {
   position: absolute;
   inset: -13px -4px;
 }
-.nd-thread summary:hover .nd-link {
+.nd-thread summary:hover .link {
   text-decoration: underline;
 }
 .nd-thread .nd-note {
@@ -295,48 +276,12 @@ button.nd-link:hover {
   cursor: default;
 }
 
-/* Undo toast for a removed widget. The app toast sits under the modal and cannot be clicked, so the
-   popup shows its own, with the same look, at the bottom-left of the body. */
-.nd-toast {
-  position: absolute;
-  left: 20px;
-  bottom: var(--s-4);
-  z-index: 4;
-  min-height: 36px;
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
-  padding: 0 var(--s-1) 0 var(--s-3);
-  border: 1px solid var(--on-ink-hover);
-  border-radius: var(--r-ctl);
-  background: var(--ink);
-  color: var(--on-ink);
-  box-shadow: var(--shadow-pop);
-  animation: toast-fade 0.15s ease-out;
+/* The shared toast renders inside the popup: above the footer, and above the floating prompt. */
+dialog:has(> .nd-foot) {
+  --toast-bottom: 72px;
 }
-.nd-gen.active ~ .nd-toast {
-  bottom: 96px;
-}
-.nd-toast button {
-  position: relative;
-  height: 28px;
-  padding: 0 var(--s-2);
-  border: 0;
-  border-radius: var(--r-badge);
-  background: transparent;
-  color: var(--on-ink-link);
-  font-weight: 600;
-}
-.nd-toast button::after {
-  content: "";
-  position: absolute;
-  inset: -8px -2px;
-}
-.nd-toast button:hover {
-  background: var(--on-ink-hover);
-}
-.nd-toast button:focus-visible {
-  outline-color: var(--on-ink-link);
+dialog:has(.nd-gen.active) {
+  --toast-bottom: 152px;
 }
 
 /* Asked when a backdrop click would close a popup that holds a draft. */
@@ -372,9 +317,6 @@ button.nd-link:hover {
   align-items: center;
   gap: var(--s-2);
   margin-top: 20px;
-}
-.nd-confirm-actions .grow {
-  flex-grow: 1;
 }
 .nd-confirm-actions .btn-ghost {
   margin-left: -12px;

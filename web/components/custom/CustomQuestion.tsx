@@ -15,12 +15,11 @@ import {
   useKeepCustomQuestion,
   type CustomQuestion,
 } from "@/lib/api/queries";
-import { plural, shortDate } from "@/lib/format";
+import { answerText, plural, shortDate } from "@/lib/format";
 import { CloseButton, Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { Dotted, StateChange } from "@/components/monitor/parts";
-import { DevRow } from "@/components/monitor/rows";
-import { StateBadge } from "@/components/widgets/parts";
+import { DevelopmentRow, StateBadge } from "@/components/widgets/parts";
 
 const MIN_LENGTH = 5;
 
@@ -174,7 +173,7 @@ function Preview({ question: q, linkCitations }: { question: CustomQuestion; lin
                 <StateBadge state={r.state} newCount={r.state === "new" ? r.development_ids.length : 0} />
               </span>
               <span>
-                <span className="row-title">{r.summary}</span>
+                <span className="row-title">{answerText(r.summary)}</span>
                 <span className="row-meta">
                   <Dotted
                     parts={[
@@ -193,7 +192,7 @@ function Preview({ question: q, linkCitations }: { question: CustomQuestion; lin
           <h4 className="cq-label">Cites {plural(q.evidence.length, "development")}</h4>
           <div className="rows">
             {q.evidence.map((d) => (
-              <DevRow key={d.id} development={d} link={linkCitations} />
+              <DevelopmentRow key={d.id} development={d} link={linkCitations} />
             ))}
           </div>
         </div>

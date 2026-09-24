@@ -27,9 +27,17 @@ import {
   useRuns,
   useSearch,
 } from "@/lib/api/queries";
-import { dateTime, plural, shortDate, TYPE_LABEL } from "@/lib/format";
+import { aheadTime, clock, duration, plural, relativeTime, shortDate, shortTime, TYPE_LABEL } from "@/lib/format";
 import { monitorHref } from "@/lib/widgets";
-import { SearchIcon, XIcon } from "@/components/ui/icons";
+import {
+  BellIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  ExclamationIcon,
+  RunningIcon,
+  SearchIcon,
+  XIcon,
+} from "@/components/ui/icons";
 
 import { useEvidenceHref } from "./Evidence";
 
@@ -107,7 +115,7 @@ function Search() {
 
   return (
     <div className="search-wrap">
-      <label className="search">
+      <label className="field search">
         <SearchIcon />
         <input
           ref={input}
@@ -239,81 +247,6 @@ function Popover({
   );
 }
 
-// Times are shown in the viewer's local time.
-const clock = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" });
-const weekday = new Intl.DateTimeFormat("en-GB", { weekday: "short" });
-
-/** Whole calendar days from today to `at`: 0 today, -1 yesterday, 1 tomorrow. */
-function dayOffset(at: Date) {
-  const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-  return Math.round((midnight(at) - midnight(new Date())) / 86_400_000);
-}
-
-const RELATIVE_DAY: Record<number, string> = { [-1]: "Yesterday", 0: "Today", 1: "Tomorrow" };
-
-/** "Today 04:01", "Yesterday 04:01" or "23 Sep at 04:01". */
-function when(iso: string) {
-  const at = new Date(iso);
-  const near = RELATIVE_DAY[dayOffset(at)];
-  return near ? `${near} ${clock.format(at)}` : dateTime(iso);
-}
-
-/** The chip's short form: "04:01" today, otherwise "yesterday" or "23 Sep". */
-function lastRunLabel(iso: string) {
-  const at = new Date(iso);
-  const offset = dayOffset(at);
-  if (offset === 0) return clock.format(at);
-  if (offset === -1) return "yesterday";
-  return `${at.getDate()} ${at.toLocaleString("en-US", { month: "short" })}`;
-}
-
-/** "tomorrow, 06:00" or "Thu 1 Oct, 06:00". */
-function nextRunLabel(iso: string) {
-  const at = new Date(iso);
-  const near = RELATIVE_DAY[dayOffset(at)];
-  const date = near
-    ? near.toLowerCase()
-    : `${weekday.format(at)} ${at.getDate()} ${at.toLocaleString("en-US", { month: "short" })}`;
-  return `${date}, ${clock.format(at)}`;
-}
-
-const duration = (seconds: number) =>
-  seconds < 60 ? `${Math.round(seconds)} s` : `${Math.round(seconds / 60)} min`;
-
-/** The static running mark: a ring with its left half filled. Never animated. */
-const RunningMark = () => (
-  <svg className="half" width="8" height="8" viewBox="0 0 8 8" aria-hidden="true">
-    <circle cx="4" cy="4" r="3.25" fill="none" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M4 .75a3.25 3.25 0 0 0 0 6.5Z" fill="currentColor" />
-  </svg>
-);
-
-// Local glyphs for the top bar; components/ui/icons.tsx has no bell, check, exclamation or down chevron.
-const ChevronDownIcon = () => (
-  <svg className="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M4.5 6.5 8 10l3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const BellIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M4 11V7.5a4 4 0 0 1 8 0V11l1 1.5H3L4 11Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-    <path d="M6.5 14a1.6 1.6 0 0 0 3 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
-
-const CheckIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-    <path d="M2.5 6.2 5 8.6l4.5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const ExclamationIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-    <path d="M6 2v4.8M6 9.6v.2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
-
 type Run = Schema<"RunInfo">;
 
 /** A finished run's status glyph; the hidden text carries the status for screen readers. */
@@ -365,7 +298,7 @@ function RunStatus({ open, onToggle, onClose }: PopoverProps) {
   const runs = useRuns();
   const running = status.data?.running ?? false;
   const last = runs.data?.find((r) => r.status === "complete" && r.finished_at);
-  const lastLabel = last?.finished_at ? lastRunLabel(last.finished_at) : null;
+  const lastLabel = last?.finished_at ? shortTime(last.finished_at) : null;
   const sources = status.data?.sources;
 
   return (
@@ -384,7 +317,7 @@ function RunStatus({ open, onToggle, onClose }: PopoverProps) {
         }
         onClick={onToggle}
       >
-        {running ? <RunningMark /> : <span className="dot" />}
+        {running ? <RunningIcon /> : <span className="dot" />}
         <span className="label">
           {running ? (
             <>
@@ -430,7 +363,7 @@ function RunsPopover({
           <b>Runs</b>
           {next && (
             <span className="cap">
-              {next.cadence} at {clock.format(new Date(next.next_run_at))}
+              {next.cadence} at {clock(next.next_run_at)}
             </span>
           )}
         </>
@@ -440,7 +373,7 @@ function RunsPopover({
           <span className="cap grow">
             {runNow.isError
               ? "Could not start a run. Try again."
-              : next && `Next scheduled run: ${nextRunLabel(next.next_run_at)}`}
+              : next && `Next scheduled run: ${aheadTime(next.next_run_at)}`}
           </span>
           <button type="button" className="btn btn-sm" disabled={busy} onClick={() => runNow.mutate()}>
             {busy ? "Running…" : "Run now"}
@@ -451,7 +384,7 @@ function RunsPopover({
       {running && status && (
         <div className="run-row">
           <span className="mk new">
-            <RunningMark />
+            <RunningIcon />
             <span className="sr-only">Running</span>
           </span>
           <b className="now">Running now</b>
@@ -472,7 +405,7 @@ function RunsPopover({
             <RunResult run={r} />
             <span className="meta">
               {[
-                when(r.finished_at ?? r.started_at),
+                relativeTime(r.finished_at ?? r.started_at),
                 r.how,
                 r.duration_seconds != null && duration(r.duration_seconds),
                 plural(r.sources, "source"),

@@ -22,5 +22,7 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     video: { mode: "on", size: { width: 1440, height: 900 } },
     trace: "on",
+    // A click on a missing element fails the step instead of hanging the run.
+    actionTimeout: 30_000,
   },
 });

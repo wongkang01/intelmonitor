@@ -1,12 +1,13 @@
 // Pieces shared by widget bodies, monitor pages and the evidence drawer: the widget header, state
 // badges and state words, and development rows in the shared list-row grammar (globals.css `.row`).
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { plural, shortDate, STATE_LABEL, STATE_TONE, type State } from "@/lib/format";
 import { useEvidenceHref } from "@/components/shell/Evidence";
 import { SubjectLinks } from "@/components/shell/SubjectLink";
+import { Dotted } from "@/components/monitor/parts";
 
 /** Widget header: 12px grey title top-left, optional link target, meta on the right. */
 export function Head({
@@ -78,22 +79,28 @@ export function DevelopmentBadge({ development: d }: { development: Schema<"Deve
  * a meta line, and the date right-aligned. Subject names link to their pages; pass `subjects` to
  * name others (a group's members) than the development's first two. Widgets pass `meta={false}`
  * for the compact row, and `status={false}` when a group label above the rows carries the status.
+ * `link={false}` renders a plain row, for dialogs that would cover the evidence drawer.
  */
 export function DevelopmentRow({
   development: d,
-  subjects = d.subjects.slice(0, 2),
+  subjects,
   meta = true,
   status = true,
+  link = true,
   lines = 2,
 }: {
   development: Schema<"DevelopmentSummary">;
   subjects?: Schema<"SubjectRef">[];
   meta?: boolean;
   status?: boolean;
+  link?: boolean;
   /** Title lines before it truncates. */
   lines?: 1 | 2;
 }) {
   const evidence = useEvidenceHref();
+  // Unlinked rows sit in dialogs, where subject links would leave the dialog.
+  const named = link ? (subjects ?? d.subjects.slice(0, 2)) : [];
+  const more = link && !subjects ? d.subjects.length - named.length : 0;
   return (
     <div className={`row dev${status ? "" : " no-stat"}`}>
       {status && (
@@ -103,19 +110,28 @@ export function DevelopmentRow({
       )}
       <span>
         <span className={`row-title${lines === 1 ? " one" : ""}`} title={lines === 1 ? d.title : undefined}>
-          <Link href={evidence.development(d.id)} className="stretch" scroll={false}>
-            {d.title}
-          </Link>
+          {link ? (
+            <Link href={evidence.development(d.id)} className="stretch" scroll={false}>
+              {d.title}
+            </Link>
+          ) : (
+            d.title
+          )}
         </span>
         {meta && (
           <span className="row-meta">
-            {subjects.length > 0 && (
-              <>
-                <SubjectLinks subjects={subjects} />
-                {" · "}
-              </>
-            )}
-            {d.category} · {plural(d.source_count, "source")}
+            <Dotted
+              parts={[
+                named.length > 0 && (
+                  <Fragment key="s">
+                    <SubjectLinks subjects={named} />
+                    {more > 0 && ` +${more}`}
+                  </Fragment>
+                ),
+                d.category,
+                plural(d.source_count, "source"),
+              ]}
+            />
           </span>
         )}
       </span>

@@ -268,6 +268,9 @@ class WatchlistEntry(BaseModel):
     new_developments: int
     needs_attention: int
     headline: QuestionAnswerView | None = Field(description="Its most severe non-stable answer")
+    latest: DevelopmentSummary | None = Field(
+        description="Its most recently published development, if it has any"
+    )
 
 
 class WatchlistData(_Data):
@@ -408,4 +411,5 @@ def watch(q: Queries, entity_id: str) -> WatchlistEntry:
         new_developments=sum(d.change is not None for d in devs),
         needs_attention=sum(d.needs_attention for d in devs),
         headline=flagged[0] if flagged else None,
+        latest=max(devs, key=lambda d: d.last_published, default=None),
     )

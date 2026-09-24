@@ -7,9 +7,9 @@ import { useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { capitalize, plural } from "@/lib/format";
+import { DevelopmentRow } from "@/components/widgets/parts";
 
 import { Section } from "./parts";
-import { DevRow } from "./rows";
 
 type Stage = Schema<"StageBucket">["stage"];
 
@@ -44,7 +44,7 @@ export function StageTrack({ track }: { track: Schema<"StageTrack"> }) {
           </h3>
           <div className="rows">
             {selected.developments.map((d) => (
-              <DevRow key={d.id} development={d} />
+              <DevelopmentRow key={d.id} development={d} />
             ))}
           </div>
         </>
