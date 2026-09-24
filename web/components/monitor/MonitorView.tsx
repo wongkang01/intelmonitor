@@ -304,7 +304,9 @@ function Links({ subject }: { subject: Schema<"SubjectDetail"> }) {
             <div key={type}>
               <dt>{TYPE_PLURAL[type]}</dt>
               <dd>
-                <SubjectLinks subjects={subject.links[LINK_KEY[type]]} />
+                {subject.links[LINK_KEY[type]].map((s) => (
+                  <SubjectLink key={s.id} subject={s} />
+                ))}
               </dd>
             </div>
           ))}

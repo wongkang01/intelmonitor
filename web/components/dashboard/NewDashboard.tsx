@@ -161,8 +161,10 @@ function NewDashboardBody({
     });
   };
 
+  // Arrow keys switch tabs and keep focus on the tablist; the panes leave a keyboard-focused tab alone.
   const onTabKey = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
     const next: Tab = tab === "build" ? "generate" : "build";
     setTab(next);
     document.getElementById(`new-dashboard-tab-${next}`)?.focus();
@@ -205,15 +207,17 @@ function NewDashboardBody({
         )}
       </div>
       <div className="nd-foot" inert={asking}>
-        <label htmlFor="new-dashboard-name">Name</label>
-        <input
-          id="new-dashboard-name"
-          className="input"
-          value={name}
-          placeholder="Dashboard name"
-          maxLength={80}
-          onChange={(e) => state.setTypedName(e.target.value)}
-        />
+        <label className="nd-name">
+          Name
+          <span className="field">
+            <input
+              value={name}
+              placeholder="Dashboard name"
+              maxLength={80}
+              onChange={(e) => state.setTypedName(e.target.value)}
+            />
+          </span>
+        </label>
         <span className="grow" />
         <ChangeStatus state={state} />
         <button type="button" className="btn btn-primary" disabled={!canCreate} onClick={submit}>
@@ -450,7 +454,9 @@ function GeneratePane({
   const slideFrom = useRef<number | null>(null);
   const active = draft.prompts > 0 || draft.widgets.length > 0;
 
-  useEffect(() => input.current?.focus(), []);
+  useEffect(() => {
+    if (!document.activeElement?.matches('[role="tab"]:focus-visible')) input.current?.focus();
+  }, []);
 
   // The one transition: the prompt moves from the centre to its place at the bottom.
   useLayoutEffect(() => {

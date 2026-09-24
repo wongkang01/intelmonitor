@@ -182,26 +182,35 @@
 }
 
 /* Links: a two-column list of subject names by type. */
+/* Linked subjects, one per 44px line so each name is a full target. */
+/* The margin keeps Open graph view's hit area clear of the last line. */
 .mon-links {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-2);
-  margin: 0;
-  padding: var(--s-3) 0;
+  margin: 0 0 var(--s-4);
 }
 .mon-links > div {
   display: grid;
   grid-template-columns: 64px minmax(0, 1fr);
   gap: var(--s-3);
+  line-height: 44px;
+}
+.mon-links > div + div,
+.mon-links .subject-link + .subject-link {
+  border-top: 1px solid var(--line);
 }
 .mon-links dt {
   font-size: var(--fs-meta);
-  line-height: var(--lh-body);
   font-weight: 500;
   color: var(--ink2);
 }
 .mon-links dd {
   margin: 0;
+  min-width: 0;
+}
+.mon-links .subject-link {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* Actions and notes */

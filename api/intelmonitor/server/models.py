@@ -249,6 +249,8 @@ class Passage(BaseModel):
 
     text: str
     highlights: list[Span]
+    clipped_start: bool = Field(description="The document continues before `text`")
+    clipped_end: bool = Field(description="The document continues after `text`")
 
 
 class EvidenceFinding(BaseModel):

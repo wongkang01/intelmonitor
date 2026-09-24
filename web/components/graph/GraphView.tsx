@@ -280,19 +280,28 @@ function NodeList({
               <Link
                 href={hrefOf(n.id)}
                 scroll={false}
-                className="row"
+                className="row no-stat"
                 data-node={n.id}
                 onMouseEnter={() => onHover(n.id)}
                 onMouseLeave={() => onHover(null)}
                 onFocus={() => onHover(n.id)}
                 onBlur={() => onHover(null)}
               >
-                <span className="stat">
-                  {n.needs_attention && <span className="badge b-attn">Needs attention</span>}
-                  {n.has_new && <span className="badge b-new">New</span>}
-                </span>
-                <span className="row-title" title={n.label}>
-                  {n.label}
+                <span>
+                  <span className="row-title" title={n.label}>
+                    {n.has_new && (
+                      <>
+                        <span className="new-dot" aria-hidden="true" />
+                        <span className="sr-only">New: </span>
+                      </>
+                    )}
+                    {n.label}
+                  </span>
+                  {n.needs_attention && (
+                    <span className="row-meta">
+                      <span className="badge b-attn">Needs attention</span>
+                    </span>
+                  )}
                 </span>
               </Link>
             </Fragment>

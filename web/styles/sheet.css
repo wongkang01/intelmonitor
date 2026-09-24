@@ -211,6 +211,10 @@ dialog.panel > form {
   align-items: flex-start;
   gap: var(--s-2);
 }
+/* 16px between the size picker and Add, so their 44px hit areas meet without overlapping. */
+.offer-side .seg + .btn {
+  margin-top: var(--s-2);
+}
 .offer-side h4 {
   margin: 0 0 var(--s-1);
   font-size: var(--fs-body);

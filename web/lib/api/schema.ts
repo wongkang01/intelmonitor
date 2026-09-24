@@ -1481,6 +1481,16 @@ export interface components {
             text: string;
             /** Highlights */
             highlights: components["schemas"]["Span"][];
+            /**
+             * Clipped Start
+             * @description The document continues before `text`
+             */
+            clipped_start: boolean;
+            /**
+             * Clipped End
+             * @description The document continues after `text`
+             */
+            clipped_end: boolean;
         };
         /** Profile */
         Profile: {

@@ -125,7 +125,8 @@ a {
 
 /* Buttons. `.btn` is the secondary button (32px); add `.btn-primary` for the one primary per view,
    `.btn-ghost` for toolbar and inline actions, `.btn-sm` for 28px in widget heads, toolbars and popovers.
-   Every size gets a 44px hit area through ::after. */
+   Every size gets a 44px hit area through ::after. Insets count from the padding box, so each
+   control's 1px border is added back. */
 .btn {
   position: relative;
   height: 32px;
@@ -145,7 +146,7 @@ a {
 .btn::after {
   content: "";
   position: absolute;
-  inset: -6px -2px;
+  inset: -7px -2px;
 }
 .btn:hover {
   background: var(--hover);
@@ -171,7 +172,7 @@ a {
   padding: 0 10px;
 }
 .btn-sm::after {
-  inset: -8px -2px;
+  inset: -9px -2px;
 }
 /* Disabled keeps the normal fill and drops to --ink3 text; never opacity. */
 .btn:disabled,
@@ -205,7 +206,7 @@ a {
 .btn-icon::after {
   content: "";
   position: absolute;
-  inset: -8px;
+  inset: -9px;
 }
 .btn-icon:hover {
   background: var(--hover);
@@ -224,7 +225,7 @@ a {
   background: var(--surface);
 }
 .btn-icon.lg::after {
-  inset: -6px;
+  inset: -7px;
 }
 .btn-icon.lg:hover,
 .btn-icon.lg[aria-expanded="true"] {
@@ -329,7 +330,7 @@ textarea.input {
 .seg button::after {
   content: "";
   position: absolute;
-  inset: -10px 0;
+  inset: -11px -1px;
 }
 .seg button:hover {
   color: var(--ink);
@@ -465,6 +466,13 @@ button.row {
 .row.dev .row-meta a {
   position: relative;
   z-index: 1;
+}
+/* Meta links take the band from under the title to the row's bottom edge. A 44px area would cover
+   the title and the next row. */
+.row.dev .row-meta a::after {
+  content: "";
+  position: absolute;
+  inset: -2px -3px calc(-1 * var(--s-2));
 }
 .row-end {
   font-size: var(--fs-meta);

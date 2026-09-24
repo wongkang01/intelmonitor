@@ -44,10 +44,13 @@
   border-top: 1px solid var(--line);
   background: var(--surface);
 }
-.nd-foot label {
+.nd-name {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
   font-weight: 500;
 }
-.nd-foot .input {
+.nd-name .field {
   width: 260px;
 }
 .nd-status {

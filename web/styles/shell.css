@@ -261,7 +261,7 @@ main.main {
   border-radius: var(--r-badge);
 }
 .search .clear::after {
-  inset: -11px;
+  inset: -12px;
 }
 .search-list {
   position: absolute;
@@ -329,7 +329,7 @@ main.main {
 .runchip::after {
   content: "";
   position: absolute;
-  inset: -6px -2px;
+  inset: -7px -2px;
 }
 .runchip:hover,
 .runchip[aria-expanded="true"] {

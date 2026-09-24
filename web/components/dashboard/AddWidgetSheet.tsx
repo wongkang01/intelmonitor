@@ -4,7 +4,7 @@
 // Left: subjects with search and new-development counts. Right: the widgets that fit the subject,
 // each a live preview of real data at dashboard size with a size picker and Add; the first two are
 // grouped under Suggested, the rest under More widgets.
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 import type { Schema, Widget } from "@/lib/api/client";
 import { useAnswers, useCatalog, useSubject, useSubjects } from "@/lib/api/queries";
@@ -70,6 +70,11 @@ export function Gallery({
   const [selected, setSelected] = useState(initialSubjectId);
   const [query, setQuery] = useState("");
   const subject = subjects.data?.find((s) => s.id === selected) ?? subjects.data?.[0];
+  const filter = useRef<HTMLInputElement>(null);
+  // Focus the filter on open, unless the keyboard is on the New dashboard tabs.
+  useEffect(() => {
+    if (!document.activeElement?.matches('[role="tab"]:focus-visible')) filter.current?.focus();
+  }, []);
 
   const needle = query.trim().toLowerCase();
   const matches = (subjects.data ?? []).filter(
@@ -87,7 +92,7 @@ export function Gallery({
             placeholder="Search subjects"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            autoFocus
+            ref={filter}
           />
         </label>
         <div className="list">

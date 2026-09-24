@@ -160,8 +160,9 @@ function DevelopmentEvidence({ development: d, nested = false }: { development: 
 
 const percent = (x: number) => `${Math.round(x * 100)}%`;
 const TAGGER: Record<string, string> = { jev: "Jev", claude: "Claude" };
+const confidenceWord = (x: number) => (x >= 0.7 ? "high" : x >= 0.4 ? "medium" : "low");
 
-/** One line: who the development is tagged to (percentages on hover), then materiality confidence. */
+/** One line: who the development is tagged to, then materiality confidence in words. Percentages show on hover. */
 function Confidence({ development: d }: { development: Schema<"DevelopmentDetail"> }) {
   return (
     <p className="meta ev-conf">
@@ -179,7 +180,9 @@ function Confidence({ development: d }: { development: Schema<"DevelopmentDetail
           {" · "}
         </>
       )}
-      Materiality confidence {percent(d.materiality_confidence)}
+      <span title={`Materiality confidence ${percent(d.materiality_confidence)}`}>
+        {confidenceWord(d.materiality_confidence)} confidence
+      </span>
     </p>
   );
 }
@@ -212,9 +215,9 @@ function Source({ source: s, title }: { source: Schema<"EvidenceSource">; title:
   );
 }
 
-/** A passage with its quote spans wrapped in <mark>. */
+/** A passage with its quote spans wrapped in <mark>, and an ellipsis where the document goes on. */
 function Highlighted({ passage }: { passage: Schema<"Passage"> }) {
-  const parts: ReactNode[] = [];
+  const parts: ReactNode[] = [passage.clipped_start && "…"];
   let at = 0;
   for (const h of [...passage.highlights].sort((a, b) => a.start - b.start)) {
     if (h.start < at) continue;
@@ -222,6 +225,6 @@ function Highlighted({ passage }: { passage: Schema<"Passage"> }) {
     parts.push(<mark key={h.start}>{passage.text.slice(h.start, h.end)}</mark>);
     at = h.end;
   }
-  parts.push(passage.text.slice(at));
+  parts.push(passage.text.slice(at), passage.clipped_end && "…");
   return <>{parts}</>;
 }

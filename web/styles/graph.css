@@ -219,7 +219,18 @@
   margin-left: auto;
   font-variant-numeric: tabular-nums;
 }
-.graph-list .stat {
-  flex-direction: column;
-  gap: 4px;
+/* New this run: a 6px dot hanging before the title, so all titles share one left edge; the list
+   head counts them. */
+.graph-list .row-title,
+.graph-list .row-meta {
+  padding-left: var(--s-3);
+}
+.new-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 6px 2px calc(-1 * var(--s-3));
+  border-radius: 50%;
+  background: var(--new);
+  vertical-align: middle;
 }

@@ -432,7 +432,7 @@ function WatchRow({
           </Link>
           {counts && <span className="w-meta">{counts}</span>}
         </span>
-        <span className={`w-text c${lines}`}>
+        <span className={lines === 1 ? "w-text c1" : "w-text c2"}>
           {e.headline ? (
             <>
               <span className="ink2">{e.headline.label}:</span> {answerText(e.headline.summary)}

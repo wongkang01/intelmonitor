@@ -33,6 +33,8 @@ def passage(text: str, quotes: list[Quote]) -> Passage:
     return Passage(
         text=text[lo:hi],
         highlights=[Span(start=q.start - lo, end=q.end - lo) for q in quotes],
+        clipped_start=lo > 0,
+        clipped_end=hi < len(text),
     )
 
 

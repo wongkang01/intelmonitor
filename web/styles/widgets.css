@@ -101,7 +101,7 @@
 .minus::after {
   content: "";
   position: absolute;
-  inset: -10px;
+  inset: -11px;
 }
 .minus:hover {
   background: var(--hover);
@@ -448,6 +448,13 @@ a.qr:hover .ql {
 .ent .btn-icon {
   z-index: 1;
   margin-top: -5px;
+}
+/* The row list scrolls and so clips at its edges: the 44px hit area runs from the row's top
+   border to its right edge instead of spreading 8px beyond the button. */
+.ent .btn-icon::after {
+  inset: -5px -1px auto auto;
+  width: 44px;
+  height: 44px;
 }
 .ent .btn-icon svg,
 .wh .btn-icon svg {

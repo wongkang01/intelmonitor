@@ -3828,12 +3828,24 @@
             },
             "type": "array",
             "title": "Highlights"
+          },
+          "clipped_start": {
+            "type": "boolean",
+            "title": "Clipped Start",
+            "description": "The document continues before `text`"
+          },
+          "clipped_end": {
+            "type": "boolean",
+            "title": "Clipped End",
+            "description": "The document continues after `text`"
           }
         },
         "type": "object",
         "required": [
           "text",
-          "highlights"
+          "highlights",
+          "clipped_start",
+          "clipped_end"
         ],
         "title": "Passage",
         "description": "An excerpt of the source around a finding's quotes; highlights are offsets into `text`."
