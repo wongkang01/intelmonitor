@@ -1,23 +1,44 @@
-/* Widget grid and widget bodies. Values from mocks/new-dashboard.html. */
+/* Dashboard page head, the widget grid and the seven widget bodies (mocks/refine-a.html).
+   Buttons, fields, the segmented control, badges and list rows come from app/globals.css. */
+
+/* Page head. TODO(verify): the title and meta type duplicate what shell.css `.pagehead` should
+   carry once the shell pass moves it to 28/600 over a 13px meta line; delete these then. */
+.pagehead.dash-head {
+  align-items: flex-end;
+  gap: var(--s-2);
+  padding: var(--s-5) var(--s-6);
+}
+.pagehead.dash-head h1 {
+  font-size: var(--fs-title);
+  line-height: var(--lh-title);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.pagehead.dash-head p {
+  margin-top: 2px;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--ink2);
+}
+
+/* Grid: 4 columns of 176px rows with a 16px gap, wider than the 12px widget inset. */
 .grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-auto-rows: 170px;
+  grid-auto-rows: 176px;
   grid-auto-flow: dense;
-  gap: 20px;
+  gap: var(--s-4);
 }
 .grid.dash-grid {
-  padding: 0 36px 36px;
+  padding: 0 var(--s-6) var(--s-7);
 }
 
 .w {
   position: relative;
-  box-sizing: border-box;
-  background: var(--surface);
-  border-radius: 22px;
-  box-shadow: var(--shadow);
   min-width: 0;
-  transition: box-shadow 0.3s ease;
+  background: var(--surface);
+  border-radius: var(--r-widget);
+  box-shadow: var(--shadow-low);
 }
 .w.S {
   grid-column: span 1;
@@ -32,83 +53,115 @@
 .w.tappable {
   cursor: pointer;
 }
+/* A widget just added or restored. */
 .w.changed {
   box-shadow:
     0 0 0 2px var(--accent),
-    var(--shadow);
+    var(--shadow-low);
 }
+.w.enter {
+  animation: widget-in 0.2s ease-out both;
+}
+@keyframes widget-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Edit mode: a dashed accent outline marks each movable widget. */
 .w.editable {
+  outline: 1px dashed var(--accent);
+  outline-offset: -1px;
   cursor: grab;
   touch-action: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
-.w.dragging {
-  opacity: 0.35;
+.w.editable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
+.w.editable .wh {
+  padding-right: 28px;
+}
+/* The slot a dragged widget will drop into. */
+.w.dragging {
+  background: transparent;
+  box-shadow: none;
+}
+.w.dragging > * {
+  visibility: hidden;
+}
+/* The copy that follows the pointer is an overlay: pop shadow and a solid edge. */
 .w.lifted {
   position: fixed;
   z-index: 70;
   pointer-events: none;
   cursor: grabbing;
+  outline: 1px solid var(--line-strong);
   box-shadow: var(--shadow-pop);
   transform: scale(1.02);
 }
-.w.enter {
-  animation: rise 0.28s ease-out both;
+
+/* Remove: a 24px mark in the top-right corner with a 44px hit area. */
+.minus {
+  position: absolute;
+  top: var(--s-2);
+  right: var(--s-2);
+  z-index: 3;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-ctl);
+  background: var(--surface);
+  color: var(--ink2);
 }
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+.minus::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+}
+.minus:hover {
+  background: var(--hover);
+  color: var(--ink);
 }
 
-/* A widget's content. The face flips to settings in edit mode. */
+/* A widget's content: 12px inset, children stacked with explicit gaps. */
 .face {
   container-type: inline-size;
-  box-sizing: border-box;
   height: 100%;
-  padding: 18px 20px;
+  padding: var(--s-3);
   display: flex;
   flex-direction: column;
-  gap: 10px;
   overflow: hidden;
   border-radius: inherit;
 }
-.w.L .face {
-  padding: 20px 22px;
-}
 .face.flip {
-  animation: flip 0.26s ease-out;
+  animation: face-in 0.15s ease-out;
 }
-@keyframes flip {
+@keyframes face-in {
   from {
-    opacity: 0.3;
-    transform: perspective(900px) rotateY(-80deg);
+    opacity: 0;
   }
-}
-.editable .face .wh {
-  padding-left: 26px;
 }
 
 .wh {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 20px;
+  align-items: baseline;
+  gap: var(--s-2);
+  min-height: 16px;
+  margin-bottom: var(--s-2);
   flex-shrink: 0;
   min-width: 0;
 }
 .wt {
-  flex-shrink: 0;
-  max-width: 100%;
-  font-size: 13px;
-  font-weight: 600;
+  min-width: 0;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  font-weight: 500;
   color: var(--ink2);
   white-space: nowrap;
   overflow: hidden;
@@ -116,154 +169,116 @@
 }
 a.wt:hover {
   color: var(--ink);
+  text-decoration: underline;
 }
+/* Meta gives way before the title does. */
 .wm {
   margin-left: auto;
-  font-size: 12px;
+  flex-shrink: 100;
+  min-width: 0;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
   color: var(--ink2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex-shrink: 1;
-  min-width: 0;
 }
-.wh .wt + .tag {
-  flex-shrink: 0;
+.wh .badge {
+  align-self: center;
 }
-/* A title followed by a tag (Custom) gives way first, so the tag stays visible. */
-.wh .wt:has(+ .tag) {
-  flex-shrink: 1;
-  min-width: 0;
+.wh .btn-icon {
+  align-self: center;
+  margin: -6px -4px -6px 0;
 }
-
-.minus {
-  position: absolute;
-  top: -4px;
-  left: -4px;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3;
+.wh-end {
+  order: 2;
 }
-.minus span {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #6e6e73;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-.minus:hover span {
-  background: #48484d;
+.push {
+  margin-left: auto;
 }
 
+/* Type inside widgets: the Since hero is the only 22px line; answers lead at 15px. */
 .hero {
-  margin: 0;
-  font-size: 24px;
-  line-height: 30px;
+  margin: 0 0 var(--s-2);
+  font-size: var(--fs-hero);
+  line-height: var(--lh-hero);
   font-weight: 600;
-  letter-spacing: -0.018em;
+  letter-spacing: -0.01em;
 }
-.hero.one-line {
+.ans {
+  margin: 0;
   flex-shrink: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  font-weight: 600;
 }
-.hero.sm {
-  font-size: 18px;
-  line-height: 23px;
+.ans .w-meta {
+  font-size: var(--fs-meta);
+  font-weight: 400;
 }
-.rows {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+.arrow {
+  color: var(--ink2);
+  font-weight: 400;
 }
-.rows.scroll {
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-.row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 0;
-  border-top: 1px solid var(--line);
-  min-width: 0;
+.w-text {
+  margin: var(--s-1) 0 0;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
   color: var(--ink);
 }
-.row.tight {
-  padding: 7px 0;
-}
-a.row:hover b {
-  color: var(--accent);
-}
-.row .tx {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  flex-grow: 1;
-}
-.row .tx b {
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.row .tx span {
-  font-size: 12px;
+.w-meta {
+  margin: 0;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
   color: var(--ink2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
 }
-.row .when {
-  font-size: 12px;
+.ink2 {
   color: var(--ink2);
-  white-space: nowrap;
-  flex-shrink: 0;
 }
-.row .date {
-  font-size: 18px;
-  font-weight: 700;
-  width: 64px;
-  flex-shrink: 0;
+.c1,
+.c2,
+.w-text.summary {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.c1 {
+  -webkit-line-clamp: 1;
+}
+.c2 {
+  -webkit-line-clamp: 2;
+}
+.w-text.summary {
+  -webkit-line-clamp: 3;
+}
+/* A small widget narrower than on a 1440px screen: its state may wrap, so keep two summary lines. */
+@container (max-width: 220px) {
+  .w-text.summary {
+    -webkit-line-clamp: 2;
+  }
 }
 
-.badge {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 6px;
-  white-space: nowrap;
+/* Footer: pinned to the bottom of the face. */
+.wf {
+  margin-top: auto;
+  padding-top: var(--s-2);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
   flex-shrink: 0;
+  min-width: 0;
 }
-.b-new {
-  background: var(--new-bg);
-  color: var(--new);
+.wf .w-meta:not(:first-child) {
+  margin-left: auto;
 }
-.b-watch {
-  background: var(--watch-bg);
-  color: var(--watch);
+.wf .w-meta {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.b-attn {
-  background: var(--attn-bg);
-  color: var(--attn);
-}
-.b-stable {
-  color: var(--stable);
-  padding-left: 0;
-  padding-right: 0;
-}
+
+/* Status colors for state words; the word always carries the meaning. */
 .c-stable {
   color: var(--stable);
 }
@@ -277,303 +292,418 @@ a.row:hover b {
   color: var(--attn);
 }
 
-.qgrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  min-height: 0;
-}
-.q {
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: var(--bg);
+/* Rows inside widgets use the shared `.row` grammar from globals.css. */
+.rows {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  overflow: hidden;
+  min-height: 0;
 }
-.q span {
-  font-size: 12px;
-  color: var(--ink2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.rows.scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
 }
-.q b {
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.row-title.one {
+  -webkit-line-clamp: 1;
 }
-.q.watch {
-  background: var(--watch-bg);
+/* A development row: the title link covers the row, subject links in the meta sit above it.
+   These beat monitor.css `.row.dev .stretch`, which predates the row grammar. */
+.row.dev {
+  position: relative;
 }
-.q.attn {
-  background: var(--attn-bg);
+.row.dev .row-title .stretch {
+  display: inline;
+  color: inherit;
 }
-.q p {
-  margin: 4px 0 0;
-  font-size: 12px;
-  line-height: 16px;
+.row.dev .row-title .stretch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.row.dev:hover .row-title {
+  text-decoration: underline;
+  text-decoration-color: var(--line-field);
+}
+.row.dev .row-meta a {
+  position: relative;
+  z-index: 1;
+}
+a.row {
   color: var(--ink);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+}
+a.row:hover .row-title {
+  text-decoration: underline;
+  text-decoration-color: var(--line-field);
 }
 
-.big {
-  font-size: 26px;
-  line-height: 30px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-.cap {
-  font-size: 12px;
-  color: var(--ink2);
-}
-.body-text {
-  flex-shrink: 0;
-  margin: 0;
-  font-size: 13px;
-  line-height: 18px;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-/* A small widget narrower than on a 1440 px screen: its state text may wrap, so keep one line of
-   summary to leave room for the evidence link. */
-@container (max-width: 200px) {
-  .body-text.summary {
-    -webkit-line-clamp: 1 !important;
-  }
-}
-.spacer {
-  flex-grow: 1;
-}
-.link {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
-  border: 0;
-  background: transparent;
-  padding: 0;
-  text-align: left;
-}
-.link:disabled {
-  color: var(--ink2);
-  cursor: default;
-}
-.foot {
+/* Since your last review: rows grouped under one status label instead of a badge per row. */
+.gl {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 6px;
+  min-height: 24px;
   flex-shrink: 0;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  font-weight: 500;
 }
-.foot .cap {
-  margin-left: auto;
+.rows + .gl {
+  margin-top: var(--s-1);
 }
-.ini {
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
+.gl .dot {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: var(--chip);
-  font-size: 11px;
-  font-weight: 600;
-  color: #3a3a40;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: currentColor;
 }
+.gl .link {
+  margin-left: auto;
+  font-size: var(--fs-meta);
+}
+
+/* Standing questions: a plain two-column table of hairline rows, state right in its color. */
+.qtable {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--s-5);
+  align-content: start;
+  min-height: 0;
+}
+.qr {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  min-height: 34px;
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  min-width: 0;
+}
+.qr .ql {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The state wraps before it would ever truncate. */
+.qr .qa {
+  flex: 0 0 auto;
+  max-width: 75%;
+  font-weight: 600;
+  text-align: right;
+}
+a.qr:hover .ql {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--line-field);
+}
+
+/* Direction of travel: a thin neutral line with the latest week as a dot. */
+.spark {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  height: 40px;
+  margin: var(--s-2) 0;
+  color: var(--ink2);
+}
+.spark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.spark-dot {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+/* Upcoming: the next date as the lead, then the one after it as a row. */
+.up-next {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  color: var(--ink);
+}
+.up-next .w-meta.c2 {
+  margin-top: var(--s-1);
+}
+.up-next:hover .w-text {
+  text-decoration: underline;
+  text-decoration-color: var(--line-field);
+}
+.up-then {
+  margin-top: var(--s-2);
+}
+
+/* Watchlist */
 .addfield {
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 38px;
-  box-sizing: border-box;
-  padding: 0 12px;
-  border-radius: 10px;
-  background: var(--field2);
+  gap: var(--s-2);
+  height: 32px;
   flex-shrink: 0;
+  margin-bottom: var(--s-2);
+  padding: 0 10px;
+  border: 1px solid var(--line-field);
+  border-radius: var(--r-ctl);
+  background: var(--surface);
+  color: var(--ink3);
 }
 .addfield:focus-within {
-  box-shadow: 0 0 0 3px rgba(10, 100, 216, 0.35);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .addfield input {
-  border: 0;
-  background: transparent;
-  outline: none;
-  font-size: 14px;
   flex-grow: 1;
   min-width: 0;
-}
-.addfield input:focus-visible {
-  outline: none;
-}
-.icon-btn {
-  width: 32px;
-  height: 32px;
-  margin: -6px;
-  padding: 0;
+  height: 30px;
   border: 0;
-  border-radius: 16px;
+  outline: none;
   background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
+  color: var(--ink);
+  font-size: var(--fs-body);
 }
-.icon-btn::after {
+.addfield input::placeholder {
+  color: var(--ink3);
+}
+.ent {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--stat) minmax(0, 1fr) 28px;
+  column-gap: var(--s-3);
+  align-items: start;
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line);
+}
+.ent-body {
+  min-width: 0;
+}
+.ent-name {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.ent-name .stretch {
+  flex-shrink: 0;
+  color: var(--ink);
+  font-weight: 600;
+}
+.ent-name .stretch::after {
   content: "";
   position: absolute;
-  inset: -6px;
+  inset: 0;
 }
-.icon-btn:hover {
-  background: var(--chip);
+.ent:hover .ent-name .stretch {
+  text-decoration: underline;
+}
+.ent-name .w-meta {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ent .w-text {
+  margin-top: 2px;
+}
+.ent .btn-icon {
+  z-index: 1;
+  margin-top: -5px;
+}
+.ent .btn-icon svg,
+.wh .btn-icon svg {
+  width: 12px;
+  height: 12px;
 }
 .pick {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--s-2);
   width: 100%;
-  min-height: 40px;
-  padding: 0 4px;
+  min-height: 34px;
+  padding: 0 var(--s-2);
   border: 0;
   border-top: 1px solid var(--line);
   background: transparent;
+  font: 500 var(--fs-body) / var(--lh-body) var(--font);
   text-align: left;
-  font-size: 14px;
 }
-.pick:hover,
-.pick[aria-selected="true"] {
-  background: var(--bg);
+.pick:hover {
+  background: var(--hover);
 }
-.pick .cap {
+.pick .w-meta {
   margin-left: auto;
 }
-.tag {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 6px;
-  white-space: nowrap;
-}
-.tag.topic {
-  background: var(--topic-bg);
-  color: #5236b8;
-}
-.tag.group {
-  background: var(--new-bg);
-  color: var(--new);
-}
-.tag.entity {
-  background: var(--chip);
-  color: #3a3a40;
-}
-.tag.sugg {
-  background: var(--topic-bg);
-  color: #5236b8;
-}
-.tag.custom {
-  background: var(--chip);
-  color: #3a3a40;
-}
-.muted {
-  color: var(--ink2);
-  font-size: 13px;
-}
-.spark {
-  display: block;
-  flex-shrink: 0;
-}
 
-/* Settings face */
-.face.settings,
-.w.L .face.settings {
-  padding: 14px 20px;
-  gap: 6px;
+/* Settings face (edit mode): 28px fields in a label column. */
+.face.settings {
+  gap: var(--s-2);
   overflow: auto;
+}
+.face.settings .wh {
+  margin-bottom: 0;
+}
+.face.settings .wh .link {
+  line-height: var(--lh-meta);
 }
 .settings label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 600;
+  gap: var(--s-2);
+  font-size: var(--fs-meta);
+  font-weight: 500;
   color: var(--ink2);
 }
 .settings label span {
   width: 56px;
   flex-shrink: 0;
 }
-.settings select {
+.settings select.input {
   flex-grow: 1;
-  height: 30px;
-  border: 0;
-  border-radius: 9px;
-  background: var(--field2);
-  padding: 0 8px;
-  font-size: 13px;
-  color: var(--ink);
-  min-width: 0;
-}
-.seg {
-  display: flex;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 12px;
-  background: var(--field);
-}
-.seg button {
-  height: 32px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink2);
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.seg button[aria-pressed="true"],
-.seg button[aria-selected="true"] {
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: 0 1px 3px rgba(18, 22, 38, 0.12);
-}
-.seg.small button {
   height: 28px;
-  padding: 0 10px;
-  font-size: 12px;
+  padding: 0 6px;
 }
-.btn {
-  height: 44px;
-  padding: 0 20px;
+.settings .muted {
+  margin: 0;
+}
+.self-start {
+  align-self: flex-start;
+}
+
+/* Shared inline pieces. TODO(verify): other areas still use these, so they live here until the
+   verify pass moves them to globals.css. */
+.link {
+  position: relative;
+  padding: 0;
   border: 0;
-  border-radius: 22px;
-  background: var(--chip);
-  font-size: 14px;
-  font-weight: 600;
+  background: transparent;
+  color: var(--accent);
+  font: 500 var(--fs-body) / var(--lh-body) var(--font);
+  text-align: left;
+  white-space: nowrap;
 }
+.link::after {
+  content: "";
+  position: absolute;
+  inset: -13px -4px;
+}
+.link:hover {
+  text-decoration: underline;
+}
+.link:disabled {
+  color: var(--ink3);
+  cursor: default;
+  text-decoration: none;
+}
+.cap {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}
+.muted {
+  font-size: var(--fs-body);
+  color: var(--ink2);
+}
+.spacer {
+  flex-grow: 1;
+}
+/* Tags are words, never tinted by subject type. */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: var(--r-badge);
+  background: var(--rail);
+  color: var(--ink2);
+  font: 500 var(--fs-meta) / 18px var(--font);
+  white-space: nowrap;
+}
+.hero.sm {
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+}
+
+/* TEMPORARY legacy aliases for areas not yet on the globals.css names: `.btn primary` and
+   `.btn sm` map to `.btn-primary` and `.btn-sm`; `.icon-btn` to `.btn-icon`; a `.row` holding a
+   `.tx` column keeps the old flex layout instead of the status-column grid. Delete each one once
+   nothing uses it. */
 .btn.primary {
   background: var(--accent);
-  color: #fff;
+  border-color: var(--accent);
+  color: var(--surface);
 }
 .btn.primary:hover {
-  background: var(--accent-hover);
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
 }
-.btn:disabled {
-  opacity: 0.4;
-  cursor: default;
+.btn.primary:disabled,
+.btn.primary:disabled:hover {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--ink3);
 }
 .btn.sm {
-  height: 34px;
-  padding: 0 16px;
-  font-size: 13px;
+  height: 28px;
+  padding: 0 10px;
+}
+.icon-btn {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: transparent;
+  color: var(--ink2);
+}
+.icon-btn::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}
+.icon-btn:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+.row:has(> .tx) {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.row .tx {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex-grow: 1;
+}
+.row .tx b {
+  font-weight: 500;
+}
+.row .tx > span {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}
+.row .when {
+  flex-shrink: 0;
+  font-size: var(--fs-meta);
+  color: var(--ink2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.row .date {
+  width: var(--stat);
+  flex-shrink: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }

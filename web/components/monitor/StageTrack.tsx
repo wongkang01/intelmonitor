@@ -1,12 +1,15 @@
 "use client";
 
-// Topic stage track: signal → consultation → proposed → enacted → enforced, with the count of
-// recent developments at each stage. Picking a stage lists its most material developments.
+// Topic stage track: signal → consultation → proposed → enacted → enforced, as one segmented track
+// with the count of recent developments at each stage. Picking a stage lists its most material
+// developments; it opens on the furthest stage that has any.
 import { useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { capitalize, plural } from "@/lib/format";
-import { DevelopmentRow } from "@/components/widgets/parts";
+
+import { Section } from "./parts";
+import { DevRow } from "./rows";
 
 type Stage = Schema<"StageBucket">["stage"];
 
@@ -15,48 +18,39 @@ export function StageTrack({ track }: { track: Schema<"StageTrack"> }) {
   const reached = stages.findLastIndex((b) => b.count > 0);
   const [picked, setPicked] = useState<Stage | null>(null);
   const selected = stages.find((b) => b.stage === picked) ?? stages[reached];
-  // The filled line runs from the first stop to the furthest stage with developments.
-  const fill = reached > 0 ? (reached / (stages.length - 1)) * 80 : 0;
 
   return (
-    <section className="panel" aria-labelledby="stage-track">
-      <div className="panel-head">
-        <h2 id="stage-track">Stage</h2>
-        <span className="cap">Last {track.lookback_days} days</span>
-      </div>
-      <div className="track" role="group" aria-label="Regulatory stage">
-        <span className="track-line" />
-        <span className="track-fill" style={{ width: `${fill}%` }} />
+    <Section id="stage-track" title="Stage" meta={`Last ${track.lookback_days} days`}>
+      <div className="seg stage-seg" role="group" aria-label="Regulatory stage">
         {stages.map((b) => (
           <button
             key={b.stage}
             type="button"
-            className="stop"
             aria-pressed={selected?.stage === b.stage}
+            aria-label={`${capitalize(b.stage)}, ${plural(b.count, "development")}`}
             disabled={b.count === 0}
             onClick={() => setPicked(b.stage)}
           >
-            <span className={`knob${b.count > 0 ? " on" : ""}${selected?.stage === b.stage ? " current" : ""}`} />
-            <span className="stop-label">{capitalize(b.stage)}</span>
-            <span className="cap">{b.count}</span>
+            {capitalize(b.stage)}
+            <span className="stage-count">{b.count}</span>
           </button>
         ))}
       </div>
       {selected && selected.count > 0 ? (
         <>
-          <h3>
+          <h3 className="mon-sub">
             {capitalize(selected.stage)}: {plural(selected.count, "development")}
             {selected.count > selected.developments.length ? `, top ${selected.developments.length}` : ""}
           </h3>
           <div className="rows">
             {selected.developments.map((d) => (
-              <DevelopmentRow key={d.id} development={d} />
+              <DevRow key={d.id} development={d} />
             ))}
           </div>
         </>
       ) : (
-        <p className="muted">No staged developments in the last {track.lookback_days} days.</p>
+        <p className="mon-empty">No staged developments in the last {track.lookback_days} days.</p>
       )}
-    </section>
+    </Section>
   );
 }

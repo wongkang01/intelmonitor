@@ -82,140 +82,196 @@ kbd {
   background: var(--chip);
 }
 
-/* Add widget gallery */
+/* Add widget gallery (AddWidgetSheet.tsx), in the sheet and in the popup Build tab.
+   Left: subjects on --rail as 32px rows. Right: offers on --canvas, each a name, a 28px size control
+   and a secondary Add beside a live preview at dashboard size. */
 .gsheet-body {
   flex-grow: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 250px minmax(0, 1fr);
+  grid-template-columns: 240px minmax(0, 1fr);
 }
 .subjects {
-  border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 22px 12px 16px 18px;
-  gap: 8px;
+  border-right: 1px solid var(--line);
+  background: var(--rail);
 }
-.subjects .search {
-  width: 100%;
-  height: 38px;
+.subj-search {
+  flex-shrink: 0;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: var(--s-3) var(--s-3) var(--s-1);
+  padding: 0 10px;
+  border: 1px solid var(--line-field);
+  border-radius: var(--r-ctl);
+  background: var(--surface);
+  color: var(--ink3);
+}
+.subj-search:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.subj-search input {
+  flex-grow: 1;
+  min-width: 0;
+  height: 30px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--fs-body);
+}
+.subj-search input::placeholder {
+  color: var(--ink3);
+}
+.subj-search input::-webkit-search-cancel-button {
+  appearance: none;
 }
 .subjects .list {
+  flex-grow: 1;
+  min-height: 0;
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  min-height: 0;
-  flex-grow: 1;
+  gap: 2px;
+  padding: 0 var(--s-2) var(--s-3);
+}
+.subjects .list .muted {
+  padding: var(--s-2);
 }
 .groupname {
-  font-size: 12px;
-  font-weight: 600;
+  padding: var(--s-4) var(--s-2) var(--s-1);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  font-weight: 500;
   color: var(--ink2);
-  padding: 10px 10px 4px;
 }
 .subj {
+  position: relative;
+  width: 100%;
+  height: 32px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 38px;
-  flex-shrink: 0;
-  padding: 0 10px;
+  gap: var(--s-2);
+  padding: 0 var(--s-2);
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--r-ctl);
   background: transparent;
-  font-size: 14px;
+  font: 500 var(--fs-body) / var(--lh-body) var(--font);
   text-align: left;
-  width: 100%;
 }
-.subj > span:nth-child(2) {
+/* 44px hit area without covering the rows around it: rows are 32px tall with 2px between. */
+.subj::after {
+  content: "";
+  position: absolute;
+  inset: -1px 0;
+}
+.subj:hover {
+  background: var(--hover);
+}
+.subj[aria-current="true"] {
+  background: var(--surface);
+  box-shadow: var(--shadow-low);
+  font-weight: 600;
+}
+.subj-name {
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.subj:hover {
-  background: var(--bg);
-}
-.subj[aria-current="true"] {
-  background: var(--chip);
-  font-weight: 600;
-}
 .subj .meta {
   margin-left: auto;
-  font-size: 12px;
-  color: var(--new);
-  font-weight: 600;
+  flex-shrink: 0;
+  font-size: var(--fs-meta);
+  font-weight: 400;
+  color: var(--ink2);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .gallery {
-  overflow: auto;
-  padding: 18px 24px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
   min-height: 0;
+  overflow: auto;
+  padding: 20px var(--s-5) var(--s-6);
+  background: var(--canvas);
 }
 .gallery-head {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: var(--s-2);
 }
 .gallery-head h3 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-.gcards {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px 28px;
-}
-.gcard {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-}
-.gcard-top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
   font-weight: 600;
 }
-.gcard .desc {
-  font-weight: 400;
-  font-size: 12px;
+.gallery-head .meta {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
   color: var(--ink2);
-  margin-top: -6px;
 }
-.gprev {
-  background: var(--bg);
-  border-radius: 18px;
-  padding: 14px;
+.gallery-head .push {
+  align-self: center;
+  margin-left: auto;
 }
-.gprev .grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+/* Suggested and More widgets: plain group labels over a rule. */
+.og {
+  margin: 0 0 var(--s-4);
+  padding: 20px 0 var(--s-2);
+  border-bottom: 1px solid var(--line-strong);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  font-weight: 500;
+  color: var(--ink2);
+}
+.offer {
+  display: grid;
+  grid-template-columns: 184px minmax(0, 1fr);
+  gap: var(--s-5);
+  align-items: start;
+  margin-bottom: var(--s-5);
+}
+.offer-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
+}
+.offer-side h4 {
+  margin: 0 0 var(--s-1);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: 600;
+}
+.offer-custom {
+  max-width: 544px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.offer-custom > .meta {
+  margin: 0;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}
+/* The preview is a real widget at 1:1 on the canvas; it only scales when the sheet is narrow. */
+.offer .fit {
+  position: relative;
+  width: 100%;
+}
+.offer .scaler {
+  transform-origin: top left;
   pointer-events: none;
 }
-.gprev .fit {
-  position: relative;
-  overflow: clip;
-}
-.gprev .scaler {
-  transform-origin: top left;
-}
-.gcard-bottom {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.gcard-bottom .grow {
-  flex-grow: 1;
+.offer .scaler > .w {
+  height: 100%;
 }
 
 /* Evidence drawer */

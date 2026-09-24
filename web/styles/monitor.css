@@ -1,9 +1,9 @@
-/* Monitor pages, search, subject links and the evidence drawer's content. */
+/* Monitor pages (components/monitor), the evidence drawer's content and subject links. The search
+   dropdown rules below belong to the top bar and should move to shell.css. */
 .subject-link {
   color: inherit;
 }
 .subject-link:hover {
-  color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -13,10 +13,11 @@
 }
 .pagehead p .subject-link:hover,
 .wm .subject-link:hover {
-  color: var(--accent);
+  color: var(--ink);
 }
 
-/* A development row: the title link covers the row, subject links sit above it. */
+/* A development row: the title link covers the row, subject links sit above it. The `.tx` rules
+   serve the widgets' DevelopmentRow; `.row-title.stretch` is the list-row grammar (monitor/rows.tsx). */
 .row.dev {
   position: relative;
 }
@@ -24,6 +25,9 @@
   color: inherit;
   min-width: 0;
   display: flex;
+}
+.row.dev .row-title.stretch {
+  display: -webkit-box;
 }
 .row.dev .stretch::after {
   content: "";
@@ -33,7 +37,11 @@
 .row.dev:hover .stretch b {
   color: var(--accent);
 }
-.row.dev .tx a.subject-link {
+.row.dev.linked:hover .row-title {
+  text-decoration: underline;
+  text-decoration-color: var(--line-field);
+}
+.row.dev :is(.tx, .row-meta) a.subject-link {
   position: relative;
   z-index: 1;
 }
@@ -89,298 +97,401 @@ a.q:hover {
   margin-left: auto;
 }
 
-/* Monitor page: main column and a side column for Links and Actions. */
-.monitor {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
-  gap: 20px;
-  align-items: start;
-  padding: 0 36px 36px;
-}
-.monitor .col {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  min-width: 0;
-}
-.panel {
-  box-sizing: border-box;
+/* In-page panel on the canvas (monitor columns, graph view). Scoped away from dialog.panel. */
+.panel:not(dialog) {
   background: var(--surface);
-  border-radius: 22px;
-  box-shadow: var(--shadow);
-  padding: 20px 22px;
+  border-radius: var(--r-widget);
+  box-shadow: var(--shadow-low);
+  padding: var(--s-4);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--s-3);
   min-width: 0;
 }
 .panel-head {
   display: flex;
   align-items: baseline;
-  gap: 12px;
+  gap: var(--s-2);
 }
 .panel-head h2 {
   margin: 0;
   flex-grow: 1;
-  font-size: 17px;
-  line-height: 22px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-.panel h3 {
-  margin: 8px 0 0;
-  font-size: 14px;
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
   font-weight: 600;
-}
-.panel > .link {
-  align-self: flex-start;
-}
-.panel .row .tx span {
-  white-space: normal;
-}
-.panel .row .tx b {
-  white-space: normal;
-}
-.row.qchange {
-  align-items: flex-start;
-}
-.row.qchange .link {
-  white-space: nowrap;
-}
-.row.qchange .change {
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
 }
 
-/* Standing question rows */
-.qrow {
-  display: grid;
-  grid-template-columns: 150px minmax(0, 1fr) auto;
-  gap: 16px;
-  align-items: start;
-  padding: 12px 0;
-  border-top: 1px solid var(--line);
+/* Monitor page head: 28px title over one quiet line. */
+.mon-head {
+  padding: var(--s-5) var(--s-6) 0;
+  margin-bottom: var(--s-5);
 }
-.qlabel {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  font-size: 14px;
-}
-.qanswer {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-.qanswer p {
+.mon-head h1 {
   margin: 0;
-  font-size: 14px;
-  line-height: 20px;
+  font-size: var(--fs-title);
+  line-height: var(--lh-title);
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
-.qstate {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-}
-.qrow.add {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Stage track, after the mock's topic stage widget. */
-.track {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-.track-line,
-.track-fill {
-  position: absolute;
-  left: 10%;
-  top: 17px;
-  height: 2px;
-  background: #e5e5ea;
-}
-.track-line {
-  right: 10%;
-}
-.track-fill {
-  background: var(--topic);
-}
-.stop {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 11px 0 6px;
-  border: 0;
-  border-radius: 12px;
-  background: transparent;
-}
-.stop:not(:disabled):hover {
-  background: var(--bg);
-}
-.stop:disabled {
-  cursor: default;
-}
-.knob {
-  width: 14px;
-  height: 14px;
-  box-sizing: border-box;
-  border-radius: 50%;
-  background: var(--surface);
-  border: 2px solid #d1d1d6;
-}
-.knob.on {
-  background: var(--topic);
-  border: 0;
-}
-.knob.current {
-  background: var(--surface);
-  border: 4px solid var(--topic);
-  box-shadow: 0 0 0 4px var(--topic-bg);
-}
-.stop-label {
-  font-size: 12px;
+.mon-head p {
+  margin: 2px 0 0;
   color: var(--ink2);
 }
-.stop[aria-pressed="true"] .stop-label {
-  font-weight: 700;
+.mon-head .subject-link:hover {
   color: var(--ink);
 }
 
-/* Links and actions */
-.linkgroup {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* Main panel (What changed, Standing questions, scope extras) and a sticky rail (Links, Actions). */
+.monitor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 296px;
+  gap: var(--s-4);
+  align-items: start;
+  padding: 0 var(--s-6) var(--s-7);
 }
-.linkgroup h3 {
+.monitor > .panel {
+  display: block;
+}
+.mon-rail {
+  position: sticky;
+  top: 80px;
+}
+:where(.monitor, .mon-head, .drawer, .cq, .cq-edit) .meta {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}
+:where(.monitor, .drawer, .cq) .link {
+  font-size: inherit;
+  font-weight: 500;
+}
+:where(.monitor, .drawer, .cq) .link:hover {
+  text-decoration: underline;
+}
+/* Text-link buttons and standalone links get a 44px hit area; links inside sentences do not. */
+:where(.monitor, .drawer, .cq) :is(button.link, .mon-sec > a.link) {
+  position: relative;
+}
+:where(.monitor, .drawer, .cq) :is(button.link, .mon-sec > a.link)::after {
+  content: "";
+  position: absolute;
+  inset: -13px -4px;
+}
+
+/* A ruled section: 15/600 header over a --line-strong rule, 32px between sections. */
+.mon-sec + .mon-sec {
+  margin-top: var(--s-6);
+}
+.mon-sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--line-strong);
+}
+.mon-sec-head h2 {
   margin: 0;
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  font-weight: 600;
+}
+.mon-sec-head .meta {
+  margin-left: auto;
+  text-align: right;
+}
+.mon-sec-head + .rows > .row:first-child {
+  border-top: 0;
+}
+.mon-lead {
+  margin: 0;
+  padding: var(--s-3) 0 var(--s-2);
+  font-weight: 600;
+}
+.mon-sub {
+  margin: 0;
+  padding: var(--s-4) 0 var(--s-1);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  font-weight: 500;
+  color: var(--ink2);
+}
+.mon-more {
+  margin: var(--s-2) 0 0;
+}
+.mon-empty {
+  margin: 0;
+  padding: var(--s-3) 0 0;
+  color: var(--ink2);
+}
+
+/* Standing question rows: state in the status column, then label, question, answer and meta. */
+.row.qrow {
+  grid-template-columns: var(--stat) minmax(0, 1fr);
+}
+.qlabel {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  flex-wrap: wrap;
+  gap: var(--s-2);
 }
-a.tag:hover {
-  text-decoration: underline;
-  text-underline-offset: 2px;
+.qlabel b {
+  font-weight: 500;
+}
+.qquestion {
+  margin: 2px 0 0;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}
+.qanswer p {
+  margin: var(--s-1) 0 0;
+  max-width: 70ch;
+}
+.qmeta {
+  margin: var(--s-1) 0 0;
+}
+/* Positioned so its screen-reader-only " to " stays inside the scrolling page. */
+.state-change {
+  position: relative;
+}
+.arr {
+  padding: 0 2px;
+  color: var(--ink2);
+}
+.row.qrow.compose {
+  padding: var(--s-3) 0;
+}
+.add-question {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.add-question .add-q {
+  margin-left: calc(-1 * var(--s-2));
+  padding: 0 var(--s-2);
+  color: var(--accent);
+}
+
+/* Topic stage track: a full-width segmented control with a count on each stage. */
+.stage-seg {
+  display: flex;
+  margin-top: var(--s-3);
+}
+.stage-seg button {
+  flex: 1;
+  justify-content: center;
+}
+.stage-seg button:disabled {
+  color: var(--ink3);
+  cursor: default;
+}
+.stage-count {
+  color: var(--ink3);
+  font-variant-numeric: tabular-nums;
+}
+.stage-seg button[aria-pressed="true"] .stage-count {
+  color: var(--ink2);
+}
+.row .stat.date {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Links: a two-column list of subject names by type. */
+.mon-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin: 0;
+  padding: var(--s-3) 0;
+}
+.mon-links > div {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: var(--s-3);
+}
+.mon-links dt {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-body);
+  font-weight: 500;
+  color: var(--ink2);
+}
+.mon-links dd {
+  margin: 0;
+}
+
+/* Actions and notes */
+.mon-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding-top: var(--s-3);
 }
 .review {
   display: flex;
   align-items: center;
-  gap: 12px;
   flex-wrap: wrap;
+  gap: var(--s-1) var(--s-3);
 }
 .notes {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--s-2);
 }
 .note-form {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
-}
-.note-form textarea {
-  box-sizing: border-box;
-  width: 100%;
-  resize: vertical;
-  min-height: 60px;
-  padding: 10px 12px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--field2);
-  font: inherit;
-  font-size: 14px;
-  line-height: 20px;
+  gap: var(--s-2);
 }
 .note {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 2px 12px;
-  padding: 10px 0 0;
+  column-gap: var(--s-2);
+  padding-top: var(--s-2);
   border-top: 1px solid var(--line);
 }
 .note p {
   margin: 0;
-  font-size: 14px;
-  line-height: 20px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.note p,
-.note .cap {
+.note-meta {
   grid-column: 1;
+  margin-top: 2px;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
 }
-.note .icon-btn {
+.note .btn-icon {
   grid-column: 2;
   grid-row: 1 / span 2;
-  margin: 0;
+  margin: -5px 0 0;
 }
 
-/* Evidence drawer content */
-.drawer-body h4 {
-  color: var(--ink);
-  font-size: 14px;
+/* Evidence drawer. The shell rules live in sheet.css; these bring it to the square, attached
+   drawer under the 56px top bar and should be merged back there. */
+.drawer {
+  top: 56px;
+  border-left: 1px solid var(--line-strong);
+  border-radius: 0;
+  box-shadow: var(--shadow-pop);
 }
-.drawer-body .question {
-  margin: -10px 0 0;
+.drawer .sheet-head {
+  padding: 0 var(--s-3) 0 20px;
 }
-.drawer-body .prev {
+.drawer .sheet-head h2 {
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+}
+.drawer-body {
+  display: block;
+  padding: var(--s-4) 20px var(--s-6);
+}
+.drawer-body p {
   margin: 0;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: var(--bg);
-  font-size: 13px;
-  line-height: 19px;
 }
-.ev-section {
+.ev-context {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  gap: var(--s-2);
+}
+.drawer-body h3.ev-answer {
+  margin: var(--s-1) 0;
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.drawer-body .ev-state {
+  margin-top: var(--s-3);
+}
+.drawer-body h4.ev-label {
+  margin: 0;
+  padding: var(--s-5) 0 var(--s-2);
+  border-bottom: 1px solid var(--line-strong);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  font-weight: 500;
+  color: var(--ink2);
+}
+.drawer-body .ev-empty {
+  margin-top: var(--s-3);
+  color: var(--ink2);
 }
 .ev-dev {
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--line);
+}
+.ev-facts {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
+  align-items: center;
+  gap: var(--s-2);
 }
 .ev-title {
-  color: var(--ink);
-  font-size: 15px;
-  line-height: 21px;
+  margin: var(--s-2) 0 0;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
   font-weight: 600;
 }
-.ev-title:hover {
-  color: var(--accent);
+.ev-title a {
+  color: var(--ink);
 }
-.confidence {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.ev-title a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--line-field);
 }
-.conf-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+.drawer-body .ev-conf {
+  margin-top: var(--s-1);
 }
-.finding {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+
+/* Sources: ruled blocks, indented under a development; only the quoted span is tinted. */
+.drawer .source {
+  display: block;
+  margin-top: var(--s-3);
+  padding: var(--s-3) 0 0 var(--s-3);
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+}
+.drawer-body > .source {
+  padding-left: 0;
+}
+.drawer-body > .ev-label + .source {
+  margin-top: 0;
+  border-top: 0;
+}
+.drawer .source a {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: 500;
+}
+.drawer .source a:hover {
+  text-decoration: underline;
+}
+.drawer .source .meta {
+  margin-top: 2px;
 }
 .finding p {
-  margin: 0;
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 600;
+  margin: 6px 0 0;
+  font-weight: 500;
+  max-width: 70ch;
+}
+.drawer .source blockquote {
+  margin: 6px 0 0;
+  max-width: 70ch;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+.drawer .source mark {
+  padding: 0 1px;
+  border-radius: var(--r-badge);
+  background: var(--mark);
+  color: inherit;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.drawer-body > .notes {
+  margin-top: var(--s-3);
 }

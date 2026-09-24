@@ -2,35 +2,41 @@
 
 // Graph view around one subject: opens at 1 hop, expands to 2, with filters for node type, link
 // type and time window. Clicking a subject node opens its monitor page; clicking a development
-// opens its evidence over the graph. The side list shows the same nodes as links.
+// opens its evidence over the graph. The In view list shows the same nodes as links.
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useGraph, type GraphQuery } from "@/lib/api/queries";
-import { plural, TYPE_LABEL } from "@/lib/format";
+import { plural } from "@/lib/format";
 import { monitorHref } from "@/lib/widgets";
 import { useEvidenceHref } from "@/components/shell/Evidence";
+import { ChevronIcon } from "@/components/ui/icons";
 
-import { GraphCanvas, NODE_COLOR } from "./GraphCanvas";
+import { GraphCanvas } from "./GraphCanvas";
 
 type GraphNode = Schema<"GraphNode">;
 type NodeType = GraphNode["type"];
 type LinkType = Schema<"GraphEdge">["type"];
 
-const NODE_TYPES: { type: NodeType; label: string }[] = [
-  { type: "topic", label: "Topics" },
-  { type: "group", label: "Groups" },
-  { type: "entity", label: "Entities" },
-  { type: "development", label: "Developments" },
+const NODE_TYPES: { value: NodeType; label: string }[] = [
+  { value: "topic", label: "Topics" },
+  { value: "group", label: "Groups" },
+  { value: "entity", label: "Entities" },
+  { value: "development", label: "Developments" },
 ];
-const LINK_TYPES: { type: LinkType; label: string }[] = [
-  { type: "MEMBER_OF", label: "Member of" },
-  { type: "EXPOSED_TO", label: "Exposed to" },
-  { type: "AFFECTS", label: "Affects" },
+const LINK_TYPES: { value: LinkType; label: string }[] = [
+  { value: "MEMBER_OF", label: "Member of" },
+  { value: "EXPOSED_TO", label: "Exposed to" },
+  { value: "AFFECTS", label: "Affects" },
 ];
-const WINDOWS = [7, 14, 30] as const;
+const WINDOWS: { days: number | null; label: string }[] = [
+  { days: null, label: "All time" },
+  { days: 7, label: "7 days" },
+  { days: 14, label: "14 days" },
+  { days: 30, label: "30 days" },
+];
 
 const DEV_PREFIX = "dev:";
 
@@ -44,8 +50,8 @@ export function GraphView({ id }: { id: string }) {
   const router = useRouter();
   const evidence = useEvidenceHref();
   const [hops, setHops] = useState<1 | 2>(1);
-  const [nodeTypes, setNodeTypes] = useState<NodeType[]>(NODE_TYPES.map((t) => t.type));
-  const [linkTypes, setLinkTypes] = useState<LinkType[]>(LINK_TYPES.map((t) => t.type));
+  const [nodeTypes, setNodeTypes] = useState<NodeType[]>(NODE_TYPES.map((t) => t.value));
+  const [linkTypes, setLinkTypes] = useState<LinkType[]>(LINK_TYPES.map((t) => t.value));
   const [windowDays, setWindowDays] = useState<number | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
 
@@ -69,7 +75,6 @@ export function GraphView({ id }: { id: string }) {
   if (graph.isError) return <p className="page-message">This graph could not be loaded.</p>;
   if (!g) return null;
   const center = g.nodes.find((n) => n.id === g.center);
-  const newCount = g.nodes.filter((n) => n.has_new && n.id !== g.center).length;
 
   return (
     <>
@@ -93,80 +98,151 @@ export function GraphView({ id }: { id: string }) {
               </button>
             ))}
           </div>
-          <div className="filter" role="group" aria-label="Node types">
-            {NODE_TYPES.map(({ type, label }) => (
-              <button
-                key={type}
-                type="button"
-                className="fchip"
-                aria-pressed={nodeTypes.includes(type)}
-                onClick={() => setNodeTypes((list) => toggle(list, type))}
-              >
-                <span className="dot" style={{ background: NODE_COLOR[type] }} />
-                {label}
-              </button>
-            ))}
-          </div>
-          <div className="filter" role="group" aria-label="Link types">
-            {LINK_TYPES.map(({ type, label }) => (
-              <button
-                key={type}
-                type="button"
-                className="fchip"
-                aria-pressed={linkTypes.includes(type)}
-                onClick={() => setLinkTypes((list) => toggle(list, type))}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <label className="window">
-            <span className="cap">Developments from</span>
-            <select
-              value={windowDays ?? ""}
-              onChange={(e) => setWindowDays(e.target.value ? Number(e.target.value) : null)}
-            >
-              <option value="">All time</option>
-              {WINDOWS.map((d) => (
-                <option key={d} value={d}>
-                  Last {d} days
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <div className="graph-main">
-          <section className="panel graph-panel" aria-label="Graph">
-            <GraphCanvas data={g} hovered={hovered} onHover={setHovered} onOpen={open} />
-            <p className="graph-legend cap">
-              <span className="ring" aria-hidden="true" /> New or updated this run
-              {g.truncated_developments > 0 && (
-                <span> · {plural(g.truncated_developments, "lower-priority development")} not shown</span>
-              )}
-            </p>
-          </section>
-          <NodeList
-            nodes={g.nodes.filter((n) => n.id !== g.center)}
-            newCount={newCount}
-            hrefOf={hrefOf}
-            onHover={setHovered}
+          <FilterMenu
+            name="Nodes"
+            options={NODE_TYPES}
+            selected={nodeTypes}
+            onToggle={(t) => setNodeTypes((list) => toggle(list, t))}
+            dot
           />
+          <FilterMenu
+            name="Links"
+            options={LINK_TYPES}
+            selected={linkTypes}
+            onToggle={(t) => setLinkTypes((list) => toggle(list, t))}
+          />
+          <div className="seg" role="group" aria-label="Developments from">
+            {WINDOWS.map(({ days, label }) => (
+              <button key={label} type="button" aria-pressed={windowDays === days} onClick={() => setWindowDays(days)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="graph-region">
+          <GraphCanvas data={g} hovered={hovered} onHover={setHovered} onOpen={open}>
+            <ul className="graph-legend" aria-label="Legend">
+              {NODE_TYPES.filter((t) => nodeTypes.includes(t.value)).map((t) => (
+                <li key={t.value}>
+                  <span className={`gdot ${t.value}`} aria-hidden="true" />
+                  {t.label}
+                </li>
+              ))}
+              <li>
+                <span className="gdot ring" aria-hidden="true" />
+                New or updated this run
+              </li>
+              {g.truncated_developments > 0 && (
+                <li>{plural(g.truncated_developments, "lower-priority development")} not shown</li>
+              )}
+            </ul>
+          </GraphCanvas>
+          <NodeList nodes={g.nodes.filter((n) => n.id !== g.center)} hrefOf={hrefOf} onHover={setHovered} />
         </div>
       </div>
     </>
   );
 }
 
-const ORDER: Record<NodeType, number> = { topic: 0, group: 1, entity: 2, development: 3 };
+/** A bordered select-style button ("Nodes: All") opening a checklist; closes on Escape or outside click. */
+function FilterMenu<T extends string>({
+  name,
+  options,
+  selected,
+  onToggle,
+  dot = false,
+}: {
+  name: string;
+  options: { value: T; label: string }[];
+  selected: T[];
+  onToggle: (value: T) => void;
+  /** Show each option's graph color dot (node types). */
+  dot?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrap = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
 
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (e: PointerEvent) => {
+      if (e.target instanceof Node && !wrap.current?.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      setOpen(false);
+      button.current?.focus();
+    };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey, true);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey, true);
+    };
+  }, [open]);
+
+  const chosen = options.filter((o) => selected.includes(o.value));
+  const summary =
+    chosen.length === options.length
+      ? "All"
+      : chosen.length <= 2
+        ? chosen.map((o) => o.label).join(", ")
+        : `${chosen.length} of ${options.length}`;
+
+  return (
+    <div className="gmenu" ref={wrap}>
+      <button
+        ref={button}
+        type="button"
+        className="gsel"
+        aria-expanded={open}
+        aria-controls={menuId}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span className="gsel-name">{name}:</span> {summary}
+        <ChevronIcon />
+      </button>
+      {open && (
+        <div className="gmenu-pop" id={menuId} role="group" aria-label={`${name} shown`}>
+          {options.map((o) => {
+            const on = selected.includes(o.value);
+            return (
+              <label key={o.value} className="gmenu-item">
+                <input
+                  type="checkbox"
+                  checked={on}
+                  disabled={on && selected.length === 1}
+                  onChange={() => onToggle(o.value)}
+                />
+                {dot && <span className={`gdot ${o.value}`} aria-hidden="true" />}
+                {o.label}
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const ORDER: Record<NodeType, number> = { topic: 0, group: 1, entity: 2, development: 3 };
+const GROUP_LABEL: Record<NodeType, string> = {
+  topic: "Topics",
+  group: "Groups",
+  entity: "Entities",
+  development: "Developments",
+};
+
+/** The In view list: nodes grouped by hop then type, in the shared row grammar. No date column: at
+ *  360px it would squeeze titles below 150px. */
 function NodeList({
   nodes,
-  newCount,
   hrefOf,
   onHover,
 }: {
   nodes: GraphNode[];
-  newCount: number;
   hrefOf: (id: string) => string;
   onHover: (id: string | null) => void;
 }) {
@@ -174,46 +250,54 @@ function NodeList({
     (a, b) =>
       a.hop - b.hop ||
       ORDER[a.type] - ORDER[b.type] ||
-      Number(b.has_new) - Number(a.has_new) ||
       Number(b.needs_attention) - Number(a.needs_attention) ||
+      Number(b.has_new) - Number(a.has_new) ||
       a.label.localeCompare(b.label),
   );
+  const newCount = nodes.filter((n) => n.has_new).length;
+  const groupSize = (n: GraphNode) => nodes.filter((m) => m.hop === n.hop && m.type === n.type).length;
   return (
-    <section className="panel graph-list" aria-labelledby="in-view">
-      <div className="panel-head">
+    <section className="graph-list" aria-labelledby="in-view">
+      <div className="graph-list-head">
         <h2 id="in-view">In view</h2>
-        <span className="cap">
+        <span className="row-end">
           {plural(nodes.length, "node")}, {newCount} new
         </span>
       </div>
-      <div className="rows scroll" data-testid="graph-nodes">
-        {sorted.map((n) => (
-          <Link
-            key={n.id}
-            href={hrefOf(n.id)}
-            scroll={false}
-            className="row"
-            data-node={n.id}
-            onMouseEnter={() => onHover(n.id)}
-            onMouseLeave={() => onHover(null)}
-            onFocus={() => onHover(n.id)}
-            onBlur={() => onHover(null)}
-          >
-            <span className="dot" style={{ background: NODE_COLOR[n.type] }} />
-            <span className="tx">
-              <b title={n.label}>{n.label}</b>
-              <span>
-                {n.type === "development" ? "Development" : TYPE_LABEL[n.type]}, {plural(n.hop, "hop")}
-              </span>
-            </span>
-            {(n.needs_attention || n.has_new) && (
-              <span className="badges">
-                {n.has_new && <span className="badge b-new">New</span>}
-                {n.needs_attention && <span className="badge b-attn">Needs attention</span>}
-              </span>
-            )}
-          </Link>
-        ))}
+      <div className="graph-list-body" data-testid="graph-nodes">
+        {sorted.map((n, i) => {
+          const prev = sorted[i - 1];
+          const startsGroup = !prev || prev.hop !== n.hop || prev.type !== n.type;
+          return (
+            <Fragment key={n.id}>
+              {startsGroup && (
+                <h3 className="graph-group">
+                  <span className={`gdot ${n.type}`} aria-hidden="true" />
+                  {GROUP_LABEL[n.type]}, {plural(n.hop, "hop")}
+                  <span className="count">{groupSize(n)}</span>
+                </h3>
+              )}
+              <Link
+                href={hrefOf(n.id)}
+                scroll={false}
+                className="row"
+                data-node={n.id}
+                onMouseEnter={() => onHover(n.id)}
+                onMouseLeave={() => onHover(null)}
+                onFocus={() => onHover(n.id)}
+                onBlur={() => onHover(null)}
+              >
+                <span className="stat">
+                  {n.needs_attention && <span className="badge b-attn">Needs attention</span>}
+                  {n.has_new && <span className="badge b-new">New</span>}
+                </span>
+                <span className="row-title" title={n.label}>
+                  {n.label}
+                </span>
+              </Link>
+            </Fragment>
+          );
+        })}
       </div>
     </section>
   );

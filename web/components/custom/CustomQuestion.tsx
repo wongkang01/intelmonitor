@@ -15,10 +15,12 @@ import {
   useKeepCustomQuestion,
   type CustomQuestion,
 } from "@/lib/api/queries";
-import { plural, shortDate, STATE_LABEL } from "@/lib/format";
+import { plural, shortDate } from "@/lib/format";
 import { CloseButton, Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
-import { DevelopmentRow, StateBadge } from "@/components/widgets/parts";
+import { Dotted, StateChange } from "@/components/monitor/parts";
+import { DevRow } from "@/components/monitor/rows";
+import { StateBadge } from "@/components/widgets/parts";
 
 const MIN_LENGTH = 5;
 
@@ -46,12 +48,12 @@ export function CustomQuestionComposer({
   if (slots.data && slots.data.left === 0 && !preview) {
     return (
       <div className="cq">
-        <p className="muted" role="status">
+        <p className="cq-note" role="status">
           You have {slots.data.limit} custom questions, the most allowed. Delete one to add another.
         </p>
         {onCancel && (
           <div className="cq-actions">
-            <button type="button" className="btn sm" onClick={onCancel}>
+            <button type="button" className="btn btn-sm" onClick={onCancel}>
               Close
             </button>
           </div>
@@ -65,14 +67,14 @@ export function CustomQuestionComposer({
       <div className="cq" aria-label="Custom question preview" role="group">
         <Preview question={preview} linkCitations={linkCitations} />
         {(keep.isError || discard.isError) && (
-          <p className="muted" role="alert">
+          <p className="cq-note" role="alert">
             {errorMessage(keep.error ?? discard.error, "Something went wrong. Try again.")}
           </p>
         )}
         <div className="cq-actions">
           <button
             type="button"
-            className="btn sm"
+            className="btn btn-sm"
             disabled={discard.isPending || keep.isPending}
             onClick={() => discard.mutate(preview.id, { onSuccess: () => setPreview(null) })}
           >
@@ -80,7 +82,7 @@ export function CustomQuestionComposer({
           </button>
           <button
             type="button"
-            className="btn sm primary"
+            className="btn btn-sm"
             disabled={discard.isPending || keep.isPending}
             onClick={() =>
               keep.mutate(preview.id, {
@@ -110,6 +112,7 @@ export function CustomQuestionComposer({
       <label className="form-field">
         Your question about {subject.name}
         <textarea
+          className="input"
           value={text}
           rows={2}
           maxLength={500}
@@ -123,23 +126,23 @@ export function CustomQuestionComposer({
         />
       </label>
       {draft.isPending && (
-        <p className="muted" role="status">
+        <p className="cq-note" role="status">
           Drafting the question and answering it for both runs. This can take a minute.
         </p>
       )}
       {draft.isError && (
-        <p className="muted" role="alert">
+        <p className="cq-note" role="alert">
           {errorMessage(draft.error, "Could not draft the question. Try again.")}
         </p>
       )}
       <div className="cq-actions">
-        {slots.data && <span className="cap grow">{plural(slots.data.left, "custom question")} left</span>}
+        {slots.data && <span className="meta grow">{plural(slots.data.left, "custom question")} left</span>}
         {onCancel && (
-          <button type="button" className="btn sm" onClick={onCancel} disabled={draft.isPending}>
+          <button type="button" className="btn btn-sm" onClick={onCancel} disabled={draft.isPending}>
             Cancel
           </button>
         )}
-        <button type="submit" className="btn sm primary" disabled={text.trim().length < MIN_LENGTH || draft.isPending}>
+        <button type="submit" className="btn btn-sm" disabled={text.trim().length < MIN_LENGTH || draft.isPending}>
           Draft question
         </button>
       </div>
@@ -162,18 +165,24 @@ function Preview({ question: q, linkCitations }: { question: CustomQuestion; lin
         <dt>Lookback</dt>
         <dd>{plural(q.lookback_days, "day")}</dd>
       </dl>
-      <div className="cq-runs">
+      <div className="rows cq-runs">
         {runs.map((r, i) => {
           const before = runs[i + 1];
           return (
-            <div key={r.run.id} className="cq-run">
-              <span className="cap">Run of {shortDate(r.run.as_of)}</span>
-              <p>{r.summary}</p>
-              <span className="cq-state">
+            <div key={r.run.id} className="row cq-run">
+              <span className="stat">
                 <StateBadge state={r.state} newCount={r.state === "new" ? r.development_ids.length : 0} />
-                {before && before.state !== r.state && (
-                  <span className="badge b-new">Changed from {STATE_LABEL[before.state]}</span>
-                )}
+              </span>
+              <span>
+                <span className="row-title">{r.summary}</span>
+                <span className="row-meta">
+                  <Dotted
+                    parts={[
+                      `Run of ${shortDate(r.run.as_of)}`,
+                      before && before.state !== r.state && <StateChange key="s" state={r.state} from={before.state} />,
+                    ]}
+                  />
+                </span>
               </span>
             </div>
           );
@@ -181,26 +190,15 @@ function Preview({ question: q, linkCitations }: { question: CustomQuestion; lin
       </div>
       {q.evidence.length > 0 ? (
         <div className="cq-cites">
-          <span className="cap">Cites {plural(q.evidence.length, "development")}</span>
+          <h4 className="cq-label">Cites {plural(q.evidence.length, "development")}</h4>
           <div className="rows">
-            {q.evidence.map((d) =>
-              linkCitations ? (
-                <DevelopmentRow key={d.id} development={d} />
-              ) : (
-                <div key={d.id} className="row">
-                  <span className="tx">
-                    <b>{d.title}</b>
-                    <span>
-                      {d.category}, {plural(d.source_count, "source")}
-                    </span>
-                  </span>
-                </div>
-              ),
-            )}
+            {q.evidence.map((d) => (
+              <DevRow key={d.id} development={d} link={linkCitations} />
+            ))}
           </div>
         </div>
       ) : (
-        <p className="muted">No sources in the latest run.</p>
+        <p className="cq-note">No sources in the latest run.</p>
       )}
     </>
   );
@@ -215,7 +213,7 @@ export function CustomQuestionEditor({ questionId, onClose }: { questionId: stri
         <h2 id="cq-edit-title">Edit custom question</h2>
         <CloseButton onClick={onClose} />
       </div>
-      {question.isError && <p className="panel-body muted">This question could not be loaded.</p>}
+      {question.isError && <p className="panel-body cq-note">This question could not be loaded.</p>}
       {question.data && <EditForm key={question.data.id} question={question.data} onClose={onClose} />}
     </Modal>
   );
@@ -249,32 +247,32 @@ function EditForm({ question: q, onClose }: { question: CustomQuestion; onClose:
   };
 
   return (
-    <form onSubmit={submit}>
+    <form onSubmit={submit} className="cq-edit">
       <div className="panel-body">
-        <span className="cap">
+        <span className="meta">
           {q.subject.name}. You asked: “{q.request}”
         </span>
         <label className="form-field">
           Question
-          <textarea value={wording} rows={3} maxLength={500} onChange={(e) => setWording(e.target.value)} autoFocus />
+          <textarea className="input" value={wording} rows={3} maxLength={500} onChange={(e) => setWording(e.target.value)} autoFocus />
         </label>
         <div className="cq-row">
           <label className="form-field grow">
             Label
-            <input value={label} maxLength={40} onChange={(e) => setLabel(e.target.value)} />
+            <input className="input" value={label} maxLength={40} onChange={(e) => setLabel(e.target.value)} />
           </label>
           <label className="form-field">
             Lookback in days
-            <input type="number" min={1} max={60} value={lookback} onChange={(e) => setLookback(e.target.value)} />
+            <input className="input" type="number" min={1} max={60} value={lookback} onChange={(e) => setLookback(e.target.value)} />
           </label>
         </div>
         {edit.isPending && reanswers && (
-          <p className="muted" role="status">
+          <p className="cq-note" role="status">
             Answering again for both runs. This can take a minute.
           </p>
         )}
         {(edit.isError || remove.isError) && (
-          <p className="muted" role="alert">
+          <p className="cq-note" role="alert">
             {errorMessage(edit.error ?? remove.error, "Could not save. Try again.")}
           </p>
         )}
@@ -282,13 +280,13 @@ function EditForm({ question: q, onClose }: { question: CustomQuestion; onClose:
       <div className="panel-foot">
         {confirming ? (
           <>
-            <span className="cap grow">Delete this question and every widget that shows it?</span>
+            <span className="meta grow">Delete this question and every widget that shows it?</span>
             <button type="button" className="btn" onClick={() => setConfirming(false)} disabled={busy}>
               Keep it
             </button>
             <button
               type="button"
-              className="btn danger"
+              className="btn btn-danger"
               disabled={busy}
               onClick={() =>
                 remove.mutate(q.id, {
@@ -304,14 +302,14 @@ function EditForm({ question: q, onClose }: { question: CustomQuestion; onClose:
           </>
         ) : (
           <>
-            <button type="button" className="btn danger" onClick={() => setConfirming(true)} disabled={busy}>
+            <button type="button" className="btn btn-danger" onClick={() => setConfirming(true)} disabled={busy}>
               Delete question
             </button>
             <span className="grow" />
             <button type="button" className="btn" onClick={onClose} disabled={busy}>
               Cancel
             </button>
-            <button type="submit" className="btn primary" disabled={!valid || busy}>
+            <button type="submit" className="btn btn-primary" disabled={!valid || busy}>
               Save
             </button>
           </>

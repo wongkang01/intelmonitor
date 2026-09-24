@@ -32,8 +32,9 @@ export function Notes({ target, notes }: { target: NoteTarget; notes: Schema<"No
     <div className="notes">
       <form onSubmit={submit} className="note-form">
         <textarea
+          className="input"
           aria-label="Note"
-          placeholder="Add a note for whoever reads this next"
+          placeholder="Add a note"
           value={text}
           rows={2}
           onChange={(e) => setText(e.target.value)}
@@ -41,17 +42,17 @@ export function Notes({ target, notes }: { target: NoteTarget; notes: Schema<"No
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit(e);
           }}
         />
-        <button type="submit" className="btn sm" disabled={!text.trim() || add.isPending}>
+        <button type="submit" className="btn btn-sm" disabled={!text.trim() || add.isPending}>
           Add note
         </button>
       </form>
       {notes.map((n) => (
         <div key={n.id} className="note">
           <p>{n.text}</p>
-          <span className="cap">{dateTime(n.created_at)}</span>
+          <span className="note-meta">{dateTime(n.created_at)}</span>
           <button
             type="button"
-            className="icon-btn"
+            className="btn-icon"
             aria-label="Delete note"
             disabled={remove.isPending}
             onClick={() => remove.mutate(n.id, { onError: () => toast({ message: "Could not delete the note" }) })}

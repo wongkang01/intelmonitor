@@ -1,7 +1,7 @@
 "use client";
 
 // The profile menu's dialogs: Settings, Data sources, Run history and Keyboard shortcuts.
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import {
@@ -26,7 +26,8 @@ function Panel({ id, title, onClose, open, children }: DialogProps & { id: strin
         <h2 id={id}>{title}</h2>
         <CloseButton onClick={onClose} />
       </div>
-      {children}
+      {/* `.pdlg` scopes these dialogs' field, table and key styles in styles/shell.css. */}
+      <div className="pdlg">{children}</div>
     </Modal>
   );
 }
@@ -45,6 +46,14 @@ function SettingsForm({ profile, onClose }: { profile: Schema<"Profile">; onClos
   const save = useSaveProfile();
   const [name, setName] = useState(profile.display_name);
   const [dashboardId, setDashboardId] = useState(profile.default_dashboard_id ?? "");
+  const first = useRef<HTMLInputElement>(null);
+
+  // The form mounts before the dialog opens, when nothing in it can take focus; focus the first field
+  // on the next frame instead of letting the dialog focus its close button.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => first.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -59,11 +68,17 @@ function SettingsForm({ profile, onClose }: { profile: Schema<"Profile">; onClos
       <div className="panel-body">
         <label className="form-field">
           Display name
-          <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" autoFocus />
+          <input
+            ref={first}
+            className="input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="name"
+          />
         </label>
         <label className="form-field">
           Default dashboard
-          <select value={dashboardId} onChange={(e) => setDashboardId(e.target.value)}>
+          <select className="input" value={dashboardId} onChange={(e) => setDashboardId(e.target.value)}>
             <option value="">First in the sidebar</option>
             {dashboards.data?.map((d) => (
               <option key={d.id} value={d.id}>
@@ -72,13 +87,13 @@ function SettingsForm({ profile, onClose }: { profile: Schema<"Profile">; onClos
             ))}
           </select>
         </label>
-        {save.isError && <p className="muted">Could not save. Try again.</p>}
+        {save.isError && <p className="cap">Could not save. Try again.</p>}
       </div>
       <div className="panel-foot">
         <button type="button" className="btn" onClick={onClose}>
           Cancel
         </button>
-        <button type="submit" className="btn primary" disabled={save.isPending}>
+        <button type="submit" className="btn btn-primary" disabled={save.isPending}>
           Save
         </button>
       </div>
@@ -94,7 +109,7 @@ export function DataSourcesDialog(props: DialogProps) {
       <div className="panel-body">
         {data && (
           <>
-            <p className="muted" style={{ margin: 0 }}>
+            <p className="cap">
               {data.total_documents} documents
               {data.t0 ? `, 60 days to ${longDate(data.t0)}` : ""}
             </p>
@@ -124,7 +139,7 @@ export function DataSourcesDialog(props: DialogProps) {
             </table>
           </>
         )}
-        {sources.isError && <p className="muted">Could not load data sources.</p>}
+        {sources.isError && <p className="cap">Could not load data sources.</p>}
       </div>
     </Panel>
   );
@@ -141,6 +156,7 @@ export function RunHistoryDialog(props: DialogProps) {
               <tr>
                 <th>As of</th>
                 <th>Finished</th>
+                <th>How</th>
                 <th className="num">Documents</th>
                 <th className="num">Developments</th>
                 <th className="num">Duration</th>
@@ -148,9 +164,10 @@ export function RunHistoryDialog(props: DialogProps) {
             </thead>
             <tbody>
               {runs.data.map((r) => (
-                <tr key={r.id}>
-                  <td>{longDate(r.as_of)}</td>
+                <tr key={r.execution_id}>
+                  <td>{shortDate(r.as_of)}</td>
                   <td>{r.finished_at ? dateTime(r.finished_at) : r.status}</td>
+                  <td>{r.how}</td>
                   <td className="num">{r.documents}</td>
                   <td className="num">{r.developments}</td>
                   <td className="num">
@@ -161,7 +178,7 @@ export function RunHistoryDialog(props: DialogProps) {
             </tbody>
           </table>
         )}
-        {runs.isError && <p className="muted">Could not load runs.</p>}
+        {runs.isError && <p className="cap">Could not load runs.</p>}
       </div>
     </Panel>
   );
@@ -185,7 +202,7 @@ export function ShortcutsDialog(props: DialogProps) {
             <div key={what} style={{ display: "contents" }}>
               <dt>
                 {combo.map((k) => (
-                  <kbd key={k} style={{ marginRight: 4 }}>
+                  <kbd key={k} className="kbd">
                     {k}
                   </kbd>
                 ))}

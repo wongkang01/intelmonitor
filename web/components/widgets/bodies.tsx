@@ -1,26 +1,19 @@
 "use client";
 
-// The seven widget bodies. Each renders one widget's data from the API at its size.
+// The seven widget bodies. Each renders one widget's data from the API at its size, inside a
+// fixed-height face, so each size shows only as many rows as fit without cutting a line.
 import Link from "next/link";
 import { useState, type KeyboardEvent } from "react";
 
 import type { Schema, Widget, WidgetData } from "@/lib/api/client";
 import { useMarkReviewed, useSubjects, type DataOf } from "@/lib/api/queries";
-import {
-  dateTime,
-  daysBetween,
-  inDays,
-  initials,
-  plural,
-  shortDate,
-  STATE_TONE,
-} from "@/lib/format";
+import { dateTime, daysBetween, inDays, plural, shortDate } from "@/lib/format";
 import { monitorHref, setEntities } from "@/lib/widgets";
 import { PlusIcon, XIcon } from "@/components/ui/icons";
 import { useEvidenceHref } from "@/components/shell/Evidence";
 import { SubjectLink } from "@/components/shell/SubjectLink";
 
-import { DevelopmentRow, Head, StateBadge, stateText } from "./parts";
+import { DevelopmentRow, Head, StateBadge, StateWords, stateText } from "./parts";
 
 export interface BodyProps {
   widget: Widget;
@@ -48,72 +41,116 @@ export function WidgetBody({ data, ...props }: BodyProps & { data: WidgetData })
   }
 }
 
+const needs = (n: number) => `${n} ${n === 1 ? "needs" : "need"} attention`;
+const lower = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
+
+/** "Run of 24 Sep against 17 Sep"; run ids are their as-of dates. */
+const runMeta = (run: Schema<"RunRef">) =>
+  run.previous_run_id
+    ? `Run of ${shortDate(run.as_of)} against ${shortDate(run.previous_run_id)}`
+    : `Run of ${shortDate(run.as_of)}`;
+
+/** Rows shown under the Needs attention label, then New fills up to NEW_UNTIL rows (Large only). */
+const SINCE_ROWS = { M: 1, L: 6 } as const;
+const NEW_UNTIL = 5;
+
 function SinceBody({ data, widget, href }: BodyProps & { data: DataOf<"since"> }) {
   const wc = data.what_changed;
   const review = useMarkReviewed();
-  const large = widget.size === "L";
-  const hero = `${wc.new_count} new, ${wc.needs_attention_count} ${wc.needs_attention_count === 1 ? "needs" : "need"} attention`;
+  const size = widget.size === "L" ? "L" : "M";
+  const hero =
+    [wc.new_count > 0 && `${wc.new_count} new`, wc.needs_attention_count > 0 && needs(wc.needs_attention_count)]
+      .filter(Boolean)
+      .join(", ") || (wc.updated_count > 0 ? `${wc.updated_count} updated` : "No new developments");
+  const attention = wc.developments.filter((d) => d.needs_attention);
+  const fresh = wc.developments.filter((d) => !d.needs_attention && d.change === "new");
+  const attentionShown = attention.slice(0, SINCE_ROWS[size]);
+  const room = size === "L" ? NEW_UNTIL - attentionShown.length : attentionShown.length ? 0 : 1;
+  const freshShown = fresh.slice(0, Math.max(0, room));
   const changes = [
     wc.updated_count ? `${wc.updated_count} updated` : null,
-    plural(wc.question_changes.length, "answer") + " changed",
+    `${plural(wc.question_changes.length, "answer")} changed`,
   ].filter(Boolean);
-  const meta = data.scope.length === 1 ? <SubjectLink subject={data.scope[0]} /> : `Run of ${shortDate(data.run.as_of)}`;
+  // Previews and edit mode have no href but keep the layout.
+  const showAll = href ? (
+    <Link href={href} className="link">
+      Show all
+    </Link>
+  ) : (
+    <span className="link">Show all</span>
+  );
   return (
     <>
-      <Head title="Since your last review" href={href} meta={meta} />
-      <p className={`hero one-line${large ? "" : " sm"}`} title={hero}>
-        {hero}
-      </p>
-      <div className="rows">
-        {wc.developments.slice(0, large ? 4 : 1).map((d) => (
-          <DevelopmentRow key={d.id} development={d} />
-        ))}
-      </div>
-      {large && (
+      <Head title="Since your last review" href={href} meta={runMeta(wc.run)} />
+      <p className="hero">{hero}</p>
+      {attentionShown.length > 0 && (
         <>
-          <span className="spacer" />
-          <div className="foot">
-            <button
-              type="button"
-              className="link"
-              disabled={review.isPending}
-              onClick={() => review.mutate(data.scope.map((s) => s.id))}
-            >
-              Mark all reviewed
-            </button>
-            <span className="cap">
-              {data.reviewed_at ? `Reviewed ${dateTime(data.reviewed_at)}` : changes.join(", ")}
-            </span>
+          <div className="gl c-attn">
+            <span className="dot" aria-hidden="true" />
+            Needs attention · {wc.needs_attention_count}
+            {showAll}
+          </div>
+          <div className="rows">
+            {attentionShown.map((d) => (
+              <DevelopmentRow key={d.id} development={d} meta={false} status={false} lines={1} />
+            ))}
           </div>
         </>
+      )}
+      {freshShown.length > 0 && (
+        <>
+          <div className="gl c-new">
+            <span className="dot" aria-hidden="true" />
+            New · {fresh.length}
+            {attentionShown.length === 0 && showAll}
+          </div>
+          <div className="rows">
+            {freshShown.map((d) => (
+              <DevelopmentRow key={d.id} development={d} meta={false} status={false} lines={1} />
+            ))}
+          </div>
+        </>
+      )}
+      {size === "L" && (
+        <div className="wf">
+          <button
+            type="button"
+            className="link"
+            disabled={review.isPending}
+            onClick={() => review.mutate(data.scope.map((s) => s.id))}
+          >
+            Mark all reviewed
+          </button>
+          <span className="w-meta">
+            {data.reviewed_at ? `Reviewed ${dateTime(data.reviewed_at)}` : changes.join(" · ")}
+          </span>
+        </div>
       )}
     </>
   );
 }
 
-function QuestionBody({ data, widget, href }: BodyProps & { data: DataOf<"question"> }) {
+function QuestionBody({ data, href }: BodyProps & { data: DataOf<"question"> }) {
   const a = data.answer;
   const evidence = useEvidenceHref();
-  const small = widget.size === "S";
   return (
     <>
-      <Head title={`${a.label} · ${data.subject.name}`} href={href}>
-        {a.custom && <span className="tag custom">Custom</span>}
+      <Head title={a.label} href={href} meta={<SubjectLink subject={data.subject} />}>
+        {a.custom && <span className="badge b-neutral">Custom</span>}
       </Head>
-      <span className={`big c-${STATE_TONE[a.state]}`} style={{ fontSize: small ? 18 : 22, lineHeight: small ? "22px" : "27px" }}>
-        {stateText(a)}
-      </span>
-      <p className="body-text summary" style={{ WebkitLineClamp: small ? 2 : 3 }}>
-        {a.summary}
+      <p className="ans">
+        <StateWords answer={a} />
       </p>
-      <span className="spacer" />
-      {a.development_ids.length > 0 ? (
-        <Link href={evidence.answer(data.subject.id, a.question_id)} className="link" scroll={false}>
-          See evidence
-        </Link>
-      ) : (
-        <span className="cap">No sources in the last {a.lookback_days} days</span>
-      )}
+      <p className="w-text summary">{a.summary}</p>
+      <div className="wf">
+        {a.development_ids.length > 0 ? (
+          <Link href={evidence.answer(data.subject.id, a.question_id)} className="link" scroll={false}>
+            See evidence
+          </Link>
+        ) : (
+          <span className="w-meta">No sources in the last {a.lookback_days} days</span>
+        )}
+      </div>
     </>
   );
 }
@@ -122,10 +159,9 @@ const SEVERITY = { needs_attention: 0, watch: 1, new: 2, stable: 3 } as const;
 
 function SummaryBody({ data, widget, href }: BodyProps & { data: DataOf<"summary"> }) {
   const evidence = useEvidenceHref();
-  const large = widget.size === "L";
-  // Most severe first; a medium widget shows the first six.
+  // Most severe first, two columns of 34px rows: three rows at Medium, nine at Large.
   const answers = [...data.answers].sort((x, y) => SEVERITY[x.state] - SEVERITY[y.state]);
-  const shown = large ? answers : answers.slice(0, 6);
+  const shown = answers.slice(0, widget.size === "L" ? 18 : 6);
   const hidden = answers.length - shown.length;
   return (
     <>
@@ -135,37 +171,34 @@ function SummaryBody({ data, widget, href }: BodyProps & { data: DataOf<"summary
         meta={
           <>
             <SubjectLink subject={data.subject} />
-            {hidden > 0 && `, ${hidden} more`}
+            {hidden > 0 && ` · ${hidden} more`}
           </>
         }
       />
-      <div className="qgrid">
+      <div className="qtable">
         {shown.map((a) => {
-          const tone = STATE_TONE[a.state];
-          const className = `q ${tone === "watch" || tone === "attn" ? tone : ""}`;
-          const cell = (
+          const cells = (
             <>
-              <span>{a.label}</span>
-              <b className={`c-${tone}`} title={stateText(a)}>
-                {stateText(a)}
-              </b>
-              {large && <p style={{ WebkitLineClamp: 2 }}>{a.summary}</p>}
+              <span className="ql">{a.label}</span>
+              <span className="qa">
+                <StateWords answer={a} />
+              </span>
             </>
           );
-          // Answers with sources open their evidence; the rest are plain cells.
+          // Answers with sources open their evidence; the rest are plain rows.
           return a.development_ids.length > 0 ? (
             <Link
               key={a.question_id}
               href={evidence.answer(data.subject.id, a.question_id)}
               scroll={false}
-              className={className}
+              className="qr"
               aria-label={`${a.label}: ${stateText(a)}. See evidence`}
             >
-              {cell}
+              {cells}
             </Link>
           ) : (
-            <div key={a.question_id} className={className}>
-              {cell}
+            <div key={a.question_id} className="qr">
+              {cells}
             </div>
           );
         })}
@@ -176,13 +209,13 @@ function SummaryBody({ data, widget, href }: BodyProps & { data: DataOf<"summary
 
 function DevelopmentsBody({ data, widget, href }: BodyProps & { data: DataOf<"developments"> }) {
   const count = widget.size === "L" ? 5 : 2;
-  const meta = data.scope.length === 1 ? data.scope[0].name : `${data.total} in scope`;
+  const meta = data.scope.length === 1 ? <SubjectLink subject={data.scope[0]} /> : `${data.total} in scope`;
   return (
     <>
       <Head title="Developments" href={href} meta={meta} />
       <div className="rows">
         {data.developments.slice(0, count).map((d) => (
-          <DevelopmentRow key={d.id} development={d} />
+          <DevelopmentRow key={d.id} development={d} meta={false} />
         ))}
         {data.developments.length === 0 && <p className="muted">No developments in scope.</p>}
       </div>
@@ -190,103 +223,97 @@ function DevelopmentsBody({ data, widget, href }: BodyProps & { data: DataOf<"de
   );
 }
 
-const TREND = {
-  rising: { word: "Rising", color: "var(--watch)" },
-  flat: { word: "Flat", color: "var(--ink3)" },
-  falling: { word: "Falling", color: "var(--stable)" },
-} as const;
+const TREND = { rising: "Rising", flat: "Flat", falling: "Falling" } as const;
+const SPARK = { width: 240, height: 40, pad: 3 };
 
 function DirectionBody({ data, widget, href }: BodyProps & { data: DataOf<"direction"> }) {
-  const small = widget.size === "S";
-  const trend = TREND[data.trend];
   const counts = data.weeks.map((w) => w.count);
-  const max = Math.max(1, ...counts);
-  const width = 200;
-  const height = 44;
-  const points = counts
-    .map((c, i) => `${((i * width) / (counts.length - 1)).toFixed(1)},${(3 + (1 - c / max) * (height - 6)).toFixed(1)}`)
-    .join(" ");
+  const max = Math.max(...counts);
+  const min = Math.min(...counts);
+  const step = SPARK.width / Math.max(1, counts.length - 1);
+  const points = counts.map(
+    (c, i) =>
+      [i * step, SPARK.pad + (1 - (c - min) / (max - min || 1)) * (SPARK.height - 2 * SPARK.pad)] as const,
+  );
+  const last = points.at(-1);
   const first = data.weeks[0];
   return (
     <>
       <Head title="Direction of travel" href={href} meta={<SubjectLink subject={data.subject} />} />
-      <span className="big">{trend.word}</span>
-      <svg
-        className="spark"
-        width="100%"
-        height={small ? 32 : 44}
-        viewBox={`0 0 ${width} ${height}`}
-        preserveAspectRatio="none"
-        role="img"
-        aria-label={`Material developments per week since ${first ? shortDate(first.week_start) : ""}: ${counts.join(", ")}`}
-      >
-        <polyline
-          points={points}
-          fill="none"
-          stroke={trend.color}
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
-      <span className="cap">
-        {small ? `${data.this_week} this week, ${data.previous_average} a week before` : data.caption}
+      <p className="ans">{TREND[data.trend]}</p>
+      {/* The latest week's dot sits outside the stretched SVG so it stays round. */}
+      <span className="spark">
+        <svg
+          viewBox={`0 0 ${SPARK.width} ${SPARK.height}`}
+          preserveAspectRatio="none"
+          role="img"
+          aria-label={`Material developments per week since ${first ? shortDate(first.week_start) : ""}: ${counts.join(", ")}`}
+        >
+          <polyline
+            points={points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ")}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+        {last && (
+          <span
+            className="spark-dot"
+            style={{ left: `${(last[0] / SPARK.width) * 100}%`, top: `${(last[1] / SPARK.height) * 100}%` }}
+          />
+        )}
       </span>
+      <p className="w-meta">
+        {widget.size === "S" ? `${data.this_week} this week, ${data.previous_average} a week before` : data.caption}
+      </p>
     </>
   );
 }
 
-function UpcomingBody({ data, widget, href }: BodyProps & { data: DataOf<"upcoming"> }) {
+function UpcomingBody({ data, href }: BodyProps & { data: DataOf<"upcoming"> }) {
   const evidence = useEvidenceHref();
   const asOf = data.run.as_of;
-  const [next] = data.items;
+  const [next, then] = data.items;
+  const head = (
+    <Head
+      title="Upcoming"
+      href={href}
+      meta={
+        <>
+          <SubjectLink subject={data.subject} />
+          {data.items.length > 2 && ` · ${data.items.length} dates`}
+        </>
+      }
+    />
+  );
   if (!next)
     return (
       <>
-        <Head title="Upcoming" href={href} meta={<SubjectLink subject={data.subject} />} />
+        {head}
         <p className="muted">No dates in the next 90 days.</p>
-      </>
-    );
-  if (widget.size === "S")
-    return (
-      <>
-        <Head title="Upcoming" href={href} meta={<SubjectLink subject={data.subject} />} />
-        <Link href={evidence.development(next.development_id)} scroll={false} style={{ color: "inherit", display: "contents" }}>
-          <span className="big" style={{ fontSize: 28 }}>
-            {shortDate(next.date)}
-          </span>
-          <span className="body-text" style={{ fontSize: 14, lineHeight: "19px", fontWeight: 500, WebkitLineClamp: 2 }}>
-            {next.label}
-          </span>
-        </Link>
-        <span className="spacer" />
-        <span className="cap">{inDays(daysBetween(asOf, next.date))}</span>
       </>
     );
   return (
     <>
-      <Head
-        title="Upcoming"
-        href={href}
-        meta={
-          <>
-            <SubjectLink subject={data.subject} />
-            {data.items.length > 2 && `, ${data.items.length} dates`}
-          </>
-        }
-      />
-      <div className="rows">
-        {data.items.slice(0, 2).map((item) => (
-          <Link key={`${item.development_id}-${item.date}`} href={evidence.development(item.development_id)} className="row" scroll={false}>
-            <span className="date">{shortDate(item.date)}</span>
-            <span className="tx">
-              <b>{item.label}</b>
-              <span>{inDays(daysBetween(asOf, item.date))}</span>
-            </span>
+      {head}
+      <Link href={evidence.development(next.development_id)} scroll={false} className="up-next">
+        <span className="ans">
+          {shortDate(next.date)} <span className="w-meta">· {lower(inDays(daysBetween(asOf, next.date)))}</span>
+        </span>
+        <span className="w-text c2">{next.label}</span>
+        <span className="w-meta c2">{next.development_title}</span>
+      </Link>
+      {then && (
+        <div className="rows up-then">
+          <Link href={evidence.development(then.development_id)} scroll={false} className="row no-stat">
+            <span className="row-title one">{then.label}</span>
+            <span className="row-end">{shortDate(then.date)}</span>
           </Link>
-        ))}
-      </div>
+        </div>
+      )}
     </>
   );
 }
@@ -322,26 +349,26 @@ function WatchlistBody({ data, widget, onChange }: BodyProps & { data: DataOf<"w
     }
   };
 
+  // Large always shows the add field; Medium opens it from the header to keep room for rows.
   const showField = large || adding;
   return (
     <>
-      <Head title="Watchlist" meta={`${plural(data.entries.length, "entity", "entities")} tracked`}>
+      <Head title="Watchlist" meta={plural(data.entries.length, "entity", "entities")}>
         {!large && (
           <button
             type="button"
-            className="icon-btn"
+            className="btn-icon wh-end"
             aria-label={adding ? "Stop adding" : "Add an entity"}
             aria-expanded={adding}
             onClick={() => setAdding((a) => !a)}
-            style={{ marginLeft: "auto", order: 2 }}
           >
-            {adding ? <XIcon /> : <PlusIcon color="#0A64D8" size={14} />}
+            {adding ? <XIcon /> : <PlusIcon size={14} />}
           </button>
         )}
       </Head>
       {showField && (
         <label className="addfield">
-          <PlusIcon color="#0A64D8" size={14} />
+          <PlusIcon size={14} />
           <input
             aria-label="Add an entity"
             placeholder="Add a bank, central bank, issuer or country"
@@ -356,9 +383,8 @@ function WatchlistBody({ data, widget, onChange }: BodyProps & { data: DataOf<"w
         <div className="rows scroll" role="listbox" aria-label="Matching entities">
           {matches.map((s) => (
             <button key={s.id} type="button" role="option" aria-selected={false} className="pick" onClick={() => add(s.id)}>
-              <span className="ini">{initials(s.name)}</span>
-              {s.name}
-              {s.new_developments > 0 && <span className="cap">{s.new_developments} new</span>}
+              <span className="pick-name">{s.name}</span>
+              {s.new_developments > 0 && <span className="w-meta">{s.new_developments} new</span>}
             </button>
           ))}
           {matches.length === 0 && <p className="muted">No entity matches “{query.trim()}”.</p>}
@@ -366,7 +392,12 @@ function WatchlistBody({ data, widget, onChange }: BodyProps & { data: DataOf<"w
       ) : (
         <div className="rows scroll">
           {data.entries.map((e) => (
-            <WatchRow key={e.entity.id} entry={e} onRemove={() => onChange(setEntities(widget, ids.filter((i) => i !== e.entity.id)))} />
+            <WatchRow
+              key={e.entity.id}
+              entry={e}
+              lines={large ? 2 : 1}
+              onRemove={() => onChange(setEntities(widget, ids.filter((i) => i !== e.entity.id)))}
+            />
           ))}
           {data.entries.length === 0 && <p className="muted">No entities yet. Add one above.</p>}
         </div>
@@ -375,21 +406,41 @@ function WatchlistBody({ data, widget, onChange }: BodyProps & { data: DataOf<"w
   );
 }
 
-function WatchRow({ entry: e, onRemove }: { entry: Schema<"WatchlistEntry">; onRemove: () => void }) {
-  const sub = e.headline ? `${e.headline.label}: ${e.headline.summary}` : e.groups.map((g) => g.name).join(", ");
+function WatchRow({
+  entry: e,
+  lines,
+  onRemove,
+}: {
+  entry: Schema<"WatchlistEntry">;
+  lines: 1 | 2;
+  onRemove: () => void;
+}) {
+  const counts = [e.new_developments > 0 && `${e.new_developments} new`, e.needs_attention > 0 && needs(e.needs_attention)]
+    .filter(Boolean)
+    .join(" · ");
   return (
-    <div className="row tight">
-      <Link href={monitorHref(e.entity.id)} className="row" style={{ padding: 0, border: 0, flexGrow: 1, minWidth: 0 }}>
-        <span className="ini" aria-hidden="true">
-          {initials(e.entity.name)}
-        </span>
-        <span className="tx">
-          <b>{e.entity.name}</b>
-          <span>{sub}</span>
-        </span>
+    <div className="ent">
+      <span className="stat">
         <StateBadge state={e.state} newCount={e.new_developments} />
-      </Link>
-      <button type="button" className="icon-btn" aria-label={`Remove ${e.entity.name}`} onClick={onRemove}>
+      </span>
+      <span className="ent-body">
+        <span className="ent-name">
+          <Link href={monitorHref(e.entity.id)} className="stretch">
+            {e.entity.name}
+          </Link>
+          {counts && <span className="w-meta">{counts}</span>}
+        </span>
+        <span className={`w-text c${lines}`}>
+          {e.headline ? (
+            <>
+              <span className="ink2">{e.headline.label}:</span> {e.headline.summary}
+            </>
+          ) : (
+            e.groups.map((g) => g.name).join(", ")
+          )}
+        </span>
+      </span>
+      <button type="button" className="btn-icon" aria-label={`Remove ${e.entity.name}`} onClick={onRemove}>
         <XIcon />
       </button>
     </div>

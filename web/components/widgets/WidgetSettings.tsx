@@ -52,14 +52,14 @@ export function WidgetSettings({
     <div className="face settings flip">
       <div className="wh">
         <span className="wt">{info?.name ?? "Settings"}</span>
-        <button type="button" className="link" style={{ marginLeft: "auto" }} onClick={onDone}>
+        <button type="button" className="link push" onClick={onDone}>
           Done
         </button>
       </div>
       {widget.type !== "watchlist" && (
         <label>
           <span>Subject</span>
-          <select value={subjectId ?? ""} onChange={(e) => void changeSubject(e.target.value)}>
+          <select className="input" value={subjectId ?? ""} onChange={(e) => void changeSubject(e.target.value)}>
             {allowsDashboardScope(widget) && <option value="">Every subject on the dashboard</option>}
             {TYPES.filter((t) => info?.fits.includes(t)).map((t) => (
               <optgroup key={t} label={TYPE_PLURAL[t]}>
@@ -79,6 +79,7 @@ export function WidgetSettings({
         <label>
           <span>Question</span>
           <select
+            className="input"
             value={widget.settings.question_id}
             onChange={(e) => onChange(setQuestion(widget, widget.settings.subject_id, e.target.value))}
           >
@@ -91,18 +92,18 @@ export function WidgetSettings({
         </label>
       )}
       {custom && (
-        <button type="button" className="link" onClick={() => setEditing(custom.question_id)}>
+        <button type="button" className="link self-start" onClick={() => setEditing(custom.question_id)}>
           Edit custom question
         </button>
       )}
       <CustomQuestionEditor questionId={editing} onClose={() => setEditing(null)} />
       {widget.type === "watchlist" && (
-        <p className="muted" style={{ margin: 0 }}>
+        <p className="muted">
           Add and remove entities in the widget itself.
         </p>
       )}
       <div>
-        <div className="seg small" role="group" aria-label="Size" style={{ display: "inline-flex" }}>
+        <div className="seg" role="group" aria-label="Size">
           {sizes.map((s) => (
             <button
               key={s}

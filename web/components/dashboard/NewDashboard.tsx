@@ -2,13 +2,14 @@
 
 // The New dashboard popup: about 80% of the screen, Build and Generate tabs, Esc or a backdrop
 // click closes it. Both tabs edit one draft (lib/agent.ts), so users can switch at any time, and
-// both create the same dashboard spec, which then appears in the sidebar and opens.
+// both create the same dashboard spec, which then appears in the sidebar and opens. The draft, tab
+// and name live outside the dialog, so closing and reopening picks up where the user left off.
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 
 import type { Widget } from "@/lib/api/client";
 import { errorMessage, useCreateDashboard, useSubjects } from "@/lib/api/queries";
-import { useDashboardDraft, type DashboardDraft } from "@/lib/agent";
+import { useDashboardDraft } from "@/lib/agent";
 import { defaultName, subjectsUsed } from "@/lib/widgets";
 import { PlusIcon, SendIcon, SparkleIcon } from "@/components/ui/icons";
 import { CloseButton, Modal } from "@/components/ui/Modal";
@@ -28,53 +29,147 @@ const EXAMPLES = [
   "Central banks on banking regulation",
 ];
 const HIGHLIGHT_MS = 1600;
+const UNDO_MS = 5000;
+/** Generated changes to at most this many widgets are outlined; bigger ones are only listed. */
+const OUTLINE_MAX = 2;
 
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const widgetCount = (n: number) => `${n} widget${n === 1 ? "" : "s"}`;
 
 export function NewDashboard({ open, onClose }: { open: boolean; onClose: () => void }) {
-  // Esc goes to the popup body first, which closes the gallery sheet before the popup.
-  const escapeRef = useRef<() => boolean>(() => false);
+  // A created or discarded dashboard starts a new session, with a fresh draft and agent conversation.
+  const [session, setSession] = useState(0);
+  return <Session key={session} open={open} onClose={onClose} onReset={() => setSession((n) => n + 1)} />;
+}
+
+/** Everything that survives closing the popup: the draft, the tab, the name and the Generate thread. */
+function useSessionState() {
+  const draft = useDashboardDraft();
+  const [tab, setTab] = useState<Tab>("build");
+  const [typedName, setTypedName] = useState<string | null>(null);
+  const [lastPrompt, setLastPrompt] = useState("");
+  // The widgets before the latest prompt, so a kept change can still be undone until the next one.
+  const [before, setBefore] = useState<Widget[]>([]);
+  const [kept, setKept] = useState<number | null>(null);
+
+  return {
+    draft,
+    tab,
+    setTab,
+    typedName,
+    setTypedName,
+    lastPrompt,
+    before,
+    kept,
+    send: (prompt: string) => {
+      setBefore(draft.widgets);
+      setKept(null);
+      setLastPrompt(prompt);
+      void draft.send(prompt);
+    },
+    keep: () => {
+      setKept(draft.changed.size);
+      draft.keep();
+    },
+    undoKept: () => {
+      draft.edit(before);
+      setKept(null);
+    },
+    /** Manual edits from either tab. */
+    edit: (widgets: Widget[]) => {
+      setKept(null);
+      draft.edit(widgets);
+    },
+  };
+}
+type SessionState = ReturnType<typeof useSessionState>;
+
+function Session({ open, onClose, onReset }: { open: boolean; onClose: () => void; onReset: () => void }) {
+  const state = useSessionState();
+  // The body handles Esc and backdrop clicks first: it closes the gallery or asks before closing.
+  const dismissRef = useRef<(fromBackdrop: boolean) => boolean>(() => false);
+  // Modal reports Esc and backdrop clicks the same way; a capturing listener tells them apart.
+  const backdropDown = useRef(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const down = (e: MouseEvent) => {
+      backdropDown.current = e.target instanceof HTMLDialogElement;
+    };
+    const key = () => {
+      backdropDown.current = false;
+    };
+    window.addEventListener("mousedown", down, true);
+    window.addEventListener("keydown", key, true);
+    return () => {
+      window.removeEventListener("mousedown", down, true);
+      window.removeEventListener("keydown", key, true);
+    };
+  }, [open]);
+
   return (
     <Modal
       open={open}
       onClose={() => {
-        if (!escapeRef.current()) onClose();
+        const fromBackdrop = backdropDown.current;
+        backdropDown.current = false;
+        if (!dismissRef.current(fromBackdrop)) onClose();
       }}
       labelledBy="new-dashboard-title"
       className="sheet"
     >
-      <NewDashboardBody onClose={onClose} escapeRef={escapeRef} />
+      <NewDashboardBody state={state} onClose={onClose} onReset={onReset} dismissRef={dismissRef} />
     </Modal>
   );
 }
 
 function NewDashboardBody({
+  state,
   onClose,
-  escapeRef,
+  onReset,
+  dismissRef,
 }: {
+  state: SessionState;
   onClose: () => void;
-  escapeRef: React.RefObject<() => boolean>;
+  onReset: () => void;
+  dismissRef: React.RefObject<(fromBackdrop: boolean) => boolean>;
 }) {
   const router = useRouter();
   const toast = useToast();
   const subjects = useSubjects();
   const create = useCreateDashboard();
-  const draft = useDashboardDraft();
-  const [tab, setTab] = useState<Tab>("build");
+  const { draft, tab, setTab } = state;
   const [gallery, setGallery] = useState(false);
-  const [typedName, setTypedName] = useState<string | null>(null);
+  const [asking, setAsking] = useState(false);
+  const [removed, setRemoved] = useState<{ widgets: Widget[]; key: number } | null>(null);
 
   useEffect(() => {
-    escapeRef.current = () => {
-      if (!gallery) return false;
-      setGallery(false);
-      return true;
+    dismissRef.current = (fromBackdrop) => {
+      if (asking) {
+        setAsking(false);
+        return true;
+      }
+      if (tab === "build" && gallery && draft.widgets.length > 0) {
+        setGallery(false);
+        return true;
+      }
+      if (fromBackdrop && draft.widgets.length > 0) {
+        setAsking(true);
+        return true;
+      }
+      return false;
     };
-  }, [escapeRef, gallery]);
+  }, [dismissRef, asking, gallery, tab, draft.widgets.length]);
+
+  useEffect(() => {
+    if (!removed) return;
+    const t = window.setTimeout(() => setRemoved(null), UNDO_MS);
+    return () => window.clearTimeout(t);
+  }, [removed]);
 
   const subjectIds = subjectsUsed(draft.widgets);
   const names = subjectIds.flatMap((id) => subjects.data?.find((s) => s.id === id)?.name ?? []);
-  const name = typedName ?? defaultName(names);
+  const name = state.typedName ?? defaultName(names);
   const canCreate = draft.widgets.length > 0 && !draft.pending && !draft.running && !create.isPending;
 
   const submit = () => {
@@ -88,12 +183,18 @@ function NewDashboardBody({
       {
         onSuccess: (created) => {
           onClose();
+          onReset();
           router.push(`/dashboards/${created.id}`);
           toast({ message: `Created ${created.name}` });
         },
         onError: (e) => toast({ message: errorMessage(e, "Could not create the dashboard") }),
       },
     );
+  };
+
+  const onRemove = (id: string) => {
+    setRemoved({ widgets: draft.widgets, key: Date.now() });
+    state.edit(draft.widgets.filter((w) => w.id !== id));
   };
 
   const onTabKey = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -105,7 +206,7 @@ function NewDashboardBody({
 
   return (
     <>
-      <div className="sheet-head tabbed">
+      <div className="sheet-head nd-head" inert={asking}>
         <h2 id="new-dashboard-title">New dashboard</h2>
         <div className="seg" role="tablist" aria-label="How to build" onKeyDown={onTabKey}>
           {TABS.map((t) => (
@@ -119,7 +220,7 @@ function NewDashboardBody({
               tabIndex={tab === t.id ? 0 : -1}
               onClick={() => setTab(t.id)}
             >
-              {t.id === "generate" && <SparkleIcon twin />}
+              {t.id === "generate" && <SparkleIcon size={12} twin />}
               {t.label}
             </button>
           ))}
@@ -127,111 +228,202 @@ function NewDashboardBody({
         <CloseButton onClick={onClose} />
       </div>
       <div
-        className="sheet-body"
+        className="nd-body"
         role="tabpanel"
         id={`new-dashboard-${tab}`}
         aria-labelledby={`new-dashboard-tab-${tab}`}
+        inert={asking}
       >
         {tab === "build" ? (
-          <BuildPane
-            draft={draft}
-            subjectIds={subjectIds}
-            gallery={gallery}
-            setGallery={setGallery}
-            footer={
-              <>
-                <div className="field">
-                  <label htmlFor="new-dashboard-name">Name</label>
-                  <input
-                    id="new-dashboard-name"
-                    value={name}
-                    placeholder="Dashboard name"
-                    maxLength={80}
-                    onChange={(e) => setTypedName(e.target.value)}
-                  />
-                </div>
-                <span className="grow" />
-                <span className="hint">
-                  {draft.pending
-                    ? "Keep or undo the generated change first."
-                    : draft.widgets.length
-                      ? `${draft.widgets.length} widget${draft.widgets.length > 1 ? "s" : ""}`
-                      : ""}
-                </span>
-                <CreateButton disabled={!canCreate} onClick={submit} />
-              </>
-            }
-          />
+          <BuildPane state={state} subjectIds={subjectIds} gallery={gallery} setGallery={setGallery} onRemove={onRemove} />
         ) : (
-          <GeneratePane
-            draft={draft}
-            subjectIds={subjectIds}
-            footer={
-              <>
-                <span className="hint">
-                  {draft.pending
-                    ? "Keep or undo the last change first."
-                    : draft.widgets.length
-                      ? `${name}, ${draft.widgets.length} widget${draft.widgets.length > 1 ? "s" : ""}`
-                      : "Nothing is saved until you keep it."}
-                </span>
-                <span className="grow" />
-                <CreateButton disabled={!canCreate} onClick={submit} />
-              </>
-            }
-          />
+          <GeneratePane state={state} subjectIds={subjectIds} onRemove={onRemove} />
+        )}
+        {removed && (
+          <div className="nd-toast" key={removed.key} role="status">
+            <span>Widget removed</span>
+            <button
+              type="button"
+              onClick={() => {
+                state.edit(removed.widgets);
+                setRemoved(null);
+              }}
+            >
+              Undo
+            </button>
+          </div>
         )}
       </div>
+      <div className="nd-foot" inert={asking}>
+        <label htmlFor="new-dashboard-name">Name</label>
+        <input
+          id="new-dashboard-name"
+          className="input"
+          value={name}
+          placeholder="Dashboard name"
+          maxLength={80}
+          onChange={(e) => state.setTypedName(e.target.value)}
+        />
+        <span className="grow" />
+        <ChangeStatus state={state} />
+        <button type="button" className="btn btn-primary" disabled={!canCreate} onClick={submit}>
+          Create dashboard
+        </button>
+      </div>
+      {asking && (
+        <CloseConfirm
+          count={draft.widgets.length}
+          onCancel={() => setAsking(false)}
+          onClose={() => {
+            setAsking(false);
+            onClose();
+          }}
+          onDiscard={() => {
+            onClose();
+            onReset();
+          }}
+        />
+      )}
     </>
   );
 }
 
-function CreateButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
+/** The footer's change line: what is pending with Undo and Keep, what was kept, or the widget count. */
+function ChangeStatus({ state }: { state: SessionState }) {
+  const { draft } = state;
+  let content: React.ReactNode = null;
+  if (draft.pending && !draft.running) {
+    const n = draft.changed.size;
+    content = (
+      <>
+        <b>{n ? `${widgetCount(n)} pending` : "Change pending"}</b>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={draft.undo}>
+          Undo
+        </button>
+        <button type="button" className="btn btn-sm" onClick={state.keep}>
+          Keep
+        </button>
+      </>
+    );
+  } else if (state.kept !== null) {
+    content = (
+      <>
+        <span>{state.kept ? `Kept ${widgetCount(state.kept)}` : "Kept the change"}</span>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={state.undoKept}>
+          Undo
+        </button>
+      </>
+    );
+  } else if (draft.widgets.length) {
+    content = <span className="nd-num">{widgetCount(draft.widgets.length)}</span>;
+  }
   return (
-    <button type="button" className="btn primary" disabled={disabled} onClick={onClick}>
-      Create dashboard
-    </button>
+    <span className="nd-status" role="status">
+      {content}
+    </span>
   );
 }
 
+/** Asked when a backdrop click would close a popup that holds a draft. */
+function CloseConfirm({
+  count,
+  onCancel,
+  onClose,
+  onDiscard,
+}: {
+  count: number;
+  onCancel: () => void;
+  onClose: () => void;
+  onDiscard: () => void;
+}) {
+  const cancel = useRef<HTMLButtonElement>(null);
+  // Deferred: a backdrop mousedown opens this, and its default action then focuses the dialog.
+  useEffect(() => {
+    const t = window.setTimeout(() => cancel.current?.focus());
+    return () => window.clearTimeout(t);
+  }, []);
+  return (
+    <div className="nd-confirm-layer" onMouseDown={(e) => e.target === e.currentTarget && onCancel()}>
+      <div className="nd-confirm" role="alertdialog" aria-labelledby="nd-confirm-title" aria-describedby="nd-confirm-desc">
+        <h3 id="nd-confirm-title">Close with {widgetCount(count)} in the draft?</h3>
+        <p id="nd-confirm-desc">The draft stays until you create the dashboard or discard it.</p>
+        <div className="nd-confirm-actions">
+          <button type="button" className="btn btn-ghost" onClick={onDiscard}>
+            Discard draft
+          </button>
+          <span className="grow" />
+          <button type="button" className="btn" ref={cancel} onClick={onCancel}>
+            Keep editing
+          </button>
+          <button type="button" className="btn btn-primary" onClick={onClose}>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// The server's change lines, one per widget: "Added Watchlist, medium, OCBC."
+const CHANGE = /^(Added|Changed|Removed) .+/;
+const VERB_PAST = { Added: "added", Changed: "changed", Removed: "removed" } as const;
+
+/** Splits the agent reply into a one-line summary of the changes ("Added 6 widgets"), the agent's
+ *  own sentence, and the change lines for the Details disclosure. Without change lines, the agent's
+ *  text is the summary. */
+function readReply(reply: string) {
+  const lines = reply.split("\n").filter((l) => l.trim());
+  const changes = lines.filter((l) => CHANGE.test(l));
+  const note = lines.filter((l) => !CHANGE.test(l)).join(" ");
+  if (!changes.length) return { summary: note, note: "", changes };
+  const counts = (["Added", "Changed", "Removed"] as const)
+    .map((verb) => [verb, changes.filter((l) => l.startsWith(`${verb} `)).length] as const)
+    .filter(([, n]) => n > 0)
+    .map(([verb, n], i) => `${i ? VERB_PAST[verb] : verb} ${widgetCount(n)}`);
+  return { summary: counts.join(", "), note, changes };
+}
+
 /** Grid callbacks that edit the draft by hand. */
-function useDraftGrid(draft: DashboardDraft) {
+function useDraftGrid(state: SessionState, onRemove: (id: string) => void) {
   const [settingsFor, setSettingsFor] = useState<string | null>(null);
-  const byId = () => new Map(draft.widgets.map((w) => [w.id, w]));
+  const widgets = state.draft.widgets;
   return {
     settingsFor,
     onSettings: setSettingsFor,
     onReorder: (ids: string[]) => {
-      const map = byId();
-      draft.edit(ids.flatMap((id) => map.get(id) ?? []));
+      const byId = new Map(widgets.map((w) => [w.id, w]));
+      state.edit(ids.flatMap((id) => byId.get(id) ?? []));
     },
     onRemove: (id: string) => {
-      draft.edit(draft.widgets.filter((w) => w.id !== id));
+      onRemove(id);
       if (settingsFor === id) setSettingsFor(null);
     },
-    onChange: (widget: Widget) => draft.edit(draft.widgets.map((w) => (w.id === widget.id ? widget : w))),
+    onChange: (widget: Widget) => state.edit(widgets.map((w) => (w.id === widget.id ? widget : w))),
     onLongPress: () => {},
   };
 }
 
-// Build, mock variant B: the preview fills the popup in edit mode, and Add widget opens the
-// gallery sheet over it. An added widget lands in the next free slot, outlined briefly.
+// Build: the preview fills the popup in edit mode, and Add widget swaps the body for the gallery with
+// a "Back to preview" link. An empty draft opens straight on the gallery, so Build is never blank.
+// An added widget lands in the next free slot, outlined briefly.
 function BuildPane({
-  draft,
+  state,
   subjectIds,
   gallery,
   setGallery,
-  footer,
+  onRemove,
 }: {
-  draft: DashboardDraft;
+  state: SessionState;
   subjectIds: string[];
   gallery: boolean;
   setGallery: (open: boolean) => void;
-  footer: React.ReactNode;
+  onRemove: (id: string) => void;
 }) {
-  const grid = useDraftGrid(draft);
+  const { draft } = state;
+  const grid = useDraftGrid(state, onRemove);
   const [added, setAdded] = useState<string | null>(null);
   const [lastSubject, setLastSubject] = useState<string | null>(null);
+  const empty = draft.widgets.length === 0;
 
   useEffect(() => {
     if (!added) return;
@@ -239,82 +431,72 @@ function BuildPane({
     return () => window.clearTimeout(t);
   }, [added]);
 
-  const addButton = (
-    <button type="button" className="btn primary sm with-icon" onClick={() => setGallery(true)}>
-      <PlusIcon color="#fff" size={12} />
-      Add widget
-    </button>
-  );
+  if (gallery || empty) {
+    return (
+      <>
+        <div className="nd-gbar">
+          {!empty && (
+            <button type="button" className="nd-link" onClick={() => setGallery(false)}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M7.5 2.5 4 6l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Back to preview
+            </button>
+          )}
+          <span className="nd-meta">
+            {empty ? "Pick a subject and add a widget to start." : "Adding a widget places it in the next free slot."}
+          </span>
+        </div>
+        <div className="nd-gallery">
+          <Gallery
+            initialSubjectId={lastSubject ?? subjectIds[0] ?? null}
+            onClose={() => setGallery(false)}
+            onAdd={(widget, subjectId) => {
+              state.edit([...draft.widgets, widget]);
+              setAdded(widget.id);
+              setLastSubject(subjectId);
+              setGallery(false);
+            }}
+          />
+        </div>
+      </>
+    );
+  }
 
   return (
-    <>
-      <div className="canvas" inert={gallery}>
-        <div className="canvas-head">
-          <b>Preview</b>
-          <span className="hint">
-            {draft.widgets.length ? "Drag to rearrange. Tap a widget for its settings." : ""}
-          </span>
-          {addButton}
-        </div>
-        <div className="canvas-scroll">
-          {draft.widgets.length ? (
-            <WidgetGrid
-              widgets={draft.widgets}
-              dashboardSubjectIds={subjectIds}
-              editing
-              highlight={added ? [added] : []}
-              {...grid}
-            />
-          ) : (
-            <div className="empty">
-              <span>Start with a widget.</span>
-              <button type="button" className="btn primary" onClick={() => setGallery(true)}>
-                Add widget
-              </button>
-            </div>
-          )}
-        </div>
+    <div className="nd-canvas">
+      <div className="nd-canvas-head">
+        <b>Preview</b>
+        <span className="nd-meta">Drag to reorder. Click a widget for settings.</span>
+        <button type="button" className="btn btn-sm" onClick={() => setGallery(true)}>
+          <PlusIcon size={14} />
+          Add widget
+        </button>
       </div>
-      <div className="sheet-foot" inert={gallery}>
-        {footer}
-      </div>
-      {gallery && (
-        <div
-          className="gsheet"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setGallery(false);
-          }}
-        >
-          <div className="gsheet-card" role="dialog" aria-label="Add a widget">
-            <Gallery
-              initialSubjectId={lastSubject ?? subjectIds[0] ?? null}
-              onClose={() => setGallery(false)}
-              onAdd={(widget, subjectId) => {
-                draft.edit([...draft.widgets, widget]);
-                setAdded(widget.id);
-                setLastSubject(subjectId);
-                setGallery(false);
-              }}
-            />
-          </div>
-        </div>
-      )}
-    </>
+      <WidgetGrid
+        widgets={draft.widgets}
+        dashboardSubjectIds={subjectIds}
+        editing
+        highlight={added ? [added] : []}
+        {...grid}
+      />
+    </div>
   );
 }
 
-// Generate: a centered prompt that slides to the bottom on the first send, with the generated
-// dashboard filling the space above it one widget at a time.
+// Generate: a floating prompt, centered with a heading and examples until the first send, then
+// slid to the bottom where it keeps floating over the generated dashboard.
 function GeneratePane({
-  draft,
+  state,
   subjectIds,
-  footer,
+  onRemove,
 }: {
-  draft: DashboardDraft;
+  state: SessionState;
   subjectIds: string[];
-  footer: React.ReactNode;
+  onRemove: (id: string) => void;
 }) {
-  const grid = useDraftGrid(draft);
+  const { draft } = state;
+  const grid = useDraftGrid(state, onRemove);
   const [text, setText] = useState("");
   const input = useRef<HTMLInputElement>(null);
   const form = useRef<HTMLFormElement>(null);
@@ -323,7 +505,7 @@ function GeneratePane({
 
   useEffect(() => input.current?.focus(), []);
 
-  // The one transition: the prompt glides from the centre to its new place at the bottom.
+  // The one transition: the prompt moves from the centre to its place at the bottom.
   useLayoutEffect(() => {
     const el = form.current;
     const from = slideFrom.current;
@@ -334,7 +516,7 @@ function GeneratePane({
     el.style.transition = "none";
     el.style.transform = `translateY(${dy}px)`;
     void el.offsetWidth;
-    el.style.transition = "transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1)";
+    el.style.transition = "transform 240ms ease-out";
     el.style.transform = "";
   }, [active]);
 
@@ -343,7 +525,7 @@ function GeneratePane({
     if (!clean || draft.running) return;
     if (!active) slideFrom.current = form.current?.getBoundingClientRect().top ?? null;
     setText("");
-    void draft.send(clean);
+    state.send(clean);
   };
 
   const onSubmit = (e: FormEvent) => {
@@ -351,80 +533,74 @@ function GeneratePane({
     send(text);
   };
 
-  const reply = draft.error ?? (draft.reply || (draft.running ? "Working on your dashboard" : ""));
+  const { summary, note, changes } = readReply(draft.reply || (draft.running ? "Working on your dashboard" : ""));
+  // Outline only small edits to an existing draft; a first build or a big change is listed instead.
+  const outline = state.before.length > 0 && draft.changed.size <= OUTLINE_MAX ? [...draft.changed] : [];
 
   return (
-    <>
-      <div className={`gen${active ? " active" : ""}`}>
-        {!active && (
-          <div className="gen-intro">
-            <span className="ai large">
-              <SparkleIcon size={20} />
-            </span>
-            <h3>What do you want to track?</h3>
-          </div>
-        )}
-        {active && (
-          <div className="gen-results">
-            {reply && (
-              <div className="reply">
-                <span className="ai">
-                  <SparkleIcon />
-                </span>
-                <div className={`reply-text${draft.error ? " c-attn" : ""}`} role="status">
-                  {reply}
-                </div>
-                {draft.pending && !draft.running && (
-                  <div className="changebar">
-                    <button type="button" className="btn" onClick={draft.undo}>
-                      Undo
-                    </button>
-                    <button type="button" className="btn primary" onClick={draft.keep}>
-                      Keep
-                    </button>
-                  </div>
-                )}
-              </div>
+    <div className={`nd-gen${active ? " active" : ""}`}>
+      {!active && <h3 className="nd-gen-title">What do you want to track?</h3>}
+      {active && (
+        <>
+          <div className="nd-thread">
+            {state.lastPrompt && <p className="nd-you">{state.lastPrompt}</p>}
+            {draft.error ? (
+              <p className="nd-error">Could not generate: {draft.error}</p>
+            ) : changes.length ? (
+              <details key={draft.prompts}>
+                <summary>
+                  <b>{summary}</b> <span className="nd-link">Details</span>
+                </summary>
+                {note && <p className="nd-note">{note}</p>}
+                <ul>
+                  {changes.map((line, i) => (
+                    <li key={i}>{line}</li>
+                  ))}
+                </ul>
+              </details>
+            ) : (
+              <p>
+                <b>{summary}</b>
+              </p>
             )}
-            <div className="gen-scroll" inert={draft.running}>
-              <WidgetGrid
-                widgets={draft.widgets}
-                dashboardSubjectIds={subjectIds}
-                editing={!draft.running}
-                highlight={[...draft.changed]}
-                {...grid}
-              />
-            </div>
           </div>
-        )}
-        <form className="prompt" ref={form} onSubmit={onSubmit}>
-          <input
-            ref={input}
-            aria-label="Describe your dashboard"
-            placeholder={
-              active
-                ? "Ask for a change, e.g. remove the watchlist"
-                : "Describe a dashboard, e.g. stablecoin risk for SG banks"
-            }
-            autoComplete="off"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
-          <button type="submit" className="send" aria-label="Send" disabled={!text.trim() || draft.running}>
-            <SendIcon />
-          </button>
-        </form>
-        {!active && (
-          <div className="gen-sugg">
-            {EXAMPLES.map((example) => (
-              <button key={example} type="button" onClick={() => send(example)}>
-                {example}
-              </button>
-            ))}
+          <div className="nd-canvas nd-gen-scroll" inert={draft.running}>
+            <WidgetGrid
+              widgets={draft.widgets}
+              dashboardSubjectIds={subjectIds}
+              editing={!draft.running}
+              highlight={outline}
+              {...grid}
+            />
           </div>
-        )}
-      </div>
-      <div className="sheet-foot">{footer}</div>
-    </>
+        </>
+      )}
+      <form className="nd-prompt" ref={form} onSubmit={onSubmit}>
+        <input
+          ref={input}
+          aria-label="Describe your dashboard"
+          placeholder={
+            active
+              ? "Ask for a change, for example add a watchlist of Singapore banks"
+              : "Describe a dashboard, for example stablecoin risk for Singapore banks"
+          }
+          autoComplete="off"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+        <button type="submit" className="nd-send" aria-label="Send" disabled={!text.trim() || draft.running}>
+          <SendIcon />
+        </button>
+      </form>
+      {!active && (
+        <div className="nd-examples">
+          {EXAMPLES.map((example) => (
+            <button key={example} type="button" className="btn btn-sm" onClick={() => send(example)}>
+              {example}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

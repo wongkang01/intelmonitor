@@ -1,13 +1,12 @@
 "use client";
 
-// A dashboard: title, last run time, Edit and Add widget, then the widget grid.
-// Every layout change is saved through the dashboards API as it happens.
+// A dashboard: title, the subjects it covers, Add widget and Edit, then the widget grid. The last
+// run time lives in the top bar chip. Every layout change is saved through the dashboards API as it happens.
 import { useEffect, useRef, useState } from "react";
 
 import type { Widget } from "@/lib/api/client";
-import { useDashboard, useRuns, useSaveDashboard, useSubjects, type Dashboard } from "@/lib/api/queries";
+import { useCatalog, useDashboard, useSaveDashboard, useSubjects, type Dashboard } from "@/lib/api/queries";
 import { typingIn } from "@/lib/dom";
-import { dateTime } from "@/lib/format";
 import { SubjectLinks } from "@/components/shell/SubjectLink";
 import { PlusIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
@@ -19,7 +18,7 @@ const HIGHLIGHT_MS = 1600;
 
 export function DashboardView({ id }: { id: string }) {
   const dashboard = useDashboard(id);
-  const runs = useRuns();
+  const catalog = useCatalog();
   const subjects = useSubjects();
   const toast = useToast();
   const save = useSaveDashboard(() => toast({ message: "Could not save the dashboard" }));
@@ -70,45 +69,36 @@ export function DashboardView({ id }: { id: string }) {
     if (!removed) return;
     commit(list.filter((w) => w.id !== widgetId));
     if (settingsFor === widgetId) setSettingsFor(null);
+    const name = catalog.data?.find((t) => t.type === removed.type)?.name;
     toast({
-      message: "Widget removed",
+      message: name ? `Removed ${name}` : "Widget removed",
       action: {
         label: "Undo",
         run: () => {
           const now = current();
           commit([...now.slice(0, index), removed, ...now.slice(index)]);
+          setHighlight(removed.id);
         },
       },
     });
   };
 
   const named = d.subject_ids.flatMap((sid) => subjects.data?.find((s) => s.id === sid) ?? []);
-  const lastRun = runs.data?.[0]?.finished_at;
 
   return (
     <>
-      <div className="pagehead">
+      <div className="pagehead dash-head">
         <div className="grow">
           <h1>{d.name}</h1>
-          <p>
-            {editing ? (
-              "Drag to rearrange. Tap a widget for its settings, or the minus to remove it."
-            ) : (
-              <>
-                {lastRun && `Last run ${dateTime(lastRun)}`}
-                {lastRun && named.length > 0 && ". "}
-                <SubjectLinks subjects={named} />
-              </>
-            )}
-          </p>
+          <p>{editing ? "Drag to reorder. Click a widget for settings." : <SubjectLinks subjects={named} />}</p>
         </div>
-        <button type="button" className="pill-btn" onClick={() => setAdding(true)}>
-          <PlusIcon size={14} />
+        <button type="button" className="btn" onClick={() => setAdding(true)}>
+          <PlusIcon />
           Add widget
         </button>
         <button
           type="button"
-          className={`pill-btn${editing ? " primary" : ""}`}
+          className={`btn${editing ? " btn-primary" : ""}`}
           aria-pressed={editing}
           onClick={() => {
             setEditing((e) => !e);

@@ -1,17 +1,18 @@
 "use client";
 
 // Sigma.js canvas for a graph neighbourhood. ForceAtlas2 runs when the data changes and stops once
-// the layout settles; `data-layout` on the stage reads "running" or "settled". Nodes keep their
-// positions across refetches, so changing a filter only moves what it adds.
+// the layout settles, then the camera refits; `data-layout` on the stage reads "running" or "settled".
+// Nodes keep their positions across refetches, so changing a filter only moves what it adds.
 import Graph from "graphology";
 import forceAtlas2 from "graphology-layout-forceatlas2";
 import type Sigma from "sigma";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
 
 type GraphData = Schema<"Graph">;
 type NodeType = Schema<"GraphNode">["type"];
+type LinkType = Schema<"GraphEdge">["type"];
 
 type NodeAttrs = {
   x: number;
@@ -27,18 +28,41 @@ type NodeAttrs = {
 type EdgeAttrs = { size: number; color: string };
 type Renderer = Sigma<NodeAttrs, EdgeAttrs>;
 
-/** Node fill per type: ui-ux.md topic, group and entity colors, provider teal for developments. */
-export const NODE_COLOR: Record<NodeType, string> = {
-  topic: "#6B4FD8",
-  group: "#0A64D8",
-  entity: "#3A3A40",
-  development: "#0E7C7B",
+/** Colors read at mount from the `--g-*` tokens in styles/graph.css, resolved to rgba for WebGL. */
+type Palette = {
+  node: Record<NodeType, string>;
+  edge: Record<LinkType, string>;
+  ring: string;
+  gap: string;
+  dim: string;
+  label: string;
 };
-const NEW_RING = "#0A56BC";
-const DIMMED = "#E4E4EA";
+
 const SIZE: Record<NodeType, number> = { topic: 12, group: 11, entity: 9, development: 5 };
-const EDGE_COLOR = { MEMBER_OF: "#C4C4CC", EXPOSED_TO: "#C4C4CC", AFFECTS: "#E1E1E7" } as const;
-const FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif';
+const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
+
+/** Resolves each `--g-*` custom property on `el` to an rgba string. Sigma cannot parse oklch, so a
+ *  1px canvas paints the token and the pixel is read back. */
+function readPalette(el: HTMLElement): Palette {
+  const style = getComputedStyle(el);
+  const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+  const color = (name: string) => {
+    if (!ctx) return "rgba(128,128,128,1)";
+    ctx.clearRect(0, 0, 1, 1);
+    ctx.fillStyle = style.getPropertyValue(`--g-${name}`).trim();
+    ctx.fillRect(0, 0, 1, 1);
+    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+    return `rgba(${r},${g},${b},${(a / 255).toFixed(3)})`;
+  };
+  return {
+    node: { topic: color("topic"), group: color("group"), entity: color("entity"), development: color("development") },
+    edge: { MEMBER_OF: color("edge"), EXPOSED_TO: color("edge"), AFFECTS: color("edge-weak") },
+    ring: color("new"),
+    gap: color("gap"),
+    dim: color("dim"),
+    label: color("label"),
+  };
+}
 
 const MAX_ITERATIONS = 1500;
 const ITERATIONS_PER_FRAME = 10;
@@ -54,7 +78,12 @@ function angleOf(id: string): number {
   return (h % 3600) / 3600 * 2 * Math.PI;
 }
 
-function buildGraph(graph: Graph<NodeAttrs, EdgeAttrs>, data: GraphData, previous: Map<string, { x: number; y: number }>) {
+function buildGraph(
+  graph: Graph<NodeAttrs, EdgeAttrs>,
+  data: GraphData,
+  previous: Map<string, { x: number; y: number }>,
+  palette: Palette,
+) {
   graph.clear();
   for (const n of data.nodes) {
     const center = n.id === data.center;
@@ -64,7 +93,7 @@ function buildGraph(graph: Graph<NodeAttrs, EdgeAttrs>, data: GraphData, previou
       x: center ? 0 : (kept?.x ?? radius * Math.cos(angleOf(n.id))),
       y: center ? 0 : (kept?.y ?? radius * Math.sin(angleOf(n.id))),
       size: center ? 16 : SIZE[n.type] + (n.type === "development" ? (n.materiality_level ?? 0) * 0.6 : 0) + (n.has_new ? 2 : 0),
-      color: NODE_COLOR[n.type],
+      color: palette.node[n.type],
       label: n.type === "development" ? shorten(n.label) : n.label,
       forceLabel: n.type !== "development",
       fixed: center,
@@ -73,7 +102,7 @@ function buildGraph(graph: Graph<NodeAttrs, EdgeAttrs>, data: GraphData, previou
     });
   }
   for (const e of data.edges) {
-    graph.mergeEdge(e.source, e.target, { size: e.type === "AFFECTS" ? 1 : 1.6, color: EDGE_COLOR[e.type] });
+    graph.mergeEdge(e.source, e.target, { size: e.type === "AFFECTS" ? 1 : 1.6, color: palette.edge[e.type] });
   }
 }
 
@@ -121,12 +150,24 @@ type Props = {
   hovered: string | null;
   onHover: (id: string | null) => void;
   onOpen: (id: string) => void;
+  /** Overlays drawn over the canvas, such as the legend. */
+  children?: ReactNode;
 };
 
-export function GraphCanvas({ data, hovered, onHover, onOpen }: Props) {
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** Fits every node in view: sigma's default camera frames the whole graph. */
+function fit(renderer: Renderer) {
+  const camera = renderer.getCamera();
+  if (reducedMotion()) camera.setState({ x: 0.5, y: 0.5, ratio: 1, angle: 0 });
+  else void camera.animatedReset({ duration: 250 });
+}
+
+export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props) {
   const stage = useRef<HTMLDivElement>(null);
   const graph = useRef(new Graph<NodeAttrs, EdgeAttrs>());
   const positions = useRef(new Map<string, { x: number; y: number }>());
+  const palette = useRef<Palette | null>(null);
   const hoveredRef = useRef(hovered);
   const callbacks = useRef({ onHover, onOpen });
   const [renderer, setRenderer] = useState<Renderer | null>(null);
@@ -147,10 +188,12 @@ export function GraphCanvas({ data, hovered, onHover, onOpen }: Props) {
         import("@sigma/node-border"),
       ]);
       if (cancelled || !stage.current) return;
+      const colors = readPalette(stage.current);
+      palette.current = colors;
       const ring = createNodeBorderProgram<NodeAttrs, EdgeAttrs>({
         borders: [
-          { size: { attribute: "ringSize", defaultValue: 0, mode: "pixels" }, color: { value: NEW_RING } },
-          { size: { attribute: "gapSize", defaultValue: 0, mode: "pixels" }, color: { value: "#FFFFFF" } },
+          { size: { attribute: "ringSize", defaultValue: 0, mode: "pixels" }, color: { value: colors.ring } },
+          { size: { attribute: "gapSize", defaultValue: 0, mode: "pixels" }, color: { value: colors.gap } },
           { size: { fill: true }, color: { attribute: "color" } },
         ],
       });
@@ -159,17 +202,17 @@ export function GraphCanvas({ data, hovered, onHover, onOpen }: Props) {
         nodeProgramClasses: { ring },
         labelFont: FONT,
         labelSize: 12,
-        labelWeight: "600",
-        labelColor: { color: "#1C1C1E" },
+        labelWeight: "500",
+        labelColor: { color: colors.label },
         labelRenderedSizeThreshold: 12,
-        stagePadding: 40,
+        stagePadding: 72,
         zIndex: true,
         nodeReducer: (id, attrs) => {
           const h = hoveredRef.current;
           if (!h || !graph.current.hasNode(h) || id === h || graph.current.areNeighbors(id, h)) {
             return id === h ? { ...attrs, highlighted: true, zIndex: 2 } : attrs;
           }
-          return { ...attrs, color: DIMMED, label: "", forceLabel: false, ringSize: 0, gapSize: 0, zIndex: 0 };
+          return { ...attrs, color: colors.dim, label: "", forceLabel: false, ringSize: 0, gapSize: 0, zIndex: 0 };
         },
         edgeReducer: (id, attrs) => {
           const h = hoveredRef.current;
@@ -188,17 +231,14 @@ export function GraphCanvas({ data, hovered, onHover, onOpen }: Props) {
     };
   }, []);
 
-  // Rebuild and lay out whenever the neighbourhood changes.
+  // Rebuild and lay out whenever the neighbourhood changes, then refit the camera once it settles.
   useEffect(() => {
-    if (!renderer) return;
+    if (!renderer || !palette.current) return;
     const g = graph.current;
     g.forEachNode((id, a) => positions.current.set(id, { x: a.x, y: a.y }));
-    buildGraph(g, data, positions.current);
-    const animate = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    return settle(g, animate, () => {
-      // Keep the current subject in the middle of the view.
-      const at = renderer.getNodeDisplayData(data.center);
-      if (at) renderer.getCamera().setState({ x: at.x, y: at.y });
+    buildGraph(g, data, positions.current, palette.current);
+    return settle(g, !reducedMotion(), () => {
+      fit(renderer);
       setSettledFor(data);
     });
   }, [renderer, data]);
@@ -210,15 +250,35 @@ export function GraphCanvas({ data, hovered, onHover, onOpen }: Props) {
   }, [renderer, hovered]);
 
   return (
-    <div
-      ref={stage}
-      className="graph-stage"
-      data-testid="graph-canvas"
-      data-layout={settledFor === data ? "settled" : "running"}
-      role="img"
-      aria-label={`Graph of ${data.nodes.length} nodes and ${data.edges.length} links around ${
-        data.nodes.find((n) => n.id === data.center)?.label ?? data.center
-      }`}
-    />
+    <div className="graph-canvas">
+      <div
+        ref={stage}
+        className="graph-stage"
+        data-testid="graph-canvas"
+        data-layout={settledFor === data ? "settled" : "running"}
+        role="img"
+        aria-label={`Graph of ${data.nodes.length} nodes and ${data.edges.length} links around ${
+          data.nodes.find((n) => n.id === data.center)?.label ?? data.center
+        }`}
+      />
+      <button
+        type="button"
+        className="btn-icon lg graph-fit"
+        aria-label="Fit graph to view"
+        title="Fit to view"
+        disabled={!renderer}
+        onClick={() => renderer && fit(renderer)}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path
+            d="M2.5 6V3.5a1 1 0 0 1 1-1H6M10 2.5h2.5a1 1 0 0 1 1 1V6M13.5 10v2.5a1 1 0 0 1-1 1H10M6 13.5H3.5a1 1 0 0 1-1-1V10"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+        </svg>
+      </button>
+      {children}
+    </div>
   );
 }

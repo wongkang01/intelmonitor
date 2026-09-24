@@ -5,14 +5,15 @@
 // developments it relies on. Build links with useEvidenceHref. Esc or Close drops the parameter.
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useAnswerEvidence, useDevelopment } from "@/lib/api/queries";
-import { longDate, plural, STATE_LABEL } from "@/lib/format";
+import { longDate, plural } from "@/lib/format";
 import { typingIn } from "@/lib/dom";
 import { CloseButton } from "@/components/ui/Modal";
-import { DevelopmentBadge, StateBadge } from "@/components/widgets/parts";
+import { Dotted, StateChange } from "@/components/monitor/parts";
+import { DevelopmentBadge } from "@/components/widgets/parts";
 
 import { Notes } from "./Notes";
 import { SubjectLink } from "./SubjectLink";
@@ -74,7 +75,7 @@ export function EvidenceDrawer() {
         <CloseButton onClick={() => router.replace(pathname, { scroll: false })} label="Close evidence" />
       </div>
       <div className="drawer-body">
-        {failed && <p className="muted">Could not load this evidence.</p>}
+        {failed && <p className="ev-empty">Could not load this evidence.</p>}
         {developmentId && development.data && <DevelopmentEvidence development={development.data} />}
         {!developmentId && answerEvidence.data && <AnswerEvidenceView evidence={answerEvidence.data} />}
       </div>
@@ -87,26 +88,23 @@ function AnswerEvidenceView({ evidence }: { evidence: Schema<"AnswerEvidence"> }
   const before = a.change.kind === "state_changed" ? a.change.previous_state : null;
   return (
     <>
-      <div className="chips">
-        <StateBadge state={a.state} newCount={a.new_count} />
-        {before && <span className="badge b-new">Changed</span>}
-        {a.custom && <span className="tag custom">Custom</span>}
-        <span className="cap">
-          {a.label}, <SubjectLink subject={evidence.subject} />, last {a.lookback_days} days
+      <p className="meta ev-context">
+        {a.custom && <span className="badge b-neutral">Custom</span>}
+        <span>
+          <Dotted parts={[a.label, <SubjectLink key="s" subject={evidence.subject} />, `last ${a.lookback_days} days`]} />
         </span>
-      </div>
-      <h3>{a.summary}</h3>
-      <p className="cap question">{a.question}</p>
-      {before && (
-        <p className="prev">
-          <b>Last run: {STATE_LABEL[before]}.</b> {a.change.previous_summary}
-        </p>
-      )}
-      <h4>
+      </p>
+      <h3 className="ev-answer">{a.summary}</h3>
+      <p className="meta">{a.question}</p>
+      <p className="ev-state">
+        <StateChange state={a.state} from={before} />
+        {before && a.change.previous_summary && <span className="meta">, was: {a.change.previous_summary}</span>}
+      </p>
+      <h4 className="ev-label">
         {evidence.developments.length ? `Based on ${plural(evidence.developments.length, "development")}` : "Sources"}
       </h4>
       {evidence.developments.length === 0 && (
-        <p className="muted">No developments in the last {a.lookback_days} days bear on this question.</p>
+        <p className="ev-empty">No developments in the last {a.lookback_days} days bear on this question.</p>
       )}
       {evidence.developments.map((d) => (
         <DevelopmentEvidence key={d.id} development={d} nested />
@@ -116,63 +114,73 @@ function AnswerEvidenceView({ evidence }: { evidence: Schema<"AnswerEvidence"> }
 }
 
 /**
- * One development: its finding, subjects with tag confidence, and each source with highlighted
- * quotes. Nested inside an answer it links to its own drawer, where notes live.
+ * One development: badge and facts, its title, who it is tagged to, and each source with its
+ * highlighted quotes. Nested inside an answer it links to its own drawer, where notes live.
  */
 function DevelopmentEvidence({ development: d, nested = false }: { development: Schema<"DevelopmentDetail">; nested?: boolean }) {
   const evidence = useEvidenceHref();
-  const facts = [d.materiality_label, d.category, d.stage, longDate(d.last_published)].filter(Boolean).join(", ");
-  const body = (
+  const head = (
     <>
-      <div className="chips">
+      <p className="ev-facts">
         <DevelopmentBadge development={d} />
-        <span className="cap">{facts}</span>
-      </div>
+        <span className="meta">
+          <Dotted parts={[d.materiality_label, d.category, d.stage, longDate(d.last_published)]} />
+        </span>
+      </p>
       {nested ? (
-        <Link href={evidence.development(d.id)} scroll={false} className="ev-title">
-          {d.title}
-        </Link>
+        <h5 className="ev-title">
+          <Link href={evidence.development(d.id)} scroll={false}>
+            {d.title}
+          </Link>
+        </h5>
       ) : (
-        <h3>{d.title}</h3>
+        <h3 className="ev-answer">{d.title}</h3>
       )}
       <Confidence development={d} />
-      <Section label={plural(d.sources.length, "source")}>
-        {d.sources.map((s) => (
-          <Source key={s.document_id} source={s} title={d.title} />
-        ))}
-      </Section>
     </>
   );
-  if (nested) return <section className="ev-dev">{body}</section>;
+  const sources = d.sources.map((s) => <Source key={s.document_id} source={s} title={d.title} />);
+  if (nested)
+    return (
+      <section className="ev-dev" aria-label={d.title}>
+        {head}
+        {sources}
+      </section>
+    );
   return (
     <>
-      {body}
-      <Section label="Notes">
-        <Notes target={{ development_id: d.id }} notes={d.notes} />
-      </Section>
+      {head}
+      <h4 className="ev-label">{plural(d.sources.length, "source")}</h4>
+      {sources}
+      <h4 className="ev-label">Notes</h4>
+      <Notes target={{ development_id: d.id }} notes={d.notes} />
     </>
   );
 }
 
 const percent = (x: number) => `${Math.round(x * 100)}%`;
+const TAGGER: Record<string, string> = { jev: "Jev", claude: "Claude" };
 
+/** One line: who the development is tagged to (percentages on hover), then materiality confidence. */
 function Confidence({ development: d }: { development: Schema<"DevelopmentDetail"> }) {
   return (
-    <div className="confidence">
-      <span className="cap">
-        Confidence: materiality {percent(d.materiality_confidence)}
-      </span>
-      <div className="chips">
-        {d.subject_confidence.map((c) => (
-          <span key={c.subject.id} className="conf-chip">
-            <SubjectLink subject={c.subject} tag />
-            <span className="cap" title={`Tagged by ${c.source === "jev" ? "Jev" : c.source === "claude" ? "Claude" : c.source}`}>
-              {percent(c.confidence)}
-            </span>
-          </span>
-        ))}
-      </div>
-    </div>
+    <p className="meta ev-conf">
+      {d.subject_confidence.length > 0 && (
+        <>
+          Tagged to{" "}
+          {d.subject_confidence.map((c, i) => (
+            <Fragment key={c.subject.id}>
+              {i > 0 && ", "}
+              <span title={`${percent(c.confidence)} confidence, tagged by ${TAGGER[c.source] ?? c.source}`}>
+                <SubjectLink subject={c.subject} />
+              </span>
+            </Fragment>
+          ))}
+          {" · "}
+        </>
+      )}
+      Materiality confidence {percent(d.materiality_confidence)}
+    </p>
   );
 }
 
@@ -189,10 +197,9 @@ function Source({ source: s, title }: { source: Schema<"EvidenceSource">; title:
       <a href={s.url} target="_blank" rel="noreferrer">
         {s.title}
       </a>
-      <span className="cap">
-        {longDate(s.published_at)}, {kind}, {s.domain}
-        {s.new_in_run ? ", new this run" : ""}
-      </span>
+      <p className="meta">
+        <Dotted parts={[longDate(s.published_at), kind, s.domain, s.new_in_run && "new this run"]} />
+      </p>
       {s.findings.map((f) => (
         <div key={f.id} className="finding">
           {f.statement !== title && <p>{f.statement}</p>}
@@ -202,15 +209,6 @@ function Source({ source: s, title }: { source: Schema<"EvidenceSource">; title:
         </div>
       ))}
     </article>
-  );
-}
-
-function Section({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <section className="ev-section" aria-label={label}>
-      <h4>{label}</h4>
-      {children}
-    </section>
   );
 }
 

@@ -90,9 +90,7 @@ export function WidgetCard({
             onRemove?.();
           }}
         >
-          <span>
-            <MinusIcon />
-          </span>
+          <MinusIcon />
         </button>
       )}
       {settingsOpen && variant === "grid" ? (
