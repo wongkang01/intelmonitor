@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IntelMonitor refine C: Flat sections</title>
+<style>
+/* Shared tokens (brief section 3), lifted as written. */
+:root{
+  --canvas:oklch(0.972 0.004 260);
+  --surface:oklch(0.993 0.002 260);
+  --rail:oklch(0.955 0.005 260);
+  --hover:oklch(0.925 0.006 260);
+  --line:oklch(0.93 0.005 260);
+  --line-strong:oklch(0.885 0.007 260);
+  --line-field:oklch(0.80 0.01 260);
+  --ink:oklch(0.23 0.012 260);
+  --ink2:oklch(0.47 0.014 260);
+  --ink3:oklch(0.56 0.012 260);
+  --accent:oklch(0.52 0.17 258);
+  --accent-strong:oklch(0.46 0.16 258);
+  --new:oklch(0.48 0.15 258);--new-bg:oklch(0.955 0.022 250);
+  --watch:oklch(0.47 0.105 62);--watch-bg:oklch(0.965 0.035 80);
+  --attn:oklch(0.50 0.17 28);--attn-bg:oklch(0.955 0.022 25);
+  --stable:oklch(0.47 0.10 155);
+  --mark:oklch(0.94 0.07 95);
+
+  /* Direction C, flat sections. Regions are square and unboxed; a rule opens each one. */
+  --r-region:0;
+  --r-ctl:4px;        /* buttons, inputs, nav items, segmented controls, badges, kbd, popovers */
+  --r-float:8px;      /* the two elevated surfaces: evidence drawer, New dashboard popup (the Add widget sheet reuses it) */
+  --rule:oklch(0.36 0.012 260);                       /* the 1px rule that opens every region and section */
+  --shadow-float:0 8px 24px oklch(0.23 0.012 260 / 0.12); /* the one shallow shadow, always with a 1px --line-strong hairline */
+  --backdrop:oklch(0.23 0.012 260 / 0.24);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --col:112px;        /* fixed status column shared by every list */
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%}
+body{font:400 14px/20px var(--font);color:var(--ink);background:var(--surface);-webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,textarea,select{font:inherit;color:inherit;margin:0}
+button{cursor:pointer;background:none;border:0;padding:0;text-align:inherit}
+a{color:var(--accent);text-decoration:none;cursor:pointer}
+a:hover{text-decoration:underline}
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+svg.i{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+svg.i.s12{width:12px;height:12px}
+.grow{flex:1 1 auto}
+h1,h2,h3,p{margin:0}
+
+/* Mock toolbar, not part of the design */
+.mockbar{height:36px;display:flex;align-items:center;gap:8px;padding:0 16px;background:var(--ink);color:var(--surface);font-size:12px;line-height:16px}
+.mockbar b{font-weight:600;margin-right:8px}
+.mockbar button{height:24px;padding:0 8px;border:1px solid oklch(0.45 0.012 260);border-radius:var(--r-ctl);color:var(--surface)}
+.mockbar button[aria-pressed="true"]{background:var(--surface);color:var(--ink);border-color:var(--surface)}
+.mockbar .note{margin-left:auto;color:oklch(0.86 0.008 260)}
+
+/* Controls */
+.btn{position:relative;display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:var(--r-ctl);font-weight:500;white-space:nowrap;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink)}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.primary:hover{background:var(--accent-strong);border-color:var(--accent-strong)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:var(--hover)}
+.btn.ghost:disabled,.btn.ghost:disabled:hover{border-color:transparent;background:transparent}
+.btn.link{color:var(--accent)}
+.btn.sm{height:28px;padding:0 8px}
+.btn:disabled,.btn:disabled:hover{background:var(--surface);border-color:var(--line-strong);color:var(--ink3);cursor:default}
+.btn.primary:disabled{background:var(--rail);border-color:var(--line-strong)}
+.btn::after,.ib::after{content:"";position:absolute;inset:-6px 0}
+.ib{position:relative;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:var(--r-ctl);color:var(--ink2);flex:none}
+.ib:hover{background:var(--hover);color:var(--ink)}
+.ib.box{border:1px solid var(--line-strong);background:var(--surface);width:24px;height:24px}
+.ib.box::after{inset:-10px}
+.field{height:32px;display:flex;align-items:center;gap:8px;padding:0 8px;border:1px solid var(--line-field);border-radius:var(--r-ctl);background:var(--surface);color:var(--ink3);flex-shrink:0}
+.field input{border:0;background:transparent;outline:none;flex:1;min-width:0;height:100%;color:var(--ink)}
+.field input::placeholder,textarea::placeholder{color:var(--ink3)}
+.field:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none}
+textarea.ta{width:100%;min-height:72px;resize:vertical;padding:8px;border:1px solid var(--line-field);border-radius:var(--r-ctl);background:var(--surface);color:var(--ink)}
+textarea.ta:focus-visible{outline-offset:2px}
+kbd{font:500 12px/16px var(--font);color:var(--ink2);padding:0 4px;border:1px solid var(--line-strong);border-radius:var(--r-ctl);background:var(--surface)}
+.seg{display:inline-flex;height:28px;padding:2px;background:var(--rail);border-radius:var(--r-ctl);gap:2px}
+.seg button{height:24px;padding:0 8px;border-radius:3px;border:1px solid transparent;color:var(--ink2);font-weight:500;display:inline-flex;align-items:center;gap:4px;position:relative}
+.seg button::after{content:"";position:absolute;inset:-8px 0}
+.seg button[aria-pressed="true"],.seg button[aria-selected="true"]{background:var(--surface);border-color:var(--line-strong);color:var(--ink)}
+.badge{display:inline-flex;align-items:center;height:20px;padding:0 4px;border-radius:var(--r-ctl);font-size:12px;line-height:16px;font-weight:500;background:var(--rail);color:var(--ink2);vertical-align:1px}
+/* Status words: the status mark in every list. Word only, no fill, no dot. */
+.sw{font-size:12px;line-height:20px;font-weight:600}
+.s-attn{color:var(--attn)}.s-watch{color:var(--watch)}.s-new{color:var(--new)}.s-stable{color:var(--stable)}.s-upd{color:var(--ink2)}
+
+/* Shell */
+.app{height:calc(100vh - 36px);display:grid;grid-template-columns:232px minmax(0,1fr);position:relative}
+nav.side{background:var(--rail);display:flex;flex-direction:column;min-height:0}
+.brand{height:56px;display:flex;align-items:center;padding:0 20px;font-weight:600;letter-spacing:-0.01em;flex:none}
+.navscroll{flex:1;overflow:auto;padding:8px 12px 16px}
+.nh{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);padding:16px 8px 8px}
+.nh:first-child{padding-top:4px}
+.ni{position:relative;display:flex;align-items:center;gap:8px;width:100%;height:32px;padding:0 8px;border-radius:var(--r-ctl);font-weight:500;color:var(--ink);white-space:nowrap}
+.ni:hover{background:var(--hover)}
+.ni[aria-current="page"]{background:var(--surface);font-weight:600;box-shadow:inset 0 0 0 1px var(--line-strong)}
+.ni .cnt{margin-left:auto;font-size:12px;font-weight:400;color:var(--ink2)}
+.ni svg{color:var(--ink3)}
+.ni.sub{height:28px;padding-left:32px;font-weight:400}
+.ni.sub[aria-current="page"]{font-weight:600}
+.prof{position:relative;display:flex;align-items:center;gap:8px;height:56px;padding:0 20px;border-top:1px solid var(--line-strong);flex:none;width:100%}
+.prof:hover{background:var(--hover)}
+.av{width:28px;height:28px;border-radius:50%;background:var(--hover);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.prof .pn{display:flex;flex-direction:column;line-height:16px;flex:1}
+.prof .pn b{font-weight:500;font-size:14px;line-height:20px}
+.prof .pn span{font-size:12px;color:var(--ink2)}
+.prof svg{color:var(--ink3)}
+main.main{min-width:0;overflow:auto;position:relative;background:var(--surface)}
+.top{position:sticky;top:0;z-index:20;height:56px;display:flex;align-items:center;gap:8px;padding:0 48px;background:var(--surface);border-bottom:1px solid var(--line)}
+.search{flex:1 1 auto;max-width:720px}
+.search svg{color:var(--ink3)}
+.wrap{position:relative;flex:none}
+.runchip{position:relative;display:flex;align-items:center;gap:8px;height:32px;min-width:252px;padding:0 12px;border:1px solid var(--line-strong);border-radius:var(--r-ctl);background:var(--surface);color:var(--ink2);white-space:nowrap}
+.runchip b{font-weight:600;color:var(--ink)}
+.runchip:hover,.runchip[aria-expanded="true"],.bell:hover,.bell[aria-expanded="true"]{background:var(--hover)}
+.runchip .chev{margin-left:auto;color:var(--ink3);transition:transform .15s ease-out}
+.runchip[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.runchip::after,.bell::after{content:"";position:absolute;inset:-7px 0}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--stable);flex:none}
+.runmark{width:8px;height:8px;flex:none;color:var(--new)}
+.bell{position:relative;display:flex;align-items:center;gap:4px;height:32px;min-width:32px;padding:0 7px;border:1px solid var(--line-strong);border-radius:var(--r-ctl);background:var(--surface);color:var(--ink2)}
+.cntb{height:16px;padding:0 4px;border-radius:var(--r-ctl);font-size:12px;line-height:16px;font-weight:600;font-variant-numeric:tabular-nums;background:var(--attn-bg);color:var(--attn)}
+.cntb.w{background:var(--watch-bg);color:var(--watch)}
+
+/* Popovers: anchored to a control, so control radius, one hairline, one shallow shadow */
+.pop{position:absolute;right:0;top:calc(100% + 8px);width:400px;max-height:min(560px,calc(100vh - 96px));display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-ctl);box-shadow:var(--shadow-float);z-index:40}
+.pop-head{height:44px;flex:none;display:flex;align-items:center;gap:8px;padding:0 8px 0 16px;border-bottom:1px solid var(--line)}
+.pop-head b{font-weight:600}
+.cap{font-size:12px;line-height:16px;color:var(--ink2)}
+.pop-head .btn{margin-left:auto}
+.pop-body{overflow:auto;flex:1}
+.pop-foot{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding:0 16px;border-top:1px solid var(--line)}
+.pop-foot .btn{margin-left:auto}
+.run-row{display:grid;grid-template-columns:16px minmax(0,1fr) auto;column-gap:12px;padding:8px 16px;border-top:1px solid var(--line)}
+.run-row:first-child{border-top:0}
+.run-row:hover{background:var(--hover)}
+.run-row .st{height:20px;display:flex;align-items:center}
+.run-row .st svg{width:12px;height:12px}
+.run-row .w{font-weight:500}
+.run-row .w.now{font-weight:600}
+.run-row .m{font-size:12px;line-height:16px;color:var(--ink2);margin-top:4px}
+.run-row .res{font-size:12px;line-height:20px;color:var(--ink2);text-align:right;font-variant-numeric:tabular-nums}
+.pgl{padding:12px 16px 4px;font-size:12px;line-height:16px;font-weight:500;color:var(--ink2)}
+.pgl .sw{font-size:12px;line-height:16px}
+.pop .row{padding:8px 16px;border-top:1px solid var(--line)}
+.pop .pgl + .row{border-top:0}
+.pop .row:hover,.pop .row:focus-visible{background:var(--hover)}
+
+/* Page */
+.page{padding:40px 48px 64px}
+.ph{display:flex;align-items:flex-start;gap:8px;margin-bottom:40px}
+.ph h1{font-size:24px;line-height:30px;font-weight:600;letter-spacing:-0.01em}
+.ph .meta{margin-top:4px;color:var(--ink2)}
+.ph .meta a{color:var(--ink2)}
+.ph .meta a:hover{color:var(--ink)}
+.ph .acts{margin-left:auto;display:flex;gap:8px}
+
+/* Widget grid: regions, not cards. A rule opens each region; whitespace separates them. */
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:232px;grid-auto-flow:row dense;gap:48px 32px}
+.grid.fixed{width:1112px;grid-template-columns:repeat(4,254px)}
+.rg{position:relative;min-width:0;display:flex;flex-direction:column;border-top:1px solid var(--rule);padding-top:12px;overflow:hidden;border-radius:var(--r-region)}
+.rg.S{grid-column:span 1}.rg.M{grid-column:span 2}.rg.L{grid-column:span 2;grid-row:span 2}
+.rh{display:flex;align-items:baseline;gap:8px;min-height:20px;margin-bottom:8px}
+.rt{font-weight:600;color:var(--ink2);white-space:nowrap}
+a.rt:hover{color:var(--ink);text-decoration:underline}
+.rm{margin-left:auto;font-size:12px;line-height:16px;color:var(--ink2);white-space:nowrap}
+.rg.S .rh{flex-direction:column;gap:0}
+.rg.S .rm{margin-left:0}
+.lead{font-size:18px;line-height:24px;font-weight:600}
+.ans{font-weight:600}
+.cap14{color:var(--ink)}
+.meta12{font-size:12px;line-height:16px;color:var(--ink2)}
+.rfoot{margin-top:auto;padding-top:8px;display:flex;gap:16px;align-items:baseline;font-size:12px;line-height:16px;color:var(--ink2)}
+.rfoot a{font-weight:500}
+.rfoot .r{margin-left:auto}
+.clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.clamp3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.clamp4{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+
+/* The one list-row grammar: status column, title, meta, right-aligned date */
+.row{display:grid;grid-template-columns:var(--col) minmax(0,1fr) auto;column-gap:12px;padding:12px 0;border-top:1px solid var(--line);width:100%;color:inherit}
+.row.nost{grid-template-columns:minmax(0,1fr) auto}
+.row .tt{font-weight:500}
+.row:hover .tt{text-decoration:underline;text-decoration-color:var(--ink3)}
+.row .mt{font-size:12px;line-height:16px;color:var(--ink2);margin-top:4px}
+.row .dt{font-size:12px;line-height:20px;color:var(--ink2);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.gl{margin-top:16px;padding-bottom:8px;font-size:12px;line-height:16px;font-weight:500;color:var(--ink2)}
+.gl .sw{line-height:16px}
+.sumgrid{display:grid;grid-template-columns:1fr 1fr;column-gap:32px}
+.sumrow{display:flex;gap:12px;justify-content:space-between;align-items:baseline;padding:12px 0;border-top:1px solid var(--line)}
+.sumrow .l{color:var(--ink2);white-space:nowrap}
+.sumrow .v{font-weight:600;text-align:right}
+.tr{font-weight:600}
+.tr .arr{color:var(--ink2);font-weight:400}
+.tr>span{white-space:nowrap}
+.spark{display:block;width:100%;height:56px;margin:8px 0;color:var(--ink2)}
+.spark .last{fill:var(--ink)}
+.wl-row{display:grid;grid-template-columns:var(--col) minmax(0,1fr) 28px;column-gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.wl-row .n{font-weight:500}
+.wl-row .ib{margin-top:-4px}
+.addf{margin-bottom:12px}
+
+/* Edit mode: the region outline is drawn only while editing */
+.editing .rg{overflow:visible;outline:1px dashed var(--accent);outline-offset:8px;border-radius:var(--r-ctl);cursor:grab}
+.editing .rg .rm{visibility:hidden}
+.minus{position:absolute;top:10px;right:0;z-index:2}
+.rg.changed{outline:1px solid var(--accent);outline-offset:8px;border-radius:var(--r-ctl)}
+
+/* Monitor page: sections on one surface */
+.mon{max-width:800px}
+.sec{border-top:1px solid var(--rule);padding-top:12px;margin-bottom:48px}
+.sh{display:flex;align-items:baseline;gap:8px;margin-bottom:16px}
+.sh h2{font-size:18px;line-height:24px;font-weight:600}
+.sh .rm{margin-left:auto}
+.summ{font-weight:600}
+.sub12{font-size:12px;line-height:16px;color:var(--ink2);margin-top:4px;margin-bottom:12px}
+.q-row{display:grid;grid-template-columns:var(--col) minmax(0,1fr);column-gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.q-row .st{font-size:12px;line-height:20px;font-weight:600}
+.q-row .lab{font-weight:500}
+.q-row .qq{font-size:12px;line-height:16px;color:var(--ink2);margin-top:4px;max-width:70ch}
+.q-row .aa{margin-top:8px;max-width:70ch}
+.q-row .mm{font-size:12px;line-height:16px;color:var(--ink2);margin-top:4px}
+.q-row .mm a{font-weight:500}
+.more{display:flex;gap:16px;align-items:baseline;padding-top:12px;border-top:1px solid var(--line);font-size:12px;line-height:16px;color:var(--ink2)}
+.more a{font-size:14px;line-height:20px;font-weight:500}
+dl.links{display:grid;grid-template-columns:var(--col) minmax(0,1fr);column-gap:12px;margin:0}
+dl.links dt,dl.links dd{padding:12px 0;border-top:1px solid var(--line);margin:0}
+dl.links dt{font-size:12px;line-height:20px;font-weight:500;color:var(--ink2)}
+dl.links dd a{color:var(--ink)}
+.actrow{display:flex;align-items:center;gap:12px}
+.notebox{margin-top:16px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-width:560px}
+
+/* Elevated surfaces: evidence drawer and New dashboard popup. 8px, one hairline, one shallow shadow. */
+.float{background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-float);box-shadow:var(--shadow-float);display:flex;flex-direction:column;overflow:hidden}
+.drawer{position:absolute;top:64px;right:8px;bottom:8px;width:520px;z-index:15}
+.fhead{height:48px;flex:none;display:flex;align-items:center;gap:16px;padding:0 12px 0 24px;border-bottom:1px solid var(--line)}
+.fhead h2{font-size:18px;line-height:24px;font-weight:600}
+.fhead .ib{margin-left:auto}
+.dbody{flex:1;overflow:auto;padding:16px 24px 32px}
+.dl{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2)}
+.dsec{border-top:1px solid var(--rule);padding-top:12px;margin-top:32px}
+.src{padding:12px 0;border-top:1px solid var(--line)}
+.src .t{font-weight:500;color:var(--ink)}
+.src .p{margin-top:8px;max-width:70ch}
+mark{background:var(--mark);color:var(--ink);border-radius:var(--r-ctl);padding:0 2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.scrim{position:fixed;inset:36px 0 0 0;background:var(--backdrop);z-index:50;display:flex;align-items:center;justify-content:center}
+.popup{width:min(1152px,calc(100vw - 96px));height:min(720px,calc(100vh - 36px - 96px))}
+.pbody{flex:1;min-height:0;display:flex;flex-direction:column}
+.pfoot{height:56px;flex:none;display:flex;align-items:center;gap:12px;padding:0 24px;border-top:1px solid var(--line)}
+.pfoot label{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2)}
+.pfoot .field{width:240px}
+.gal{flex:1;min-height:0;display:grid;grid-template-columns:240px minmax(0,1fr)}
+.subjects{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;padding:16px 12px 0}
+.subjects .list{overflow:auto;flex:1;padding-top:8px;padding-bottom:16px;margin:0 -4px;padding-left:4px;padding-right:4px}
+.subj{position:relative;display:flex;align-items:center;gap:8px;width:100%;height:32px;padding:0 8px;border-radius:var(--r-ctl)}
+.subj:hover{background:var(--rail)}
+.subj[aria-current="true"]{background:var(--hover);font-weight:600}
+.subj .cnt{margin-left:auto;font-size:12px;color:var(--ink2);font-weight:400;font-variant-numeric:tabular-nums}
+.offers{overflow:auto;padding:16px 32px 32px}
+.ohead{display:flex;align-items:baseline;gap:12px}
+.ohead h3{font-size:18px;line-height:24px;font-weight:600}
+.back{display:inline-flex;align-items:center;gap:4px;font-size:12px;line-height:16px;font-weight:500;margin-bottom:12px;position:relative}
+.back::after{content:"";position:absolute;inset:-14px -4px}
+.ogl{margin-top:24px;font-size:12px;line-height:16px;font-weight:500;color:var(--ink2)}
+.offer{display:grid;grid-template-columns:200px minmax(0,1fr);column-gap:32px;padding:24px 0;border-bottom:1px solid var(--line)}
+.ogl + .offer{padding-top:12px}
+.offer .on{font-weight:500}
+.offer .oc{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.prev{pointer-events:none}
+.prev .rg{height:100%}
+.prev.S{width:254px;height:232px}.prev.M{width:540px;height:232px}.prev.L{width:540px;height:512px}
+.canvas{flex:1;min-height:0;display:flex;flex-direction:column}
+.chead{height:48px;flex:none;display:flex;align-items:center;gap:12px;padding:0 24px}
+.chead b{font-weight:600}
+.cscroll{flex:1;overflow:auto;padding:16px 24px 24px}
+.fit{transform-origin:0 0}
+.gen{flex:1;min-height:0;display:flex;flex-direction:column}
+.reply{flex:none;display:flex;align-items:baseline;gap:12px;padding:16px 24px;border-bottom:1px solid var(--line)}
+.reply details{font-size:12px;line-height:16px;color:var(--ink2)}
+.reply summary{cursor:pointer;color:var(--accent);font-weight:500;list-style:none;display:inline}
+.reply summary::-webkit-details-marker{display:none}
+.reply ul{margin:8px 0 0;padding:0 0 0 16px}
+.dock{flex:none;display:flex;gap:8px;padding:12px 24px;border-top:1px solid var(--line)}
+.dock .field{flex:1}
+.toast{position:absolute;left:calc(232px + 48px);bottom:24px;height:36px;display:flex;align-items:center;gap:12px;padding:0 8px 0 12px;background:var(--ink);color:var(--surface);border-radius:var(--r-ctl);z-index:45}
+.toast .btn{height:28px;background:transparent;border-color:transparent;color:oklch(0.85 0.08 258)}
+.toast .btn:hover{background:oklch(0.33 0.012 260)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+  <symbol id="i-chev-d" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></symbol>
+  <symbol id="i-chev-r" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4"/></symbol>
+  <symbol id="i-chev-u" viewBox="0 0 16 16"><path d="M4 10l4-4 4 4"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 16 16"><path d="M4 11V7.5a4 4 0 0 1 8 0V11l1 1.5H3L4 11Z"/><path d="M6.5 14a1.6 1.6 0 0 0 3 0"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 16 16"><path d="M4 8h8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.6l4.5-5"/></symbol>
+  <symbol id="i-excl" viewBox="0 0 12 12"><path d="M6 2.2v4.6M6 9.4v.2"/></symbol>
+  <symbol id="i-left" viewBox="0 0 16 16"><path d="M13 8H3M7 4 3 8l4 4"/></symbol>
+  <symbol id="i-up" viewBox="0 0 16 16"><path d="M8 13V3M4 7l4-4 4 4"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 16 16"><path d="M8 2c.4 3 1.8 4.6 5 6-3.2 1.4-4.6 3-5 6-.4-3-1.8-4.6-5-6 3.2-1.4 4.6-3 5-6Z"/></symbol>
+  <symbol id="i-run" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4 .75A3.25 3.25 0 0 0 4 7.25Z" fill="currentColor" stroke="none"/></symbol>
+</svg>
+
+<div class="mockbar" role="toolbar" aria-label="Mock views">
+  <b>Refine C · Flat sections</b>
+  <button data-view="dash" aria-pressed="true">Dashboard</button>
+  <button data-view="edit" aria-pressed="false">Edit + Add widget</button>
+  <button data-view="monitor" aria-pressed="false">Monitor + evidence</button>
+  <button data-view="popup" aria-pressed="false">New dashboard</button>
+  <span class="note">Radius: regions 0 · controls, badges, popovers 4 · drawer and popup 8 · real data, run of 24 Sep</span>
+</div>
+
+<div class="app" id="app">
+  <nav class="side" aria-label="Main">
+    <div class="brand">IntelMonitor</div>
+    <div class="navscroll" id="nav"></div>
+    <button class="prof" aria-haspopup="menu" aria-expanded="false"><span class="av">A</span><span class="pn"><b>Analyst</b><span>Supervisory analyst</span></span><svg class="i s12"><use href="#i-chev-u"/></svg></button>
+  </nav>
+  <main class="main" id="main">
+    <header class="top">
+      <label class="field search"><svg class="i"><use href="#i-search"/></svg><input type="search" id="q" aria-label="Search or ask" placeholder="Search or ask about a topic, group or entity"><kbd>⌘K</kbd></label>
+      <div class="wrap" id="runs-wrap">
+        <button class="runchip" id="runchip" aria-haspopup="dialog" aria-expanded="false" aria-controls="runs"></button>
+        <div class="pop" id="runs" role="dialog" aria-label="Runs" hidden></div>
+      </div>
+      <div class="wrap" id="alerts-wrap">
+        <button class="bell" id="bell" aria-haspopup="dialog" aria-expanded="false" aria-controls="alerts"></button>
+        <div class="pop" id="alerts" role="dialog" aria-label="Alerts" hidden></div>
+      </div>
+    </header>
+    <div class="page" id="page"></div>
+  </main>
+  <aside class="float drawer" id="drawer" role="dialog" aria-label="Evidence" hidden></aside>
+  <div class="toast" id="toast" role="status" hidden></div>
+</div>
+<div class="scrim" id="scrim" hidden></div>
+
+<script>
+const DATA={"dash":[{"type":"since","size":"L","scope":"Run of 24 Sep","d":{"newc":79,"upd":1,"attn":9,"qchg":11,"rows":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","m":"OCBC, Singapore banks · Incident · 1 source","d":"23 Sep","s":"attn"},{"id":"9724fb50f5b197e1-0","t":"Singapore published a 32-page national anti-money laundering strategy jointly produced by MHA, MOF and MAS to address money laundering risks.","m":"Singapore, Banking regulation · Regulatory · 1 source","d":"23 Sep","s":"attn"},{"id":"ed7d0023d140a394-0","t":"Switzerland's upper house of parliament voted on 2026-09-23 for capital rules requiring UBS to back its foreign units with 90% Common Equity Tier 1 capital, opposed by UBS's lobbying.","m":"Banking regulation · Regulatory · 1 source","d":"23 Sep","s":"attn"},{"id":"0992fe865722b0e5-0","t":"MAS stress test found about 32% of Singapore-listed companies would be at risk under a severe AI investment downturn, accounting for 16% of corporate debt.","m":"Singapore, MAS · Regulatory · 3 sources","d":"22 Sep","s":"attn"},{"id":"8038ed30a717ce9f-0","t":"More than 200 customers filed a lawsuit against DBS Bank in Singapore seeking to recover about $17 million in Lehman Brothers-linked investment losses.","m":"DBS, Singapore banks · Incident · 1 source","d":"20 Sep","s":"attn"},{"id":"01e736463285d60c-0","t":"The Federal Reserve Board will consider final revisions to its stress testing framework in the coming weeks, per Vice Chair Bowman's September 18, 2026 speech.","m":"Fed, Central banks · Regulatory · 2 sources","d":"18 Sep","s":"attn"},{"id":"4a7d8fb5c30ac562-1","t":"Bowman said the Fed expects to finalize, before the end of 2026, reforms to risk-based capital requirements for large and small banks and to the GSIB surcharge.","m":"Fed, Central banks · Regulatory · 1 source","d":"18 Sep","s":"attn"},{"id":"5b3753cd2b41e758-1","t":"The independent review found Federal Reserve supervisory staff knew or should have known about SVB's vulnerabilities as early as March 2022 but failed to take prompt, decisive action.","m":"Fed, Banking regulation · Regulatory · 1 source","d":"18 Sep","s":"attn"}]}},{"type":"summary","size":"M","scope":"Singapore banks","d":{"answers":[{"id":"group.common-issues","label":"Common issues","q":"Is the same issue showing up at several members?","state":"watch","prev":null,"sum":"All three banks posted Q2 profit growth amid NII pressure; sector provisioning coverage rose to 147%, and MAS flagged shared AI-downturn corporate debt risk.","lb":7,"custom":false,"nd":3,"nn":0},{"id":"group.exposure","label":"Exposure","q":"Which members are most and least exposed to new developments?","state":"needs_attention","prev":"watch","sum":"OCBC (ATM/online outage) and DBS (Lehman-linked $17m lawsuit) most exposed; UOB faces CRE provisioning risk but was upgraded by Macquarie.","lb":7,"custom":false,"nd":7,"nn":0},{"id":"group.outliers","label":"Outliers","q":"Is any member behaving differently from its peers?","state":"watch","prev":null,"sum":"DBS stands out with a S$1 trillion wealth AUM target and centre expansion; OCBC hit by a systems outage; UOB trades at half peers' price-to-book.","lb":14,"custom":false,"nd":6,"nn":0},{"id":"group.topics","label":"Topics","q":"Which tracked topics are affecting this group most right now?","state":"watch","prev":null,"sum":"Top themes: UOB's CRE exposure/provisioning risk, DBS's wealth-management expansion, AI/digital investment (OCBC Malaysia, UOB), and Q2 earnings amid NII pressure.","lb":14,"custom":false,"nd":14,"nn":0},{"id":"group.peer-moves","label":"Peer moves","q":"Did any member make a move its peers are likely to follow?","state":"new","prev":null,"sum":"DBS's gold-vaulting expansion prompted OCBC to seek bullion storage; DBS's Swift DLT tokenised payment and UOB's AI portfolio tool are template moves others may follow.","lb":30,"custom":false,"nd":5,"nn":5},{"id":"group.contagion","label":"Contagion","q":"Could an issue at one member spread to others?","state":"watch","prev":null,"sum":"MAS stress test flags shared AI-downturn corporate debt risk to all banks; sector-wide provisioning rose to 147% and OCBC's outage raises operational-resilience scrutiny.","lb":14,"custom":false,"nd":3,"nn":0}]}},{"type":"direction","size":"S","scope":"Banking regulation","d":{"subject":"Banking regulation","trend":"rising","weeks":[9,9,3,3,18,17,15,29],"caption":"29 material developments this week, 16.7 a week over the three before"}},{"type":"upcoming","size":"S","scope":"Banking regulation","d":{"subject":"Banking regulation","items":[{"date":"1 Dec","label":"Deadline for comments on toolkit and discussion paper","days":68,"dev":"CPMI-IOSCO opened a public consultation seeking stakeholder input on the cyber resilience toolkit and third-party service provider discussion paper, with comments due by 01 December 2026."}]}},{"type":"watchlist","size":"L","scope":"3 entities tracked","d":{"entries":[{"name":"DBS","state":"needs_attention","newc":10,"hl":"Incidents: 200+ customers sued DBS for ~$17M over Lehman-linked High Notes 5 losses; DBS says suit is without merit, will defend.","latest":{"t":"DBS Group set a target to grow wealth assets under management to over S$1 trillion (US$774 billion) by 2030, up about S$400 billion from S$632 billion at end-2025.","d":"23 Sep"}},{"name":"OCBC","state":"needs_attention","newc":12,"hl":"Incidents: OCBC ATM, internet and mobile banking disrupted 23 Sep 2026; CEO Conner said customer data remained protected.","latest":{"t":"OCBC held its 2025 economic outlook session on Tuesday, 22 September 2026, where chief economist Selena Ling discussed Asean's role amid US-China tensions.","d":"23 Sep"}},{"name":"UOB","state":"watch","newc":14,"hl":"Adverse: Macquarie flags US/Greater China CRE exposure: $181M provisions per 10% collateral drop, $100M for NPL slippage; $345M buffer available.","latest":{"t":"UOB Thailand had cumulatively extended 74.6 billion baht in sustainable financing by the end of 2025.","d":"23 Sep"}}]}},{"type":"developments","size":"M","scope":"241 in scope","d":{"rows":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","m":"OCBC, Singapore banks · Incident · 1 source","d":"23 Sep","s":"attn"},{"id":"9724fb50f5b197e1-0","t":"Singapore published a 32-page national anti-money laundering strategy jointly produced by MHA, MOF and MAS to address money laundering risks.","m":"Singapore, Banking regulation · Regulatory · 1 source","d":"23 Sep","s":"attn"},{"id":"ed7d0023d140a394-0","t":"Switzerland's upper house of parliament voted on 2026-09-23 for capital rules requiring UBS to back its foreign units with 90% Common Equity Tier 1 capital, opposed by UBS's lobbying.","m":"Banking regulation · Regulatory · 1 source","d":"23 Sep","s":"attn"},{"id":"0992fe865722b0e5-0","t":"MAS stress test found about 32% of Singapore-listed companies would be at risk under a severe AI investment downturn, accounting for 16% of corporate debt.","m":"Singapore, MAS · Regulatory · 3 sources","d":"22 Sep","s":"attn"},{"id":"8038ed30a717ce9f-0","t":"More than 200 customers filed a lawsuit against DBS Bank in Singapore seeking to recover about $17 million in Lehman Brothers-linked investment losses.","m":"DBS, Singapore banks · Incident · 1 source","d":"20 Sep","s":"attn"}]}},{"type":"question","size":"S","scope":"Banking regulation","d":{"id":"banking-regulation.enforcement","label":"Enforcement","q":"Were any enforcement actions or penalties announced against banks?","state":"needs_attention","prev":"watch","sum":"BNM fined 9 banks RM5.6m for outages and RM1m against Bank Rakyat; OFSI fined Citibank £4.7m; APRA penalized ING Bank Australia.","lb":30,"custom":false,"nd":6,"nn":0}}],"galSgb":[{"type":"since","size":"L","scope":"Singapore banks","d":{"newc":34,"upd":1,"attn":3,"qchg":9,"rows":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","m":"OCBC, Singapore banks · Incident · 1 source","d":"23 Sep","s":"attn"},{"id":"0992fe865722b0e5-0","t":"MAS stress test found about 32% of Singapore-listed companies would be at risk under a severe AI investment downturn, accounting for 16% of corporate debt.","m":"Singapore, MAS · Regulatory · 3 sources","d":"22 Sep","s":"attn"},{"id":"8038ed30a717ce9f-0","t":"More than 200 customers filed a lawsuit against DBS Bank in Singapore seeking to recover about $17 million in Lehman Brothers-linked investment losses.","m":"DBS, Singapore banks · Incident · 1 source","d":"20 Sep","s":"attn"},{"id":"5c11a21ea2c0ef12-0","t":"UOB Thailand had cumulatively extended 74.6 billion baht in sustainable financing by the end of 2025.","m":"UOB, Thailand · Financial · 1 source","d":"23 Sep","s":"new"},{"id":"5c11a21ea2c0ef12-3","t":"UOB helped arrange 7.3 billion baht in green financing for GSA Data Center 01, a joint venture between Gulf Development, Singtel and AIS, to build a 25.6-megawatt LEED Gold data centre.","m":"UOB, Thailand · Strategy · 1 source","d":"23 Sep","s":"new"},{"id":"e558b126131ded1e-0","t":"DBS Group set a target to grow wealth assets under management to over S$1 trillion (US$774 billion) by 2030, up about S$400 billion from S$632 billion at end-2025.","m":"DBS, Singapore banks · Strategy · 1 source","d":"23 Sep","s":"new"},{"id":"e558b126131ded1e-1","t":"As of May 2026, the number of newly onboarded high-net-worth and ultra-high-net-worth clients at DBS had risen 20% from a year earlier.","m":"DBS · Financial · 1 source","d":"31 May","s":"new"},{"id":"e558b126131ded1e-2","t":"DBS plans to hire more than 600 relationship managers or frontline advisers and platform engineers by the end of 2028, mainly across Singapore, Hong Kong, China, India, Indonesia and Taiwan.","m":"DBS, SEA countries · Strategy · 1 source","d":"23 Sep","s":"new"}]}},{"type":"watchlist","size":"L","scope":"3 entities tracked","d":{"entries":[{"name":"DBS","state":"needs_attention","newc":10,"hl":"Incidents: 200+ customers sued DBS for ~$17M over Lehman-linked High Notes 5 losses; DBS says suit is without merit, will defend.","latest":{"t":"DBS Group set a target to grow wealth assets under management to over S$1 trillion (US$774 billion) by 2030, up about S$400 billion from S$632 billion at end-2025.","d":"23 Sep"}},{"name":"OCBC","state":"needs_attention","newc":12,"hl":"Incidents: OCBC ATM, internet and mobile banking disrupted 23 Sep 2026; CEO Conner said customer data remained protected.","latest":{"t":"OCBC held its 2025 economic outlook session on Tuesday, 22 September 2026, where chief economist Selena Ling discussed Asean's role amid US-China tensions.","d":"23 Sep"}},{"name":"UOB","state":"watch","newc":14,"hl":"Adverse: Macquarie flags US/Greater China CRE exposure: $181M provisions per 10% collateral drop, $100M for NPL slippage; $345M buffer available.","latest":{"t":"UOB Thailand had cumulatively extended 74.6 billion baht in sustainable financing by the end of 2025.","d":"23 Sep"}}]}},{"type":"summary","size":"M","scope":"Singapore banks","d":{"answers":[{"id":"group.common-issues","label":"Common issues","q":"Is the same issue showing up at several members?","state":"watch","prev":null,"sum":"All three banks posted Q2 profit growth amid NII pressure; sector provisioning coverage rose to 147%, and MAS flagged shared AI-downturn corporate debt risk.","lb":7,"custom":false,"nd":3,"nn":0},{"id":"group.exposure","label":"Exposure","q":"Which members are most and least exposed to new developments?","state":"needs_attention","prev":"watch","sum":"OCBC (ATM/online outage) and DBS (Lehman-linked $17m lawsuit) most exposed; UOB faces CRE provisioning risk but was upgraded by Macquarie.","lb":7,"custom":false,"nd":7,"nn":0},{"id":"group.outliers","label":"Outliers","q":"Is any member behaving differently from its peers?","state":"watch","prev":null,"sum":"DBS stands out with a S$1 trillion wealth AUM target and centre expansion; OCBC hit by a systems outage; UOB trades at half peers' price-to-book.","lb":14,"custom":false,"nd":6,"nn":0},{"id":"group.topics","label":"Topics","q":"Which tracked topics are affecting this group most right now?","state":"watch","prev":null,"sum":"Top themes: UOB's CRE exposure/provisioning risk, DBS's wealth-management expansion, AI/digital investment (OCBC Malaysia, UOB), and Q2 earnings amid NII pressure.","lb":14,"custom":false,"nd":14,"nn":0},{"id":"group.peer-moves","label":"Peer moves","q":"Did any member make a move its peers are likely to follow?","state":"new","prev":null,"sum":"DBS's gold-vaulting expansion prompted OCBC to seek bullion storage; DBS's Swift DLT tokenised payment and UOB's AI portfolio tool are template moves others may follow.","lb":30,"custom":false,"nd":5,"nn":5},{"id":"group.contagion","label":"Contagion","q":"Could an issue at one member spread to others?","state":"watch","prev":null,"sum":"MAS stress test flags shared AI-downturn corporate debt risk to all banks; sector-wide provisioning rose to 147% and OCBC's outage raises operational-resilience scrutiny.","lb":14,"custom":false,"nd":3,"nn":0}]}},{"type":"developments","size":"M","scope":"84 in scope","d":{"rows":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","m":"OCBC, Singapore banks · Incident · 1 source","d":"23 Sep","s":"attn"},{"id":"0992fe865722b0e5-0","t":"MAS stress test found about 32% of Singapore-listed companies would be at risk under a severe AI investment downturn, accounting for 16% of corporate debt.","m":"Singapore, MAS · Regulatory · 3 sources","d":"22 Sep","s":"attn"},{"id":"8038ed30a717ce9f-0","t":"More than 200 customers filed a lawsuit against DBS Bank in Singapore seeking to recover about $17 million in Lehman Brothers-linked investment losses.","m":"DBS, Singapore banks · Incident · 1 source","d":"20 Sep","s":"attn"},{"id":"9e51fd9cea11cfef-0","t":"DBS Bank and Citigroup executed a cross-border US dollar payment on Sept 5, 2026 using tokenised deposits via the Swift Digital Ledger, taking minutes versus up to two business days.","m":"DBS, Singapore banks · Strategy · 2 sources","d":"5 Sep","s":"attn"},{"id":"9e51fd9cea11cfef-1","t":"DBS said in August 2026 it expects its investment in tokenised finance to match or overtake traditional payment and custody spending within two to three years.","m":"DBS, Stablecoins · Strategy · 1 source","d":"7 Sep","s":"attn"}]}},{"type":"direction","size":"S","scope":"Singapore banks","d":{"subject":"Singapore banks","trend":"rising","weeks":[1,3,1,6,1,10,8,19],"caption":"19 material developments this week, 6.3 a week over the three before"}}],"ocbcW":{"summary":{"type":"summary","size":"M","scope":"OCBC","d":{"answers":[{"id":"bank.incidents","label":"Incidents","q":"Have any material operational or technology incidents occurred?","state":"needs_attention","prev":"stable","sum":"OCBC ATM, internet and mobile banking disrupted 23 Sep 2026; CEO Conner said customer data remained protected.","lb":7,"custom":false,"nd":1,"nn":0},{"id":"bank.adverse","label":"Adverse","q":"Is there anything that could hurt this bank?","state":"needs_attention","prev":"watch","sum":"Service disruption to ATM/internet/mobile banking on 23 Sep despite rising Q3 profit (+22% y-o-y).","lb":7,"custom":false,"nd":2,"nn":0},{"id":"bank.regulatory","label":"Regulatory","q":"Any regulatory actions, findings or new obligations?","state":"stable","prev":null,"sum":"No enforcement actions or new regulatory obligations reported for OCBC in the last 30 days.","lb":30,"custom":false,"nd":0,"nn":0},{"id":"bank.financial","label":"Financial","q":"Any material changes in earnings, capital, liquidity or asset quality?","state":"watch","prev":null,"sum":"Q3 net profit rose 22% y-o-y despite NII/NIM pressure; UOBKH kept 'hold' rating with S$32.50 target.","lb":30,"custom":false,"nd":5,"nn":0},{"id":"bank.management","label":"Management","q":"Any senior management or board changes?","state":"stable","prev":null,"sum":"No senior management or board changes reported for OCBC in the last 30 days.","lb":30,"custom":false,"nd":0,"nn":0},{"id":"bank.strategy","label":"Strategy","q":"Any significant M&A, product or technology moves?","state":"new","prev":null,"sum":"OCBC Malaysia expanded AI upskilling (MOBI, RM10m/yr), opened largest Klang Valley branch and Express Credit Kiosk.","lb":30,"custom":false,"nd":11,"nn":11},{"id":"bank.digital-assets","label":"Digital assets","q":"Any stablecoin, tokenisation or crypto activity or exposure?","state":"stable","prev":null,"sum":"No stablecoin, tokenisation or crypto activity or exposure reported for OCBC in the last 30 days.","lb":30,"custom":false,"nd":0,"nn":0},{"id":"bank.geographic-exposure","label":"Geographic exposure","q":"Is the bank exposed to any escalating geopolitical situation?","state":"stable","prev":null,"sum":"OCBC discussed Asean/US-China tensions and power-grid, SME relief cooperation; no escalating geopolitical exposure identified.","lb":14,"custom":false,"nd":3,"nn":0},{"id":"custom-121cf28fb9","label":"Tariff exposure","q":"What new developments, disclosures, or news indicate OCBC's exposure to US tariffs and broader trade tensions, including impacts on its trade finance, corporate lending, and regional business segments?","state":"stable","prev":null,"sum":"No documents in the lookback period address OCBC's exposure to US tariffs or trade tensions.","lb":14,"custom":true,"nd":0,"nn":0}]}},"question":{"type":"question","size":"S","scope":"OCBC","d":{"id":"bank.incidents","label":"Incidents","q":"Have any material operational or technology incidents occurred?","state":"needs_attention","prev":"stable","sum":"OCBC ATM, internet and mobile banking disrupted 23 Sep 2026; CEO Conner said customer data remained protected.","lb":7,"custom":false,"nd":1,"nn":0}},"since":{"type":"since","size":"M","scope":"OCBC","d":{"newc":12,"upd":0,"attn":1,"qchg":2,"rows":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","m":"Singapore banks · Incident · 1 source","d":"23 Sep","s":"attn"},{"id":"15318a0fa093f5ba-3","t":"Despite NII pressure, quarterly net profits at all three Singapore banks rose year on year, up 9 per cent at DBS, 22 per cent at OCBC and 10 per cent at UOB.","m":"Singapore banks, UOB · Financial · 3 sources","d":"17 Sep","s":"new"},{"id":"76f9aa53db22afd0-1","t":"OCBC held its 2025 economic outlook session on Tuesday, 22 September 2026, where chief economist Selena Ling discussed Asean's role amid US-China tensions.","m":"Other · 1 source","d":"22 Sep","s":"new"},{"id":"bce9f8efcef7c4c4-0","t":"OCBC Malaysia is investing more than RM10 million a year in people development programmes focused on AI, reskilling and upskilling for its 5,000-strong workforce.","m":"SEA countries, Singapore banks · Strategy · 1 source","d":"23 Sep","s":"new"},{"id":"bce9f8efcef7c4c4-1","t":"OCBC Malaysia has channelled RM30 million into staff development since starting its AI-focused investment commitment three years ago.","m":"SEA countries, Singapore banks · Financial · 1 source","d":"23 Sep","s":"new"},{"id":"bce9f8efcef7c4c4-2","t":"OCBC Malaysia launched its in-house AI career growth platform MOBI, which recommends learning courses and personalised career pathways for employees.","m":"SEA countries, Singapore banks · Strategy · 1 source","d":"11 Sep","s":"new"},{"id":"bce9f8efcef7c4c4-3","t":"OCBC Malaysia now offers 480 AI programmes with nearly 3,890 employees participating and about 12,500 course completions to date, and uses three GenAI platforms (OCBC GPT, Buddy, Copilot).","m":"SEA countries, Singapore banks · Strategy · 1 source","d":"23 Sep","s":"new"},{"id":"bce9f8efcef7c4c4-4","t":"OCBC Malaysia will offer two scholarships next year for students pursuing AI-related disciplines under its scholarship programme, with more possible if needed.","m":"SEA countries, Singapore banks · Strategy · 1 source","d":"23 Sep","s":"new"}]}},"developments":{"type":"developments","size":"M","scope":"25 in scope","d":{"rows":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","m":"Singapore banks · Incident · 1 source","d":"23 Sep","s":"attn"},{"id":"15318a0fa093f5ba-3","t":"Despite NII pressure, quarterly net profits at all three Singapore banks rose year on year, up 9 per cent at DBS, 22 per cent at OCBC and 10 per cent at UOB.","m":"Singapore banks, UOB · Financial · 3 sources","d":"17 Sep","s":"new"},{"id":"76f9aa53db22afd0-1","t":"OCBC held its 2025 economic outlook session on Tuesday, 22 September 2026, where chief economist Selena Ling discussed Asean's role amid US-China tensions.","m":"Other · 1 source","d":"22 Sep","s":"new"},{"id":"bce9f8efcef7c4c4-0","t":"OCBC Malaysia is investing more than RM10 million a year in people development programmes focused on AI, reskilling and upskilling for its 5,000-strong workforce.","m":"SEA countries, Singapore banks · Strategy · 1 source","d":"23 Sep","s":"new"},{"id":"bce9f8efcef7c4c4-1","t":"OCBC Malaysia has channelled RM30 million into staff development since starting its AI-focused investment commitment three years ago.","m":"SEA countries, Singapore banks · Financial · 1 source","d":"23 Sep","s":"new"}]}},"watchlist":{"type":"watchlist","size":"M","scope":"1 entity tracked","d":{"entries":[{"name":"OCBC","state":"needs_attention","newc":12,"hl":"Incidents: OCBC ATM, internet and mobile banking disrupted 23 Sep 2026; CEO Conner said customer data remained protected.","latest":{"t":"OCBC held its 2025 economic outlook session on Tuesday, 22 September 2026, where chief economist Selena Ling discussed Asean's role amid US-China tensions.","d":"23 Sep"}}]}},"direction":{"type":"direction","size":"S","scope":"OCBC","d":{"subject":"OCBC","trend":"flat","weeks":[1,0,1,0,0,0,5,1],"caption":"1 material development this week, 1.7 a week over the three before"}},"upcoming":{"type":"upcoming","size":"S","scope":"OCBC","d":{"subject":"OCBC","items":[{"date":"30 Sep","label":"Helios rollout across BOS (Q3 2026)","days":6,"dev":"OCBC is deploying an AI agent platform to cut private banking account approval times to 15 business days, ahead of the regulator's roughly one-month target."}]}}},"page":{"name":"OCBC","kind":"Bank","newc":12,"upd":0,"attn":1,"qchg":2,"reviewed":"24 Sep at 05:59","rows":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","m":"Singapore banks · Incident · 1 source","d":"23 Sep","s":"attn"},{"id":"15318a0fa093f5ba-3","t":"Despite NII pressure, quarterly net profits at all three Singapore banks rose year on year, up 9 per cent at DBS, 22 per cent at OCBC and 10 per cent at UOB.","m":"Singapore banks, UOB · Financial · 3 sources","d":"17 Sep","s":"new"},{"id":"76f9aa53db22afd0-1","t":"OCBC held its 2025 economic outlook session on Tuesday, 22 September 2026, where chief economist Selena Ling discussed Asean's role amid US-China tensions.","m":"Other · 1 source","d":"22 Sep","s":"new"},{"id":"bce9f8efcef7c4c4-0","t":"OCBC Malaysia is investing more than RM10 million a year in people development programmes focused on AI, reskilling and upskilling for its 5,000-strong workforce.","m":"SEA countries, Singapore banks · Strategy · 1 source","d":"23 Sep","s":"new"},{"id":"bce9f8efcef7c4c4-1","t":"OCBC Malaysia has channelled RM30 million into staff development since starting its AI-focused investment commitment three years ago.","m":"SEA countries, Singapore banks · Financial · 1 source","d":"23 Sep","s":"new"},{"id":"bce9f8efcef7c4c4-2","t":"OCBC Malaysia launched its in-house AI career growth platform MOBI, which recommends learning courses and personalised career pathways for employees.","m":"SEA countries, Singapore banks · Strategy · 1 source","d":"11 Sep","s":"new"},{"id":"bce9f8efcef7c4c4-3","t":"OCBC Malaysia now offers 480 AI programmes with nearly 3,890 employees participating and about 12,500 course completions to date, and uses three GenAI platforms (OCBC GPT, Buddy, Copilot).","m":"SEA countries, Singapore banks · Strategy · 1 source","d":"23 Sep","s":"new"},{"id":"bce9f8efcef7c4c4-4","t":"OCBC Malaysia will offer two scholarships next year for students pursuing AI-related disciplines under its scholarship programme, with more possible if needed.","m":"SEA countries, Singapore banks · Strategy · 1 source","d":"23 Sep","s":"new"},{"id":"aee7c5c6ba298ea1-0","t":"OCBC Bank opened its largest Klang Valley branch at Alam Damai, Cheras, with over 15,000 sq ft of retail space and over 2,000 safe deposit boxes.","m":"Singapore banks, SEA countries · Strategy · 1 source","d":"18 Sep","s":"new"},{"id":"aee7c5c6ba298ea1-1","t":"With the new Cheras branch, OCBC Bank now operates 31 conventional and five OCBC Al-Amin Islamic banking branches nationwide in Malaysia.","m":"Singapore banks, SEA countries · Strategy · 1 source","d":"18 Sep","s":"new"},{"id":"aee7c5c6ba298ea1-2","t":"OCBC launched the OCBC Express Credit Kiosk at the Cheras branch opening, enabling consumers to apply for unsecured credit facilities like credit cards and personal financing with minimal physical submissions.","m":"Singapore banks, SEA countries · Strategy · 1 source","d":"18 Sep","s":"new"},{"id":"aee7c5c6ba298ea1-3","t":"OCBC CEO Jeffrey Chew said the Express Credit Kiosk will be rolled out to all branches nationwide before the end of February.","m":"Singapore banks, SEA countries · Strategy · 1 source","d":"19 Sep","s":"new"}],"questions":[{"id":"bank.incidents","label":"Incidents","q":"Have any material operational or technology incidents occurred?","state":"needs_attention","prev":"stable","sum":"OCBC ATM, internet and mobile banking disrupted 23 Sep 2026; CEO Conner said customer data remained protected.","lb":7,"custom":false,"nd":1,"nn":0},{"id":"bank.adverse","label":"Adverse","q":"Is there anything that could hurt this bank?","state":"needs_attention","prev":"watch","sum":"Service disruption to ATM/internet/mobile banking on 23 Sep despite rising Q3 profit (+22% y-o-y).","lb":7,"custom":false,"nd":2,"nn":0},{"id":"bank.regulatory","label":"Regulatory","q":"Any regulatory actions, findings or new obligations?","state":"stable","prev":null,"sum":"No enforcement actions or new regulatory obligations reported for OCBC in the last 30 days.","lb":30,"custom":false,"nd":0,"nn":0},{"id":"bank.financial","label":"Financial","q":"Any material changes in earnings, capital, liquidity or asset quality?","state":"watch","prev":null,"sum":"Q3 net profit rose 22% y-o-y despite NII/NIM pressure; UOBKH kept 'hold' rating with S$32.50 target.","lb":30,"custom":false,"nd":5,"nn":0},{"id":"bank.management","label":"Management","q":"Any senior management or board changes?","state":"stable","prev":null,"sum":"No senior management or board changes reported for OCBC in the last 30 days.","lb":30,"custom":false,"nd":0,"nn":0},{"id":"bank.strategy","label":"Strategy","q":"Any significant M&A, product or technology moves?","state":"new","prev":null,"sum":"OCBC Malaysia expanded AI upskilling (MOBI, RM10m/yr), opened largest Klang Valley branch and Express Credit Kiosk.","lb":30,"custom":false,"nd":11,"nn":11},{"id":"bank.digital-assets","label":"Digital assets","q":"Any stablecoin, tokenisation or crypto activity or exposure?","state":"stable","prev":null,"sum":"No stablecoin, tokenisation or crypto activity or exposure reported for OCBC in the last 30 days.","lb":30,"custom":false,"nd":0,"nn":0},{"id":"bank.geographic-exposure","label":"Geographic exposure","q":"Is the bank exposed to any escalating geopolitical situation?","state":"stable","prev":null,"sum":"OCBC discussed Asean/US-China tensions and power-grid, SME relief cooperation; no escalating geopolitical exposure identified.","lb":14,"custom":false,"nd":3,"nn":0},{"id":"custom-121cf28fb9","label":"Tariff exposure","q":"What new developments, disclosures, or news indicate OCBC's exposure to US tariffs and broader trade tensions, including impacts on its trade finance, corporate lending, and regional business segments?","state":"stable","prev":null,"sum":"No documents in the lookback period address OCBC's exposure to US tariffs or trade tensions.","lb":14,"custom":true,"nd":0,"nn":0}],"slots":8,"links":{"topics":["Banking regulation","Stablecoins","Geopolitics"],"groups":["Singapore banks"]},"domain":"ocbc.com"},"ev":{"label":"Adverse","subject":"OCBC","q":"Is there anything that could hurt this bank?","state":"needs_attention","prev":"watch","sum":"Service disruption to ATM/internet/mobile banking on 23 Sep despite rising Q3 profit (+22% y-o-y).","prevsum":"Q2 net interest income fell y-o-y; UOBKH cut OCBC to 'hold' (S$32.50 target); shares fell 2.7% to S$31.","lb":7,"findings":[{"t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","s":"attn","tags":["OCBC","Singapore banks"],"conf":"high","matconf":0.73,"sub":[{"subject":{"id":"ocbc","name":"OCBC","type":"entity","kind":"bank"},"confidence":0.98,"source":"jev"},{"subject":{"id":"singapore-banks","name":"Singapore banks","type":"group","kind":null},"confidence":0.9,"source":"jev"}],"srcs":[{"t":"OCBC says all customer data protected during today’s disruption","m":"23 Sep · News · theedgemalaysia.com · new this run","p":{"pre":false,"post":false,"parts":[["","OCBC says all customer data protected during today’s disruption Wednesday 23 Sep 2026 "],["m","All customer data was protected with “appropriate security measures” during today’s disruption of automated-teller machine, Internet and mobile-phone banking services, David Conner, chief executive officer of Oversea- Chinese Banking Corp., Singapore’s second-biggest bank, said in an e-mailed statement."]]}}],"mat":"Significant","cat":"Incident","d":"23 Sep"},{"t":"Despite NII pressure, quarterly net profits at all three Singapore banks rose year on year, up 9 per cent at DBS, 22 per cent at OCBC and 10 per cent at UOB.","s":"new","tags":["Singapore banks","UOB","DBS","OCBC"],"conf":"medium","matconf":0.6,"sub":[{"subject":{"id":"singapore-banks","name":"Singapore banks","type":"group","kind":null},"confidence":0.98,"source":"jev"},{"subject":{"id":"uob","name":"UOB","type":"entity","kind":"bank"},"confidence":0.73,"source":"jev"},{"subject":{"id":"dbs","name":"DBS","type":"entity","kind":"bank"},"confidence":0.53,"source":"claude"},{"subject":{"id":"ocbc","name":"OCBC","type":"entity","kind":"bank"},"confidence":0.41,"source":"claude"}],"srcs":[{"t":"Fed hike throws Singapore banks a margin lifeline; UOB most likely to feel impact","m":"17 Sep · News · businesstimes.com.sg · new this run","p":{"pre":true,"post":true,"parts":[["","Sora and the Secured Overnight Financing Rate (a key benchmark for US dollar interest rates) to narrow,” he said. "],["m","Macquarie sees UOB as the most exposed to higher rates. About 43 per cent of its loans are denominated in Singapore dollars, compared with 37 to 38 per cent for DBS and OCBC, while NII accounts for 66 per cent of revenue, against around 58 per cent for its two peers."],[""," For DBS, the impact is less straightforward. The lender said in August that"]]}},{"t":"Fed hike throws Singapore banks a margin lifeline; UOB likely to ...","m":"17 Sep · News · businesstimes.com.sg · new this run","p":{"pre":true,"post":true,"parts":[["","to 1.87 per cent. OCBC’s NII slipped 1 per cent to S$2.26 billion, while UOB’s fell 2 per cent to S$2.3 billion. "],["m","Their quarterly net profits nevertheless rose 9 per cent to S$3.08 billion, 22 per cent to S$2.22 billion and 10 per cent to S$1.48 billion, respectively."],[""," Their earnings were instead supported by areas including wealth management,"]]}},{"t":"UOB shares rise after Fed hikes rates; yen weakens against Singdollar: Markets this week","m":"20 Sep · News · straitstimes.com · new this run","p":{"pre":true,"post":true,"parts":[["","and support net interest income (NII), which had been under pressure as rates declined during the first half of 2026. "],["m","Macquarie Equity Research’s Jayden Vantarakis said that while all three local banks stand to benefit from higher Singapore rates, UOB has the most to gain."],[""," "],["m","About 43 per cent of UOB’s loans are denominated in Singapore dollars, compared with 37 to 38 per cent for DBS and OCBC. UOB also earns more NII in its revenue mix, at 66 per cent, compared to about 58 per cent for its two peers, said Vantarakis."],[""," ## Yen slumps against Singdollar, US dollar The Japanese yen weakened"]]}}],"mat":"Notable","cat":"Financial","d":"17 Sep"}]},"alerts":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","m":"OCBC, Singapore banks · Incident · 1 source","d":"23 Sep","s":"attn"},{"id":"0992fe865722b0e5-0","t":"MAS stress test found about 32% of Singapore-listed companies would be at risk under a severe AI investment downturn, accounting for 16% of corporate debt.","m":"Singapore, MAS · Regulatory · 3 sources","d":"22 Sep","s":"attn"},{"id":"8038ed30a717ce9f-0","t":"More than 200 customers filed a lawsuit against DBS Bank in Singapore seeking to recover about $17 million in Lehman Brothers-linked investment losses.","m":"DBS, Singapore banks · Incident · 1 source","d":"20 Sep","s":"attn"},{"id":"0bcf9d2a967ec327-4","t":"DBS Group Research economists said on Sept 18, 2026 that there is no resolution in sight to the Middle East crisis, and high oil prices could push inflation up and pressure central banks to raise rates.","m":"Central banks, DBS · Market · 1 source","d":"18 Sep","s":"watch"},{"id":"67383db0815d2524-2","t":"UOB disclosed details of its exposure to US and Greater China commercial real estate in its 1HFY2026 results deck.","m":"UOB · Financial · 1 source","d":"18 Sep","s":"watch"}],"subjects":{"topic":[["Banking regulation",45],["Geopolitics",34],["Stablecoins",17]],"group":[["Singapore banks",35],["SEA regional banks",49],["Central banks",144],["Stablecoin issuers",6],["SEA countries",146]],"entity":[["DBS",10],["OCBC",12],["UOB",14],["Maybank",21],["CIMB",29],["Bangkok Bank",0],["MAS",27],["Fed",27],["ECB",35],["PBoC",10],["HKMA",14],["BNM",36],["Circle",5],["Tether",0],["Paxos",0],["StraitsX",0],["Singapore",29],["Malaysia",39],["Indonesia",20],["Thailand",20],["Vietnam",8],["Philippines",10]]},"runs":[{"as_of":"24 Sep","dur":"14 s","docs":545,"devs":972,"prev":"2026-09-17","res":[303,34]},{"as_of":"17 Sep","dur":"10 s","docs":380,"devs":671,"prev":null}],"sources":11};
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ic=(n,c='i')=>`<svg class="${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const WORD={needs_attention:'Needs attention',attn:'Needs attention',watch:'Watch',new:'New',stable:'Stable',upd:'Updated'};
+const CLS={needs_attention:'attn',attn:'attn',watch:'watch',new:'new',stable:'stable',upd:'upd'};
+const sw=s=>`<span class="sw s-${CLS[s]}">${WORD[s]}</span>`;
+const stateTxt=(s,prev)=>prev&&prev!==s?`<span class="tr"><span class="s-${CLS[prev]}">${WORD[prev]}</span> <span class="arr">→</span> <span class="s-${CLS[s]}">${WORD[s]}</span></span>`:`<span class="tr s-${CLS[s]}">${WORD[s]}</span>`;
+const NAME={since:'Since your last review',summary:'Standing questions',direction:'Direction of travel',upcoming:'Upcoming',watchlist:'Watchlist',developments:'Developments',question:'Standing question'};
+const CAT_NAME={since:'Since your last review',summary:'Monitor summary',direction:'Direction of travel',upcoming:'Upcoming',watchlist:'Watchlist',developments:'Developments',question:'Standing question'};
+const SIZES={since:['M','L'],question:['S','M'],summary:['M','L'],developments:['M','L'],direction:['S','M'],watchlist:['M','L'],upcoming:['S','M']};
+const SIZE_LABEL={S:'Small',M:'Medium',L:'Large'};
+const FOOT={S:'1 × 1',M:'2 × 1',L:'2 × 2'};
+
+const S={view:'dash',editing:false,running:false,alertsRead:false,sheet:false,popup:null,gallery:true,subject:'OCBC',sheetSubject:'Singapore banks',drawer:false,widgets:DATA.dash.map((w,i)=>({...w,id:'w'+i})),removed:null,draft:null,gsizes:{}};
+
+// ---------- Rows ----------
+function rowHTML(r,{status=true,date=true}={}){
+  return `<button class="row${status?'':' nost'}" data-ev="${r.id}">${status?`<span>${sw(r.s)}</span>`:''}<span><span class="tt clamp2">${esc(r.t)}</span><span class="mt" style="display:block">${esc(r.m)}</span></span>${date?`<span class="dt">${esc(r.d)}</span>`:'<span></span>'}</button>`;
+}
+
+// ---------- Widgets (regions) ----------
+function spark(weeks){
+  const w=240,h=56,max=Math.max(...weeks),n=weeks.length;
+  const pts=weeks.map((v,i)=>[+(i*(w-8)/(n-1)+4).toFixed(1),+(h-6-(v/max)*(h-14)).toFixed(1)]);
+  const l=pts[n-1];
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke"/><circle class="last" cx="${l[0]}" cy="${l[1]}" r="2.5"/></svg>`;
+}
+function body(w){
+  const d=w.d,sz=w.size;
+  switch(w.type){
+  case 'since':{
+    const attn=d.rows.filter(r=>r.s==='attn'),rest=d.rows.filter(r=>r.s!=='attn');
+    const cap=sz==='L'?4:1;
+    let rows=attn.slice(0,cap),html=`<p class="lead num">${d.newc} new, ${d.attn} need${d.attn===1?'s':''} attention</p>`;
+    if(rows.length)html+=`<div class="gl">${sw('attn')} · <span class="num">${d.attn}</span></div>${rows.map(r=>rowHTML(r,{status:false})).join('')}`;
+    if(rows.length<cap){const more=rest.slice(0,cap-rows.length);html+=`<div class="gl">${sw('new')} · <span class="num">${d.newc-d.attn}</span></div>${more.map(r=>rowHTML(r,{status:false})).join('')}`;}
+    return html+`<div class="rfoot"><a>Show all ${d.newc}</a><a>Mark all reviewed</a><span class="r num">${d.upd?d.upd+' updated, ':''}${d.qchg} answers changed</span></div>`;}
+  case 'summary':{
+    const a=sz==='L'?d.answers:d.answers.slice(0,6);
+    const ch=d.answers.filter(x=>x.prev).length;
+    return `<div class="sumgrid">${a.map(x=>`<a class="sumrow" data-q="${x.id}"><span class="l">${esc(x.label)}</span><span class="v">${stateTxt(x.state,x.prev)}</span></a>`).join('')}</div><div class="rfoot"><a>Open ${esc(w.scope)}</a><span class="r num">${d.answers.length} questions, ${ch} changed</span></div>`;}
+  case 'direction':{
+    const word=d.trend[0].toUpperCase()+d.trend.slice(1);
+    return `<p class="ans">${word}</p>${spark(d.weeks)}<p class="cap14">${esc(d.caption)}</p>`;}
+  case 'upcoming':{
+    const it=d.items.slice(0,sz==='M'?3:1);
+    return it.map(x=>`<p class="ans num">${esc(x.date)}</p><p class="cap14 clamp3" style="margin-top:4px">${esc(x.label)}</p><p class="meta12" style="margin-top:8px">In ${x.days} days</p>`).join('');}
+  case 'watchlist':
+    return `<label class="field addf">${ic('plus')}<input aria-label="Add to watchlist" placeholder="Add a bank, central bank, issuer or country"></label>`+
+      d.entries.map(e=>`<div class="wl-row"><span>${sw(e.state)}</span><div><a class="n" style="color:var(--ink)">${esc(e.name)}</a><div class="clamp2" style="margin-top:4px">${esc(e.hl)}</div>${sz==='L'&&e.latest?`<div class="meta12 clamp2" style="margin-top:4px">Latest, ${esc(e.latest.d)}: ${esc(e.latest.t)}</div>`:''}</div><button class="ib" aria-label="Remove ${esc(e.name)}">${ic('x')}</button></div>`).join('');
+  case 'developments':{
+    const n=sz==='L'?5:2;
+    return d.rows.slice(0,n).map(r=>rowHTML(r)).join('')+`<div class="rfoot"><a>Show all ${esc(w.scope.split(' ')[0])}</a></div>`;}
+  case 'question':
+    return `<p>${stateTxt(d.state,d.prev)}</p><p class="cap14 clamp4" style="margin-top:4px">${esc(d.sum)}</p><div class="rfoot"><a>See evidence</a><span>last ${d.lb} days</span></div>`;
+  }
+}
+function title(w){return w.type==='question'?w.d.label:NAME[w.type];}
+function region(w,{edit=false,changed=false}={}){
+  return `<section class="rg ${w.size}${changed?' changed':''}" data-id="${w.id||''}" aria-label="${esc(title(w))}">
+    <div class="rh"><a class="rt">${esc(title(w))}</a><span class="rm">${esc(w.scope)}</span></div>
+    ${edit?`<button class="ib box minus" data-remove="${w.id}" aria-label="Remove ${esc(title(w))}">${ic('minus','i s12')}</button>`:''}
+    ${body(w)}</section>`;
+}
+
+// ---------- Sidebar ----------
+function renderNav(){
+  const onMon=S.view==='monitor';
+  const dash=['Singapore banks','Stablecoin watch','Geopolitics in SEA','OCBC'];
+  const mon=[['Topics',DATA.subjects.topic.length],['Groups',DATA.subjects.group.length],['Entities',DATA.subjects.entity.length]];
+  $('nav').innerHTML=`<div class="nh">Dashboards</div>
+   <button class="ni" id="open-new">${ic('plus')}New dashboard</button>
+   ${dash.map((n,i)=>`<a class="ni" href="#" ${!onMon&&i===0?'aria-current="page"':''}>${esc(n)}</a>`).join('')}
+   <div class="nh">Monitors</div>
+   ${mon.map(([n,c])=>{const open=onMon&&n==='Entities';
+     return `<button class="ni" aria-expanded="${open}">${ic(open?'chev-d':'chev-r','i s12')}${n}<span class="cnt num">${c}</span></button>`+
+     (open?DATA.subjects.entity.map(([en,k])=>`<a class="ni sub" href="#" ${en==='OCBC'?'aria-current="page"':''}>${esc(en)}${k?`<span class="cnt num">${k}</span>`:''}</a>`).join(''):'');}).join('')}`;
+  $('open-new').onclick=()=>setView('popup');
+}
+
+// ---------- Top bar: run status and alerts ----------
+function renderRuns(){
+  const r0=DATA.runs[0],r1=DATA.runs[1],src=DATA.sources;
+  const chip=$('runchip');
+  chip.innerHTML=S.running
+    ?`<svg class="runmark" aria-hidden="true"><use href="#i-run"/></svg><span><b>Running now</b> · ${src} sources</span>${ic('chev-d','i s12 chev')}`
+    :`<span class="dot" aria-hidden="true"></span><span><b>Monitoring</b> · Last run 04:01</span>${ic('chev-d','i s12 chev')}`;
+  chip.setAttribute('aria-label',S.running?`Running now, ${src} sources. Show runs`:'Monitoring. Last run today at 04:01. Show runs');
+  const live=S.running?`<div class="run-row"><span class="st"><svg class="runmark" style="width:12px;height:12px"><use href="#i-run"/></svg><span class="sr">Running</span></span><div><div class="w now">Running now</div><div class="m">Manual, Analyst · ${src} sources</div></div><span class="res">About 15 s</span></div>`:'';
+  $('runs').innerHTML=`<div class="pop-head"><b>Runs</b><span class="cap">Weekly, Thursday 04:00</span></div>
+   <div class="pop-body">${live}
+    <div class="run-row"><span class="st s-watch"><svg class="i" style="stroke-width:2"><use href="#i-excl"/></svg><span class="sr">Completed with alerts</span></span><div><div class="w">Today, 04:01</div><div class="m">Scheduled · ${r0.dur} · ${src} sources</div></div><span class="res"><span class="num">${r0.res[0]}</span> new, <span class="s-attn num">${r0.res[1]} need attention</span></span></div>
+    <div class="run-row"><span class="st s-stable"><svg class="i" style="stroke-width:2"><use href="#i-check"/></svg><span class="sr">Completed</span></span><div><div class="w">Run of 17 Sep</div><div class="m">Scheduled · ${r1.dur} · ${src} sources</div></div><span class="res">First run, <span class="num">${r1.devs}</span> developments</span></div>
+   </div>
+   <div class="pop-foot"><span class="cap">Next scheduled run: 1 Oct, 04:00</span><button class="btn sm" id="run-now" ${S.running?'disabled':''}>${S.running?'Running…':'Run now'}</button></div>`;
+}
+function renderAlerts(){
+  const A=DATA.alerts,unread=S.alertsRead?0:A.length,hasAttn=A.some(a=>a.s==='attn');
+  $('bell').innerHTML=ic('bell')+(unread?`<span class="cntb${hasAttn?'':' w'}" aria-hidden="true">${unread}</span>`:'');
+  $('bell').setAttribute('aria-label',unread?`Alerts, ${unread} unread`:'Alerts');
+  const at=A.filter(a=>a.s==='attn'),wt=A.filter(a=>a.s==='watch');
+  const grp=(s,l)=>l.length?`<div class="pgl">${sw(s)} · <span class="num">${l.length}</span></div>${l.map(r=>rowHTML(r,{status:false})).join('')}`:'';
+  $('alerts').innerHTML=`<div class="pop-head"><b>Alerts</b><span class="cap">${unread?unread+' unread':'All read'}</span><button class="btn ghost sm link" id="mark-read" ${unread?'':'disabled'}>Mark all read</button></div>
+   <div class="pop-body">${grp('attn',at)}${grp('watch',wt)}</div>`;
+}
+function setPop(which,open){
+  const p=$(which),t=$(which==='runs'?'runchip':'bell');
+  p.hidden=!open;t.setAttribute('aria-expanded',open);
+  if(open)setPop(which==='runs'?'alerts':'runs',false);
+}
+$('runchip').onclick=()=>setPop('runs',$('runs').hidden);
+$('bell').onclick=()=>setPop('alerts',$('alerts').hidden);
+$('runs').addEventListener('click',e=>{e.stopPropagation();if(e.target.closest('#run-now')&&!S.running){S.running=true;renderRuns();}});
+$('alerts').addEventListener('click',e=>{e.stopPropagation();if(e.target.closest('#mark-read')){S.alertsRead=true;renderAlerts();}else if(e.target.closest('[data-ev]')){setPop('alerts',false);openDrawer();}});
+document.addEventListener('click',e=>{
+  if(!$('runs').hidden&&!e.target.closest('#runs-wrap'))setPop('runs',false);
+  if(!$('alerts').hidden&&!e.target.closest('#alerts-wrap'))setPop('alerts',false);
+});
+
+// ---------- Dashboard ----------
+function renderDash(){
+  const ed=S.editing;
+  $('page').innerHTML=`<div class="ph"><div><h1>Singapore banks</h1><p class="meta">${ed?'Drag to reorder. Click a widget for settings.':'<a href="#">Singapore banks</a>, <a href="#">Banking regulation</a>'}</p></div>
+    <div class="acts"><button class="btn" id="add-w">${ic('plus')}Add widget</button><button class="btn${ed?' primary':''}" id="edit">${ed?'Done':'Edit'}</button></div></div>
+    <div class="grid${ed?' editing':''}" id="grid">${S.widgets.map(w=>region(w,{edit:ed})).join('')}</div>`;
+  $('edit').onclick=()=>{S.editing=!S.editing;renderDash();};
+  $('add-w').onclick=()=>{S.editing=true;S.sheet=true;renderDash();renderOverlay();};
+  $('grid').onclick=e=>{
+    const rm=e.target.closest('[data-remove]');
+    if(rm){const i=S.widgets.findIndex(w=>w.id===rm.dataset.remove);S.removed={w:S.widgets[i],i};S.widgets.splice(i,1);renderDash();toast(`Removed ${title(S.removed.w)}`);return;}
+    if(!S.editing&&e.target.closest('[data-ev]'))openDrawer();
+  };
+}
+function toast(msg){
+  const t=$('toast');t.hidden=false;t.innerHTML=`<span>${esc(msg)}</span><button class="btn sm" id="undo">Undo</button>`;
+  $('undo').onclick=()=>{S.widgets.splice(S.removed.i,0,S.removed.w);t.hidden=true;renderDash();const el=document.querySelector(`[data-id="${S.removed.w.id}"]`);el&&el.classList.add('changed');};
+  clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,6000);
+}
+
+// ---------- Monitor page (OCBC) ----------
+function renderMonitor(){
+  const p=DATA.page,parts=[`${p.newc} new`];if(p.upd)parts.push(`${p.upd} updated`);if(p.attn)parts.push(`${p.attn} need${p.attn===1?'s':''} attention`);
+  const qs=p.questions,changed=qs.filter(q=>q.prev).length;
+  const links=Object.entries(p.links).map(([k,v])=>`<dt>${k[0].toUpperCase()+k.slice(1)}</dt><dd>${v.map(n=>`<a href="#">${esc(n)}</a>`).join(', ')}</dd>`).join('');
+  $('page').innerHTML=`<div class="mon">
+   <div class="ph"><div><h1>${esc(p.name)}</h1><p class="meta">Bank in <a href="#">Singapore banks</a> · ${esc(p.domain)}</p></div></div>
+   <section class="sec"><div class="sh"><h2>What changed</h2><span class="rm">Run of 24 Sep against 17 Sep</span></div>
+     <p class="summ num">${parts.join(', ')}</p><p class="sub12">${changed} answers changed. You marked this reviewed ${esc(p.reviewed)}.</p>
+     ${p.rows.slice(0,6).map(r=>rowHTML(r)).join('')}
+     <div class="more"><a>Show all ${p.newc}</a></div></section>
+   <section class="sec"><div class="sh"><h2>Standing questions</h2><span class="rm">${qs.length} questions, ${changed} changed</span></div>
+     ${qs.map(q=>`<div class="q-row"><span class="st">${stateTxt(q.state,q.prev)}</span><div><div class="lab">${esc(q.label)}${q.custom?' <span class="badge">Custom</span>':''}</div><div class="qq">${esc(q.q)}</div><p class="aa">${esc(q.sum)}</p><div class="mm">${q.nd?`<a data-evq="${q.id}">See evidence</a>`:'No sources'} · last ${q.lb} days${q.custom?' · <a>Edit</a>':''}</div></div></div>`).join('')}
+     <div class="more"><a>Add a question</a><span>${p.slots} custom questions left</span></div></section>
+   <section class="sec"><div class="sh"><h2>Links</h2><span class="rm"><a>Open graph view</a></span></div><dl class="links">${links}</dl></section>
+   <section class="sec"><div class="sh"><h2>Actions</h2></div>
+     <div class="actrow"><button class="btn primary">Mark reviewed</button><span class="meta12">Reviewed ${esc(p.reviewed)}</span></div>
+     <div class="notebox"><textarea class="ta" aria-label="Add a note" placeholder="Add a note"></textarea><button class="btn sm" disabled>Add note</button></div></section>
+  </div>`;
+  $('page').onclick=e=>{if(e.target.closest('[data-evq],[data-ev]'))openDrawer();};
+}
+
+// ---------- Evidence drawer ----------
+function passage(p){return (p.pre?'… ':'')+p.parts.map(([k,t])=>k?`<mark>${esc(t)}</mark>`:esc(t)).join('')+(p.post?' …':'');}
+function openDrawer(){S.drawer=true;renderDrawer();}
+function renderDrawer(){
+  const d=DATA.ev,dr=$('drawer');dr.hidden=!S.drawer;if(!S.drawer)return;
+  const nsrc=d.findings.reduce((a,f)=>a+f.srcs.length,0);
+  dr.innerHTML=`<div class="fhead"><h2>${esc(d.label)}</h2><span class="meta12">${esc(d.subject)} · last ${d.lb} days</span><button class="ib" id="dclose" aria-label="Close evidence">${ic('x')}</button></div>
+   <div class="dbody">
+    <p class="meta12">${esc(d.q)}</p>
+    <p style="margin-top:12px">${stateTxt(d.state,d.prev)}</p>
+    <p style="margin-top:4px;max-width:70ch">${esc(d.sum)}</p>
+    <p class="meta12" style="margin-top:8px">Last run: ${esc(d.prevsum)}</p>
+    ${d.findings.map((f,i)=>`<div class="dsec"><div class="dl">Finding ${i+1} of ${d.findings.length}</div>
+      <div class="row nost" style="border-top:0;padding-bottom:4px"><span><span style="display:block">${sw(f.s)}</span><span class="tt" style="display:block">${esc(f.t)}</span><span class="mt" style="display:block">${esc(f.mat)} · ${esc(f.cat)} · ${esc(f.d)}</span><span class="mt" style="display:block" title="${esc(f.sub.map(c=>c.subject.name+' '+Math.round(c.confidence*100)+'%').join(', '))}, materiality ${Math.round(f.matconf*100)}%">Tagged to ${esc(f.tags.join(', '))} · ${f.conf} confidence</span></span><span></span></div>
+      ${f.srcs.map(s=>`<div class="src"><a class="t" href="#">${esc(s.t)}</a><div class="meta12" style="margin-top:4px">${esc(s.m)}</div><p class="p">${passage(s.p)}</p></div>`).join('')}</div>`).join('')}
+    <div class="dsec"><div class="dl" style="margin-bottom:8px">Notes</div><textarea class="ta" aria-label="Add a note" placeholder="Add a note"></textarea><div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn sm" disabled>Add note</button></div></div>
+   </div>`;
+  $('dclose').onclick=()=>{S.drawer=false;renderDrawer();};
+}
+
+// ---------- Gallery (Add widget sheet and popup Build tab share it) ----------
+const OFFERS={topic:[['since','L'],['direction','S'],['upcoming','S'],['summary','M'],['developments','M'],['question','S']],
+  group:[['since','L'],['watchlist','L'],['summary','M'],['developments','M'],['direction','S'],['upcoming','S'],['question','S']],
+  entity:[['summary','M'],['question','S'],['since','M'],['developments','M'],['watchlist','M'],['direction','S'],['upcoming','S']]};
+function offersFor(name){
+  if(name==='OCBC')return OFFERS.entity.map(([t,z])=>({...DATA.ocbcW[t],size:S.gsizes[name+t]||z}));
+  const g=Object.fromEntries(DATA.galSgb.map(w=>[w.type,w]));
+  return OFFERS.group.filter(([t])=>g[t]).map(([t,z])=>({...g[t],size:S.gsizes[name+t]||z}));
+}
+function galleryHTML(name,inPopup){
+  const kind=name==='OCBC'?'Entity, bank':'Group';
+  const off=offersFor(name);
+  const offer=o=>`<div class="offer"><div class="oc"><div><div class="on">${CAT_NAME[o.type]}</div><div class="meta12" style="margin-top:4px">${SIZE_LABEL[o.size]}, ${FOOT[o.size]}</div></div>
+     <div class="seg" role="group" aria-label="${CAT_NAME[o.type]} size">${SIZES[o.type].map(z=>`<button data-gsize="${name}|${o.type}|${z}" aria-pressed="${o.size===z}">${SIZE_LABEL[z]}</button>`).join('')}</div>
+     <button class="btn sm" data-add="${o.type}">${ic('plus')}Add</button></div>
+     <div class="prev ${o.size}">${region(o)}</div></div>`;
+  const sec=(label,list)=>`<div class="nh" style="padding-left:8px">${label}</div>${list.map(([n,c])=>`<button class="subj" data-subj="${esc(n)}" aria-current="${n===name}">${esc(n)}${c?`<span class="cnt">${c} new</span>`:''}</button>`).join('')}`;
+  return `<div class="gal"><div class="subjects"><label class="field">${ic('search')}<input type="search" aria-label="Filter subjects" placeholder="Search subjects"></label>
+      <div class="list">${sec('Topics',DATA.subjects.topic)}${sec('Groups',DATA.subjects.group)}${sec('Entities',DATA.subjects.entity)}</div></div>
+    <div class="offers">${inPopup?`<a class="back" id="back">${ic('left','i s12')}Back to preview</a>`:''}
+      <div class="ohead"><h3>${esc(name)}</h3><span class="meta12">${kind}</span></div>
+      <div class="ogl">Suggested</div>${off.slice(0,2).map(offer).join('')}
+      <div class="ogl">More widgets</div>${off.slice(2).map(offer).join('')}</div></div>`;
+}
+function fitGrids(root){
+  root.querySelectorAll('.fit').forEach(f=>{const box=f.parentElement,s=Math.min(1,(box.clientWidth)/1112);f.style.transform=`scale(${s})`;f.parentElement.style.height=(f.scrollHeight*s)+'px';});
+}
+
+// ---------- Overlays: Add widget sheet and New dashboard popup ----------
+function renderOverlay(){
+  const sc=$('scrim');
+  if(S.sheet){
+    sc.hidden=false;
+    sc.innerHTML=`<div class="float popup" role="dialog" aria-modal="true" aria-labelledby="sheet-t"><div class="fhead"><h2 id="sheet-t">Add widget</h2><span class="meta12">to Singapore banks</span><button class="ib" id="pclose" aria-label="Close">${ic('x')}</button></div>
+      <div class="pbody">${galleryHTML(S.sheetSubject,false)}</div></div>`;
+  }else if(S.popup){
+    sc.hidden=false;
+    const d=S.draft,n=d.length;
+    let body='';
+    if(S.popup==='build'){
+      body=S.gallery?galleryHTML(S.subject,true):`<div class="canvas"><div class="chead"><b>Preview</b><span class="meta12">Drag to reorder</span><button class="btn sm" id="open-gal" style="margin-left:auto">${ic('plus')}Add widget</button></div>
+        <div class="cscroll"><div><div class="fit"><div class="grid fixed editing">${d.map((w,i)=>region(w,{edit:true,changed:i===n-1})).join('')}</div></div></div></div></div>`;
+    }else{
+      const g=DATA.ocbcW,gen=['summary','since','question','direction','developments','watchlist','upcoming'].map((t,i)=>({...g[t],id:'g'+i}));
+      body=`<div class="gen"><div class="reply"><span style="font-weight:500">Added 7 widgets for OCBC</span><details><summary>Details</summary><ul>${gen.map(w=>`<li>Added ${CAT_NAME[w.type]}, ${SIZE_LABEL[w.size].toLowerCase()}</li>`).join('')}</ul></details></div>
+        <div class="cscroll"><div><div class="fit"><div class="grid fixed">${gen.map(w=>region(w)).join('')}</div></div></div></div>
+        <form class="dock" onsubmit="return false"><label class="field">${ic('spark')}<input aria-label="Ask for a change" placeholder="Ask for a change, e.g. remove the watchlist"></label><button class="btn" aria-label="Send">${ic('up')}</button></form></div>`;
+    }
+    const foot=S.popup==='gen'
+      ?`<span class="meta12">7 widgets pending</span><button class="btn ghost sm">Undo</button><button class="btn sm">Keep</button><span class="grow"></span><button class="btn primary" disabled>Create dashboard</button>`
+      :`<label for="pname">Name</label><span class="field"><input id="pname" value="OCBC"></span><span class="grow"></span><span class="meta12 num">${n} widget${n===1?'':'s'}</span><button class="btn primary" ${n?'':'disabled'}>Create dashboard</button>`;
+    sc.innerHTML=`<div class="float popup" role="dialog" aria-modal="true" aria-labelledby="pop-t"><div class="fhead"><h2 id="pop-t">New dashboard</h2>
+      <div class="seg" role="tablist" aria-label="How to build"><button role="tab" id="t-build" aria-selected="${S.popup==='build'}">Build</button><button role="tab" id="t-gen" aria-selected="${S.popup==='gen'}">${ic('spark','i s12')}Generate</button></div>
+      <button class="ib" id="pclose" aria-label="Close">${ic('x')}</button></div>
+      <div class="pbody">${body}</div><div class="pfoot">${foot}</div></div>`;
+    $('t-build').onclick=()=>{S.popup='build';renderOverlay();};
+    $('t-gen').onclick=()=>{S.popup='gen';renderOverlay();};
+  }else{sc.hidden=true;sc.innerHTML='';return;}
+  $('pclose').onclick=closeOverlay;
+  fitGrids(sc);
+}
+function closeOverlay(){S.sheet=false;S.popup=null;renderOverlay();}
+$('scrim').addEventListener('mousedown',e=>{if(e.target===$('scrim'))closeOverlay();});
+$('scrim').addEventListener('click',e=>{
+  const t=e.target;
+  const sj=t.closest('[data-subj]');if(sj){if(S.sheet)S.sheetSubject=sj.dataset.subj==='OCBC'?'OCBC':'Singapore banks';else S.subject=sj.dataset.subj==='OCBC'?'OCBC':'Singapore banks';renderOverlay();return;}
+  const gs=t.closest('[data-gsize]');if(gs){const [n,ty,z]=gs.dataset.gsize.split('|');S.gsizes[n+ty]=z;renderOverlay();return;}
+  const ad=t.closest('[data-add]');
+  if(ad){const name=S.sheet?S.sheetSubject:S.subject;const o=offersFor(name).find(x=>x.type===ad.dataset.add);const w={...o,id:'n'+Date.now()};
+    if(S.sheet){S.widgets.push(w);S.sheet=false;renderDash();renderOverlay();document.querySelector(`[data-id="${w.id}"]`)?.classList.add('changed');}
+    else{S.draft.push(w);S.gallery=false;renderOverlay();}return;}
+  if(t.closest('#back')){S.gallery=false;renderOverlay();return;}
+  if(t.closest('#open-gal')){S.gallery=true;renderOverlay();return;}
+  const rm=t.closest('[data-remove]');if(rm&&S.draft){S.draft=S.draft.filter(w=>w.id!==rm.dataset.remove);renderOverlay();}
+});
+
+// ---------- Keyboard ----------
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(!$('runs').hidden){setPop('runs',false);$('runchip').focus();return;}
+    if(!$('alerts').hidden){setPop('alerts',false);$('bell').focus();return;}
+    if(S.popup&&S.gallery&&S.popup==='build'){S.gallery=false;renderOverlay();return;}
+    if(S.sheet||S.popup){closeOverlay();return;}
+    if(S.drawer){S.drawer=false;renderDrawer();}
+  }
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('q').focus();}
+});
+
+// ---------- Views ----------
+function setView(v){
+  S.view=v;S.running=false;S.alertsRead=false;renderRuns();renderAlerts();S.editing=v==='edit';S.sheet=v==='edit';S.drawer=v==='monitor';S.popup=v==='popup'?'build':null;S.gallery=true;S.subject='OCBC';S.sheetSubject='Singapore banks';
+  S.draft=[{...DATA.ocbcW.summary,id:'d1'},{...DATA.ocbcW.question,id:'d2'}];
+  document.querySelectorAll('.mockbar [data-view]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===v));
+  $('toast').hidden=true;
+  renderNav();
+  if(v==='monitor')renderMonitor();else renderDash();
+  renderDrawer();renderOverlay();
+  setPop('runs',false);setPop('alerts',false);
+  if(v==='dash')setPop('runs',true);
+  if(v==='monitor')setPop('alerts',true);
+  $('main').scrollTop=0;
+}
+document.querySelectorAll('.mockbar [data-view]').forEach(b=>b.onclick=e=>{e.stopPropagation();setView(b.dataset.view);});
+window.addEventListener('resize',()=>fitGrids($('scrim')));
+renderRuns();renderAlerts();
+setView(location.hash.slice(1)||'dash');
+</script>
+</body>
+</html>

@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IntelMonitor refine B: Hairline tool</title>
+<style>
+/* Tokens. Lift this block into web/app/globals.css. */
+:root{
+  --canvas:oklch(0.972 0.004 260);
+  --surface:oklch(0.993 0.002 260);
+  --rail:oklch(0.955 0.005 260);
+  --hover:oklch(0.925 0.006 260);
+  --select:oklch(0.935 0.028 255);
+  --line:oklch(0.93 0.005 260);
+  --line-strong:oklch(0.885 0.007 260);
+  --line-field:oklch(0.80 0.01 260);
+  --ink:oklch(0.23 0.012 260);
+  --ink2:oklch(0.47 0.014 260);
+  --ink3:oklch(0.56 0.012 260);
+  --accent:oklch(0.52 0.17 258);
+  --accent-strong:oklch(0.46 0.16 258);
+  --new:oklch(0.48 0.15 258);--new-bg:oklch(0.955 0.022 250);--new-line:oklch(0.80 0.07 255);
+  --watch:oklch(0.47 0.105 62);--watch-bg:oklch(0.965 0.035 80);--watch-line:oklch(0.80 0.08 72);
+  --attn:oklch(0.50 0.17 28);--attn-bg:oklch(0.955 0.022 25);--attn-line:oklch(0.80 0.08 25);
+  --stable:oklch(0.47 0.10 155);
+  --mark:oklch(0.94 0.07 95);
+  --backdrop:oklch(0.23 0.012 260 / 0.24);
+  --r-1:4px;   /* controls, inputs, badges, nav items, kbd */
+  --r-2:6px;   /* widgets, panels, popovers, menus, toast */
+  --r-3:10px;  /* modal surfaces only */
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --bar:36px;  /* mock toolbar, not part of the product */
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font:14px/20px var(--font);color:var(--ink);background:var(--canvas);-webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+p,h1,h2,h3,ul,dl,dd{margin:0;padding:0}
+a{color:var(--accent);text-decoration:none;cursor:pointer}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.c-attn{color:var(--attn)}.c-watch{color:var(--watch)}.c-new{color:var(--new)}.c-stable{color:var(--stable)}
+.meta{font-size:12px;line-height:16px;color:var(--ink2)}
+
+/* Mock toolbar */
+.mockbar{position:fixed;inset:0 0 auto 0;height:var(--bar);z-index:100;display:flex;align-items:center;gap:4px;padding:0 12px;background:var(--ink);color:oklch(0.9 0.006 260);font-size:12px}
+.mockbar b{font-weight:600;margin-right:12px;color:var(--surface)}
+.mockbar button{height:24px;padding:0 8px;border:1px solid transparent;border-radius:var(--r-1);background:transparent;color:inherit;font-size:12px}
+.mockbar button:hover{border-color:oklch(0.45 0.012 260)}
+.mockbar button[aria-pressed="true"]{background:var(--surface);color:var(--ink)}
+.mockbar label{display:flex;align-items:center;gap:4px;margin-left:12px}
+.mockbar .note{margin-left:auto;color:oklch(0.82 0.008 260)}
+
+/* Shell */
+.app{position:fixed;inset:var(--bar) 0 0 0;display:grid;grid-template-columns:232px minmax(0,1fr)}
+.side{display:flex;flex-direction:column;min-height:0;background:var(--rail);border-right:1px solid var(--line-strong)}
+.brand{height:56px;flex:none;display:flex;align-items:center;gap:8px;padding:0 16px;font-weight:600;border-bottom:1px solid var(--line-strong)}
+.brand i{width:16px;height:16px;border-radius:var(--r-1);background:var(--ink);display:grid;place-items:center;color:var(--surface)}
+.navscroll{flex:1;min-height:0;overflow:auto;padding:8px 8px 16px}
+.navhead{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);padding:16px 8px 4px}
+.navhead:first-child{padding-top:8px}
+.nav{display:flex;align-items:center;gap:8px;width:100%;height:32px;padding:0 8px;border:0;border-radius:var(--r-1);background:transparent;text-align:left;font-weight:500;white-space:nowrap}
+.nav:hover{background:var(--hover)}
+.nav[aria-current="page"]{background:var(--select)}
+.nav .ic{color:var(--ink3);display:flex}
+.nav .ct{margin-left:auto;font-size:12px;font-weight:400;color:var(--ink2);font-variant-numeric:tabular-nums}
+.nav .chev{color:var(--ink3);display:flex;transition:transform .15s}
+.nav[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.nav.sub{padding-left:24px;font-weight:400}
+.nav.sub[aria-current="page"]{font-weight:500}
+.profile{flex:none;display:flex;align-items:center;gap:8px;margin:8px;height:44px;padding:0 8px;border:0;border-radius:var(--r-1);background:transparent;text-align:left}
+.profile:hover{background:var(--hover)}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-size:12px;font-weight:600;flex:none}
+.profile .who{display:flex;flex-direction:column;flex:1;min-width:0}
+.profile .who b{font-weight:500}
+.profile .who span{font-size:12px;line-height:16px;color:var(--ink2)}
+.sidefoot{border-top:1px solid var(--line-strong)}
+.main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.topbar{height:56px;flex:none;display:flex;align-items:center;gap:8px;padding:0 24px;background:var(--surface);border-bottom:1px solid var(--line-strong);position:relative;z-index:60}
+.search{flex:1;display:flex;align-items:center;gap:8px;height:32px;padding:0 4px 0 10px;border:1px solid var(--line-field);border-radius:var(--r-1);background:var(--surface);color:var(--ink3)}
+.search:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.search input{flex:1;min-width:0;border:0;background:transparent;outline:0;height:30px;color:var(--ink)}
+.search input::placeholder{color:var(--ink3)}
+.search input::-webkit-search-cancel-button{display:none}
+kbd{font:500 12px/16px var(--font);color:var(--ink2);border:1px solid var(--line-strong);border-radius:var(--r-1);padding:1px 4px;background:var(--surface)}
+.pw{position:relative}
+.ctl{display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--r-1);background:var(--surface);white-space:nowrap;position:relative}
+.ctl::after{content:"";position:absolute;inset:-6px -2px}
+.ctl:hover,.ctl[aria-expanded="true"]{background:var(--hover)}
+.runchip{min-width:244px;color:var(--ink2)}
+.runchip b{color:var(--ink);font-weight:600}
+.runchip .chev{margin-left:auto;color:var(--ink3);display:flex;transition:transform .15s}
+.runchip[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--stable);flex:none}
+.bell{padding:0 7px;gap:4px;color:var(--ink2)}
+.count{height:16px;min-width:16px;padding:0 4px;border-radius:var(--r-1);font-size:12px;line-height:16px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--attn);background:var(--attn-bg);text-align:center}
+.count.w{color:var(--watch);background:var(--watch-bg)}
+
+/* Popovers: hairline border, no shadow */
+.pop{position:absolute;right:0;top:40px;width:400px;max-height:min(560px,calc(100vh - 96px - var(--bar)));display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line-field);border-radius:var(--r-2);z-index:70;overflow:hidden}
+.pop[hidden]{display:none}
+.pop-head{height:44px;flex:none;display:flex;align-items:center;gap:8px;padding:0 8px 0 16px;border-bottom:1px solid var(--line)}
+.pop-head b{font-weight:600}
+.pop-list{overflow:auto;min-height:0}
+.pop-foot{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px 0 16px;border-top:1px solid var(--line)}
+.pop-foot .meta{flex:1}
+.pop .glabel{padding:12px 16px 4px;border-top:1px solid var(--line)}
+.pop .glabel:first-child{border-top:0}
+.run-row{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:12px;align-items:start;padding:8px 16px;border-top:1px solid var(--line)}
+.run-row:first-child{border-top:0}
+.run-row:hover{background:var(--hover)}
+.run-row .st{display:flex;height:20px;align-items:center}
+.run-row .wh2{font-weight:500}
+.run-row .res{max-width:136px;font-size:12px;line-height:16px;padding-top:2px;color:var(--ink2);text-align:right;font-variant-numeric:tabular-nums}
+.run-row.live .wh2{font-weight:600}
+.arow{display:grid;grid-template-columns:112px minmax(0,1fr);gap:12px;padding:8px 16px;border-top:1px solid var(--line);cursor:pointer}
+.arow:hover,.arow:focus-visible{background:var(--hover)}
+
+/* Controls */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--line-strong);border-radius:var(--r-1);background:var(--surface);font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--hover)}
+.btn.sm{height:28px;padding:0 10px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.primary:hover{background:var(--accent-strong);border-color:var(--accent-strong)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:var(--hover)}
+.btn.link{border-color:transparent;background:transparent;color:var(--accent);padding:0 8px}
+.btn.link:hover{background:var(--hover)}
+.btn:disabled{color:var(--ink3);background:var(--surface);border-color:var(--line-strong);cursor:default}
+.btn .ic{display:flex;color:var(--ink3)}
+.btn.primary .ic{color:var(--surface)}
+.icb{width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:var(--r-1);background:transparent;color:var(--ink2);position:relative;padding:0}
+.icb::after{content:"";position:absolute;inset:-8px}
+.icb:hover{background:var(--hover)}
+.field{height:32px;padding:0 10px;border:1px solid var(--line-field);border-radius:var(--r-1);background:var(--surface);width:100%}
+.field::placeholder,textarea::placeholder{color:var(--ink3)}
+.field:focus,textarea:focus{outline:0}
+.field:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+textarea{width:100%;min-height:72px;padding:8px 10px;border:1px solid var(--line-field);border-radius:var(--r-1);background:var(--surface);resize:vertical}
+.seg{display:inline-flex;height:28px;padding:2px;gap:2px;background:var(--rail);border-radius:var(--r-1);border:1px solid var(--line)}
+.seg button{height:22px;padding:0 10px;border:1px solid transparent;border-radius:3px;background:transparent;color:var(--ink2);font-size:12px;font-weight:500;display:flex;align-items:center;gap:4px}
+.seg button[aria-pressed="true"],.seg button[aria-selected="true"]{background:var(--surface);border-color:var(--line-strong);color:var(--ink)}
+
+/* Status marks: small bordered labels */
+.b{display:inline-flex;align-items:center;height:18px;padding:0 5px;border:1px solid;border-radius:var(--r-1);font-size:12px;line-height:16px;font-weight:500;white-space:nowrap;background:var(--surface)}
+.b.attn{color:var(--attn);border-color:var(--attn-line);background:var(--attn-bg)}
+.b.watch{color:var(--watch);border-color:var(--watch-line);background:var(--watch-bg)}
+.b.new{color:var(--new);border-color:var(--new-line);background:var(--new-bg)}
+.b.neutral{color:var(--ink2);border-color:var(--line-strong);background:var(--rail)}
+.stable{font-size:12px;line-height:18px;font-weight:500;color:var(--stable)}
+.tr{font-weight:600}.tr .ar{color:var(--ink2);font-weight:400}
+.stc{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding-top:1px}
+
+/* Shared list row: status column, title, meta, date */
+.row{display:grid;grid-template-columns:112px minmax(0,1fr) auto;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
+.row.ns{grid-template-columns:minmax(0,1fr) auto}
+.t{font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.t.one{-webkit-line-clamp:1}
+.row .meta,.arow .meta{margin-top:4px}
+.d{font-size:12px;line-height:20px;color:var(--ink2);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.glabel{display:flex;align-items:center;gap:8px;font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);padding:8px 0}
+.glabel a{margin-left:auto;font-weight:400}
+
+/* Page head */
+.scroll{flex:1;min-height:0;overflow:auto}
+.head{display:flex;align-items:flex-start;gap:8px;padding:24px 24px 16px}
+.head h1{font-size:24px;line-height:30px;font-weight:600;letter-spacing:-0.01em}
+.head .sub{margin-top:4px;color:var(--ink2)}
+.head .sub a{color:var(--ink2)}
+.head .sub a:hover{color:var(--ink)}
+.head .grow{flex:1}
+
+/* Widgets: hairline panels */
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:216px;grid-auto-flow:dense;gap:12px;padding:0 24px 32px}
+.w{position:relative;display:flex;flex-direction:column;min-width:0;padding:12px 16px;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-2);overflow:hidden;cursor:pointer}
+.w:hover{border-color:var(--line-field)}
+.w.S{grid-column:span 1}.w.M{grid-column:span 2}.w.L{grid-column:span 2;grid-row:span 2}
+.wh{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;font-size:12px;line-height:16px}
+.wt{font-weight:500;color:var(--ink2)}
+.wm{margin-left:auto;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lead{font-size:18px;line-height:24px;font-weight:600;margin-bottom:4px}
+.ans{font-weight:600}
+.cap{color:var(--ink)}
+.clamp3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.clamp4{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.one{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wfoot{margin-top:auto;padding-top:8px}
+.qgrid{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}
+.qi{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
+.qi .l{color:var(--ink2)}
+.qi .s{font-weight:600;text-align:right}
+.qrow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
+.qrow .l{font-weight:500}.qrow .l span{font-weight:400;color:var(--ink2);font-size:12px;margin-left:4px}
+.spark{display:block;margin:8px 0}
+.wl-add{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.wl-add .field{padding-left:32px}
+.wl-add .ic{position:absolute;margin-left:10px;color:var(--ink3);display:flex}
+.wl-name{display:flex;align-items:baseline;gap:8px}
+.wl-name b{font-weight:500}
+.wl-lat{display:flex;gap:8px;margin-top:4px}
+.wl-lat .d{line-height:16px;min-width:40px;text-align:left}
+.wl-lat .one{font-size:12px;line-height:16px;color:var(--ink2)}
+.row .x{margin:-4px -8px 0 0}
+
+/* Edit mode */
+.editing .w{border-style:dashed;border-color:var(--accent);cursor:grab}
+.editing .w .wm{visibility:hidden}
+.minus{position:absolute;top:8px;right:8px;width:24px;height:24px;display:grid;place-items:center;border:1px solid var(--line-strong);border-radius:var(--r-1);background:var(--surface);color:var(--ink2);padding:0;z-index:2}
+.minus::after{content:"";position:absolute;inset:-10px}
+.minus:hover{background:var(--hover);color:var(--ink)}
+.w.added{border-style:solid;border-color:var(--accent)}
+
+/* Monitor page */
+.mon{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start;padding:0 24px 48px}
+.panel{background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-2)}
+.sec{padding:20px 24px 24px;border-top:1px solid var(--line-strong)}
+.sec:first-child{border-top:0}
+.sec-h{display:flex;align-items:baseline;gap:12px;padding-bottom:12px}
+.sec-h h2{font-size:18px;line-height:24px;font-weight:600}
+.sec-h .meta{margin-left:auto}
+.summary{padding-bottom:8px;color:var(--ink2)}
+.summary b{color:var(--ink);font-weight:600}
+.qhead{display:flex;align-items:baseline;gap:8px}
+.qhead b{font-weight:500}
+.qans{margin-top:4px;max-width:70ch}
+.rail{position:sticky;top:16px}
+.rail .sec{padding:16px}
+.rail h2{font-size:14px;line-height:20px;font-weight:600}
+dl.links{display:grid;grid-template-columns:72px minmax(0,1fr);gap:8px 12px}
+dl.links dt{font-size:12px;line-height:20px;font-weight:500;color:var(--ink2)}
+dl.links dd a{color:var(--ink)}
+.actrow{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+
+/* Evidence drawer: square, attached to the edge */
+.drawer{position:fixed;top:calc(var(--bar) + 56px);right:0;bottom:0;width:520px;background:var(--surface);border-left:1px solid var(--line-field);display:flex;flex-direction:column;z-index:40}
+.drawer[hidden]{display:none}
+.dh{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px 0 24px;border-bottom:1px solid var(--line)}
+.dh h2{font-size:18px;line-height:24px;font-weight:600}
+.dh .meta{font-size:14px}
+.dh .icb{margin-left:auto}
+.db{flex:1;overflow:auto;padding:16px 24px 32px}
+.dlabel{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);padding:24px 0 8px;display:flex;gap:8px}
+.dlabel span{margin-left:auto;font-weight:400}
+.devblk{padding:12px 0;border-top:1px solid var(--line-strong)}
+.src{padding:12px 0 0 12px;margin-top:12px;border-top:1px solid var(--line)}
+.src .t{-webkit-line-clamp:2}
+.passage{margin-top:8px;max-width:70ch;color:var(--ink)}
+mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 1px}
+
+/* Modals: sheet and popup */
+.backdrop{position:fixed;inset:var(--bar) 0 0 0;background:var(--backdrop);display:grid;place-items:center;z-index:80}
+.backdrop[hidden]{display:none}
+.modal{display:grid;grid-template-rows:48px minmax(0,1fr) auto;background:var(--surface);border:1px solid var(--line-field);border-radius:var(--r-3);overflow:hidden}
+.modal.sheet{width:min(1040px,calc(100vw - 96px));height:min(680px,calc(100vh - var(--bar) - 96px))}
+.modal.popup{width:min(1152px,80vw);height:min(760px,calc(100vh - var(--bar) - 72px))}
+.mh{display:flex;align-items:center;gap:16px;padding:0 12px 0 16px;border-bottom:1px solid var(--line-strong)}
+.mh h2{font-size:18px;line-height:24px;font-weight:600}
+.mh .icb{margin-left:auto}
+.gal{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:0}
+.subjects{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--line-strong);background:var(--surface)}
+.subjects .sbox{flex:none;padding:12px}
+.subjects .list{flex:1;overflow:auto;padding:0 8px 12px}
+.subj{display:flex;align-items:center;gap:8px;width:100%;height:32px;padding:0 8px;border:0;border-radius:var(--r-1);background:transparent;text-align:left}
+.subj:hover{background:var(--hover)}
+.subj[aria-current="true"]{background:var(--select);font-weight:500}
+.subj .ct{margin-left:auto;font-size:12px;color:var(--ink2);font-weight:400;font-variant-numeric:tabular-nums}
+.subjects .navhead{padding:12px 8px 4px}
+.offers{display:flex;flex-direction:column;min-height:0}
+.ohead{flex:none;height:48px;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid var(--line)}
+.ohead b{font-weight:600}
+.obody{flex:1;overflow:auto;padding:4px 24px 24px;background:var(--canvas)}
+.obody .glabel{padding:16px 0 8px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;align-items:start}
+.card{display:flex;flex-direction:column;gap:8px;min-width:0}
+.pv{position:relative;overflow:hidden;pointer-events:none}
+.pvi{position:absolute;left:0;top:0;width:574px;transform-origin:0 0}
+.pv .w{height:100%}
+.card .cb{display:flex;align-items:center;gap:8px}
+.card .cb b{font-weight:500;flex:1}
+.mf{display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;border-top:1px solid var(--line-strong)}
+.mf label{font-size:12px;font-weight:500;color:var(--ink2)}
+.mf .field{width:280px}
+.mf .grow{flex:1}
+.canvas{display:flex;flex-direction:column;min-height:0;background:var(--canvas)}
+.canvas .ohead{background:var(--surface)}
+.canvas .grid{padding:16px}
+.gen{max-width:640px;margin:0 auto;padding:96px 24px 0}
+.gen h3{font-size:18px;line-height:24px;font-weight:600;margin-bottom:12px}
+.gen label{display:block;font-size:12px;font-weight:500;color:var(--ink2);margin-bottom:4px}
+.gen .ex{display:flex;align-items:center;gap:8px;width:100%;padding:8px 0;border:0;border-top:1px solid var(--line);background:transparent;text-align:left;color:var(--ink)}
+.gen .ex:first-of-type{margin-top:16px}
+.gen .ex:hover{color:var(--accent)}
+.gen .ex .ic{color:var(--ink3);display:flex}
+
+.toast{position:fixed;left:256px;bottom:24px;height:36px;display:flex;align-items:center;gap:12px;padding:0 8px 0 12px;background:var(--surface);border:1px solid var(--line-field);border-radius:var(--r-2);z-index:90}
+.toast[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:1100px){.mon{grid-template-columns:minmax(0,1fr)}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="mockbar" role="toolbar" aria-label="Mock views">
+  <b>Refine B · Hairline tool</b>
+  <button data-view="dash" aria-pressed="true">Dashboard</button>
+  <button data-view="edit" aria-pressed="false">Edit + Add widget</button>
+  <button data-view="monitor" aria-pressed="false">Monitor + evidence</button>
+  <button data-view="popup" aria-pressed="false">New dashboard</button>
+  <label><input type="checkbox" id="runtoggle"> Run in progress</label>
+  <span class="note">No shadows, 1px tinted hairlines. Radius 4 controls and badges, 6 panels, 10 popup</span>
+</div>
+
+<div class="app">
+  <nav class="side" aria-label="Main">
+    <div class="brand"><i aria-hidden="true"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 8.5 3.8 5l2 1.8L9 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></i>IntelMonitor</div>
+    <div class="navscroll" id="nav"></div>
+    <div class="sidefoot">
+      <button class="profile" aria-haspopup="menu" aria-expanded="false"><span class="avatar" aria-hidden="true">A</span><span class="who"><b>Analyst</b><span>Supervisory analyst</span></span><span class="ic" style="color:var(--ink3);display:flex"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 7.5 6 4.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+    </div>
+  </nav>
+  <div class="main">
+    <header class="topbar">
+      <label class="search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><input type="search" id="q" aria-label="Search or ask" placeholder="Search or ask about a topic, group or entity"><kbd>⌘K</kbd></label>
+      <div class="pw" id="runs-wrap">
+        <button class="ctl runchip" id="runchip" aria-haspopup="dialog" aria-expanded="false" aria-controls="runs"></button>
+        <div class="pop" id="runs" role="dialog" aria-label="Runs" hidden></div>
+      </div>
+      <div class="pw" id="alerts-wrap">
+        <button class="ctl bell" id="bell" aria-haspopup="dialog" aria-expanded="false" aria-controls="alerts"></button>
+        <div class="pop" id="alerts" role="dialog" aria-label="Alerts" hidden></div>
+      </div>
+    </header>
+    <div class="scroll" id="page"></div>
+    <aside class="drawer" id="drawer" role="dialog" aria-label="Evidence" hidden></aside>
+  </div>
+</div>
+
+<div class="backdrop" id="backdrop" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+const D={"since":{"new":79,"attn":9,"devs":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","s":"OCBC, Singapore banks","c":"incident","n":1,"d":"23 Sep","b":"attn"},{"id":"9724fb50f5b197e1-0","t":"Singapore published a 32-page national anti-money laundering strategy jointly produced by MHA, MOF and MAS to address money laundering risks.","s":"Singapore, Banking regulation, MAS","c":"regulatory","n":1,"d":"23 Sep","b":"attn"},{"id":"ed7d0023d140a394-0","t":"Switzerland's upper house of parliament voted on 2026-09-23 for capital rules requiring UBS to back its foreign units with 90% Common Equity Tier 1 capital, opposed by UBS's lobbying.","s":"Banking regulation","c":"regulatory","n":1,"d":"23 Sep","b":"attn"}],"qc":[{"l":"New developments","s":"Banking regulation","f":"watch","t":"needs_attention"},{"l":"Enforcement","s":"Banking regulation","f":"watch","t":"needs_attention"},{"l":"Exposure","s":"Singapore banks","f":"watch","t":"needs_attention"}],"qn":11},"summary":{"s":"Singapore banks","a":[{"l":"Common issues","st":"watch","f":null},{"l":"Exposure","st":"needs_attention","f":"watch"},{"l":"Outliers","st":"watch","f":null},{"l":"Topics","st":"watch","f":null},{"l":"Peer moves","st":"new","f":null},{"l":"Contagion","st":"watch","f":null}]},"direction":{"s":"Banking regulation","w":[9,9,3,3,18,17,15,29],"tr":"rising","tw":29,"pa":16.7},"upcoming":{"s":"Banking regulation","d":"1 Dec","l":"Deadline for comments on toolkit and discussion paper","t":"CPMI-IOSCO opened a public consultation seeking stakeholder input on the cyber resilience toolkit and third-party service provider discussion paper, with comments due by 01 December 2026."},"watchlist":[{"n":"DBS","st":"needs_attention","new":10,"hl":"Incidents","a":"200+ customers sued DBS for ~$17M over Lehman-linked High Notes 5 losses; DBS says suit is without merit, will defend.","lt":[{"t":"More than 200 customers filed a lawsuit against DBS Bank in Singapore seeking to recover about $17 million in Lehman Brothers-linked investment losses.","d":"20 Sep"},{"t":"DBS Bank and Citigroup executed a cross-border US dollar payment on Sept 5, 2026 using tokenised deposits via the Swift Digital Ledger, taking minutes versus up to two business days.","d":"7 Sep"}]},{"n":"OCBC","st":"needs_attention","new":12,"hl":"Incidents","a":"OCBC ATM, internet and mobile banking disrupted 23 Sep 2026; CEO Conner said customer data remained protected.","lt":[{"t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","d":"23 Sep"},{"t":"OCBC held its 2025 economic outlook session on Tuesday, 22 September 2026, where chief economist Selena Ling discussed Asean's role amid US-China tensions.","d":"23 Sep"}]},{"n":"UOB","st":"watch","new":14,"hl":"Adverse","a":"Macquarie flags US/Greater China CRE exposure: $181M provisions per 10% collateral drop, $100M for NPL slippage; $345M buffer available.","lt":[{"t":"UOB Thailand had cumulatively extended 74.6 billion baht in sustainable financing by the end of 2025.","d":"23 Sep"},{"t":"UOB helped arrange 7.3 billion baht in green financing for GSA Data Center 01, a joint venture between Gulf Development, Singtel and AIS, to build a 25.6-megawatt LEED Gold data centre.","d":"23 Sep"}]}],"devs":{"total":241,"items":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","s":"OCBC, Singapore banks","c":"incident","n":1,"d":"23 Sep","b":"attn"},{"id":"9724fb50f5b197e1-0","t":"Singapore published a 32-page national anti-money laundering strategy jointly produced by MHA, MOF and MAS to address money laundering risks.","s":"Singapore, Banking regulation, MAS","c":"regulatory","n":1,"d":"23 Sep","b":"attn"},{"id":"ed7d0023d140a394-0","t":"Switzerland's upper house of parliament voted on 2026-09-23 for capital rules requiring UBS to back its foreign units with 90% Common Equity Tier 1 capital, opposed by UBS's lobbying.","s":"Banking regulation","c":"regulatory","n":1,"d":"23 Sep","b":"attn"},{"id":"0992fe865722b0e5-0","t":"MAS stress test found about 32% of Singapore-listed companies would be at risk under a severe AI investment downturn, accounting for 16% of corporate debt.","s":"Singapore, MAS, Singapore banks","c":"regulatory","n":3,"d":"22 Sep","b":"attn"}]},"question":{"l":"Enforcement","s":"Banking regulation","st":"needs_attention","f":"watch","a":"BNM fined 9 banks RM5.6m for outages and RM1m against Bank Rakyat; OFSI fined Citibank £4.7m; APRA penalized ING Bank Australia.","lb":30},"ocbc":{"new":12,"upd":0,"attn":1,"devs":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","s":"OCBC, Singapore banks","c":"incident","n":1,"d":"23 Sep","b":"attn"},{"id":"15318a0fa093f5ba-3","t":"Despite NII pressure, quarterly net profits at all three Singapore banks rose year on year, up 9 per cent at DBS, 22 per cent at OCBC and 10 per cent at UOB.","s":"OCBC, Singapore banks, UOB","c":"financial","n":3,"d":"20 Sep","b":"new"},{"id":"76f9aa53db22afd0-1","t":"OCBC held its 2025 economic outlook session on Tuesday, 22 September 2026, where chief economist Selena Ling discussed Asean's role amid US-China tensions.","s":"OCBC","c":"other","n":1,"d":"23 Sep","b":"new"},{"id":"bce9f8efcef7c4c4-0","t":"OCBC Malaysia is investing more than RM10 million a year in people development programmes focused on AI, reskilling and upskilling for its 5,000-strong workforce.","s":"OCBC, SEA countries, Singapore banks","c":"strategy","n":1,"d":"23 Sep","b":"new"},{"id":"bce9f8efcef7c4c4-1","t":"OCBC Malaysia has channelled RM30 million into staff development since starting its AI-focused investment commitment three years ago.","s":"OCBC, SEA countries, Singapore banks","c":"financial","n":1,"d":"23 Sep","b":"new"},{"id":"bce9f8efcef7c4c4-2","t":"OCBC Malaysia launched its in-house AI career growth platform MOBI, which recommends learning courses and personalised career pathways for employees.","s":"OCBC, SEA countries, Singapore banks","c":"strategy","n":1,"d":"23 Sep","b":"new"},{"id":"bce9f8efcef7c4c4-3","t":"OCBC Malaysia now offers 480 AI programmes with nearly 3,890 employees participating and about 12,500 course completions to date, and uses three GenAI platforms (OCBC GPT, Buddy, Copilot).","s":"OCBC, SEA countries, Singapore banks","c":"strategy","n":1,"d":"23 Sep","b":"new"},{"id":"bce9f8efcef7c4c4-4","t":"OCBC Malaysia will offer two scholarships next year for students pursuing AI-related disciplines under its scholarship programme, with more possible if needed.","s":"OCBC, SEA countries, Singapore banks","c":"strategy","n":1,"d":"23 Sep","b":"new"},{"id":"aee7c5c6ba298ea1-0","t":"OCBC Bank opened its largest Klang Valley branch at Alam Damai, Cheras, with over 15,000 sq ft of retail space and over 2,000 safe deposit boxes.","s":"OCBC, Singapore banks, SEA countries","c":"strategy","n":1,"d":"19 Sep","b":"new"},{"id":"aee7c5c6ba298ea1-1","t":"With the new Cheras branch, OCBC Bank now operates 31 conventional and five OCBC Al-Amin Islamic banking branches nationwide in Malaysia.","s":"OCBC, Singapore banks, SEA countries","c":"strategy","n":1,"d":"19 Sep","b":"new"},{"id":"aee7c5c6ba298ea1-2","t":"OCBC launched the OCBC Express Credit Kiosk at the Cheras branch opening, enabling consumers to apply for unsecured credit facilities like credit cards and personal financing with minimal physical submissions.","s":"OCBC, Singapore banks, SEA countries","c":"strategy","n":1,"d":"19 Sep","b":"new"},{"id":"aee7c5c6ba298ea1-3","t":"OCBC CEO Jeffrey Chew said the Express Credit Kiosk will be rolled out to all branches nationwide before the end of February.","s":"OCBC, Singapore banks, SEA countries","c":"strategy","n":1,"d":"19 Sep","b":"new"}],"qs":[{"id":"bank.incidents","l":"Incidents","q":"Have any material operational or technology incidents occurred?","st":"needs_attention","f":"stable","a":"OCBC ATM, internet and mobile banking disrupted 23 Sep 2026; CEO Conner said customer data remained protected.","lb":7,"n":1,"c":false},{"id":"bank.adverse","l":"Adverse","q":"Is there anything that could hurt this bank?","st":"needs_attention","f":"watch","a":"Service disruption to ATM/internet/mobile banking on 23 Sep despite rising Q3 profit (+22% y-o-y).","lb":7,"n":2,"c":false},{"id":"bank.regulatory","l":"Regulatory","q":"Any regulatory actions, findings or new obligations?","st":"stable","f":null,"a":"No enforcement actions or new regulatory obligations reported for OCBC in the last 30 days.","lb":30,"n":0,"c":false},{"id":"bank.financial","l":"Financial","q":"Any material changes in earnings, capital, liquidity or asset quality?","st":"watch","f":null,"a":"Q3 net profit rose 22% y-o-y despite NII/NIM pressure; UOBKH kept 'hold' rating with S$32.50 target.","lb":30,"n":5,"c":false},{"id":"bank.management","l":"Management","q":"Any senior management or board changes?","st":"stable","f":null,"a":"No senior management or board changes reported for OCBC in the last 30 days.","lb":30,"n":0,"c":false},{"id":"bank.strategy","l":"Strategy","q":"Any significant M&A, product or technology moves?","st":"new","f":null,"a":"OCBC Malaysia expanded AI upskilling (MOBI, RM10m/yr), opened largest Klang Valley branch and Express Credit Kiosk.","lb":30,"n":11,"c":false},{"id":"bank.digital-assets","l":"Digital assets","q":"Any stablecoin, tokenisation or crypto activity or exposure?","st":"stable","f":null,"a":"No stablecoin, tokenisation or crypto activity or exposure reported for OCBC in the last 30 days.","lb":30,"n":0,"c":false},{"id":"bank.geographic-exposure","l":"Geographic exposure","q":"Is the bank exposed to any escalating geopolitical situation?","st":"stable","f":null,"a":"OCBC discussed Asean/US-China tensions and power-grid, SME relief cooperation; no escalating geopolitical exposure identified.","lb":14,"n":3,"c":false},{"id":"custom-121cf28fb9","l":"Tariff exposure","q":"What new developments, disclosures, or news indicate OCBC's exposure to US tariffs and broader trade tensions, including impacts on its trade finance, corporate lending, and regional business segments?","st":"stable","f":null,"a":"No documents in the lookback period address OCBC's exposure to US tariffs or trade tensions.","lb":14,"n":0,"c":true}],"links":{"topics":["Banking regulation","Stablecoins","Geopolitics"],"groups":["Singapore banks"],"entities":[]}},"ev":{"l":"Adverse","q":"Is there anything that could hurt this bank?","st":"needs_attention","f":"watch","a":"Service disruption to ATM/internet/mobile banking on 23 Sep despite rising Q3 profit (+22% y-o-y).","lb":7,"devs":[{"b":"attn","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","mat":"Significant","c":"incident","d":"23 Sep","tags":"OCBC, Singapore banks","conf":"high","src":[{"t":"OCBC says all customer data protected during today’s disruption","dom":"theedgemalaysia.com","ty":"News","d":"23 Sep 2026","p":{"pre":"","m":"All customer data was protected with “appropriate security measures” during today’s disruption of automated-teller machine, Internet and mobile-phone banking services, David Conner, chief executive officer of Oversea- Chinese Banking Corp., Singapore’s second-biggest bank, said in an e-mailed statement.","post":""}}]},{"b":"new","t":"Despite NII pressure, quarterly net profits at all three Singapore banks rose year on year, up 9 per cent at DBS, 22 per cent at OCBC and 10 per cent at UOB.","mat":"Notable","c":"financial","d":"20 Sep","tags":"Singapore banks, UOB, DBS, OCBC","conf":"medium","src":[{"t":"Fed hike throws Singapore banks a margin lifeline; UOB most likely to feel impact","dom":"businesstimes.com.sg","ty":"News","d":"17 Sep 2026","p":{"pre":"… Overnight Financing Rate (a key benchmark for US dollar interest rates) to narrow,” he said.","m":"Macquarie sees UOB as the most exposed to higher rates. About 43 per cent of its loans are denominated in Singapore dollars, compared with 37 to 38 per cent for DBS and OCBC, while NII accounts for 66 per cent of revenue, against around 58 per cent for its two peers.","post":"For DBS, the impact is less straightforward. The lender said in August that …"}},{"t":"UOB shares rise after Fed hikes rates; yen weakens against Singdollar: Markets this week","dom":"straitstimes.com","ty":"News","d":"20 Sep 2026","p":{"pre":"… income (NII), which had been under pressure as rates declined during the first half of 2026.","m":"Macquarie Equity Research’s Jayden Vantarakis said that while all three local banks stand to benefit from higher Singapore rates, UOB has the most to gain. About 43 per cent of UOB’s loans are denominated in Singapore dollars, compared with 37 to 38 per cent for DBS and OCBC. UOB also earns more NII in its revenue mix, at 66 per cent, compared to about 58 per cent for its two peers, said Vantarakis.","post":"## Yen slumps against Singdollar, US dollar The Japanese yen weakened …"}}]}]},"alerts":[{"b":"attn","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","m":"OCBC, Singapore banks, incident, 1 source","d":"23 Sep"},{"b":"attn","t":"More than 200 customers filed a lawsuit against DBS Bank in Singapore seeking to recover about $17 million in Lehman Brothers-linked investment losses.","m":"DBS, Singapore banks, incident, 1 source","d":"20 Sep"},{"b":"watch","t":"Macquarie estimates each 10% reduction in collateral value would drive $181 million in higher provisions for UOB, while any slippage from special mention to NPL would drive $100 million in provisions.","m":"UOB, financial, 1 source","d":"18 Sep"},{"b":"watch","t":"Despite NII pressure, quarterly net profits at all three Singapore banks rose year on year, up 9 per cent at DBS, 22 per cent at OCBC and 10 per cent at UOB.","m":"Singapore banks, UOB, financial, 3 sources","d":"20 Sep"}],"subjects":[{"n":"Banking regulation","k":"topic","new":45},{"n":"Geopolitics","k":"topic","new":34},{"n":"Stablecoins","k":"topic","new":17},{"n":"Singapore banks","k":"group","new":35},{"n":"SEA regional banks","k":"group","new":49},{"n":"Central banks","k":"group","new":144},{"n":"Stablecoin issuers","k":"group","new":6},{"n":"SEA countries","k":"group","new":146},{"n":"DBS","k":"entity","new":10},{"n":"OCBC","k":"entity","new":12},{"n":"UOB","k":"entity","new":14},{"n":"Maybank","k":"entity","new":21},{"n":"CIMB","k":"entity","new":29},{"n":"Bangkok Bank","k":"entity","new":0},{"n":"MAS","k":"entity","new":27},{"n":"Fed","k":"entity","new":27},{"n":"ECB","k":"entity","new":35},{"n":"PBoC","k":"entity","new":10},{"n":"HKMA","k":"entity","new":14},{"n":"BNM","k":"entity","new":36},{"n":"Circle","k":"entity","new":5},{"n":"Tether","k":"entity","new":0},{"n":"Paxos","k":"entity","new":0},{"n":"StraitsX","k":"entity","new":0},{"n":"Singapore","k":"entity","new":29},{"n":"Malaysia","k":"entity","new":39},{"n":"Indonesia","k":"entity","new":20},{"n":"Thailand","k":"entity","new":20},{"n":"Vietnam","k":"entity","new":8},{"n":"Philippines","k":"entity","new":10}]};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const WORD={needs_attention:'Needs attention',attn:'Needs attention',watch:'Watch',new:'New',stable:'Stable',upd:'Updated'};
+const CLS={needs_attention:'attn',attn:'attn',watch:'watch',new:'new',upd:'neutral'};
+const badge=s=>s==='stable'?'<span class="stable">Stable</span>':`<span class="b ${CLS[s]}">${WORD[s]}</span>`;
+const stWord=s=>`<span class="c-${CLS[s]||'stable'}">${WORD[s]}</span>`;
+const trans=(f,t)=>f?`<span class="tr">${stWord(f)} <span class="ar">→</span> ${stWord(t)}</span>`:`<span class="tr">${stWord(t)}</span>`;
+const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+const I={
+ plus:'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+ x:'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+ minus:'<svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2 5h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+ chevR:'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4.5 3 7.5 6l-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ chevD:'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5 6 7.5l3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ back:'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M7.5 3 4.5 6l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ arrow:'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ bell:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 11V7a4 4 0 0 1 8 0v4l1 1.3H3L4 11Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.5 14a1.6 1.6 0 0 0 3 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+ ok:'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.5 6.3 5 8.7l4.5-5.2" stroke="var(--stable)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ warn:'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 2v5" stroke="var(--watch)" stroke-width="1.8" stroke-linecap="round"/><circle cx="6" cy="9.6" r="1.1" fill="var(--watch)"/></svg>',
+ run:'<svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="3.25" fill="none" stroke="var(--new)" stroke-width="1.5"/><path d="M4 .75a3.25 3.25 0 0 0 0 6.5Z" fill="var(--new)"/></svg>',
+ dash:'<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.5v11M1.5 7h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+};
+
+// ---------- State ----------
+const S={view:'dash',page:'dash',editing:false,pop:null,drawer:false,modal:null,gal:true,running:false,read:false,layout:null,subj:'Singapore banks',tab:'build',removed:null};
+const LAYOUT=[['since','L'],['summary','M'],['direction','S'],['upcoming','S'],['watchlist','L'],['developments','M'],['question','S']];
+
+// ---------- Sidebar ----------
+function renderNav(){
+  const dashes=['Singapore banks','Stablecoin watch','Geopolitics in SEA','Stablecoin issuers','OCBC'];
+  const ents=D.subjects.filter(s=>s.k==='entity');
+  const onMon=S.page==='monitor';
+  $('nav').innerHTML=`<div class="navhead">Dashboards</div>
+   <button class="nav" id="open-new"><span class="ic">${I.dash}</span>New dashboard</button>
+   ${dashes.map((d,i)=>`<button class="nav" data-go="dash" ${i===0&&!onMon?'aria-current="page"':''}>${esc(d)}</button>`).join('')}
+   <div class="navhead">Monitors</div>
+   <button class="nav" aria-expanded="false"><span class="chev">${I.chevR}</span>Topics<span class="ct">3</span></button>
+   <button class="nav" aria-expanded="false"><span class="chev">${I.chevR}</span>Groups<span class="ct">5</span></button>
+   <button class="nav" aria-expanded="${onMon}"><span class="chev">${I.chevR}</span>Entities<span class="ct">${ents.length}</span></button>
+   ${onMon?ents.map(e=>`<button class="nav sub" data-go="monitor" ${e.n==='OCBC'?'aria-current="page"':''}>${esc(e.n)}<span class="ct" title="${e.new} new since your review">${e.new||''}</span></button>`).join(''):''}`;
+}
+
+// ---------- Top bar ----------
+const RUNS=[
+ {when:'Today, 06:00',how:'Scheduled',dur:'4 min',src:22,res:'4 new',attn:'1 needs attention',ok:false},
+ {when:'Yesterday, 06:00',how:'Scheduled',dur:'5 min',src:22,res:'2 new',ok:true},
+ {when:'22 Sep, 14:12',how:'Manual, Wong Kang',dur:'4 min',src:21,res:'No new developments',ok:true},
+ {when:'22 Sep, 06:00',how:'Scheduled',dur:'4 min',src:21,res:'3 new',attn:'1 needs attention',ok:false},
+ {when:'21 Sep, 06:00',how:'Scheduled',dur:'6 min',src:21,res:'1 new',ok:true},
+ {when:'20 Sep, 06:00',how:'Scheduled',dur:'4 min',src:21,res:'No new developments',ok:true},
+];
+function renderRuns(){
+  const c=$('runchip');
+  c.innerHTML=(S.running?I.run+'<span><b>Running now</b> · 22 sources</span>':'<span class="dot"></span><span><b>Monitoring</b> · Last run 06:00</span>')+`<span class="chev">${I.chevD}</span>`;
+  c.setAttribute('aria-label',S.running?'Running now, 22 sources. Show runs':'Monitoring. Last run today at 06:00. Show runs');
+  const live=S.running?`<div class="run-row live"><span class="st">${I.run}<span class="sr">Running</span></span><div><div class="wh2">Running now</div><div class="meta">Manual, Wong Kang · 22 sources</div></div><span class="res">About 4 min</span></div>`:'';
+  $('runs').innerHTML=`<div class="pop-head"><b>Runs</b><span class="meta">Daily at 06:00</span></div>
+   <div class="pop-list">${live}${RUNS.map(r=>`<div class="run-row"><span class="st">${r.ok?I.ok+'<span class="sr">Completed</span>':I.warn+'<span class="sr">Completed with alerts</span>'}</span><div><div class="wh2">${r.when}</div><div class="meta">${r.how} · ${r.dur} · ${r.src} sources</div></div><span class="res">${r.res}${r.attn?`, <span class="c-attn">${r.attn}</span>`:''}</span></div>`).join('')}</div>
+   <div class="pop-foot"><span class="meta">Next scheduled run: tomorrow, 06:00</span><button class="btn sm" id="run-now" ${S.running?'disabled':''}>${S.running?'Running…':'Run now'}</button></div>`;
+}
+function renderAlerts(){
+  const A=D.alerts,na=A.filter(a=>a.b==='attn'),wa=A.filter(a=>a.b==='watch');
+  const b=$('bell');
+  b.innerHTML=I.bell+(S.read?'':`<span class="count ${na.length?'':'w'}">${A.length}</span>`);
+  b.setAttribute('aria-label',S.read?'Alerts':`Alerts, ${A.length} unread`);
+  const rows=l=>l.map(a=>`<div class="arow" tabindex="0" data-ev><span>${badge(a.b)}</span><div><div class="t">${esc(a.t)}</div><div class="meta">${esc(a.m)} · <span class="num">${a.d}</span></div></div></div>`).join('');
+  $('alerts').innerHTML=`<div class="pop-head"><b>Alerts</b><span class="meta">${S.read?'All read':A.length+' unread'}</span><button class="btn link sm" id="mark-read" style="margin-left:auto">Mark all read</button></div>
+   <div class="pop-list"><div class="glabel">Needs attention · ${na.length}</div>${rows(na)}<div class="glabel">Watch · ${wa.length}</div>${rows(wa)}</div>`;
+}
+function setPop(id){
+  S.pop=id;
+  [['runs','runchip'],['alerts','bell']].forEach(([p,t])=>{$(p).hidden=id!==p;$(t).setAttribute('aria-expanded',id===p);});
+}
+$('runchip').onclick=()=>setPop(S.pop==='runs'?null:'runs');
+$('bell').onclick=()=>setPop(S.pop==='alerts'?null:'alerts');
+$('runs').addEventListener('click',e=>{e.stopPropagation();if(e.target.closest('#run-now')&&!S.running){S.running=true;$('runtoggle').checked=true;renderRuns();}});
+$('alerts').addEventListener('click',e=>{e.stopPropagation();if(e.target.closest('#mark-read')){S.read=true;renderAlerts();}else if(e.target.closest('[data-ev]')){setPop(null);S.page='monitor';S.drawer=true;render();}});
+document.addEventListener('click',e=>{
+  if(e.target.closest('.mockbar'))return;
+  if(S.pop&&!e.target.closest('#runs-wrap')&&!e.target.closest('#alerts-wrap'))setPop(null);
+});
+
+// ---------- Widgets ----------
+const W={};
+W.since=size=>{const s=D.since,n=size==='L'?3:2;
+ return `<div class="wh"><span class="wt">Since your last review</span><span class="wm">17 to 24 Sep</span></div>
+ <p class="lead"><span class="num">${s.new}</span> new, <span class="c-attn"><span class="num">${s.attn}</span> need attention</span></p>
+ <div class="glabel"><span class="b attn">Needs attention</span><span class="num">${s.attn}</span><a>Show all ${s.new}</a></div>
+ ${s.devs.slice(0,n).map(d=>`<div class="row ns"><div><div class="t">${esc(d.t)}</div><div class="meta">${esc(d.s)} · ${d.c} · ${plural(d.n,'source')}</div></div><span class="d">${d.d}</span></div>`).join('')}
+ ${size==='L'?`<div class="glabel">Answers changed · ${s.qn}</div>${s.qc.slice(0,2).map(q=>`<div class="qrow"><span class="l">${esc(q.l)}<span>${esc(q.s)}</span></span>${trans(q.f,q.t)}</div>`).join('')}`:''}`};
+W.summary=()=>{const s=D.summary;const ch=s.a.find(a=>a.f);
+ return `<div class="wh"><span class="wt">Standing questions</span><span class="wm">${esc(s.s)}</span></div>
+ <div class="qgrid">${s.a.map(a=>`<div class="qi"><span class="l">${esc(a.l)}</span><span class="s">${trans(a.f,a.st)}</span></div>`).join('')}</div>
+ <p class="meta wfoot">${s.a.length} questions · ${ch?esc(ch.l)+' changed since 17 Sep':'no changes'}</p>`};
+W.direction=()=>{const d=D.direction,w=d.w,mx=Math.max(...w),Wd=240,H=44;
+ const pts=w.map((v,i)=>[i*(Wd/(w.length-1)),H-2-(v/mx)*(H-6)]);
+ return `<div class="wh"><span class="wt">Direction of travel</span><span class="wm">${esc(d.s)}</span></div>
+ <p class="ans">Rising</p>
+ <svg class="spark" width="100%" height="${H}" viewBox="0 0 ${Wd} ${H}" preserveAspectRatio="none" aria-label="Weekly material developments, last 8 weeks"><line x1="0" x2="${Wd}" y1="${H-1}" y2="${H-1}" stroke="var(--line)" vector-effect="non-scaling-stroke"/><polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--ink2)" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>
+ <p class="cap"><span class="num">${d.tw}</span> this week, <span class="num">${d.pa}</span> a week over the three before</p>
+ <p class="meta wfoot">Material developments per week</p>`};
+W.upcoming=()=>{const u=D.upcoming;
+ return `<div class="wh"><span class="wt">Upcoming</span><span class="wm">${esc(u.s)}</span></div>
+ <p><span class="ans num">${u.d}</span> <span class="meta" style="font-size:14px">in 68 days</span></p>
+ <p class="cap clamp2" style="margin-top:4px">${esc(u.l)}</p>
+ <p class="meta clamp3" style="margin-top:8px">${esc(u.t)}</p>`};
+W.question=()=>{const q=D.question;
+ return `<div class="wh"><span class="wt">${esc(q.l)}</span><span class="wm">${esc(q.s)}</span></div>
+ <p>${trans(q.f,q.st)}</p>
+ <p class="cap clamp4" style="margin-top:4px">${esc(q.a)}</p>
+ <p class="meta wfoot"><a>See evidence</a> · last ${q.lb} days</p>`};
+W.watchlist=size=>{const n=size==='L'?3:2,lat=size==='L'?2:0;
+ return `<div class="wh"><span class="wt">Watchlist</span><span class="wm">${D.watchlist.length} entities</span></div>
+ <div class="wl-add"><span class="ic">${I.plus}</span><input class="field" aria-label="Add to watchlist" placeholder="Add a bank, central bank, issuer or country"></div>
+ ${D.watchlist.slice(0,n).map(e=>`<div class="row"><div class="stc">${badge(e.st)}</div><div><div class="wl-name"><b>${esc(e.n)}</b><span class="meta">${e.new} new</span></div><p class="clamp2" style="margin-top:4px">${esc(e.hl)}: ${esc(e.a)}</p>${e.lt.slice(0,lat).map(l=>`<div class="wl-lat"><span class="d">${l.d}</span><span class="one">${esc(l.t)}</span></div>`).join('')}</div><button class="icb x" aria-label="Remove ${esc(e.n)}">${I.x}</button></div>`).join('')}`};
+W.developments=size=>{const d=D.devs,n=size==='L'?7:3;
+ return `<div class="wh"><span class="wt">Developments</span><span class="wm">${d.total} in scope</span></div>
+ ${d.items.slice(0,n).map(x=>`<div class="row"><div class="stc">${badge(x.b)}</div><div class="t">${esc(x.t)}</div><span class="d">${x.d}</span></div>`).join('')}`};
+const NAMES={since:'Since your last review',summary:'Monitor summary',direction:'Direction of travel',upcoming:'Upcoming',watchlist:'Watchlist',developments:'Developments',question:'Standing question'};
+const SIZES={since:['M','L'],summary:['M','L'],direction:['S','M'],upcoming:['S','M'],watchlist:['M','L'],developments:['M','L'],question:['S','M']};
+const widget=(type,size,i,edit)=>`<article class="w ${size}" tabindex="0" data-i="${i}" aria-label="${NAMES[type]}">${edit?`<button class="minus" data-rm="${i}" aria-label="Remove ${NAMES[type]}">${I.minus}</button>`:''}${W[type](size)}</article>`;
+
+// ---------- Pages ----------
+function dashPage(){
+  const e=S.editing;
+  return `<div class="head"><div class="grow"><h1>Singapore banks</h1><p class="sub">${e?'Drag to reorder. Click a widget for settings.':'<a>Singapore banks</a>, <a>Banking regulation</a>'}</p></div>
+   <button class="btn" id="add-w"><span class="ic">${I.plus}</span>Add widget</button><button class="btn ${e?'primary':''}" id="edit-btn">${e?'Done':'Edit'}</button></div>
+   <div class="grid ${e?'editing':''}" id="grid">${S.layout.map(([t,z],i)=>widget(t,z,i,e)).join('')}</div>`;
+}
+function monitorPage(){
+  const o=D.ocbc;
+  const devRow=x=>`<div class="row" tabindex="0"><div class="stc">${badge(x.b)}</div><div><div class="t">${esc(x.t)}</div><div class="meta">${esc(x.s)} · ${x.c} · ${plural(x.n,'source')}</div></div><span class="d">${x.d}</span></div>`;
+  const qRow=q=>`<div class="row" tabindex="0"><div class="stc">${badge(q.st)}${q.f?`<span class="meta">from ${WORD[q.f]}</span>`:''}</div><div><div class="qhead"><b>${esc(q.l)}</b>${q.c?'<span class="b neutral">Custom</span>':''}</div><p class="meta clamp2" style="margin-top:0">${esc(q.q)}</p><p class="qans">${esc(q.a)}</p><p class="meta" style="margin-top:4px">${q.n?`<a data-ev>See evidence</a> · ${plural(q.n,'development')} · `:''}last ${q.lb} days</p></div><span class="d"></span></div>`;
+  const changed=o.qs.filter(q=>q.f).length;
+  const parts=[`<b class="num">${o.new}</b> new`];if(o.upd)parts.push(`<b class="num">${o.upd}</b> updated`);if(o.attn)parts.push(`<b class="num c-attn">${o.attn}</b> <span class="c-attn">needs attention</span>`);
+  return `<div class="head"><div class="grow"><h1>OCBC</h1><p class="sub">Bank · member of <a>Singapore banks</a></p></div></div>
+  <div class="mon">
+   <div class="panel">
+    <section class="sec"><div class="sec-h"><h2>What changed</h2><span class="meta">Since your review on 17 Sep</span></div>
+     <p class="summary">${parts.join(', ')}</p>
+     ${o.devs.slice(0,7).map(devRow).join('')}
+     <div class="glabel" style="border-top:1px solid var(--line)"><a style="margin:0">Show all ${o.new}</a></div></section>
+    <section class="sec"><div class="sec-h"><h2>Standing questions</h2><span class="meta">${o.qs.length} questions · ${changed} changed</span></div>
+     ${o.qs.map(qRow).join('')}
+     <div style="border-top:1px solid var(--line);padding-top:12px"><button class="btn sm"><span class="ic">${I.plus}</span>Add a question</button></div></section>
+   </div>
+   <div class="panel rail">
+    <section class="sec"><div class="sec-h" style="padding-bottom:12px"><h2>Links</h2></div>
+     <dl class="links"><dt>Groups</dt><dd>${o.links.groups.map(n=>`<a>${esc(n)}</a>`).join(', ')}</dd><dt>Topics</dt><dd>${o.links.topics.map(n=>`<a>${esc(n)}</a>`).join(', ')}</dd></dl>
+     <p style="margin-top:12px"><a>Open graph view</a></p></section>
+    <section class="sec"><div class="sec-h" style="padding-bottom:12px"><h2>Actions</h2></div>
+     <div class="actrow"><button class="btn primary">Mark reviewed</button><span class="meta">Reviewed 24 Sep 05:59</span></div>
+     <textarea aria-label="Add a note" placeholder="Add a note"></textarea></section>
+   </div>
+  </div>`;
+}
+function drawerHTML(){
+  const e=D.ev;
+  return `<div class="dh"><h2>${esc(e.l)}</h2><span class="meta">OCBC</span><button class="icb" id="close-drawer" aria-label="Close evidence">${I.x}</button></div>
+  <div class="db">
+   <p class="meta">Standing question · last ${e.lb} days</p>
+   <p style="font-weight:500;margin-top:4px">${esc(e.q)}</p>
+   <p style="margin-top:12px;display:flex;align-items:center;gap:8px">${badge(e.st)}<span class="meta">from ${WORD[e.f]} on 17 Sep</span></p>
+   <p class="qans" style="margin-top:8px">${esc(e.a)}</p>
+   <div class="dlabel">Developments<span>${plural(e.devs.length,'development')}, ${plural(e.devs.reduce((a,d)=>a+d.src.length,0),'source')}</span></div>
+   ${e.devs.map(d=>`<div class="devblk">
+     <p style="display:flex;align-items:center;gap:8px">${badge(d.b)}<span class="meta">${d.mat} · ${d.c} · ${d.d}</span></p>
+     <p class="t" style="-webkit-line-clamp:3;margin-top:8px">${esc(d.t)}</p>
+     <p class="meta" style="margin-top:4px" title="Tagging confidence per subject">Tagged to ${esc(d.tags)} · ${d.conf} confidence</p>
+     ${d.src.map(s=>`<div class="src"><p class="t">${esc(s.t)}</p><p class="meta" style="margin-top:4px">${esc(s.dom)} · ${s.ty} · ${s.d}</p><p class="passage">${esc(s.p.pre)} <mark>${esc(s.p.m)}</mark> ${esc(s.p.post)}</p></div>`).join('')}
+   </div>`).join('')}
+   <div class="dlabel">Notes</div>
+   <textarea aria-label="Add a note" placeholder="Add a note"></textarea>
+  </div>`;
+}
+
+// ---------- Gallery (sheet and popup) ----------
+const OFFERS={group:[['since','L'],['watchlist','L'],['summary','M'],['developments','M']],topic:[['since','L'],['direction','S'],['upcoming','S'],['developments','M']],entity:[['summary','M'],['question','S'],['since','M'],['developments','M']]};
+function galleryHTML(inPopup){
+  const sub=D.subjects.find(s=>s.n===S.subj)||D.subjects[3];
+  const grp=(label,k)=>`<div class="navhead">${label}</div>`+D.subjects.filter(s=>s.k===k).map(s=>`<button class="subj" data-subj="${esc(s.n)}" aria-current="${s.n===sub.n}">${esc(s.n)}<span class="ct">${s.new?s.new+' new':''}</span></button>`).join('');
+  const offers=OFFERS[sub.k];
+  const card=([t,z])=>`<div class="card"><div class="pv" data-h="${z==='L'?444:216}"><div class="pvi">${widget(t,z,-1,false)}</div></div><div class="cb"><b>${NAMES[t]}</b>${SIZES[t].length>1?`<div class="seg" role="group" aria-label="${NAMES[t]} size">${SIZES[t].map(x=>`<button aria-pressed="${x===z}">${{S:'Small',M:'Medium',L:'Large'}[x]}</button>`).join('')}</div>`:''}<button class="btn sm" data-add="${t}:${z}">Add</button></div></div>`;
+  return `<div class="gal">
+   <div class="subjects"><div class="sbox"><label class="search"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><input type="search" aria-label="Filter subjects" placeholder="Search subjects"></label></div>
+    <div class="list">${grp('Topics','topic')}${grp('Groups','group')}${grp('Entities','entity')}</div></div>
+   <div class="offers"><div class="ohead">${inPopup?`<button class="btn link sm" id="back-prev" style="margin-left:-8px"><span class="ic" style="color:var(--accent)">${I.back}</span>Back to preview</button><span class="meta">·</span>`:''}<b>${esc(sub.n)}</b><span class="meta">${sub.k[0].toUpperCase()+sub.k.slice(1)}</span></div>
+    <div class="obody"><div class="glabel">Suggested</div><div class="cards">${offers.slice(0,2).map(card).join('')}</div>
+     <div class="glabel">More widgets</div><div class="cards">${offers.slice(2).map(card).join('')}</div></div></div>
+  </div>`;
+}
+const BUILD=[['since','L'],['summary','M'],['direction','S'],['upcoming','S']];
+function modalHTML(){
+  if(S.modal==='sheet')return `<div class="modal sheet" role="dialog" aria-modal="true" aria-labelledby="mt"><div class="mh"><h2 id="mt">Add widget</h2><button class="icb" data-close aria-label="Close">${I.x}</button></div>${galleryHTML(false)}<div></div></div>`;
+  const body=S.tab==='gen'
+   ?`<div class="canvas" style="background:var(--surface)"><div class="gen"><h3>What do you want to track?</h3><label for="gp">Describe a dashboard</label><textarea id="gp" placeholder="For example: Singapore banks and their exposure to commercial property"></textarea>
+     ${['Monitor OCBC and its peers','Stablecoin issuers in Singapore and Hong Kong','Enforcement actions against SEA banks this quarter'].map(x=>`<button class="ex"><span class="ic">${I.arrow}</span>${x}</button>`).join('')}</div></div>`
+   :S.gal?galleryHTML(true)
+   :`<div class="canvas"><div class="ohead"><b>Preview</b><span class="meta">Drag to reorder</span><button class="btn sm" id="open-gal" style="margin-left:auto"><span class="ic">${I.plus}</span>Add widget</button></div><div style="overflow:auto"><div class="grid editing">${BUILD.map(([t,z],i)=>widget(t,z,i,true)).join('')}</div></div></div>`;
+  return `<div class="modal popup" role="dialog" aria-modal="true" aria-labelledby="mt"><div class="mh"><h2 id="mt">New dashboard</h2>
+   <div class="seg" role="tablist" aria-label="How to build"><button role="tab" data-tab="build" aria-selected="${S.tab==='build'}">Build</button><button role="tab" data-tab="gen" aria-selected="${S.tab==='gen'}"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5c.4 3.3 1.9 5.1 5.5 6.5-3.6 1.4-5.1 3.2-5.5 6.5-.4-3.3-1.9-5.1-5.5-6.5 3.6-1.4 5.1-3.2 5.5-6.5Z" fill="var(--ink2)"/></svg>Generate</button></div>
+   <button class="icb" data-close aria-label="Close">${I.x}</button></div>
+   ${body}
+   <div class="mf"><label for="dname">Name</label><input class="field" id="dname" value="Singapore banks"><span class="grow"></span><span class="meta">${S.tab==='gen'?'No widgets yet':BUILD.length+' widgets'}</span><button class="btn primary" ${S.tab==='gen'?'disabled':''}>Create dashboard</button></div></div>`;
+}
+
+// ---------- Render ----------
+function render(){
+  renderNav();renderRuns();renderAlerts();
+  $('page').innerHTML=S.page==='monitor'?monitorPage():dashPage();
+  $('drawer').hidden=!S.drawer;
+  if(S.drawer)$('drawer').innerHTML=drawerHTML();
+  $('backdrop').hidden=!S.modal;
+  $('backdrop').innerHTML=S.modal?modalHTML():'';
+  fitPreviews();
+  document.querySelectorAll('.mockbar [data-view]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===S.view));
+}
+// Scale gallery previews to the card width; layout inside stays 1:1 with the dashboard.
+function fitPreviews(){document.querySelectorAll('.pv').forEach(pv=>{const s=pv.clientWidth/574,h=+pv.dataset.h;pv.style.height=h*s+'px';const i=pv.firstElementChild;i.style.height=h+'px';i.style.transform=`scale(${s})`;});}
+function setView(v){
+  Object.assign(S,{view:v,pop:null,drawer:false,modal:null,editing:false,gal:true,tab:'build',subj:'Singapore banks',layout:LAYOUT.slice()});
+  $('toast').hidden=true;
+  if(v==='dash'){S.page='dash';}
+  if(v==='edit'){S.page='dash';S.editing=true;S.modal='sheet';}
+  if(v==='monitor'){S.page='monitor';S.drawer=true;}
+  if(v==='popup'){S.page='dash';S.modal='popup';}
+  render();
+  setPop(v==='dash'?'runs':v==='monitor'?'alerts':null);
+  $('page').scrollTop=0;
+}
+document.querySelector('.mockbar').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)setView(b.dataset.view);});
+$('runtoggle').onchange=e=>{S.running=e.target.checked;renderRuns();};
+
+let toastT;
+function toast(html){const t=$('toast');t.innerHTML=html;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,6000);}
+$('page').addEventListener('click',e=>{
+  const t=e.target;
+  if(t.closest('#edit-btn')){S.editing=!S.editing;render();return;}
+  if(t.closest('#add-w')){S.modal='sheet';render();return;}
+  const rm=t.closest('[data-rm]');
+  if(rm){const i=+rm.dataset.rm;S.removed=[i,S.layout[i]];S.layout.splice(i,1);render();
+    toast(`<span>Removed ${NAMES[S.removed[1][0]]}</span><button class="btn link sm" id="undo">Undo</button>`);return;}
+  if(t.closest('[data-ev]')||t.closest('.row[tabindex]')){S.drawer=true;render();return;}
+});
+$('toast').addEventListener('click',e=>{if(e.target.closest('#undo')&&S.removed){S.layout.splice(S.removed[0],0,S.removed[1]);S.removed=null;$('toast').hidden=true;render();}});
+$('drawer').addEventListener('click',e=>{if(e.target.closest('#close-drawer')){S.drawer=false;render();}});
+$('nav').addEventListener('click',e=>{
+  if(e.target.closest('#open-new')){S.modal='popup';S.tab='build';S.gal=false;render();return;}
+  const g=e.target.closest('[data-go]');if(g){S.page=g.dataset.go;S.drawer=false;S.editing=false;render();}
+});
+$('backdrop').addEventListener('mousedown',e=>{if(e.target===$('backdrop')){S.modal=null;render();}});
+$('backdrop').addEventListener('click',e=>{
+  const t=e.target;
+  if(t.closest('[data-close]')){S.modal=null;render();return;}
+  const sj=t.closest('[data-subj]');if(sj){S.subj=sj.dataset.subj;render();return;}
+  const tb=t.closest('[data-tab]');if(tb){S.tab=tb.dataset.tab;render();return;}
+  if(t.closest('#back-prev')){S.gal=false;render();return;}
+  if(t.closest('#open-gal')){S.gal=true;render();return;}
+  if(t.closest('[data-add]')){const [ty,z]=t.closest('[data-add]').dataset.add.split(':');if(S.modal==='sheet'){S.layout.push([ty,z]);S.modal=null;render();const w=document.querySelector(`#grid .w[data-i="${S.layout.length-1}"]`);if(w){w.classList.add('added');w.scrollIntoView({block:'nearest'});}}else{S.gal=false;render();}return;}
+  const sb=t.closest('.seg[role="group"] button');if(sb){sb.parentNode.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===sb));}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(S.pop){const t=S.pop==='runs'?'runchip':'bell';setPop(null);$(t).focus();}
+    else if(S.modal){if(S.modal==='popup'&&S.gal&&S.tab==='build'){S.gal=false;}else S.modal=null;render();}
+    else if(S.drawer){S.drawer=false;render();}
+  }
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('q').focus();}
+});
+setView('dash');
+</script>
+</body>
+</html>
