@@ -51,6 +51,11 @@ Primary user: a supervisory or policy analyst who follows a few topics, sectors 
 **Profile menu:** opens upward from the profile button. Settings, Data sources, Run history, Keyboard shortcuts. Esc or a click outside closes it.
 
 **Top bar:** one search field: "Search or ask about a topic, group or entity" with ⌘K. Typing a name jumps to its page. Typing a question gets an answer with citations (P1; the POC only jumps to pages).
+To the right of the search field: a run status chip and an alerts button.
+The chip shows a live dot and "Monitoring · Last run 06:00" and opens a Runs popover: runs newest first, each with a status mark, when, how (scheduled or manual), duration, source count and result, then "Next scheduled run" and a Run now button.
+While a run is in progress the chip reads "Running now" and the list shows a Running now row.
+The alerts button is a bell with an unread count and opens an Alerts popover listing Needs attention and Watch developments, with Mark all read.
+One popover is open at a time; Esc or a click outside closes it.
 
 **Moving between scopes:** every monitor page has a Links section. From OCBC, one tap goes up to Singapore banks or out to Banking regulation.
 
@@ -58,7 +63,7 @@ Primary user: a supervisory or policy analyst who follows a few topics, sectors 
 
 ### Dashboard
 
-Title, last run time, then a 4-column widget grid. The "Since your last review" widget sits top-left and is the largest thing on screen. **Edit** turns on edit mode; **Add widget** opens the gallery.
+Title, the subjects it covers, then a 4-column widget grid. The last run time lives in the top bar chip. The "Since your last review" widget sits top-left and is the largest thing on screen. **Edit** turns on edit mode; **Add widget** opens the gallery.
 
 ### Monitor page (topic, group or entity)
 

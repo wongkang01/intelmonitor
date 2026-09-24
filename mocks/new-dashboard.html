@@ -53,7 +53,37 @@ nav.side{width:248px;flex-shrink:0;box-sizing:border-box;padding:20px 14px 14px;
 
 /* Main */
 main{flex-grow:1;min-width:0;overflow:auto;display:flex;flex-direction:column}
-.topbar{height:72px;flex-shrink:0;display:flex;align-items:center;padding:0 36px}
+.topbar{height:72px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 36px}
+.topbar .search{flex:1 1 auto;width:auto;min-width:280px;margin-right:6px}
+.runchip{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:0;border-radius:20px;background:var(--surface);box-shadow:0 1px 2px rgba(18,22,38,.08);font-size:13px;color:var(--ink2);white-space:nowrap}
+.runchip b{color:var(--ink);font-weight:600}
+.runchip:hover,.iconbtn:hover{background:#FAFAFC}
+.live{width:8px;height:8px;border-radius:50%;background:var(--stable);box-shadow:0 0 0 3px rgba(31,111,67,.16);flex-shrink:0}
+.runchip.running .live{background:var(--accent);box-shadow:0 0 0 3px rgba(10,100,216,.18)}
+.alerts-wrap,.runs-wrap{position:relative}
+.runchip[aria-expanded="true"]{background:var(--chip)}
+.runchip .chev{margin-left:2px;transition:transform .15s}
+.runchip[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.run-row{display:grid;grid-template-columns:18px minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.run-row .st{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.run-row .st.ok{background:#E3F2E9}.run-row .st.warn{background:var(--watch-bg)}.run-row .st.live{background:var(--new-bg);box-shadow:none;width:18px;height:18px}
+.run-row .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.run-row .tx b{font-size:14px;font-weight:600}
+.run-row .tx span{font-size:12px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.run-row .res{font-size:12px;color:var(--ink2);text-align:right;white-space:nowrap}
+#runs{width:440px}
+.pop-foot{display:flex;align-items:center;gap:10px;padding:10px 0 4px;border-top:1px solid var(--line)}
+.pop-foot .cap{flex-grow:1}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .9s linear infinite}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+.iconbtn{position:relative;width:40px;height:40px;border:0;border-radius:20px;background:var(--surface);box-shadow:0 1px 2px rgba(18,22,38,.08);display:flex;align-items:center;justify-content:center;padding:0}
+.iconbtn[aria-expanded="true"]{background:var(--chip)}
+.iconbtn .n{position:absolute;top:2px;right:2px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:var(--attn);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
+.pop{position:absolute;right:0;top:48px;width:380px;z-index:30;padding:14px 16px 10px;box-sizing:border-box;background:var(--surface);border-radius:18px;box-shadow:var(--shadow-pop);display:flex;flex-direction:column;gap:6px}
+.pop-head{display:flex;align-items:center;gap:8px}
+.pop-head b{font-size:15px}
+.pop-head button{margin-left:auto;border:0;background:transparent;color:var(--accent);font-size:13px;font-weight:600;padding:6px 4px}
 .search{display:flex;align-items:center;gap:10px;width:560px;max-width:100%;height:42px;box-sizing:border-box;padding:0 12px 0 14px;background:var(--field);border-radius:12px}
 .search:focus-within{box-shadow:0 0 0 3px rgba(10,100,216,.35)}
 .search input{flex-grow:1;min-width:0;border:0;background:transparent;font-size:15px;outline:none}
@@ -237,6 +267,14 @@ main .grid{padding:0 36px 36px}
   <main>
     <div class="topbar">
       <label class="search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.8" stroke="#5F5F67" stroke-width="1.6"/><path d="M10.6 10.6 14 14" stroke="#5F5F67" stroke-width="1.6" stroke-linecap="round"/></svg><input type="search" id="top-search" aria-label="Search or ask" placeholder="Search or ask about a topic, group or entity"><span class="kbdchip">⌘K</span></label>
+      <div class="runs-wrap">
+        <button class="runchip" id="runchip" aria-haspopup="dialog" aria-expanded="false" aria-controls="runs"><span class="live"></span><span id="run-text"></span><svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5 6 7.5l3-3" stroke="#6E6E76" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="pop" id="runs" role="dialog" aria-label="Runs" hidden></div>
+      </div>
+      <div class="alerts-wrap">
+        <button class="iconbtn" id="alerts-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="alerts" aria-label="Alerts"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M4.5 12.5V8a4.5 4.5 0 0 1 9 0v4.5l1.2 1.5H3.3l1.2-1.5Z" stroke="#3A3A40" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.3 15.5a1.8 1.8 0 0 0 3.4 0" stroke="#3A3A40" stroke-width="1.6" stroke-linecap="round"/></svg><span class="n" id="alerts-n"></span></button>
+        <div class="pop" id="alerts" role="dialog" aria-label="Alerts" hidden></div>
+      </div>
     </div>
     <div class="pagehead">
       <div style="flex-grow:1"><h1 id="dash-title"></h1><p id="dash-meta"></p></div>
@@ -517,7 +555,7 @@ function renderDash(){
   const d=dashboards.find(x=>x.id===current);
   $('dash-title').textContent=d.name;
   const ents=entitiesFor(d.subs).length;
-  $('dash-meta').textContent=editing?'Drag to rearrange. Tap the minus to remove.':`Last run 23 Sep at 06:00. ${d.subs.join(', ')}. ${ents} entities.`;
+  $('dash-meta').textContent=editing?'Drag to rearrange. Tap the minus to remove.':`${d.subs.join(', ')}. ${ents} entities.`;
   $('edit-btn').textContent=editing?'Done':'Edit';
   $('edit-btn').classList.toggle('primary',editing);
   $('dash-grid').innerHTML=d.widgets.map(w=>widgetHTML(w,d.subs,{drag:editing})).join('');
@@ -529,6 +567,56 @@ $('dash-grid').addEventListener('click',e=>{
   const b=e.target.closest('[data-remove]');if(!b)return;
   const d=dashboards.find(x=>x.id===current);d.widgets=d.widgets.filter(w=>w.id!==b.dataset.remove);renderDash();toast('Widget removed');
 });
+
+// ---------- Top bar: run status + alerts ----------
+let alertsRead=false;
+function renderAlerts(){
+  const items=DEVS.filter(d=>d.b==='attn'||d.b==='watch').sort((a,b)=>(a.b==='attn'?0:1)-(b.b==='attn'?0:1));
+  const n=$('alerts-n');n.textContent=items.length;n.hidden=alertsRead;
+  $('alerts-btn').setAttribute('aria-label',alertsRead?'Alerts':`Alerts, ${items.length} unread`);
+  $('alerts').innerHTML=`<div class="pop-head"><b>Alerts</b><span class="cap">${alertsRead?'All read':items.length+' unread'}</span><button id="alerts-read">Mark all read</button></div><div class="rows">${items.map(x=>`<div class="row">${badge(x.b)}<div class="tx"><b>${esc(x.t)}</b><span>${esc(x.m)}</span></div></div>`).join('')}</div>`;
+}
+const alerts=$('alerts'),alertsBtn=$('alerts-btn');
+function setAlerts(open){alerts.hidden=!open;alertsBtn.setAttribute('aria-expanded',open);}
+alertsBtn.onclick=()=>{const o=alerts.hidden;setAlerts(o);if(o&&typeof setRuns==='function')setRuns(false);};
+alerts.addEventListener('click',e=>{e.stopPropagation();if(e.target.closest('#alerts-read')){alertsRead=true;renderAlerts();}});
+document.addEventListener('click',e=>{if(!alerts.hidden&&!e.target.closest('.alerts-wrap'))setAlerts(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!alerts.hidden){setAlerts(false);alertsBtn.focus();}});
+// Run history. Most recent first.
+const RUNS=[
+ {when:'Today, 06:00',how:'Scheduled',dur:'4 min',src:22,res:'4 new, 1 needs attention',ok:false},
+ {when:'Yesterday, 06:00',how:'Scheduled',dur:'5 min',src:22,res:'2 new',ok:true},
+ {when:'22 Sep, 14:12',how:'Manual, Wong Kang',dur:'4 min',src:21,res:'No new developments',ok:true},
+ {when:'22 Sep, 06:00',how:'Scheduled',dur:'4 min',src:21,res:'3 new, 1 needs attention',ok:false},
+ {when:'21 Sep, 06:00',how:'Scheduled',dur:'6 min',src:21,res:'1 new',ok:true},
+];
+let running=false;
+const OKI='<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2 5 8.6l4.5-5" stroke="#1F6F43" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const WARNI='<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 2.5v4.2" stroke="#8A4B00" stroke-width="2" stroke-linecap="round"/><circle cx="6" cy="9.3" r="1.1" fill="#8A4B00"/></svg>';
+const SPINI='<svg class="spin" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1.5A4.5 4.5 0 1 1 1.5 6" stroke="#0A56BC" stroke-width="1.8" stroke-linecap="round"/></svg>';
+function renderRuns(){
+  const last=RUNS[0];
+  $('runchip').classList.toggle('running',running);
+  $('run-text').innerHTML=running?'<b>Running now</b> · 22 sources':`<b>Monitoring</b> · Last run ${esc(last.when.replace('Today, ','').toLowerCase())}`;
+  $('runchip').setAttribute('aria-label',running?'Run in progress. Show run history':`Monitoring. Last run ${last.when}. Show run history`);
+  const live=running?`<div class="run-row"><span class="st live">${SPINI}</span><div class="tx"><b>Running now</b><span>Manual, Wong Kang · 22 sources</span></div><span class="res">About 4 min</span></div>`:'';
+  $('runs').innerHTML=`<div class="pop-head"><b>Runs</b><span class="cap">Daily at 06:00</span></div>
+   <div>${live}${RUNS.map(r=>`<div class="run-row"><span class="st ${r.ok?'ok':'warn'}">${r.ok?OKI:WARNI}</span><div class="tx"><b>${esc(r.when)}</b><span>${esc(r.how)} · ${r.dur} · ${r.src} sources</span></div><span class="res">${esc(r.res)}</span></div>`).join('')}</div>
+   <div class="pop-foot"><span class="cap">Next scheduled run: tomorrow, 06:00</span><button class="btn primary sm" id="run-now" ${running?'disabled':''}>${running?'Running…':'Run now'}</button></div>`;
+}
+const runs=$('runs'),runBtn=$('runchip');
+function setRuns(open){runs.hidden=!open;runBtn.setAttribute('aria-expanded',open);if(open)setAlerts(false);}
+runBtn.onclick=()=>setRuns(runs.hidden);
+runs.addEventListener('click',e=>{
+  e.stopPropagation(); // content re-renders, so the outside-click check would misfire
+  if(!e.target.closest('#run-now')||running)return;
+  running=true;renderRuns();
+  setTimeout(()=>{running=false;RUNS.unshift({when:'Just now',how:'Manual, Wong Kang',dur:'2 min',src:22,res:'No new developments',ok:true});renderRuns();toast('Run complete. No new developments.');},2400);
+});
+document.addEventListener('click',e=>{if(!runs.hidden&&!e.target.closest('.runs-wrap'))setRuns(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!runs.hidden){setRuns(false);runBtn.focus();}});
+renderRuns();
+renderAlerts();
 
 // ---------- Profile menu ----------
 const menu=$('menu'),prof=$('profile');
@@ -724,3 +812,4 @@ $('gen-create').onclick=()=>createDashboard(defaultName(G.subs),G.subs,G.widgets
 
 renderNav();renderDash();
 </script>
+

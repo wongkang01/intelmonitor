@@ -298,6 +298,7 @@ The UI follows `ui-ux.md` and the mock.
 The app only shows data from the API; there is no sample data in the web code.
 
 - **Sidebar:** Dashboards (New dashboard first, then the user's dashboards), Monitors (Topics, Groups, Entities with counts), profile button at the bottom.
+- **Top bar:** the search field, then a run status chip (last run time, Runs popover with run history and Run now) and an alerts bell (unread count, Alerts popover of Needs attention and Watch developments). Run now computes Run 2 again over the stored corpus; ingestion stays offline in the POC.
 - **Profile menu:** Settings (display name, default dashboard), Data sources (sources and document counts), Run history (runs with dates, document counts and duration), Keyboard shortcuts.
 - **Starter dashboards:** three seeded dashboards (Singapore banks, Stablecoin watch, Geopolitics in SEA) so the first screen is never blank.
 - **Widgets (7):** Since your last review, Standing question, Monitor summary, Developments, Direction of travel, Watchlist, Upcoming.
