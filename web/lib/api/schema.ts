@@ -1756,7 +1756,7 @@ export interface components {
             needs_attention_count: number;
             /**
              * Result
-             * @description "4 new, 1 needs attention", "First run, N developments" or "No new developments"; null unless complete
+             * @description "4 new, 2 need attention", "First run, N developments" or "No new developments"; null unless complete
              */
             result: string | null;
             /**

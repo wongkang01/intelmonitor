@@ -6,6 +6,7 @@
 import Graph from "graphology";
 import forceAtlas2 from "graphology-layout-forceatlas2";
 import type Sigma from "sigma";
+import type { NodeLabelDrawingFunction } from "sigma/rendering";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
@@ -146,6 +147,70 @@ function settle(graph: Graph<NodeAttrs, EdgeAttrs>, animate: boolean, done: () =
   return () => cancelAnimationFrame(frame);
 }
 
+type Box = { x: number; y: number; w: number; h: number };
+type Disc = { x: number; y: number; r: number };
+
+const LABEL_SIZE = 12;
+const LABEL_GAP = 4;
+
+function overlap(a: Box, b: Box): number {
+  const w = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+  const h = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+  return w > 0 && h > 0 ? w * h : 0;
+}
+
+/** Draws each label beside its node on the first side (right, left, below, above) where it covers
+ *  no other node and no label drawn before it this frame; failing that, on the side that covers
+ *  least. Forced labels (topics, groups, entities) always draw; a development label with no clear
+ *  side is left out. Labels get a halo in the canvas colour so edges never run through the text. */
+function labelPlacer(renderer: Renderer, colors: Palette): NodeLabelDrawingFunction<NodeAttrs, EdgeAttrs> {
+  let discs: Disc[] | null = null;
+  let placed: Box[] = [];
+  renderer.on("beforeRender", () => {
+    discs = null;
+    placed = [];
+  });
+  const nodeDiscs = () =>
+    (discs ??= renderer.getGraph().mapNodes((id) => {
+      const d = renderer.getNodeDisplayData(id);
+      if (!d || d.hidden) return { x: 0, y: 0, r: 0 };
+      const { x, y } = renderer.framedGraphToViewport(d);
+      return { x, y, r: renderer.scaleSize(d.size) + 2 };
+    }));
+
+  return (ctx, data, settings) => {
+    if (!data.label) return;
+    ctx.font = `${settings.labelWeight} ${LABEL_SIZE}px ${settings.labelFont}`;
+    const w = ctx.measureText(data.label).width;
+    const h = LABEL_SIZE + 2;
+    const r = data.size + LABEL_GAP;
+    const sides: Box[] = [
+      { x: data.x + r, y: data.y - h / 2, w, h },
+      { x: data.x - r - w, y: data.y - h / 2, w, h },
+      { x: data.x - w / 2, y: data.y + r, w, h },
+      { x: data.x - w / 2, y: data.y - r - h, w, h },
+    ];
+    const cost = (box: Box) =>
+      nodeDiscs().reduce(
+        // The node's own disc sits at the label's anchor.
+        (sum, n) => (!n.r || Math.hypot(n.x - data.x, n.y - data.y) < 0.5 ? sum : sum + overlap(box, { x: n.x - n.r, y: n.y - n.r, w: 2 * n.r, h: 2 * n.r })),
+        0,
+      ) + placed.reduce((sum, b) => sum + 2 * overlap(box, b), 0);
+    const costs = sides.map(cost);
+    const best = costs.findIndex((c) => c === 0);
+    if (best < 0 && !data.forceLabel) return;
+    const box = sides[best >= 0 ? best : costs.indexOf(Math.min(...costs))];
+    placed.push(box);
+    const baseline = box.y + h / 2 + LABEL_SIZE / 3;
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = colors.gap;
+    ctx.strokeText(data.label, box.x, baseline);
+    ctx.fillStyle = colors.label;
+    ctx.fillText(data.label, box.x, baseline);
+  };
+}
+
 type Props = {
   data: GraphData;
   hovered: string | null;
@@ -202,7 +267,7 @@ export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props)
         defaultNodeType: "ring",
         nodeProgramClasses: { ring },
         labelFont: FONT,
-        labelSize: 12,
+        labelSize: LABEL_SIZE,
         labelWeight: "500",
         labelColor: { color: colors.label },
         labelRenderedSizeThreshold: 12,
@@ -221,6 +286,7 @@ export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props)
           return { ...attrs, hidden: true };
         },
       });
+      sigma.setSetting("defaultDrawNodeLabel", labelPlacer(sigma, colors));
       sigma.on("enterNode", ({ node }) => callbacks.current.onHover(node));
       sigma.on("leaveNode", () => callbacks.current.onHover(null));
       sigma.on("clickNode", ({ node }) => callbacks.current.onOpen(node));

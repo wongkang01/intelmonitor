@@ -5,7 +5,7 @@
 // common issues and outliers. The main panel holds the first two and the scope extras; a sticky
 // rail panel holds Links and Actions.
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useMarkReviewed, useMonitorPage } from "@/lib/api/queries";
@@ -154,6 +154,15 @@ function Questions({ page }: { page: Page }) {
   const toast = useToast();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
+  // A question deleted in the editor: once it leaves the list, focus goes to Add a question.
+  const deleted = useRef<string | null>(null);
+  const addButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const id = deleted.current;
+    if (!id || page.questions.some((a) => a.question_id === id)) return;
+    deleted.current = null;
+    addButton.current?.focus();
+  });
   const changed = page.questions.filter((a) => a.change.kind === "state_changed").length;
   return (
     <Section id="questions" title="Standing questions" meta={changed > 0 ? `${plural(changed, "answer")} changed` : plural(page.questions.length, "question")}>
@@ -220,7 +229,7 @@ function Questions({ page }: { page: Page }) {
       </div>
       {!adding && (
         <div className="mon-more add-question">
-          <button type="button" className="btn btn-sm btn-ghost add-q" onClick={() => setAdding(true)}>
+          <button type="button" ref={addButton} className="btn btn-sm btn-ghost add-q" onClick={() => setAdding(true)}>
             <PlusIcon size={14} />
             Add a question
           </button>
@@ -231,7 +240,13 @@ function Questions({ page }: { page: Page }) {
           </span>
         </div>
       )}
-      <CustomQuestionEditor questionId={editing} onClose={() => setEditing(null)} />
+      <CustomQuestionEditor
+        questionId={editing}
+        onClose={() => setEditing(null)}
+        onDeleted={() => {
+          deleted.current = editing;
+        }}
+      />
     </Section>
   );
 }

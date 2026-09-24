@@ -3,7 +3,8 @@
 // Custom standing questions. CustomQuestionComposer is the write, preview, Keep or Discard flow
 // under "Add a question" on monitor pages and in the widget gallery. CustomQuestionEditor is the
 // dialog that edits or deletes a kept question, opened from its row or its widget's settings.
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+import { flushSync } from "react-dom";
 
 import {
   errorMessage,
@@ -203,8 +204,17 @@ function Preview({ question: q, linkCitations }: { question: CustomQuestion; lin
   );
 }
 
-/** Edits a kept custom question's wording, label and lookback, or deletes it. */
-export function CustomQuestionEditor({ questionId, onClose }: { questionId: string | null; onClose: () => void }) {
+/** Edits a kept custom question's wording, label and lookback, or deletes it. `onDeleted` runs
+ *  after a delete, before `onClose`, so the opener can place focus once the question is gone. */
+export function CustomQuestionEditor({
+  questionId,
+  onClose,
+  onDeleted,
+}: {
+  questionId: string | null;
+  onClose: () => void;
+  onDeleted?: () => void;
+}) {
   const question = useCustomQuestion(questionId);
   return (
     <Modal open={questionId !== null} onClose={onClose} labelledBy="cq-edit-title" className="panel">
@@ -213,12 +223,22 @@ export function CustomQuestionEditor({ questionId, onClose }: { questionId: stri
         <CloseButton onClick={onClose} />
       </div>
       {question.isError && <p className="panel-body cq-note">This question could not be loaded.</p>}
-      {question.data && <EditForm key={question.data.id} question={question.data} onClose={onClose} />}
+      {question.data && (
+        <EditForm key={question.data.id} question={question.data} onClose={onClose} onDeleted={onDeleted} />
+      )}
     </Modal>
   );
 }
 
-function EditForm({ question: q, onClose }: { question: CustomQuestion; onClose: () => void }) {
+function EditForm({
+  question: q,
+  onClose,
+  onDeleted,
+}: {
+  question: CustomQuestion;
+  onClose: () => void;
+  onDeleted?: () => void;
+}) {
   const edit = useEditCustomQuestion();
   const remove = useDeleteCustomQuestion();
   const toast = useToast();
@@ -230,6 +250,14 @@ function EditForm({ question: q, onClose }: { question: CustomQuestion; onClose:
   const valid = wording.trim().length >= MIN_LENGTH && label.trim().length > 0 && Number.isInteger(days) && days >= 1 && days <= 60;
   const reanswers = wording.trim() !== q.question || days !== q.lookback_days;
   const busy = edit.isPending || remove.isPending;
+  const foot = useRef<HTMLDivElement>(null);
+
+  // The footer swaps its buttons, so focus moves to the first of the new set: Keep it, or back to
+  // Delete question.
+  const confirm = (on: boolean) => {
+    flushSync(() => setConfirming(on));
+    foot.current?.querySelector("button")?.focus();
+  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -276,39 +304,41 @@ function EditForm({ question: q, onClose }: { question: CustomQuestion; onClose:
           </p>
         )}
       </div>
-      <div className="panel-foot">
+      <div className="panel-foot" ref={foot}>
         {confirming ? (
           <>
             <span className="meta grow">Delete this question and every widget that shows it?</span>
-            <button type="button" className="btn" onClick={() => setConfirming(false)} disabled={busy}>
+            <button type="button" className="btn" onClick={() => !busy && confirm(false)} aria-disabled={busy}>
               Keep it
             </button>
             <button
               type="button"
               className="btn btn-danger"
-              disabled={busy}
-              onClick={() =>
+              aria-disabled={busy}
+              onClick={() => {
+                if (busy) return;
                 remove.mutate(q.id, {
                   onSuccess: () => {
                     toast({ message: `${q.label} deleted` });
+                    onDeleted?.();
                     onClose();
                   },
-                })
-              }
+                });
+              }}
             >
               Delete
             </button>
           </>
         ) : (
           <>
-            <button type="button" className="btn btn-danger" onClick={() => setConfirming(true)} disabled={busy}>
+            <button type="button" className="btn btn-danger" onClick={() => !busy && confirm(true)} aria-disabled={busy}>
               Delete question
             </button>
             <span className="grow" />
-            <button type="button" className="btn" onClick={onClose} disabled={busy}>
+            <button type="button" className="btn" onClick={() => !busy && onClose()} aria-disabled={busy}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={!valid || busy}>
+            <button type="submit" className="btn btn-primary" aria-disabled={!valid || busy}>
               Save
             </button>
           </>

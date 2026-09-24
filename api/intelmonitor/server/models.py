@@ -74,7 +74,7 @@ class RunInfo(BaseModel):
     updated_count: int
     needs_attention_count: int = Field(description="New or updated and needing attention")
     result: str | None = Field(
-        description='"4 new, 1 needs attention", "First run, N developments" or '
+        description='"4 new, 2 need attention", "First run, N developments" or '
         '"No new developments"; null unless complete'
     )
     started_at: datetime

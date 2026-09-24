@@ -479,6 +479,8 @@ function GeneratePane({
     if (!active) slideFrom.current = form.current?.getBoundingClientRect().top ?? null;
     setText("");
     state.send(clean);
+    // Send and the examples disable or disappear once sent, so focus stays in the prompt.
+    input.current?.focus();
   };
 
   const onSubmit = (e: FormEvent) => {
@@ -495,28 +497,30 @@ function GeneratePane({
       {!active && <h3 className="nd-gen-title">What do you want to track?</h3>}
       {active && (
         <>
-          <div className="nd-thread" aria-live="polite">
-            {state.lastPrompt && <p className="nd-you">{state.lastPrompt}</p>}
-            {draft.error ? (
-              <p className="nd-error">Could not generate: {draft.error}</p>
-            ) : changes.length ? (
-              <details key={draft.prompts}>
-                <summary>
-                  <b>{summary}</b> <span className="link">Details</span>
-                </summary>
-                {note && <p className="nd-note">{note}</p>}
-                <ul>
-                  {changes.map((line, i) => (
-                    <li key={i}>{line}</li>
-                  ))}
-                </ul>
-              </details>
-            ) : (
-              <p>
-                <b>{summary}</b>
-              </p>
-            )}
-          </div>
+          {(state.lastPrompt || summary || draft.error) && (
+            <div className="nd-thread" aria-live="polite">
+              {state.lastPrompt && <p className="nd-you">{state.lastPrompt}</p>}
+              {draft.error ? (
+                <p className="nd-error">Could not generate: {draft.error}</p>
+              ) : changes.length ? (
+                <details key={draft.prompts}>
+                  <summary>
+                    <b>{summary}</b> <span className="link">Details</span>
+                  </summary>
+                  {note && <p className="nd-note">{note}</p>}
+                  <ul>
+                    {changes.map((line, i) => (
+                      <li key={i}>{line}</li>
+                    ))}
+                  </ul>
+                </details>
+              ) : (
+                <p>
+                  <b>{summary}</b>
+                </p>
+              )}
+            </div>
+          )}
           <div className="nd-canvas nd-gen-scroll" inert={draft.running}>
             <WidgetGrid
               widgets={draft.widgets}

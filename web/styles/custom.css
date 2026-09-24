@@ -68,9 +68,9 @@
 .btn.btn-danger:hover {
   background: var(--attn-bg);
 }
-.btn.btn-danger:disabled {
+.btn.btn-danger:is(:disabled, [aria-disabled="true"]) {
   color: var(--ink3);
 }
-.btn.btn-danger:disabled:hover {
+.btn.btn-danger:is(:disabled, [aria-disabled="true"]):hover {
   background: var(--surface);
 }

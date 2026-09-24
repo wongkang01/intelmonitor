@@ -424,7 +424,7 @@ main.main {
 .pop .accent {
   color: var(--accent);
 }
-.pop .accent:disabled {
+.pop .accent:is(:disabled, [aria-disabled="true"]) {
   color: var(--ink3);
 }
 .pop-body {

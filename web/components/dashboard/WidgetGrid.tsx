@@ -10,6 +10,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type FocusEvent,
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent as ReactPointerEvent,
@@ -131,6 +132,28 @@ export function WidgetGrid({
     grid.current?.querySelector<HTMLElement>(`[data-widget-id="${want.id}"]`)?.focus();
     refocus.current = null;
   });
+
+  // When the widget holding focus goes (its minus, the Delete key, or deleting the custom question
+  // it shows), focus moves to the widget that takes its place instead of dropping to the page.
+  const focusedId = useRef<string | null>(null);
+  const lastIds = useRef<string[]>([]);
+  useLayoutEffect(() => {
+    const ids = widgets.map((w) => w.id);
+    const prev = lastIds.current;
+    lastIds.current = ids;
+    const lost = focusedId.current;
+    if (!lost || ids.includes(lost) || (document.activeElement && document.activeElement !== document.body)) return;
+    const i = prev.indexOf(lost);
+    const next = prev.slice(i + 1).find((id) => ids.includes(id)) ?? prev.slice(0, i).findLast((id) => ids.includes(id));
+    focusedId.current = null;
+    if (next) grid.current?.querySelector<HTMLElement>(`[data-widget-id="${next}"]`)?.focus();
+  }, [widgets]);
+  const onFocus = (e: FocusEvent) => {
+    focusedId.current = e.target instanceof Element ? (e.target.closest<HTMLElement>("[data-widget-id]")?.dataset.widgetId ?? null) : null;
+  };
+  const onBlur = (e: FocusEvent) => {
+    if (e.relatedTarget instanceof Node && !grid.current?.contains(e.relatedTarget)) focusedId.current = null;
+  };
 
   // Bring a newly added widget into view.
   const lastHighlight = highlight.at(-1);
@@ -285,6 +308,8 @@ export function WidgetGrid({
         onClickCapture={onClickCapture}
         onClick={onClick}
         onKeyDown={onKeyDown}
+        onFocus={onFocus}
+        onBlur={onBlur}
       >
         {shown.map((w) => (
           <WidgetCard

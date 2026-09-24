@@ -174,16 +174,17 @@ a {
 .btn-sm::after {
   inset: -9px -2px;
 }
-/* Disabled keeps the normal fill and drops to --ink3 text; never opacity. */
-.btn:disabled,
-.btn:disabled:hover {
+/* Disabled keeps the normal fill and drops to --ink3 text; never opacity. A button that disables
+   itself while focused, such as Run now, uses aria-disabled instead so focus stays on it. */
+.btn:is(:disabled, [aria-disabled="true"]),
+.btn:is(:disabled, [aria-disabled="true"]):hover {
   background: var(--surface);
   border-color: var(--line-strong);
   color: var(--ink3);
   cursor: default;
 }
-.btn-ghost:disabled,
-.btn-ghost:disabled:hover {
+.btn-ghost:is(:disabled, [aria-disabled="true"]),
+.btn-ghost:is(:disabled, [aria-disabled="true"]):hover {
   background: transparent;
   border-color: transparent;
 }

@@ -13,7 +13,6 @@ import {
   useState,
   type KeyboardEvent,
   type ReactNode,
-  type RefObject,
 } from "react";
 
 import type { Schema } from "@/lib/api/client";
@@ -273,7 +272,7 @@ function RunMark({ run }: { run: Run }) {
   );
 }
 
-/** The result line with its "N needs attention" part in the attention color. */
+/** The result line with its "N need attention" part in the attention color. */
 function RunResult({ run }: { run: Run }) {
   if (run.status === "failed") return <span className="res">Did not finish</span>;
   const parts = (run.result ?? "").split(/(\d+ needs? attention)/);
@@ -375,7 +374,14 @@ function RunsPopover({
               ? "Could not start a run. Try again."
               : next && `Next scheduled run: ${aheadTime(next.next_run_at)}`}
           </span>
-          <button type="button" className="btn btn-sm" disabled={busy} onClick={() => runNow.mutate()}>
+          <button
+            type="button"
+            className="btn btn-sm"
+            aria-disabled={busy}
+            onClick={() => {
+              if (!busy) runNow.mutate();
+            }}
+          >
             {busy ? "Running…" : "Run now"}
           </button>
         </>
@@ -454,7 +460,7 @@ function AlertsButton({ open, onToggle, onClose }: PopoverProps) {
           </span>
         )}
       </button>
-      {open && <AlertsPopover data={alerts.data} failed={alerts.isError} onClose={onClose} trigger={trigger} />}
+      {open && <AlertsPopover data={alerts.data} failed={alerts.isError} onClose={onClose} />}
     </div>
   );
 }
@@ -463,12 +469,10 @@ function AlertsPopover({
   data,
   failed,
   onClose,
-  trigger,
 }: {
   data?: Schema<"Alerts">;
   failed: boolean;
   onClose: () => void;
-  trigger: RefObject<HTMLButtonElement | null>;
 }) {
   const markRead = useMarkAlertsRead();
   const evidence = useEvidenceHref();
@@ -486,13 +490,10 @@ function AlertsPopover({
           <button
             type="button"
             className="btn btn-sm btn-ghost accent"
-            disabled={!count || markRead.isPending}
-            onClick={() =>
-              markRead.mutate(undefined, {
-                // The button disables itself, so keep keyboard focus in the popover on its trigger.
-                onSuccess: () => trigger.current?.focus(),
-              })
-            }
+            aria-disabled={!count || markRead.isPending}
+            onClick={() => {
+              if (count && !markRead.isPending) markRead.mutate();
+            }}
           >
             Mark all read
           </button>

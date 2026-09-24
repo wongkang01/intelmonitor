@@ -48,13 +48,15 @@ def outcome(
 
 
 def result_line(o: Outcome) -> str:
-    """ "4 new, 1 needs attention", "First run, 120 developments" or "No new developments"."""
+    """ "4 new, 2 need attention", "First run, 120 developments" or "No new developments"."""
     if o.first_run:
         return f"First run, {o.developments} developments"
     parts = [
         f"{o.new_count} new" if o.new_count else "",
         f"{o.updated_count} updated" if o.updated_count else "",
-        f"{o.needs_attention_count} needs attention" if o.needs_attention_count else "",
+        f"{o.needs_attention_count} {'needs' if o.needs_attention_count == 1 else 'need'} attention"
+        if o.needs_attention_count
+        else "",
     ]
     return ", ".join(p for p in parts if p) or "No new developments"
 
