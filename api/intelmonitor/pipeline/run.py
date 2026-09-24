@@ -2,6 +2,9 @@
 
 Every model call is cached in inference_records by its input, and every derived table is rebuilt
 from those calls, so rerunning after a failure resumes where it stopped.
+
+Recomputing a complete run keeps it complete while it runs: each step swaps its tables in one
+transaction, so the app keeps serving the run instead of falling back to an older one.
 """
 
 import sqlite3
@@ -9,9 +12,16 @@ import time
 from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta
 
+from intelmonitor.pipeline import runlog
 from intelmonitor.pipeline.answers import answer_subjects
 from intelmonitor.pipeline.developments import build_developments
-from intelmonitor.pipeline.diff import development_changes, previous_run, store_changes
+from intelmonitor.pipeline.diff import (
+    compare,
+    development_changes,
+    development_documents,
+    previous_run,
+    store_changes,
+)
 from intelmonitor.pipeline.extract import extract_documents
 from intelmonitor.pipeline.graph import store_graph
 from intelmonitor.pipeline.inference import Inference
@@ -31,16 +41,32 @@ def run_dates(conn: sqlite3.Connection) -> tuple[date, date]:
     return t0 - timedelta(days=RUN_SPACING_DAYS), t0
 
 
-async def compute_run(as_of: date, log: Callable[[str], None] = print) -> None:
+async def compute_run(
+    as_of: date,
+    log: Callable[[str], None] = print,
+    trigger: runlog.Trigger = "scheduled",
+    triggered_by: str | None = None,
+) -> None:
     conn = connect()
     run_id = as_of.isoformat()
     docs = [d for d in list_documents(conn) if d.published_at.date() <= as_of]
     started = time.monotonic()
-    conn.execute(
-        "INSERT OR REPLACE INTO runs (id, as_of, status, documents, started_at) "
-        "VALUES (?, ?, 'running', ?, ?)",
-        (run_id, run_id, len(docs), datetime.now(UTC).isoformat()),
+    started_at = datetime.now(UTC).isoformat()
+    existing = conn.execute("SELECT status FROM runs WHERE id = ?", (run_id,)).fetchone()
+    recompute = existing is not None and existing["status"] == "complete"
+    # What this execution replaces, so its result line reports only what it changed.
+    replaced = development_documents(conn, run_id) if recompute else None
+    execution_id = runlog.start(
+        conn, run_id, trigger, triggered_by, len({d.source for d in docs}), len(docs)
     )
+    if recompute:
+        conn.execute("UPDATE runs SET documents = ? WHERE id = ?", (len(docs), run_id))
+    else:
+        conn.execute(
+            "INSERT OR REPLACE INTO runs (id, as_of, status, documents, started_at) "
+            "VALUES (?, ?, 'running', ?, ?)",
+            (run_id, run_id, len(docs), started_at),
+        )
     conn.commit()
     inf = Inference(conn, run_id)
 
@@ -68,6 +94,7 @@ async def compute_run(as_of: date, log: Callable[[str], None] = print) -> None:
         upcoming = store_upcoming(conn, run_id, as_of, devs)
         base_id = previous_run(conn, run_id)
         changes = development_changes(conn, run_id, base_id)
+        changes_base = development_documents(conn, base_id) if base_id else None
         step(f"{upcoming} upcoming dates; answer questions (base run {base_id})")
         await answer_subjects(inf, conn, run_id, as_of, changes, base_id)
         if base_id:
@@ -76,15 +103,24 @@ async def compute_run(as_of: date, log: Callable[[str], None] = print) -> None:
         nodes, edges = store_graph(conn, run_id, changes)
         step(f"graph {nodes} nodes, {edges} edges")
     except Exception as error:
-        conn.execute(
-            "UPDATE runs SET status = 'failed', finished_at = ?, error = ? WHERE id = ?",
-            (datetime.now(UTC).isoformat(), f"{type(error).__name__}: {error}", run_id),
-        )
-        conn.commit()
+        message = f"{type(error).__name__}: {error}"
+        runlog.fail(conn, execution_id, message)
+        if not recompute:
+            conn.execute(
+                "UPDATE runs SET status = 'failed', finished_at = ?, error = ? WHERE id = ?",
+                (datetime.now(UTC).isoformat(), message, run_id),
+            )
+            conn.commit()
         raise
     conn.execute(
-        "UPDATE runs SET status = 'complete', finished_at = ?, error = NULL WHERE id = ?",
-        (datetime.now(UTC).isoformat(), run_id),
+        "UPDATE runs SET status = 'complete', started_at = ?, finished_at = ?, error = NULL "
+        "WHERE id = ?",
+        (started_at, datetime.now(UTC).isoformat(), run_id),
     )
     conn.commit()
-    step("complete")
+    base = replaced if replaced is not None else changes_base
+    outcome = runlog.outcome(
+        conn, run_id, compare(development_documents(conn, run_id), base or {}), base is None
+    )
+    runlog.finish(conn, execution_id, outcome)
+    step(f"complete: {runlog.result_line(outcome)}")

@@ -22,7 +22,8 @@ def previous_run(conn: sqlite3.Connection, as_of: str) -> str | None:
     return None if row is None else str(row["id"])
 
 
-def _sources(conn: sqlite3.Connection, run_id: str) -> dict[str, set[str]]:
+def development_documents(conn: sqlite3.Connection, run_id: str) -> dict[str, set[str]]:
+    """Each development's document ids in a run."""
     out: dict[str, set[str]] = {}
     for r in conn.execute(
         "SELECT development_id, document_id FROM development_sources WHERE run_id = ?", (run_id,)
@@ -31,12 +32,10 @@ def _sources(conn: sqlite3.Connection, run_id: str) -> dict[str, set[str]]:
     return out
 
 
-def development_changes(
-    conn: sqlite3.Connection, run_id: str, base_id: str | None
+def compare(
+    current: dict[str, set[str]], base: dict[str, set[str]]
 ) -> dict[str, DevelopmentChange]:
-    """New and updated developments by id. Without a base run every development is new."""
-    current = _sources(conn, run_id)
-    base = _sources(conn, base_id) if base_id else {}
+    """New and updated developments in `current` relative to `base`, by id."""
     changes: dict[str, DevelopmentChange] = {}
     for dev_id, docs in current.items():
         if dev_id not in base:
@@ -44,6 +43,14 @@ def development_changes(
         elif added := docs - base[dev_id]:
             changes[dev_id] = DevelopmentChange("updated_development", sorted(added))
     return changes
+
+
+def development_changes(
+    conn: sqlite3.Connection, run_id: str, base_id: str | None
+) -> dict[str, DevelopmentChange]:
+    """New and updated developments by id. Without a base run every development is new."""
+    base = development_documents(conn, base_id) if base_id else {}
+    return compare(development_documents(conn, run_id), base)
 
 
 def store_changes(

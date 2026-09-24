@@ -438,10 +438,107 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Runs */
+        /**
+         * List Runs
+         * @description Every run execution, newest first, with how it started and what it found.
+         */
         get: operations["list_runs"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run Status */
+        get: operations["run_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Run Schedule
+         * @description The planned cadence and next run. Nominal: the POC has no scheduler.
+         */
+        get: operations["run_schedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/now": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Now
+         * @description Recompute Run 2 over the stored corpus in the background; 409 while a run is going.
+         */
+        post: operations["run_now"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Alerts */
+        get: operations["list_alerts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/alerts/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark Alerts Read
+         * @description Mark every current alert read; the alerts stay listed.
+         */
+        post: operations["mark_alerts_read"];
         delete?: never;
         options?: never;
         head?: never;
@@ -519,6 +616,47 @@ export interface components {
             } | null;
         } & {
             [key: string]: unknown;
+        };
+        /** Alert */
+        Alert: {
+            /**
+             * Id
+             * @description The development id
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Badge
+             * @enum {string}
+             */
+            badge: "needs_attention" | "watch";
+            /**
+             * Meta
+             * @description "OCBC, financial, 3 sources"
+             */
+            meta: string;
+            /** Read */
+            read: boolean;
+        };
+        /** AlertCounts */
+        AlertCounts: {
+            /** Needs Attention */
+            needs_attention: number;
+            /** Watch */
+            watch: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * Alerts
+         * @description The latest run's new or updated developments needing attention, then those to watch.
+         */
+        Alerts: {
+            run: components["schemas"]["RunRef"];
+            /** Alerts */
+            alerts: components["schemas"]["Alert"][];
+            unread: components["schemas"]["AlertCounts"];
         };
         /** AnswerChange */
         AnswerChange: {
@@ -1554,9 +1692,17 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        /** RunInfo */
+        /**
+         * RunInfo
+         * @description One execution of a run. A run recomputed with Run now appears once per execution.
+         */
         RunInfo: {
-            /** Id */
+            /** Execution Id */
+            execution_id: number;
+            /**
+             * Id
+             * @description The run it computed, named by its as-of date
+             */
             id: string;
             /**
              * As Of
@@ -1565,12 +1711,44 @@ export interface components {
             as_of: string;
             /** Previous Run Id */
             previous_run_id: string | null;
-            /** Status */
-            status: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "complete" | "failed";
+            /**
+             * Trigger
+             * @enum {string}
+             */
+            trigger: "scheduled" | "manual";
+            /**
+             * How
+             * @description "Scheduled", or "Manual, <display name>"
+             */
+            how: string;
+            /**
+             * Sources
+             * @description Distinct ingest sources among its documents
+             */
+            sources: number;
             /** Documents */
             documents: number;
             /** Developments */
             developments: number;
+            /** New Count */
+            new_count: number;
+            /** Updated Count */
+            updated_count: number;
+            /**
+             * Needs Attention Count
+             * @description New or updated and needing attention
+             */
+            needs_attention_count: number;
+            /**
+             * Result
+             * @description "4 new, 1 needs attention", "First run, N developments" or "No new developments"; null unless complete
+             */
+            result: string | null;
             /**
              * Started At
              * Format: date-time
@@ -1592,6 +1770,39 @@ export interface components {
             as_of: string;
             /** Previous Run Id */
             previous_run_id: string | null;
+        };
+        /** RunSchedule */
+        RunSchedule: {
+            /** Cadence */
+            cadence: string;
+            /**
+             * Next Run At
+             * Format: date-time
+             */
+            next_run_at: string;
+            /**
+             * Nominal
+             * @description True in the POC: no scheduler runs, this is the planned cadence
+             */
+            nominal: boolean;
+        };
+        /** RunStatus */
+        RunStatus: {
+            /** Running */
+            running: boolean;
+            /** Run Id */
+            run_id: string | null;
+            /** How */
+            how: string | null;
+            /** Started At */
+            started_at: string | null;
+            /** Sources */
+            sources: number | null;
+            /**
+             * Estimate Seconds
+             * @description Median duration of earlier executions, when there are any
+             */
+            estimate_seconds: number | null;
         };
         /** SearchHit */
         SearchHit: {
@@ -3124,6 +3335,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RunInfo"][];
+                };
+            };
+        };
+    };
+    run_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunStatus"];
+                };
+            };
+        };
+    };
+    run_schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunSchedule"];
+                };
+            };
+        };
+    };
+    run_now: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunStatus"];
+                };
+            };
+        };
+    };
+    list_alerts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Alerts"];
+                };
+            };
+        };
+    };
+    mark_alerts_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Alerts"];
                 };
             };
         };

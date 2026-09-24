@@ -2,169 +2,180 @@
 name: IntelMonitor
 description: Pre-answered standing questions for supervisory analysts, every claim linked to its sources.
 colors:
-  accent: "#0a64d8"
-  accent-hover: "#0850ae"
-  canvas: "#f5f5f7"
-  surface: "#ffffff"
-  sidebar: "#ececf0"
-  sidebar-rule: "#dcdce2"
-  ink: "#1c1c1e"
-  ink-secondary: "#5b5b63"
-  ink-tertiary: "#6e6e76"
-  hairline: "#efeff3"
-  field: "#e8e8ed"
-  field-soft: "#f2f2f5"
-  chip: "#f0f0f3"
-  hover-grey: "#e2e2e8"
-  active-grey: "#dcdce3"
-  new: "#0a56bc"
-  new-bg: "#e6f0fd"
-  watch: "#8a4b00"
-  watch-bg: "#fff4e2"
-  attention: "#b3261e"
-  attention-bg: "#fdecea"
-  stable: "#1f6f43"
-  topic: "#6b4fd8"
-  topic-ink: "#5236b8"
-  topic-bg: "#efebfc"
-  provider: "#0e7c7b"
-  entity: "#3a3a40"
-  highlight: "#fff1b8"
+  canvas: "oklch(0.972 0.004 260)"
+  surface: "oklch(0.993 0.002 260)"
+  rail: "oklch(0.955 0.005 260)"
+  hover: "oklch(0.925 0.006 260)"
+  line: "oklch(0.93 0.005 260)"
+  line-strong: "oklch(0.885 0.007 260)"
+  line-field: "oklch(0.80 0.01 260)"
+  ink: "oklch(0.23 0.012 260)"
+  ink2: "oklch(0.47 0.014 260)"
+  ink3: "oklch(0.56 0.012 260)"
+  accent: "oklch(0.52 0.17 258)"
+  accent-strong: "oklch(0.46 0.16 258)"
+  new: "oklch(0.48 0.15 258)"
+  new-bg: "oklch(0.955 0.022 250)"
+  watch: "oklch(0.47 0.105 62)"
+  watch-bg: "oklch(0.965 0.035 80)"
+  attn: "oklch(0.50 0.17 28)"
+  attn-bg: "oklch(0.955 0.022 25)"
+  stable: "oklch(0.47 0.10 155)"
+  mark: "oklch(0.94 0.07 95)"
+  on-ink: "oklch(0.97 0.004 260)"
+  on-ink-link: "oklch(0.80 0.10 258)"
+  on-ink-hover: "oklch(0.32 0.012 260)"
+  scrim: "oklch(0.23 0.012 260 / 0.24)"
 typography:
-  display:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif"
-    fontSize: "32px"
-    fontWeight: 700
-    lineHeight: "38px"
-    letterSpacing: "-0.022em"
-  headline:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif"
-    fontSize: "24px"
-    fontWeight: 600
-    lineHeight: "30px"
-    letterSpacing: "-0.018em"
   title:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif"
-    fontSize: "17px"
-    fontWeight: 700
-    lineHeight: "22px"
-  body:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif"
-    fontSize: "14px"
-    fontWeight: 400
-    lineHeight: "20px"
-  label:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif"
-    fontSize: "12px"
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+    fontSize: "28px"
     fontWeight: 600
+    lineHeight: "34px"
+    letterSpacing: "-0.015em"
+  hero:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+    fontSize: "22px"
+    fontWeight: 600
+    lineHeight: "28px"
+    letterSpacing: "-0.01em"
+  lead:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+    fontSize: "15px"
+    fontWeight: 600
+    lineHeight: "20px"
+  body:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: "18px"
+  meta:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+    fontSize: "12px"
+    fontWeight: 400
     lineHeight: "16px"
 rounded:
-  mark: "3px"
-  badge: "6px"
-  icon-tile: "8px"
-  nav: "9px"
-  control: "12px"
-  popover: "14px"
-  inset-card: "16px"
-  preview: "18px"
-  widget: "22px"
-  generate-card: "24px"
-  sheet: "28px"
-  pill: "9999px"
+  badge: "4px"
+  control: "6px"
+  widget: "10px"
+  sheet: "14px"
 spacing:
-  xxs: "4px"
-  xs: "6px"
-  sm: "8px"
-  sm-plus: "10px"
-  md: "12px"
-  md-plus: "14px"
-  lg: "16px"
-  widget-y: "18px"
-  xl: "20px"
-  xxl: "24px"
-  page: "36px"
+  s1: "4px"
+  s2: "8px"
+  s3: "12px"
+  s4: "16px"
+  s5: "24px"
+  s6: "32px"
+  s7: "48px"
+  status-column: "112px"
 components:
+  button-secondary:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    borderColor: "{colors.line-strong}"
+    rounded: "{rounded.control}"
+    padding: "0 12px"
+    height: "32px"
+    typography: "{typography.body}"
+  button-secondary-hover:
+    backgroundColor: "{colors.hover}"
   button-primary:
     backgroundColor: "{colors.accent}"
     textColor: "{colors.surface}"
-    rounded: "{rounded.widget}"
-    padding: "0 20px"
-    height: "44px"
-    typography: "{typography.body}"
+    rounded: "{rounded.control}"
+    padding: "0 12px"
+    height: "32px"
   button-primary-hover:
-    backgroundColor: "{colors.accent-hover}"
-  button-secondary:
-    backgroundColor: "{colors.chip}"
+    backgroundColor: "{colors.accent-strong}"
+  button-ghost:
     textColor: "{colors.ink}"
-    rounded: "{rounded.widget}"
-    padding: "0 20px"
-    height: "44px"
-  button-header:
+    rounded: "{rounded.control}"
+    height: "32px"
+  button-small:
+    height: "28px"
+    padding: "0 10px"
+  icon-button:
+    textColor: "{colors.ink2}"
+    rounded: "{rounded.control}"
+    size: "28px"
+  input:
     backgroundColor: "{colors.surface}"
-    textColor: "{colors.accent}"
-    rounded: "{rounded.pill}"
-    padding: "0 16px"
-    height: "40px"
+    textColor: "{colors.ink}"
+    borderColor: "{colors.line-field}"
+    rounded: "{rounded.control}"
+    padding: "0 10px"
+    height: "32px"
+  segmented:
+    backgroundColor: "{colors.rail}"
+    rounded: "{rounded.control}"
+    height: "28px"
+  segmented-selected:
+    backgroundColor: "{colors.surface}"
+    borderColor: "{colors.line-strong}"
+    textColor: "{colors.ink}"
   badge-new:
     backgroundColor: "{colors.new-bg}"
     textColor: "{colors.new}"
     rounded: "{rounded.badge}"
-    padding: "3px 8px"
-    typography: "{typography.label}"
+    padding: "0 6px"
+    height: "18px"
+    typography: "{typography.meta}"
   badge-watch:
     backgroundColor: "{colors.watch-bg}"
     textColor: "{colors.watch}"
     rounded: "{rounded.badge}"
-    padding: "3px 8px"
-  badge-attention:
-    backgroundColor: "{colors.attention-bg}"
-    textColor: "{colors.attention}"
+  badge-attn:
+    backgroundColor: "{colors.attn-bg}"
+    textColor: "{colors.attn}"
     rounded: "{rounded.badge}"
-    padding: "3px 8px"
   badge-stable:
     textColor: "{colors.stable}"
-    padding: "3px 0"
-  tag-topic:
-    backgroundColor: "{colors.topic-bg}"
-    textColor: "{colors.topic-ink}"
+  badge-neutral:
+    backgroundColor: "{colors.rail}"
+    textColor: "{colors.ink2}"
     rounded: "{rounded.badge}"
-    padding: "2px 7px"
-  widget-card:
+  list-row:
+    minHeight: "34px"
+    padding: "8px 0"
+    divider: "{colors.line}"
+  widget:
     backgroundColor: "{colors.surface}"
     rounded: "{rounded.widget}"
-    padding: "18px 20px"
-  question-tile:
-    backgroundColor: "{colors.canvas}"
-    rounded: "{rounded.control}"
-    padding: "8px 12px"
-  search-field:
-    backgroundColor: "{colors.field}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.control}"
-    padding: "0 12px 0 14px"
-    height: "42px"
-    width: "560px"
-  nav-item:
-    textColor: "{colors.ink}"
-    rounded: "{rounded.nav}"
-    padding: "0 10px"
-    height: "36px"
-  nav-item-hover:
-    backgroundColor: "{colors.hover-grey}"
-  nav-item-active:
-    backgroundColor: "{colors.active-grey}"
+    padding: "12px"
+    shadow: "0 1px 3px oklch(0.23 0.012 260 / 0.11)"
+  popover:
+    backgroundColor: "{colors.surface}"
+    borderColor: "{colors.line-strong}"
+    rounded: "{rounded.widget}"
+    width: "400px"
+    shadow: "0 6px 20px oklch(0.23 0.012 260 / 0.12)"
+  modal:
+    backgroundColor: "{colors.surface}"
+    borderColor: "{colors.line-strong}"
+    rounded: "{rounded.sheet}"
+    headerHeight: "48px"
+    shadow: "0 12px 32px oklch(0.23 0.012 260 / 0.16)"
   generate-prompt:
     backgroundColor: "{colors.surface}"
-    rounded: "{rounded.widget}"
-    padding: "10px 10px 10px 18px"
-    width: "720px"
-  sheet:
-    backgroundColor: "{colors.surface}"
+    borderColor: "{colors.line-strong}"
     rounded: "{rounded.sheet}"
-  evidence-source:
-    backgroundColor: "{colors.canvas}"
-    rounded: "{rounded.inset-card}"
-    padding: "14px 16px"
+    width: "720px"
+    shadow: "0 6px 20px oklch(0.23 0.012 260 / 0.12)"
+  generate-send:
+    backgroundColor: "{colors.accent}"
+    textColor: "{colors.surface}"
+    rounded: "50%"
+    size: "32px"
+  run-chip:
+    backgroundColor: "{colors.surface}"
+    borderColor: "{colors.line-strong}"
+    rounded: "{rounded.control}"
+    height: "32px"
+  toast:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.on-ink}"
+    rounded: "{rounded.control}"
+    height: "36px"
 ---
 
 # Design System: IntelMonitor
@@ -173,173 +184,185 @@ components:
 
 **Creative North Star: "The Briefing Desk"**
 
-IntelMonitor should read like a well-run internal tool: a desk where the morning's answers are already laid out, each one stamped with its state and a way back to its sources.
-PRODUCT.md sets the tone as "Calm, exact, trustworthy", and the intent is that an analyst "learns once and stops noticing" the interface.
-The system is light mode only, set in the platform system font (SF on Apple hardware), on a cool grey canvas with white surfaces, one blue accent and four status colors that carry meaning and nothing else.
+IntelMonitor reads like a well-run internal tool: a desk where the morning's answers are already laid out, each stamped with its state and a way back to its sources.
+PRODUCT.md sets the tone as "Calm, exact, trustworthy", and the aim is an interface the analyst learns once and stops noticing.
+The direction is "Tightened Apple" (`mocks/refine-a.html`): the calm and polish of a current Apple app, sized for a desktop analyst tool rather than a phone.
+It should feel modern and exact, never like older enterprise software and never like a consumer widget screen.
 
-What the code actually ships today leans further toward consumer softness than PRODUCT.md allows.
-The spec in ui-ux.md calls itself "Apple-inspired, not an Apple copy", and the implementation took the Apple half literally: 22 px widget corners, 28 px sheets, fully rounded 40 to 44 px buttons, a two-layer floating shadow on every widget, and tinted rounded boxes nested inside rounded cards.
-That combination is the main source of the "AI slop" feel the user reported.
-Every region is its own soft floating tile with the same radius, the same shadow and roughly the same padding, which is exactly the "every element in its own rounded box" and "uniform padding everywhere" anti-reference in PRODUCT.md.
-This document records the current tokens faithfully so they can be revised, and the Do's and Don'ts state where the system should go.
+The system is light mode only, set in the platform system font, on a cool near-white canvas with near-white surfaces, one blue accent and four status colors that carry meaning and nothing else.
+Density is deliberate: 34 px rows of 13 px text with hairline dividers, widget insets of 12 px inside a 16 px grid gap, 32 px page gutters.
+Depth is low: one thin shadow under in-page surfaces, and a border plus a soft shadow on anything that floats.
+Motion only follows user actions and is off under reduced motion.
 
-Density is moderate: a four-column grid of 170 px rows with 20 px gutters and 36 px page margins, 14 px body text, 12 to 13 px meta.
-Motion only follows user actions (sheet and drawer slides at 0.24 to 0.26 s, a 0.28 s rise for new widgets, a 0.3 s shadow fade) and all of it is off under reduced motion.
-
-Uncertainty: the North Star name, the descriptive color names and the reading of the shadow as "ambient float" are my own wording, written without a user to confirm them.
-Radius, shadow and spacing values are extracted verbatim; the scale names in the frontmatter (`nav`, `control`, `preview` and so on) are labels I assigned to the values in use, since the code has no radius or spacing tokens at all.
+Tokens live on `:root` in `web/app/globals.css`, together with the shared controls (`.btn`, `.btn-icon`, `.input`, `.seg`, `.badge`, `.row`, `.kbd`).
+Areas reuse those classes instead of restyling their own.
 
 **Key Characteristics:**
-- Cool grey canvas (`canvas`), white widgets, grey sidebar with a single hairline rule.
-- One accent blue for actions, links and focus; status colors only on badges and state text.
-- System font, weights 600 and 700 for nearly everything above body; 12 distinct font sizes in use.
-- Large, soft corners (22 px widgets, 28 px sheets, pill buttons) and an ambient two-layer shadow on every widget.
-- No design tokens for radius, spacing, type or focus; values are literals repeated per selector.
+- OKLCH colors tinted toward hue 260; no pure white or black anywhere.
+- Four radius steps: 4 badge, 6 control, 10 widget and popover, 14 popup and sheet.
+- One low shadow on widgets and panels; overlays add a 1 px border.
+- Five type sizes (12, 13, 15, 22, 28) and three weights (400, 500, 600).
+- Status in a fixed 112 px column of small tinted badges, always with a word.
+- One focus ring, one button spec, 44 px hit areas on every control.
 
 ## 2. Colors
 
-A restrained palette of cool neutrals, one saturated blue, and four paired status tints.
+A restrained palette: cool neutrals, one saturated blue, four status pairs.
 
 ### Primary
-- **Signal Blue** (accent): primary buttons, links, the brand tile, the "changed" ring around a widget, focus rings (at 35 to 45 percent alpha), and the Generate prompt's focus ring.
-- **Pressed Signal Blue** (accent-hover): hover state of primary buttons only.
-
-### Secondary
-- **Analyst Violet** (topic, with topic-ink for text and topic-bg for tint): topic tags, topic dots in the sidebar, the AI sparkle, the `.ai` avatar tile, and the current stop on the monitor stage track.
-  It is a second accent in practice, which conflicts with ui-ux.md's "one accent".
-- **Provider Teal** (provider): graph only, provider nodes and links.
+- **Signal Blue** (`accent`): the one primary button per view, links, the focus ring, the selected state.
+- **Pressed Signal Blue** (`accent-strong`): primary hover and pressed.
 
 ### Status
-- **Dispatch Blue on Ice** (new on new-bg): New badges and "5 new" counts.
-- **Amber Ledger on Cream** (watch on watch-bg): Watch badges and tinted Watch question tiles.
-- **Alarm Red on Blush** (attention on attention-bg): Needs attention badges and tiles.
-- **Settled Green** (stable): Stable state text, deliberately with no tint behind it.
+- **New** (`new` on `new-bg`): New badges, and a count only when it means "new since your review".
+- **Watch** (`watch` on `watch-bg`): Watch badges.
+- **Needs attention** (`attn` on `attn-bg`): Needs attention badges and the alert count.
+- **Stable** (`stable`): state text with no fill.
+- Updated, Changed and Custom are neutral labels: `ink2` on `rail`.
 
 ### Neutral
-- **Morning Grey** (canvas): page background, and reused as the fill of question tiles, evidence sources and gallery previews inside white cards.
-- **Paper White** (surface): widgets, sheets, drawers, menus.
-- **Rail Grey** (sidebar) with **Rail Rule** (sidebar-rule): the navigation column and its 1 px right border.
-- **Near Black** (ink): primary text, toast background.
-- **Slate** (ink-secondary): labels, meta lines, section heads.
-- **Pewter** (ink-tertiary): declared as a token but only used as hard-coded hex inside SVG icons.
-- **Hairline** (hairline): 1 px row dividers inside widgets.
-- **Field Grey** (field, field-soft, chip): search field, inline add fields, secondary button fill.
-- **Hover Grey / Active Grey** (hover-grey, active-grey): sidebar item hover and current page; these are literals in shell.css, not tokens.
-- **Entity Graphite** (entity): entity tags, avatar fill, graph entity nodes.
-- **Source Highlight** (highlight): `mark` in evidence excerpts.
+- **Canvas** (`canvas`): page background and the area behind widgets in the popup.
+- **Surface** (`surface`): widgets, panels, the drawer, the popup, popovers and inputs.
+- **Rail** (`rail`): sidebar, segmented track, neutral badges.
+- **Hover** (`hover`): hover fill on nav items, ghost and icon buttons, popover rows.
+- **Line** (`line`): row dividers inside a surface.
+- **Line strong** (`line-strong`): button, popover and overlay borders, section rules.
+- **Line field** (`line-field`): input and select borders.
+- **Ink** (`ink`, `ink2`, `ink3`): primary text; labels, meta and counts; icons and placeholders on `surface` only.
+- **Mark** (`mark`): the evidence highlight on the quoted span only.
+- **On ink** (`on-ink`, `on-ink-link`, `on-ink-hover`): text, the action and the edge on the dark toast.
 
 ### Named Rules
-**The Status-Only Color Rule.** Color outside the neutrals means status (New, Watch, Needs attention, Stable) or an action. A color that means neither is prohibited.
-**The Tint Budget Rule.** A status tint may fill a badge. It may not fill a whole tile, row or card; the standing-questions grid currently breaks this.
+**The Status-Only Color Rule.** Color outside the neutrals means status or the one accent. Topic, group, entity and provider colors exist only inside the graph canvas and its legend.
+**The Tint Budget Rule.** A status tint may fill a badge. It never fills a tile, row, card or button.
+**The One Accent Rule.** Blue stays under 10% of any screen.
 
 ## 3. Typography
 
-**Display Font:** system UI stack (-apple-system, SF Pro Text, with Helvetica Neue, Arial fallback)
-**Body Font:** same stack
-**Label/Mono Font:** none; `kbd` uses the same stack.
-
-**Character:** one neutral grotesque carrying all hierarchy through size and weight, tightened with small negative tracking at large sizes.
+**Font:** system UI stack (`-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`).
+**Character:** one neutral grotesque; hierarchy comes from size between levels and weight within a level.
 
 ### Hierarchy
-- **Display** (700, 32 px, 38 px line, -0.022em): page title only.
-- **Headline** (600, 24 px, 30 px line, -0.018em): widget hero answer, for example "79 new, 9 need attention". The `.big` stat is 700 at 26 px.
-- **Title** (700, 17 to 20 px): sheet and panel headings (20 px sheet, 17 px drawer and panel, 18 px gallery and drawer section).
-- **Body** (400 to 600, 14 px, 20 px line): row titles at 600, everything else at 400. Form inputs step up to 15 px, the Generate prompt to 16 px.
-- **Label** (600, 12 px): widget section heads, badges, question tile labels, sidebar section heads. Tags drop to 11 px.
+- **Title** (600, 28/34, -0.015em): page title only.
+- **Hero** (600, 22/28): the "Since your last review" lead line, and nothing else.
+- **Lead** (600, 15/20): monitor section headers, widget answers, popup, drawer and dialog titles.
+- **Body** (13/18): 400 for text; 500 for row titles, buttons and nav items; 600 for state words and popover titles.
+- **Meta** (12/16): 400 `ink2` for meta and dates; 500 for widget titles, badges, column and group labels.
 
-Sizes in use: 11, 12, 13, 14, 15, 16, 17, 18, 20, 24, 26, 32 px, twelve steps with no ratio behind them.
-Weights in use: 400 (3 rules), 600 (37 rules), 700 (9 rules).
+Row titles clamp at two lines.
+State text wraps before it truncates.
+Dates and counts use tabular figures and right-align in lists.
+Prose caps at 70ch.
 
 ### Named Rules
-**The Two-Weight Rule.** Body is 400, emphasis is 600, and 700 is reserved for the page title. Bold headings at 17 to 20 px in sheets compete with the page title and should drop to 600.
-**The Sentence Case Rule.** Sentence case everywhere, no uppercase labels, no tracking-widened eyebrows.
+**The One Hero Rule.** Only Since gets 22 px. Every other widget answers at 15 px.
+**The No-700 Rule.** 600 is the heaviest weight.
+**The Sentence Case Rule.** Sentence case everywhere, no uppercase labels.
 
 ## 4. Elevation
 
-The system is lifted, not flat.
-Every widget floats on an ambient two-layer shadow over the grey canvas, with no border; popovers and drawers use a heavier two-layer shadow; modals use a third, heavier single-layer shadow.
-Depth is therefore the main way surfaces are separated, which is what makes the grid read as a field of floating tiles.
+The system is nearly flat.
+In-page surfaces separate from the canvas by fill and one thin shadow; floating things add a border so their edge holds on any background.
 
 ### Shadow Vocabulary
-- **Resting float** (`box-shadow: 0 1px 2px rgba(18,22,38,0.05), 0 8px 24px rgba(18,22,38,0.05)`): every widget and monitor panel (`--shadow`).
-- **Pop** (`box-shadow: 0 2px 6px rgba(18,22,38,0.08), 0 16px 40px rgba(18,22,38,0.14)`): menus, search results, toast, drawer, a widget being dragged (`--shadow-pop`).
-- **Modal** (`box-shadow: 0 24px 80px rgba(18,22,38,0.28)`): dialog sheets and panels.
-- **Generate card** (`box-shadow: 0 16px 60px rgba(18,22,38,0.24)`): the New dashboard Generate surface; a one-off.
-- **Prompt float** (`box-shadow: 0 0 0 1px #e3e3e8, 0 8px 28px rgba(18,22,38,0.08)`): the Generate input; a one-off.
-- **Button nudge** (`box-shadow: 0 1px 2px rgba(18,22,38,0.08)`): white header pill buttons.
-- **Selected segment** (`box-shadow: 0 1px 3px rgba(18,22,38,0.12)`): selected segmented control and graph filter chip.
-- **Changed ring** (`box-shadow: 0 0 0 2px accent, resting float`): a widget whose answer changed.
-- **Focus ring** (`box-shadow: 0 0 0 3px rgba(10,100,216,0.35)` on fields, `outline: 3px solid rgba(10,100,216,0.45)` with 2 px offset elsewhere): two treatments for the same job.
+- **Low** (`--shadow-low`, `0 1px 3px` at 11%): widgets, panels, the current sidebar item.
+- **Pop** (`--shadow-pop`, `0 6px 20px` at 12%) with a 1 px `line-strong` border: menus, the runs and alerts popovers, search results, the toast, the drawer, the lifted drag copy, and the floating Generate prompt.
+- **Modal** (`--shadow-modal`, `0 12px 32px` at 16%) with a 1 px `line-strong` border over `--scrim`: the popup, the Add widget sheet and the profile dialogs.
+
+Selected segments, pressed toggles and page-head buttons have no shadow.
 
 ### Named Rules
-**The One Float Rule.** Resting surfaces get at most one shadow token, and it must be quieter than it is today; a 1 px hairline border is the preferred separator on a dashboard. Shadows grow only for things that genuinely sit above the page (menus, drawers, dialogs).
-**The Squint Test.** If the dashboard at arm's length looks like a tray of floating tiles, the resting shadow is doing the layout's job and must be reduced.
+**The One Float Rule.** A resting surface gets `--shadow-low` at most. Larger shadows are only for things that sit above the page.
+**The No Nesting Rule.** No rounded box inside a rounded box. Inside a surface, structure comes from hairline rows and section rules.
 
 ## 5. Components
 
-### Buttons
-Soft, fully rounded, Apple-sheet style.
-- **Shape:** fully rounded pills; radius is set to half the height by hand (22 px on 44 px, 20 px on 40 px, 17 px on 34 px suggestion chips, 16 px on 32 px icon buttons).
-- **Primary:** accent fill, white 14 px 600 text, 44 px tall, 20 px side padding; hover goes to accent-hover.
-- **Secondary:** chip grey fill, ink text, same shape.
-- **Header pill:** white fill, accent text, 40 px, button nudge shadow ("Add widget", "Edit").
-- **Small:** 34 px, 16 px padding, 13 px text.
-- **Disabled:** 40 percent opacity.
-- **Focus:** 3 px accent outline at 45 percent alpha, 2 px offset.
+### Buttons (`.btn`)
+- **Secondary** (default): 32 px, padding 0 12px, 13/500, `surface` fill, 1 px `line-strong` border, `hover` fill on hover.
+- **Primary** (`.btn-primary`): `accent` fill, `surface` text, `accent-strong` on hover. At most one per view.
+- **Ghost** (`.btn-ghost`): no fill or border at rest, `hover` on hover.
+- **Small** (`.btn-sm`): 28 px, for widget heads, toolbars and popovers.
+- **Disabled:** `ink3` text on the normal fill, no hover, never opacity.
+- **Hit area:** a 44 px `::after` on every size.
 
-### Badges and Tags
-- **Status badge:** 12 px 600 text, 3 px by 8 px padding, 6 px radius, tinted background in the status pair. Stable has no tint and no side padding.
-- **Tag:** 11 px 600, 2 px by 7 px, 6 px radius; topic tags violet, group tags blue, entity and custom tags graphite.
-- **Keyboard chip:** 6 px radius, field grey.
+### Icon buttons (`.btn-icon`)
+- 28 px ghost square at the control radius, `ink2` glyph, `hover` fill and `ink` glyph on hover, 44 px hit area.
+- `.btn-icon.lg`: 32 px with the secondary border, widening to fit a count badge (the top bar bell).
+- Close is always the 28 px ghost icon button, never a grey circle.
+- Icons draw in `currentColor`; the host sets the color with a token.
 
-### Cards / Containers
-- **Widget:** white, 22 px radius, resting float shadow, no border, 18 px by 20 px padding, 10 px internal gap. Sizes S (1 col), M (2 col), L (2 by 2) on a 4-column grid of 170 px rows, 20 px gutters.
-- **Nested tiles:** question tiles (canvas fill, 12 px radius), evidence sources (canvas fill, 16 px radius), gallery previews (canvas fill, 18 px radius). Each nests a rounded grey box inside a rounded white one.
-- **Rows:** list rows inside widgets separated by 1 px hairlines with 10 px vertical padding; this is the calmest pattern in the system.
+### Inputs (`.input`)
+- 32 px, `surface` fill, 1 px `line-field` border, control radius, 13 px text, `ink3` placeholder.
+- Textareas start at 64 px and resize vertically.
+- No borderless grey fills.
 
-### Inputs / Fields
-- **Search:** 560 by 42 px, field grey fill, 12 px radius, no border; focus adds a 3 px blue ring.
-- **Form fields and selects:** 12 px radius, 15 px text; graph and widget-settings selects use 9 px.
-- **Inline add field:** 10 px radius, field fill, same focus ring.
-- **Generate prompt:** 720 px wide, white, 22 px radius, 1 px grey ring plus float shadow; focus swaps the ring for 2 px accent. The send button is a 40 px circle.
+### Segmented control (`.seg`)
+- 28 px: a `rail` track with 2 px padding; segments 24 px, 12/500 `ink2`.
+- The selected segment is `surface` with a 1 px `line-strong` border and `ink` text. No shadow.
 
-### Navigation
-- **Sidebar:** 248 px, rail grey, 1 px right rule, 20 by 14 px padding, 22 px between sections.
-- **Nav item:** 36 px tall, 9 px radius, 10 px side padding, 14 px ink text with a 16 px line icon; hover hover-grey, current page active-grey (no accent, no weight change).
-- **Section heads:** 12 px 600 slate.
-- **Brand:** 16 px 700 wordmark beside a 28 px accent tile with 8 px radius.
-- **Top bar:** 72 px, search field left-aligned at the 36 px page margin.
+### Badges (`.badge` with `.b-new`, `.b-watch`, `.b-attn`, `.b-stable`, `.b-neutral`)
+- 18 px tall, padding 0 6px, 4 px radius, 12/500, tinted fill in the status pair.
+- Stable is green text with no fill and no padding.
+- Badges sit in the fixed `.stat` column (112 px), left-aligned, so row titles share one left edge.
 
-### Sheets, Drawers and Menus
-- **Sheet:** 80 by 80 vw/vh, 28 px radius, modal shadow, 0.24 s rise.
-- **Panel dialog:** 560 px, 22 px radius.
-- **Drawer (evidence, notes):** 520 px from the right, square, pop shadow, 0.26 s slide.
-- **Menu and search list:** 14 px radius, pop shadow; menu items 9 px radius.
-- **Toast:** near-black, 14 px radius, bottom-centre.
+### List rows (`.row`)
+- A grid of the status column, the content and a right-aligned end value (`.row-end`, 12 px tabular).
+- 34 px for a one-line row: 8 px above and below 13/18 text, a 1 px `line` rule between rows.
+- `.row-title` is 500 and clamps at two lines; `.row-meta` is 12/16 `ink2` under it.
+- `.row.no-stat` drops the status column.
+- The same grammar serves development, watchlist, question, alert and run rows, the graph In view list and the gallery subject list.
 
-### Stage Track (signature)
-The monitor page's horizontal track of stops with round knobs; the current knob gets a 4 px violet halo, stops are 12 px-radius hover targets.
+### Widgets and panels
+- `surface`, 10 px radius, `--shadow-low`, no border, 12 px inset, 16 px grid gap.
+- Widget title 12/500 `ink2`, top-left, sentence case; meta right-aligned 12/400.
+- Monitor sections share one panel with a 15/600 header, a 1 px `line-strong` rule, and 32 px between sections.
 
-### Graph (signature)
-sigma.js canvas with node color by type (topic violet, group blue, entity graphite, provider teal) and a blue ring for new developments; filter chips are 9 px-radius segmented pills.
+### Top bar
+- 56 px, with the search field flexing from the left: 32 px, bordered, `ink3` placeholder, ⌘K as a `.kbd`.
+- Run status chip: 32 px, 1 px `line-strong` border, control radius, a static 6 px `stable` dot or a static half-filled `new` mark while running, a fixed minimum width. No spinner, pulse or halo.
+- Alerts: `.btn-icon.lg` with the bell and an unread count badge inside it.
+- Popovers: 400 px, 10 px radius, 44 px head, 48 px footer, rows in the list-row grammar.
+
+### Modal surfaces (`components/ui/Modal.tsx`)
+- 14 px radius, 1 px `line-strong` border, `--shadow-modal`, `--scrim` backdrop.
+- 48 px header (`.sheet-head`) with a 15/600 title and the 28 px ghost close.
+- The New dashboard popup and the Add widget sheet cover about 80% of the screen; profile dialogs are 560 px.
+
+### Generate prompt (the one floating input)
+- The New dashboard Generate tab keeps a floating prompt box instead of a docked field, because it is the page's single call to action.
+- 720 px wide, `surface`, 1 px `line-strong` ring plus `--shadow-pop`, 14 px radius (the sheet step, not a pill).
+- A round 32 px `accent` send button with a `surface` arrow; disabled shows `ink3` on `rail`.
+- On first open it is centered with the heading and three example prompts as plain text rows.
+- On the first send it slides to the bottom and stays floating there with the same treatment; under reduced motion it moves without animating.
+
+### Evidence drawer
+- Square, 520 px, 1 px `line-strong` left border plus `--shadow-pop`.
+- Sources are blocks separated by `line` rules, not grey cards; the quoted span gets `mark`.
+
+### Toast (`components/ui/Toast.tsx`)
+- `ink` fill with `on-ink` text, 36 px, control radius, 1 px `on-ink-hover` edge, `--shadow-pop`.
+- Anchored bottom-left of the content column, 24 px from the bottom; the action is `on-ink-link`, 600.
+
+### Focus
+- One ring everywhere: `outline: 2px solid var(--accent); outline-offset: 2px`, following the element's radius.
+- No box-shadow halos.
 
 ## 6. Do's and Don'ts
 
 ### Do:
-- **Do** keep color for status and action only: accent for actions and focus, the four status pairs for New, Watch, Needs attention and Stable, words on every badge.
-- **Do** collapse the radius scale to three steps: small (4 to 6 px) for badges, tags and inline controls, medium (8 to 10 px) for widgets, fields and menus, and 12 px at most for sheets.
-- **Do** separate widgets with a 1 px hairline (hairline or sidebar-rule) or a much quieter single shadow, not the current two-layer float.
-- **Do** use hairline-divided rows for lists inside widgets, the pattern already used for developments and the watchlist, instead of nested tinted tiles.
-- **Do** put radius, spacing, type size and focus ring into `:root` tokens and reference them; today only color and two shadows are tokens.
-- **Do** keep one focus ring: 3 px accent at a single alpha, applied the same way on fields and buttons.
-- **Do** snap spacing to the 8 px base in ui-ux.md (4, 8, 12, 16, 20, 24, 36), and vary padding by role so the hero widget and a small widget do not share one rhythm.
+- **Do** reuse the shared classes in `globals.css` before writing a new control.
+- **Do** reference tokens; no hex, rgb or literal OKLCH in area stylesheets or components.
+- **Do** separate content inside a surface with hairline rows and section rules.
+- **Do** keep status in the fixed 112 px column, with a word in every badge.
+- **Do** step radius down or hold it when nesting: sheet 14, widget 10, control 6, badge 4.
+- **Do** give every control a 44 px hit area and the one focus ring.
+- **Do** keep motion to user-triggered transitions and switch it off under reduced motion.
 
 ### Don't:
-- **Don't** use "oversized corner radii, floating glassy panels, playful motion" (PRODUCT.md, consumer app softness). 22 px widgets, 24 px Generate card and 28 px sheets are in this category.
-- **Don't** put "every element in its own rounded box" or use "uniform padding everywhere" (PRODUCT.md, anything that looks generated). A rounded grey tile inside a rounded white card inside a grey canvas is the pattern to remove.
-- **Don't** use "hero metrics, identical card grids, gradient accents, pill chrome" (PRODUCT.md, SaaS dashboard templates). Fully rounded header buttons and suggestion chips are pill chrome.
+- **Don't** use pills, grey circle buttons or radii above 14 px.
+- **Don't** stack shadows on resting surfaces or float every region in its own box.
+- **Don't** fill tiles, rows or buttons with status tints, or use color that means neither status nor the accent.
+- **Don't** use more than one primary button in a view.
+- **Don't** add side-stripe borders, gradient text, glass or blur effects.
+- **Don't** add continuously running motion: no spinners, pulse or shimmer, including in the run chip.
 - **Don't** repeat the AlphaSense failure: "dated, blank grid to start, feeds the analyst must read".
-- **Don't** fill whole tiles with status tints; a Watch tile in cream beside a Needs attention tile in blush turns status into decoration.
-- **Don't** add decorative icons; the AI sparkle and violet `.ai` tile are the only decorative marks and should justify themselves or go.
-- **Don't** hard-code hex in components or icons; SVGs in `components/ui/icons.tsx` and `GraphCanvas.tsx` repeat token values as literals.
-- **Don't** add continuously running motion (pulse, shimmer, spinners); motion follows a user action or does not happen.

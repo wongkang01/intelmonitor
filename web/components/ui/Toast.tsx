@@ -1,6 +1,6 @@
 "use client";
 
-// One toast at a time at the bottom of the screen, optionally with an action such as Undo.
+// One toast at a time at the bottom-left of the content column, optionally with an action such as Undo.
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 interface ToastSpec {
@@ -30,7 +30,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={show}>
       {children}
-      <div role="status" aria-live="polite">
+      <div className="toast-region" role="status" aria-live="polite">
         {toast && (
           <div className="toast" key={toast.key}>
             <span>{toast.message}</span>

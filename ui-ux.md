@@ -50,11 +50,17 @@ Primary user: a supervisory or policy analyst who follows a few topics, sectors 
 
 **Profile menu:** opens upward from the profile button. Settings, Data sources, Run history, Keyboard shortcuts. Esc or a click outside closes it.
 
-**Top bar:** one search field: "Search or ask about a topic, group or entity" with ⌘K. Typing a name jumps to its page. Typing a question gets an answer with citations (P1; the POC only jumps to pages).
-To the right of the search field: a run status chip and an alerts button.
-The chip shows a live dot and "Monitoring · Last run 06:00" and opens a Runs popover: runs newest first, each with a status mark, when, how (scheduled or manual), duration, source count and result, then "Next scheduled run" and a Run now button.
-While a run is in progress the chip reads "Running now" and the list shows a Running now row.
-The alerts button is a bell with an unread count and opens an Alerts popover listing Needs attention and Watch developments, with Mark all read.
+**Top bar:** 56 px tall, one row.
+The search field flexes from the left: "Search or ask about a topic, group or entity" with ⌘K, 32 px, bordered.
+Typing a name jumps to its page.
+Typing a question gets an answer with citations (P1; the POC only jumps to pages).
+To the right of the search field, 8 px apart: a run status chip and an alerts button, both 32 px with a 1 px border at the 6 px control radius.
+The chip shows a static 6 px dot and "**Monitoring** · Last run 06:00" and opens a Runs popover: runs newest first, each with a status mark, when, how (scheduled or manual), duration, source count and result, then "Next scheduled run" and a Run now button.
+While a run is in progress the chip reads "**Running now** · 22 sources" with a static half-filled mark, and the list shows a Running now row.
+Words and static marks carry the run state: no spinner, pulse or halo.
+The chip has a fixed minimum width, so switching states does not move the bell.
+The alerts button is a bell with an unread count badge inside it and opens an Alerts popover listing Needs attention and Watch developments, with Mark all read.
+Popovers are 400 px wide at the 10 px radius, with a 1 px border and the pop shadow.
 One popover is open at a time; Esc or a click outside closes it.
 
 **Moving between scopes:** every monitor page has a Links section. From OCBC, one tap goes up to Singapore banks or out to Banking regulation.
@@ -86,12 +92,21 @@ Opens centred on the current page at 1 hop, expandable to 2. Node color = type. 
 
 ### New dashboard
 
-A popup covering about 80% of the screen, not a new page.
-The header has the title, a two-tab control, and a close button.
+A popup covering about 80% of the screen, not a new page, at the 14 px sheet radius.
+The 48 px header has the title, Build and Generate as a 28 px segmented control, and a 28 px ghost close button.
 Esc or a click on the dimmed backdrop closes it.
 
-- **Build** (default): the dashboard preview fills the popup in edit mode. "Add widget" opens the widget gallery sheet over it (see Manual editing). Adding a widget closes the sheet and places the widget in the next free slot, outlined. Users drag widgets to rearrange them and tap the minus to remove them. The footer has a name field, prefilled from the subjects used, and "Create dashboard".
-- **Generate** (marked with the AI sparkle): a centered prompt with a heading and three example prompts. After the first prompt the input slides smoothly to the bottom and the generated dashboard fills the space above it (see Chat mode). The footer has "Create dashboard", enabled once no change is waiting for Keep or Undo.
+- **Build** (default): the dashboard preview fills the popup in edit mode.
+  "Add widget" opens the widget gallery sheet over it (see Manual editing).
+  Adding a widget closes the sheet and places the widget in the next free slot, outlined.
+  Users drag widgets to rearrange them and click the minus to remove them.
+  The footer has a name field, prefilled from the subjects used, and "Create dashboard".
+- **Generate** (marked with a small monochrome sparkle): a floating prompt box, centered with a heading and three example prompts.
+  The prompt is a 720 px floating surface with a 1 px `--line-strong` ring and the pop shadow, at the 14 px sheet radius (not a pill), with a round 32 px accent send button.
+  This is the one deliberate exception to the flat, docked inputs elsewhere: the prompt is the page's single call to action, so it floats.
+  After the first prompt the box slides to the bottom and stays floating there with the same treatment, and the generated dashboard fills the space above it (see Chat mode).
+  Under reduced motion it moves without animating.
+  The footer has "Create dashboard", enabled once no change is waiting for Keep or Undo.
 
 Both tabs produce the same dashboard spec, and the created dashboard appears in the sidebar and opens.
 
@@ -248,29 +263,60 @@ The Trend chart also delivers the multi-month trend charts listed as P1 in the m
 
 ## Visual design
 
-Apple-inspired, not an Apple copy: calm surfaces, strong type hierarchy, soft depth, one accent.
+Apple-inspired and tightened for a desktop analyst tool: calm surfaces, a clear type hierarchy, low depth, one accent.
+The reference is `mocks/refine-a.html`.
+Tokens live on `:root` in `web/app/globals.css`, and `DESIGN.md` describes the system in full.
+Colors are OKLCH, tinted slightly toward blue (hue 260); nothing is pure white or pure black.
 
 | Token | Value | Use |
 | --- | --- | --- |
-| Background | `#F5F5F7` | Page |
-| Surface | `#FFFFFF` | Widgets, sheets |
-| Sidebar | `#ECECF0` | Navigation |
-| Ink | `#1C1C1E` | Primary text |
-| Secondary ink | `#5B5B63` | Labels, meta |
-| Accent | `#0A64D8` | Actions, links, focus |
-| New | `#0A56BC` on `#E6F0FD` | Badge |
-| Watch | `#8A4B00` on `#FFF4E2` | Badge |
-| Needs attention | `#B3261E` on `#FDECEA` | Badge |
-| Stable | `#1F6F43` | State text |
-| Topic / provider | `#6B4FD8` / `#0E7C7B` | Graph and link colors |
+| `--canvas` | `oklch(0.972 0.004 260)` | Page background |
+| `--surface` | `oklch(0.993 0.002 260)` | Widgets, panels, drawer, popup, popovers, inputs |
+| `--rail` | `oklch(0.955 0.005 260)` | Sidebar, segmented track, neutral badges |
+| `--hover` | `oklch(0.925 0.006 260)` | Hover fill on nav items, ghost and icon buttons, popover rows |
+| `--line` | `oklch(0.93 0.005 260)` | Row dividers inside a surface |
+| `--line-strong` | `oklch(0.885 0.007 260)` | Button, popover and overlay borders; section rules |
+| `--line-field` | `oklch(0.80 0.01 260)` | Input and select borders |
+| `--ink` | `oklch(0.23 0.012 260)` | Primary text |
+| `--ink2` | `oklch(0.47 0.014 260)` | Labels, meta, counts |
+| `--ink3` | `oklch(0.56 0.012 260)` | Icons, placeholders on `--surface` |
+| `--accent` / `--accent-strong` | `oklch(0.52 0.17 258)` / `oklch(0.46 0.16 258)` | Primary button, links, focus ring, selection / primary hover |
+| New | `--new` on `--new-bg` | Badge |
+| Watch | `--watch` on `--watch-bg` | Badge |
+| Needs attention | `--attn` on `--attn-bg` | Badge |
+| Stable | `--stable` | State text, no fill |
+| `--mark` | `oklch(0.94 0.07 95)` | Evidence highlight on the quoted span only |
 
-**Type:** system font (SF on Apple devices). Page title 32 px bold; widget hero 26 px semibold; body 14 px; labels 12–13 px. Sentence case everywhere.
+Blue appears only on the one primary button per view, links, the focus ring, the selected state and New.
+Topic, group, entity and provider colors exist only inside the graph canvas and its legend.
 
-**Shape and depth:** widgets 22 px radius, sheets 28 px, badges 6 px. Two-layer soft shadow; no borders on widgets.
+**Type:** system font (SF on Apple devices), five sizes and three weights (400, 500, 600; no 700).
+12 px for meta, widget titles and badges; 13 px for body, rows and controls; 15 px for section headers, answers and popup, drawer and dialog titles; 22 px for the "Since your last review" hero line only; 28 px for the page title.
+Row titles are 13 px 500 and wrap to two lines before they truncate.
+Dates and counts use tabular figures and right-align in lists.
+Sentence case everywhere.
 
-**Spacing:** 8 px base. 20 px between widgets, 36 px page margins.
+**Shape and depth:** four radius steps.
+4 px for badges, tags and key caps; 6 px for buttons, inputs, segmented controls, nav and menu items and the toast; 10 px for widgets, panels, popovers and menus; 14 px for the popup, sheets, dialogs and the Generate prompt.
+The evidence drawer is square.
+Circles are only for status dots, the avatar and the Generate send button; nothing else is a pill.
+Widgets and panels sit on the canvas with one low shadow (0 1px 3px at 11%) and no border.
+Overlays carry a 1 px `--line-strong` border: popovers, menus, the toast, the drawer and the Generate prompt use the pop shadow; the popup, sheets and dialogs use the modal shadow over a dimmed backdrop.
+Status sits in a fixed 112 px column of small tinted badges, so row titles share one left edge.
 
-**Motion:** only in response to the user: reflow on reorder, sheet open, drawer slide, the Generate input moving down, and a short fade-in for a widget the user or agent just added. No continuous animations (no wiggle, pulse, shimmer or spinners). All motion off under reduced-motion settings.
+**Controls:** 32 px by default, 28 px in widget headers, toolbars and popovers.
+Secondary buttons have a 1 px `--line-strong` border on `--surface`; there is at most one primary button per view.
+One focus ring everywhere: a 2 px accent outline, 2 px offset.
+Every control has a 44 px hit area, even when it looks smaller.
+
+**Spacing:** 4 px base, on the scale 4, 8, 12, 16, 24, 32, 48.
+Rows are 34 px (8 px above and below 13 px text) with a hairline between them.
+Widgets are inset 12 px, less than the 16 px grid gap, so each widget reads as one group.
+Monitor sections are 32 px apart; the page title sits 24 px above the content; the page gutter is 32 px.
+
+**Motion:** only in response to the user: reflow on reorder, sheet open, drawer slide, the Generate prompt moving down, a short crossfade into widget settings, and a short fade-in for a widget the user or agent just added.
+No continuous animations (no wiggle, pulse, shimmer or spinners).
+All motion is off under reduced-motion settings.
 
 **Dark mode (P1):** same tokens, redefined; badges keep their meaning.
 

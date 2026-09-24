@@ -44,6 +44,29 @@ CREATE TABLE IF NOT EXISTS runs (
     error TEXT
 );
 
+-- One row per execution of a run: `im run` counts as scheduled, Run now in the app as manual.
+-- A manual rerun recomputes an existing run in place, so runs keeps one row per date and the
+-- executions live here. The counts compare against what the execution replaced, or against the
+-- previous run when the date had not been computed before.
+CREATE TABLE IF NOT EXISTS run_log (
+    id INTEGER PRIMARY KEY,
+    run_id TEXT NOT NULL,              -- the runs row it computed
+    trigger TEXT NOT NULL,             -- scheduled or manual
+    triggered_by TEXT,                 -- the profile's display name, for manual runs
+    status TEXT NOT NULL,              -- running, complete or failed
+    sources INTEGER NOT NULL,          -- distinct ingest sources among its documents
+    documents INTEGER NOT NULL,
+    developments INTEGER,              -- set when complete, as are the counts below
+    first_run INTEGER,                 -- 1 when there was nothing to compare against
+    new_count INTEGER,
+    updated_count INTEGER,
+    needs_attention_count INTEGER,     -- new or updated developments needing attention
+    started_at TEXT NOT NULL,
+    finished_at TEXT,
+    error TEXT
+);
+CREATE INDEX IF NOT EXISTS run_log_run ON run_log (run_id);
+
 CREATE TABLE IF NOT EXISTS document_tags (
     document_id TEXT PRIMARY KEY REFERENCES source_documents (id),
     relevance REAL NOT NULL,           -- Jev noul
@@ -208,6 +231,14 @@ CREATE TABLE IF NOT EXISTS analyst_actions (
     created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS analyst_actions_subject ON analyst_actions (subject_id, kind);
+
+-- Alerts the analyst has read, per run: a development alerts again when a later run flags it.
+CREATE TABLE IF NOT EXISTS alert_reads (
+    run_id TEXT NOT NULL,
+    development_id TEXT NOT NULL,
+    read_at TEXT NOT NULL,
+    PRIMARY KEY (run_id, development_id)
+);
 
 CREATE TABLE IF NOT EXISTS custom_questions (
     id TEXT PRIMARY KEY,               -- custom-<hex>

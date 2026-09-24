@@ -40,6 +40,9 @@ export const keys = {
   catalog: ["catalog"],
   profile: ["profile"],
   runs: ["runs"],
+  runStatus: ["run-status"],
+  runSchedule: ["run-schedule"],
+  alerts: ["alerts"],
   dataSources: ["data-sources"],
   development: (id: string) => ["development", id],
   answerEvidence: (subjectId: string, questionId: string) => ["answer-evidence", subjectId, questionId],
@@ -82,8 +85,61 @@ export const useCatalog = () =>
 export const useProfile = () =>
   useQuery({ queryKey: keys.profile, queryFn: () => unwrap(api.GET("/profile")) });
 
+/** Run executions, newest first, each with how it started and its result line. */
 export const useRuns = () =>
   useQuery({ queryKey: keys.runs, queryFn: () => unwrap(api.GET("/runs")) });
+
+/** The planned cadence and next run; nominal in the POC, which has no scheduler. */
+export const useRunSchedule = () =>
+  useQuery({ queryKey: keys.runSchedule, queryFn: () => unwrap(api.GET("/runs/schedule")) });
+
+const RUN_POLL_MS = 2000;
+
+/**
+ * Whether a run is in progress. Polls every 2 s only while one is; when it finishes, everything
+ * else refetches, since the run's data has been recomputed.
+ */
+export function useRunStatus() {
+  const client = useQueryClient();
+  return useQuery({
+    queryKey: keys.runStatus,
+    queryFn: async () => {
+      const wasRunning = client.getQueryData<Schema<"RunStatus">>(keys.runStatus)?.running ?? false;
+      const status = await unwrap(api.GET("/runs/status"));
+      if (wasRunning && !status.running) {
+        void client.invalidateQueries({ predicate: (q) => q.queryKey[0] !== keys.runStatus[0] });
+      }
+      return status;
+    },
+    refetchInterval: (query) => (query.state.data?.running ? RUN_POLL_MS : false),
+  });
+}
+
+/** Starts recomputing the latest run. The API answers 409 while a run is in progress. */
+export function useRunNow() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: () => unwrap(api.POST("/runs/now")),
+    onSuccess: (status) => {
+      client.setQueryData(keys.runStatus, status);
+      return client.invalidateQueries({ queryKey: keys.runs });
+    },
+    onError: () => client.invalidateQueries({ queryKey: keys.runStatus }),
+  });
+}
+
+/** The latest run's Needs attention then Watch developments, with unread counts by badge. */
+export const useAlerts = () =>
+  useQuery({ queryKey: keys.alerts, queryFn: () => unwrap(api.GET("/alerts")) });
+
+/** Marks every current alert read; the alerts stay listed. */
+export function useMarkAlertsRead() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: () => unwrap(api.POST("/alerts/read")),
+    onSuccess: (alerts) => client.setQueryData(keys.alerts, alerts),
+  });
+}
 
 export const useDataSources = () =>
   useQuery({ queryKey: keys.dataSources, queryFn: () => unwrap(api.GET("/data-sources")) });

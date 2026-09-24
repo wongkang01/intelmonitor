@@ -1,5 +1,6 @@
 """FastAPI app. Run with `uv run im serve` (behind Portless in development)."""
 
+import sqlite3
 from collections.abc import AsyncGenerator, Iterator
 from contextlib import asynccontextmanager
 from datetime import date, datetime
@@ -12,12 +13,16 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.routing import APIRoute
 
 from intelmonitor.agent.generate import encode_events
+from intelmonitor.pipeline import runlog
 from intelmonitor.pipeline.subjects import all_subjects
+from intelmonitor.server import alerts as alert_list
 from intelmonitor.server import custom_questions as cq
 from intelmonitor.server import dashboards as dash
+from intelmonitor.server import runs
 from intelmonitor.server.evidence import development_sources, document_detail, new_documents
 from intelmonitor.server.graph import neighbourhood
 from intelmonitor.server.models import (
+    Alerts,
     AnswerEvidence,
     DataSources,
     DataSourceStats,
@@ -34,6 +39,8 @@ from intelmonitor.server.models import (
     Review,
     ReviewRequest,
     RunInfo,
+    RunSchedule,
+    RunStatus,
     SearchHit,
     SubjectConfidence,
     SubjectDetail,
@@ -67,6 +74,8 @@ WEB_ORIGIN = "https://intelmonitor.web.localhost"
 async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
     conn = connect()
     dash.seed_dashboards(conn)
+    runlog.interrupt_stale(conn)
+    runlog.backfill(conn)
     conn.close()
     yield
 
@@ -101,6 +110,11 @@ async def _no_run(_: Request, error: NoRunError) -> JSONResponse:
 
 @app.exception_handler(cq.CapReachedError)
 async def _cap(_: Request, error: cq.CapReachedError) -> JSONResponse:
+    return JSONResponse({"detail": str(error)}, status_code=409)
+
+
+@app.exception_handler(runs.RunInProgressError)
+async def _run_in_progress(_: Request, error: runs.RunInProgressError) -> JSONResponse:
     return JSONResponse({"detail": str(error)}, status_code=409)
 
 
@@ -430,10 +444,14 @@ _DEFAULT_PROFILE = Profile(
 )
 
 
+def _profile(conn: sqlite3.Connection) -> Profile:
+    stored = get_meta(conn, "profile")
+    return Profile.model_validate_json(stored) if stored else _DEFAULT_PROFILE
+
+
 @app.get("/profile")
 def get_profile(q: Q) -> Profile:
-    stored = get_meta(q.conn, "profile")
-    return Profile.model_validate_json(stored) if stored else _DEFAULT_PROFILE
+    return _profile(q.conn)
 
 
 @app.put("/profile")
@@ -444,9 +462,41 @@ def update_profile(q: Q, profile: Profile) -> Profile:
     return profile
 
 
+# ---- top bar: run status chip, Runs popover, alerts
+
+
 @app.get("/runs")
 def list_runs(q: Q) -> list[RunInfo]:
-    return q.runs()
+    """Every run execution, newest first, with how it started and what it found."""
+    return runs.list_runs(q.conn)
+
+
+@app.get("/runs/status")
+def run_status(q: Q) -> RunStatus:
+    return runs.status(q.conn)
+
+
+@app.get("/runs/schedule")
+def run_schedule(q: Q) -> RunSchedule:
+    """The planned cadence and next run. Nominal: the POC has no scheduler."""
+    return runs.schedule(q.conn)
+
+
+@app.post("/runs/now", status_code=202)
+def run_now(q: Q) -> RunStatus:
+    """Recompute Run 2 over the stored corpus in the background; 409 while a run is going."""
+    return runs.run_now(q.conn, _profile(q.conn).display_name)
+
+
+@app.get("/alerts")
+def list_alerts(q: Q) -> Alerts:
+    return alert_list.alerts(q)
+
+
+@app.post("/alerts/read")
+def mark_alerts_read(q: Q) -> Alerts:
+    """Mark every current alert read; the alerts stay listed."""
+    return alert_list.mark_all_read(q)
 
 
 @app.get("/data-sources")

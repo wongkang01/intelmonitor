@@ -3,7 +3,8 @@ returns data. Writes artifacts/api-check/<timestamp>/results.json.
 
 Usage (from api/): uv run python scripts/check_endpoints.py [--base https://intelmonitor.api.localhost]
 The custom question check makes Claude and Jev calls the first time; reruns hit the cache. The
-AG-UI check runs the Generate agent, one Claude session.
+AG-UI check runs the Generate agent, one Claude session. The Run now check recomputes Run 2
+from cache and adds a Manual execution to the run history.
 """
 
 import argparse
@@ -19,6 +20,7 @@ from typing import Any
 import httpx
 
 from intelmonitor.config import ARTIFACTS_DIR
+from intelmonitor.store.db import connect
 
 SAMPLE = [
     "banking-regulation",
@@ -279,14 +281,59 @@ def check_custom_questions(c: Check) -> None:
 
 def check_profile_menu(c: Check) -> None:
     runs = c.get("/runs")
-    need(len([r for r in runs if r["status"] == "complete"]) >= 2, "two complete runs")
-    need(all(r["documents"] and r["developments"] for r in runs), "run counts")
+    complete = [r for r in runs if r["status"] == "complete"]
+    need(len({r["id"] for r in complete}) >= 2, "two complete runs")
+    need(all(r["documents"] and r["developments"] and r["result"] for r in complete), "counts")
     sources = c.get("/data-sources")
     need(sources["total_documents"] and sources["sources"], "data sources")
     profile = c.get("/profile")
     changed = c.call("PUT", "/profile", json=dict(profile, display_name="API check"))
     need(changed["display_name"] == "API check", "profile update")
     c.call("PUT", "/profile", json=profile)
+
+
+def check_run_now(c: Check) -> str:
+    """Run now recomputes Run 2 from cache: 202, then 409 while running, then a Manual row."""
+    schedule = c.get("/runs/schedule")
+    need(schedule["cadence"] and schedule["next_run_at"] and schedule["nominal"], "schedule")
+    before = c.get("/runs")
+    started = c.call("POST", "/runs/now", expect=202)
+    need(started["running"] and started["sources"] and started["how"].startswith("Manual"), "")
+    c.call("POST", "/runs/now", expect=409)
+    deadline = time.monotonic() + 600
+    while c.get("/runs/status")["running"]:
+        need(time.monotonic() < deadline, "Run now finished within 10 minutes")
+        time.sleep(1)
+    runs = c.get("/runs")
+    latest = runs[0]
+    need(len(runs) == len(before) + 1, "Run now adds a run")
+    need(latest["status"] == "complete" and latest["trigger"] == "manual", f"run now {latest}")
+    need(latest["id"] == before[0]["id"], "Run now recomputes the latest run")
+    return f"{latest['result']} in {latest['duration_seconds']:.0f}s"
+
+
+def check_alerts(c: Check) -> str:
+    """Alerts list needing attention first; Mark all read clears the counts. The check restores
+    the read state it found, so it leaves the analyst's unread alerts alone."""
+    alerts = c.get("/alerts")
+    badges = [a["badge"] for a in alerts["alerts"]]
+    need(badges, "alerts: none")
+    need(badges == sorted(badges, key=lambda b: b != "needs_attention"), "needs attention first")
+    need(all(a["title"] and a["meta"] for a in alerts["alerts"]), "alert title and meta")
+    conn = connect()
+    reads = conn.execute("SELECT * FROM alert_reads").fetchall()
+    try:
+        after = c.call("POST", "/alerts/read")
+        need(after["unread"]["total"] == 0, "mark all read")
+        need(all(a["read"] for a in after["alerts"]) and len(after["alerts"]) == len(badges), "")
+        need(c.get("/alerts")["unread"]["total"] == 0, "reads persist")
+    finally:
+        conn.execute("DELETE FROM alert_reads")
+        conn.executemany("INSERT INTO alert_reads VALUES (?, ?, ?)", [tuple(r) for r in reads])
+        conn.commit()
+        conn.close()
+    u = alerts["unread"]
+    return f"{len(badges)} alerts, {u['needs_attention']} + {u['watch']} unread"
 
 
 def check_agent(c: Check) -> str:
@@ -324,6 +371,8 @@ def main() -> int:
         ("analyst actions", lambda: check_actions(c)),
         ("custom questions", lambda: check_custom_questions(c)),
         ("profile menu", lambda: check_profile_menu(c)),
+        ("run now", lambda: check_run_now(c)),
+        ("alerts", lambda: check_alerts(c)),
         ("AG-UI generate", lambda: check_agent(c)),
     ]
     outcomes: list[dict[str, object]] = []

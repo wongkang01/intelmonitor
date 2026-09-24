@@ -58,15 +58,47 @@ class SubjectDetail(SubjectSummary):
 
 
 class RunInfo(BaseModel):
-    id: str
+    """One execution of a run. A run recomputed with Run now appears once per execution."""
+
+    execution_id: int
+    id: str = Field(description="The run it computed, named by its as-of date")
     as_of: date
     previous_run_id: str | None
-    status: str
+    status: Literal["running", "complete", "failed"]
+    trigger: Literal["scheduled", "manual"]
+    how: str = Field(description='"Scheduled", or "Manual, <display name>"')
+    sources: int = Field(description="Distinct ingest sources among its documents")
     documents: int
     developments: int
+    new_count: int
+    updated_count: int
+    needs_attention_count: int = Field(description="New or updated and needing attention")
+    result: str | None = Field(
+        description='"4 new, 1 needs attention", "First run, N developments" or '
+        '"No new developments"; null unless complete'
+    )
     started_at: datetime
     finished_at: datetime | None
     duration_seconds: float | None
+
+
+class RunStatus(BaseModel):
+    running: bool
+    run_id: str | None
+    how: str | None
+    started_at: datetime | None
+    sources: int | None
+    estimate_seconds: float | None = Field(
+        description="Median duration of earlier executions, when there are any"
+    )
+
+
+class RunSchedule(BaseModel):
+    cadence: str
+    next_run_at: datetime
+    nominal: bool = Field(
+        description="True in the POC: no scheduler runs, this is the planned cadence"
+    )
 
 
 class RunRef(BaseModel):
@@ -348,3 +380,28 @@ class NoteRequest(BaseModel):
     subject_id: SubjectId | None = None
     development_id: str | None = None
     text: str = Field(min_length=1, max_length=4000)
+
+
+AlertBadge = Literal["needs_attention", "watch"]
+
+
+class Alert(BaseModel):
+    id: str = Field(description="The development id")
+    title: str
+    badge: AlertBadge
+    meta: str = Field(description='"OCBC, financial, 3 sources"')
+    read: bool
+
+
+class AlertCounts(BaseModel):
+    needs_attention: int
+    watch: int
+    total: int
+
+
+class Alerts(BaseModel):
+    """The latest run's new or updated developments needing attention, then those to watch."""
+
+    run: RunRef
+    alerts: list[Alert]
+    unread: AlertCounts

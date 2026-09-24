@@ -1,7 +1,9 @@
 "use client";
 
 // A native modal <dialog>: focus stays inside, Esc and a backdrop click close it, and focus
-// returns to the opener. `className` picks the shape: "sheet" (80% of the screen) or "panel".
+// returns to the opener. `className` picks the shape: "sheet" (80% of the screen) or "panel" (a 560px
+// dialog). Styles live in app/globals.css: 14px radius, --shadow-modal, --scrim backdrop, and a 48px
+// `.sheet-head` header that ends with <CloseButton />.
 import { useEffect, useRef, type ReactNode } from "react";
 
 export function Modal({
@@ -51,11 +53,12 @@ export function Modal({
   );
 }
 
+/** The 28px ghost close button for modal, sheet and drawer headers. */
 export function CloseButton({ onClick, label = "Close" }: { onClick: () => void; label?: string }) {
   return (
-    <button type="button" className="close" aria-label={label} onClick={onClick}>
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-        <path d="M3 3l6 6M9 3l-6 6" stroke="#3A3A40" strokeWidth="1.8" strokeLinecap="round" />
+    <button type="button" className="btn-icon close" aria-label={label} onClick={onClick}>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     </button>
   );

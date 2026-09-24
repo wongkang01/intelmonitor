@@ -1356,6 +1356,7 @@
     "/runs": {
       "get": {
         "summary": "List Runs",
+        "description": "Every run execution, newest first, with how it started and what it found.",
         "operationId": "list_runs",
         "responses": {
           "200": {
@@ -1368,6 +1369,99 @@
                   },
                   "type": "array",
                   "title": "Response List Runs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs/status": {
+      "get": {
+        "summary": "Run Status",
+        "operationId": "run_status",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs/schedule": {
+      "get": {
+        "summary": "Run Schedule",
+        "description": "The planned cadence and next run. Nominal: the POC has no scheduler.",
+        "operationId": "run_schedule",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunSchedule"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs/now": {
+      "post": {
+        "summary": "Run Now",
+        "description": "Recompute Run 2 over the stored corpus in the background; 409 while a run is going.",
+        "operationId": "run_now",
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/alerts": {
+      "get": {
+        "summary": "List Alerts",
+        "operationId": "list_alerts",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Alerts"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/alerts/read": {
+      "post": {
+        "summary": "Mark Alerts Read",
+        "description": "Mark every current alert read; the alerts stay listed.",
+        "operationId": "mark_alerts_read",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Alerts"
                 }
               }
             }
@@ -1482,6 +1576,93 @@
         ],
         "title": "ActivityMessage",
         "description": "Structured progress that is not conversation content, materialised as a\nmessage so it keeps its place in the sequence. Stands alone rather than\ncomposing BaseMessage, because its content is an object rather than a\nstring."
+      },
+      "Alert": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "The development id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "badge": {
+            "type": "string",
+            "enum": [
+              "needs_attention",
+              "watch"
+            ],
+            "title": "Badge"
+          },
+          "meta": {
+            "type": "string",
+            "title": "Meta",
+            "description": "\"OCBC, financial, 3 sources\""
+          },
+          "read": {
+            "type": "boolean",
+            "title": "Read"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "badge",
+          "meta",
+          "read"
+        ],
+        "title": "Alert"
+      },
+      "AlertCounts": {
+        "properties": {
+          "needs_attention": {
+            "type": "integer",
+            "title": "Needs Attention"
+          },
+          "watch": {
+            "type": "integer",
+            "title": "Watch"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "needs_attention",
+          "watch",
+          "total"
+        ],
+        "title": "AlertCounts"
+      },
+      "Alerts": {
+        "properties": {
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/Alert"
+            },
+            "type": "array",
+            "title": "Alerts"
+          },
+          "unread": {
+            "$ref": "#/components/schemas/AlertCounts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run",
+          "alerts",
+          "unread"
+        ],
+        "title": "Alerts",
+        "description": "The latest run's new or updated developments needing attention, then those to watch."
       },
       "AnswerChange": {
         "properties": {
@@ -4229,9 +4410,14 @@
       },
       "RunInfo": {
         "properties": {
+          "execution_id": {
+            "type": "integer",
+            "title": "Execution Id"
+          },
           "id": {
             "type": "string",
-            "title": "Id"
+            "title": "Id",
+            "description": "The run it computed, named by its as-of date"
           },
           "as_of": {
             "type": "string",
@@ -4251,7 +4437,30 @@
           },
           "status": {
             "type": "string",
+            "enum": [
+              "running",
+              "complete",
+              "failed"
+            ],
             "title": "Status"
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "manual"
+            ],
+            "title": "Trigger"
+          },
+          "how": {
+            "type": "string",
+            "title": "How",
+            "description": "\"Scheduled\", or \"Manual, <display name>\""
+          },
+          "sources": {
+            "type": "integer",
+            "title": "Sources",
+            "description": "Distinct ingest sources among its documents"
           },
           "documents": {
             "type": "integer",
@@ -4260,6 +4469,31 @@
           "developments": {
             "type": "integer",
             "title": "Developments"
+          },
+          "new_count": {
+            "type": "integer",
+            "title": "New Count"
+          },
+          "updated_count": {
+            "type": "integer",
+            "title": "Updated Count"
+          },
+          "needs_attention_count": {
+            "type": "integer",
+            "title": "Needs Attention Count",
+            "description": "New or updated and needing attention"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result",
+            "description": "\"4 new, 1 needs attention\", \"First run, N developments\" or \"No new developments\"; null unless complete"
           },
           "started_at": {
             "type": "string",
@@ -4292,17 +4526,26 @@
         },
         "type": "object",
         "required": [
+          "execution_id",
           "id",
           "as_of",
           "previous_run_id",
           "status",
+          "trigger",
+          "how",
+          "sources",
           "documents",
           "developments",
+          "new_count",
+          "updated_count",
+          "needs_attention_count",
+          "result",
           "started_at",
           "finished_at",
           "duration_seconds"
         ],
-        "title": "RunInfo"
+        "title": "RunInfo",
+        "description": "One execution of a run. A run recomputed with Run now appears once per execution."
       },
       "RunRef": {
         "properties": {
@@ -4334,6 +4577,106 @@
           "previous_run_id"
         ],
         "title": "RunRef"
+      },
+      "RunSchedule": {
+        "properties": {
+          "cadence": {
+            "type": "string",
+            "title": "Cadence"
+          },
+          "next_run_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Next Run At"
+          },
+          "nominal": {
+            "type": "boolean",
+            "title": "Nominal",
+            "description": "True in the POC: no scheduler runs, this is the planned cadence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cadence",
+          "next_run_at",
+          "nominal"
+        ],
+        "title": "RunSchedule"
+      },
+      "RunStatus": {
+        "properties": {
+          "running": {
+            "type": "boolean",
+            "title": "Running"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "how": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "How"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "sources": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sources"
+          },
+          "estimate_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimate Seconds",
+            "description": "Median duration of earlier executions, when there are any"
+          }
+        },
+        "type": "object",
+        "required": [
+          "running",
+          "run_id",
+          "how",
+          "started_at",
+          "sources",
+          "estimate_seconds"
+        ],
+        "title": "RunStatus"
       },
       "SearchHit": {
         "properties": {

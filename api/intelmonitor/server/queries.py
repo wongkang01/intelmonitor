@@ -7,7 +7,7 @@ import json
 import sqlite3
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from functools import cached_property
 from statistics import median
 
@@ -25,7 +25,6 @@ from intelmonitor.server.models import (
     Outlier,
     QuestionAnswerView,
     QuestionStateChange,
-    RunInfo,
     RunRef,
     StageBucket,
     StageTrack,
@@ -103,25 +102,6 @@ def description(subject_id: str) -> str:
     if topic := next((t for t in seed.topics if t.id == subject_id), None):
         return topic.covers
     return subject(subject_id).description
-
-
-def run_info(conn: sqlite3.Connection, row: sqlite3.Row) -> RunInfo:
-    started = datetime.fromisoformat(row["started_at"])
-    finished = datetime.fromisoformat(row["finished_at"]) if row["finished_at"] else None
-    count = conn.execute(
-        "SELECT count(*) FROM developments WHERE run_id = ?", (row["id"],)
-    ).fetchone()[0]
-    return RunInfo(
-        id=row["id"],
-        as_of=date.fromisoformat(row["as_of"]),
-        previous_run_id=row["previous_run_id"],
-        status=row["status"],
-        documents=row["documents"],
-        developments=count,
-        started_at=started,
-        finished_at=finished,
-        duration_seconds=(finished - started).total_seconds() if finished else None,
-    )
 
 
 @dataclass(frozen=True)
@@ -235,10 +215,6 @@ class Queries:
     def run(self) -> RunRef:
         r = self._run_row
         return RunRef(id=r["id"], as_of=r["as_of"], previous_run_id=r["previous_run_id"])
-
-    def runs(self) -> list[RunInfo]:
-        rows = self.conn.execute("SELECT * FROM runs ORDER BY as_of DESC").fetchall()
-        return [run_info(self.conn, r) for r in rows]
 
     # ---- developments
 

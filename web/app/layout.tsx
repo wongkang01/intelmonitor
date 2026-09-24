@@ -4,6 +4,7 @@ import "./globals.css";
 import "@/styles/shell.css";
 import "@/styles/widgets.css";
 import "@/styles/sheet.css";
+import "@/styles/popup.css";
 import "@/styles/monitor.css";
 import "@/styles/graph.css";
 import "@/styles/custom.css";

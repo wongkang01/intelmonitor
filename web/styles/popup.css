@@ -1,0 +1,276 @@
+/* New dashboard popup and its Generate tab. Values from mocks/new-dashboard.html (Build = variant B). */
+.sheet-head.tabbed {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+}
+.sheet-head.tabbed .close {
+  justify-self: end;
+}
+.sheet-body {
+  position: relative;
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.sheet-foot {
+  height: 72px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 24px 0 28px;
+  border-top: 1px solid var(--line);
+}
+.sheet-foot .grow {
+  flex-grow: 1;
+}
+.hint {
+  font-size: 13px;
+  color: var(--ink2);
+}
+.field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.field input {
+  height: 40px;
+  width: 300px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 12px;
+  background: var(--field2);
+  padding: 0 14px;
+  font-size: 15px;
+}
+.field input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(10, 100, 216, 0.35);
+}
+.btn.with-icon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Build: the draft in edit mode, with the gallery as a sheet over it */
+.canvas {
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px;
+  gap: 12px;
+  background: var(--bg);
+}
+.canvas-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+}
+.canvas-head b {
+  font-size: 14px;
+}
+.canvas-head .btn {
+  margin-left: auto;
+}
+.canvas-scroll {
+  flex-grow: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.canvas .dash-grid,
+.gen-results .dash-grid {
+  padding: 4px;
+  gap: 16px;
+}
+.empty {
+  height: 100%;
+  min-height: 220px;
+  box-sizing: border-box;
+  border: 2px dashed #d1d1d6;
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--ink2);
+  font-size: 14px;
+}
+.gsheet {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  padding: 20px;
+  background: rgba(28, 28, 30, 0.18);
+}
+.gsheet-card {
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  background: var(--surface);
+  border-radius: 24px;
+  box-shadow: 0 16px 60px rgba(18, 22, 38, 0.24);
+  overflow: clip;
+  animation: sheet-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Generate: a centered prompt that moves to the bottom once the dashboard arrives */
+.gen {
+  flex-grow: 1;
+  min-height: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  padding: 24px 28px;
+}
+.gen.active {
+  justify-content: flex-start;
+  align-items: stretch;
+  padding-bottom: 20px;
+}
+.gen-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.gen-intro h3 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.gen-results {
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.gen-scroll {
+  flex-grow: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.reply {
+  flex-shrink: 0;
+  max-height: 34%;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 20px;
+}
+.reply-text {
+  flex-grow: 1;
+  align-self: stretch;
+  overflow: auto;
+  padding-top: 3px;
+  white-space: pre-line;
+}
+.ai {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--topic-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ai.large {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+.changebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.changebar .btn {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+.prompt {
+  width: 720px;
+  max-width: 100%;
+  align-self: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 10px 10px 10px 18px;
+  background: var(--surface);
+  border-radius: 22px;
+  box-shadow:
+    0 0 0 1px #e3e3e8,
+    0 8px 28px rgba(18, 22, 38, 0.08);
+}
+.prompt:focus-within {
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 8px 28px rgba(18, 22, 38, 0.08);
+}
+.prompt input {
+  flex-grow: 1;
+  min-width: 0;
+  height: 40px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+}
+.prompt input:focus-visible {
+  outline: none;
+}
+.send {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 20px;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.send:disabled {
+  background: #c7c7cc;
+  cursor: default;
+}
+.gen-sugg {
+  width: 760px;
+  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.gen-sugg button {
+  height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 17px;
+  background: var(--chip);
+  font-size: 13px;
+}
+.gen-sugg button:hover {
+  background: #e6e6eb;
+}
