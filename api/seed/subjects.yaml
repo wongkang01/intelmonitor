@@ -46,6 +46,7 @@ entities:
     kind: bank
     aliases: [DBS Bank, DBS Group, DBS Group Holdings, Development Bank of Singapore]
     domains: [dbs.com]
+    logo: /logos/dbs.svg
     logo_full: /logos/full/dbs.svg
   - id: ocbc
     name: OCBC
@@ -73,12 +74,14 @@ entities:
     kind: bank
     aliases: [CIMB Group, CIMB Group Holdings, CIMB Bank]
     domains: [cimb.com]
+    logo: /logos/cimb.svg
     logo_full: /logos/full/cimb.svg
   - id: bangkok-bank
     name: Bangkok Bank
     kind: bank
     aliases: [Bangkok Bank PCL, Bangkok Bank Public Company Limited, BBL]
     domains: [bangkokbank.com]
+    logo: /logos/bangkok-bank.svg
     logo_full: /logos/full/bangkok-bank.svg
 
   - id: mas
@@ -86,36 +89,42 @@ entities:
     kind: central_bank
     aliases: [Monetary Authority of Singapore]
     domains: [mas.gov.sg]
+    logo: /logos/mas.svg
     logo_full: /logos/full/mas.svg
   - id: fed
     name: Fed
     kind: central_bank
     aliases: [Federal Reserve, Federal Reserve Board, Federal Reserve System, FOMC, US Federal Reserve]
     domains: [federalreserve.gov]
+    logo: /logos/fed.svg
     logo_full: /logos/full/fed.svg
   - id: ecb
     name: ECB
     kind: central_bank
     aliases: [European Central Bank, ECB Banking Supervision, SSM]
     domains: [ecb.europa.eu, bankingsupervision.europa.eu]
+    logo: /logos/ecb.svg
     logo_full: /logos/full/ecb.svg
   - id: pboc
     name: PBoC
     kind: central_bank
     aliases: [People's Bank of China, PBOC]
     domains: [pbc.gov.cn]
+    logo: /logos/pboc.png
     logo_full: /logos/full/pboc.png
   - id: hkma
     name: HKMA
     kind: central_bank
     aliases: [Hong Kong Monetary Authority]
     domains: [hkma.gov.hk]
+    logo: /logos/hkma.svg
     logo_full: /logos/full/hkma.svg
   - id: bnm
     name: BNM
     kind: central_bank
     aliases: [Bank Negara, Bank Negara Malaysia, Central Bank of Malaysia]
     domains: [bnm.gov.my]
+    logo: /logos/bnm.svg
     logo_full: /logos/full/bnm.svg
 
   - id: circle
@@ -123,6 +132,7 @@ entities:
     kind: stablecoin_issuer
     aliases: [Circle Internet Financial, Circle Internet Group, USDC, EURC]
     domains: [circle.com]
+    logo: /logos/circle.svg
     logo_full: /logos/full/circle.svg
   - id: tether
     name: Tether
@@ -136,12 +146,14 @@ entities:
     kind: stablecoin_issuer
     aliases: [Paxos Trust Company, USDP, PYUSD, USDG]
     domains: [paxos.com]
+    logo: /logos/paxos.svg
     logo_full: /logos/full/paxos.svg
   - id: straitsx
     name: StraitsX
     kind: stablecoin_issuer
     aliases: [XSGD, XUSD, Xfers]
     domains: [straitsx.com]
+    logo: /logos/straitsx.svg
     logo_full: /logos/full/straitsx.svg
 
   - id: singapore
