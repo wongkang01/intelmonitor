@@ -338,6 +338,23 @@ export function useAddNote() {
   });
 }
 
+/** Deletes a dashboard and drops it from the sidebar list. */
+export function useDeleteDashboard() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (dashboardId: string) => {
+      const { error, response } = await api.DELETE("/dashboards/{dashboard_id}", {
+        params: { path: { dashboard_id: dashboardId } },
+      });
+      if (error !== undefined || !response.ok) throw new ApiError(response.status, error);
+    },
+    onSuccess: (_, dashboardId) => {
+      client.setQueryData<Dashboard[]>(keys.dashboards, (list) => list?.filter((d) => d.id !== dashboardId));
+      client.removeQueries({ queryKey: keys.dashboard(dashboardId) });
+    },
+  });
+}
+
 export function useDeleteNote() {
   const client = useQueryClient();
   return useMutation({

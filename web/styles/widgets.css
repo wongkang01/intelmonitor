@@ -521,18 +521,11 @@ a.qr:hover .ql {
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--s-1);
-  margin-left: -4px;
-}
-.dash-title .dot-btn {
-  position: static;
+  gap: var(--s-3);
 }
 .dash-title .dash-dot {
   width: 10px;
   height: 10px;
-}
-.dash-title .dash-pop {
-  top: calc(100% + var(--s-2));
 }
 .ent-name,
 .gallery-head h3 {

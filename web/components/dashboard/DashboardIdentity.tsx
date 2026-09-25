@@ -1,11 +1,13 @@
 "use client";
 
-// A dashboard's identity: its colored dot, and a popover to rename it and change the color.
-// Used by the sidebar rows and the dashboard page title.
+// A dashboard's identity: its colored dot, and the options popover (name, color, delete) that the
+// sidebar row's "more" button opens.
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type RefObject } from "react";
 
 import type { Schema } from "@/lib/api/client";
-import { useSaveDashboard } from "@/lib/api/queries";
+import { useDeleteDashboard, useSaveDashboard } from "@/lib/api/queries";
+import { useToast } from "@/components/ui/Toast";
 
 type Dashboard = Schema<"Dashboard">;
 type DashboardColor = NonNullable<Dashboard["color"]>;
@@ -25,7 +27,7 @@ export function useRenameDashboard() {
   };
 }
 
-/** Name field and color swatches, anchored under `trigger`. Esc or an outside click closes it. */
+/** Name field, color swatches and Delete, anchored under `trigger`. Esc or an outside click closes it. */
 export function DashboardEditPop({
   dashboard,
   trigger,
@@ -37,8 +39,23 @@ export function DashboardEditPop({
 }) {
   const save = useSaveDashboard();
   const rename = useRenameDashboard();
+  const remove = useDeleteDashboard();
+  const toast = useToast();
+  const router = useRouter();
+  const pathname = usePathname();
   const [name, setName] = useState(dashboard.name);
+  const [confirming, setConfirming] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  const deleteDashboard = () =>
+    remove.mutate(dashboard.id, {
+      onSuccess: () => {
+        onClose();
+        toast({ message: `Deleted ${dashboard.name}` });
+        if (pathname === `/dashboards/${dashboard.id}`) router.push("/");
+      },
+      onError: () => toast({ message: "Could not delete the dashboard" }),
+    });
 
   useEffect(() => {
     const close = (focusTrigger: boolean) => {
@@ -97,6 +114,23 @@ export function DashboardEditPop({
             onClick={() => save({ ...dashboard, color: c })}
           />
         ))}
+      </div>
+      <div className="dash-pop-foot">
+        {confirming ? (
+          <>
+            <span className="dash-pop-label">Delete this dashboard?</span>
+            <button type="button" className="btn btn-sm" onClick={() => setConfirming(false)}>
+              Cancel
+            </button>
+            <button type="button" className="btn btn-sm btn-danger" autoFocus onClick={deleteDashboard}>
+              Delete
+            </button>
+          </>
+        ) : (
+          <button type="button" className="btn btn-sm btn-ghost danger-text" onClick={() => setConfirming(true)}>
+            Delete dashboard
+          </button>
+        )}
       </div>
     </div>
   );

@@ -9,7 +9,7 @@ import { useRef, useState } from "react";
 import { useDashboards, useSubjects } from "@/lib/api/queries";
 import { TYPE_PLURAL } from "@/lib/format";
 import { monitorHref, type SubjectType } from "@/lib/widgets";
-import { ChevronIcon, PlusIcon } from "@/components/ui/icons";
+import { ChevronIcon, MoreIcon, PlusIcon } from "@/components/ui/icons";
 import { EntityIcon } from "@/components/ui/EntityIcon";
 import type { Schema } from "@/lib/api/client";
 
@@ -108,12 +108,12 @@ export function Sidebar() {
   );
 }
 
-/** A sidebar dashboard: the dot opens the edit popover, and a double-click renames in place. */
+/** A sidebar dashboard: the "more" button (shown on hover) opens name, color and delete; a double-click renames in place. */
 function DashboardRow({ dashboard: d, current }: { dashboard: Schema<"Dashboard">; current: boolean }) {
   const [editing, setEditing] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const rename = useRenameDashboard();
-  const dotRef = useRef<HTMLButtonElement>(null);
+  const moreRef = useRef<HTMLButtonElement>(null);
   const linkRef = useRef<HTMLAnchorElement>(null);
 
   const finish = (name: string | null) => {
@@ -123,18 +123,10 @@ function DashboardRow({ dashboard: d, current }: { dashboard: Schema<"Dashboard"
   };
 
   return (
-    <div className="dashrow">
-      <button
-        ref={dotRef}
-        type="button"
-        className="dot-btn"
-        aria-label={`Edit name and color of ${d.name}`}
-        aria-haspopup="dialog"
-        aria-expanded={editing}
-        onClick={() => setEditing((e) => !e)}
-      >
+    <div className={`dashrow${editing ? " open" : ""}`}>
+      <span className="dashrow-dot">
         <DashboardDot color={d.color} />
-      </button>
+      </span>
       {renaming ? (
         <div className="navitem" aria-current={current ? "page" : undefined}>
           <input
@@ -166,7 +158,18 @@ function DashboardRow({ dashboard: d, current }: { dashboard: Schema<"Dashboard"
           <span>{d.name}</span>
         </Link>
       )}
-      {editing && <DashboardEditPop dashboard={d} trigger={dotRef} onClose={() => setEditing(false)} />}
+      <button
+        ref={moreRef}
+        type="button"
+        className="more-btn"
+        aria-label={`Options for ${d.name}`}
+        aria-haspopup="dialog"
+        aria-expanded={editing}
+        onClick={() => setEditing((e) => !e)}
+      >
+        <MoreIcon />
+      </button>
+      {editing && <DashboardEditPop dashboard={d} trigger={moreRef} onClose={() => setEditing(false)} />}
     </div>
   );
 }

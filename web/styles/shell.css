@@ -553,10 +553,22 @@ main.main {
   margin-left: -6px;
   padding: 0 5px;
 }
-.dot-btn {
+.dashrow-dot {
   position: absolute;
   z-index: 1;
-  left: 4px;
+  left: 12px;
+  top: 12px;
+  display: flex;
+  pointer-events: none;
+}
+.dashrow > .navitem {
+  padding-right: 36px;
+}
+/* The options button shows on row hover, on keyboard focus, and while its popover is open. */
+.more-btn {
+  position: absolute;
+  z-index: 1;
+  right: 4px;
   top: 4px;
   width: 24px;
   height: 24px;
@@ -566,10 +578,23 @@ main.main {
   border: 0;
   border-radius: var(--r-ctl);
   background: transparent;
+  color: var(--ink2);
+  opacity: 0;
 }
-.dot-btn:hover,
-.dot-btn[aria-expanded="true"] {
+.dashrow:hover .more-btn,
+.dashrow.open .more-btn,
+.more-btn:focus-visible {
+  opacity: 1;
+}
+.more-btn:hover,
+.more-btn[aria-expanded="true"] {
   background: var(--hover);
+  color: var(--ink);
+}
+@media (hover: none) {
+  .more-btn {
+    opacity: 1;
+  }
 }
 .dash-pop {
   position: absolute;
@@ -627,4 +652,32 @@ main.main {
   width: auto;
   height: auto;
   aspect-ratio: 1;
+}
+.dash-pop-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-1);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--line);
+}
+.dash-pop-foot .dash-pop-label {
+  margin-right: auto;
+}
+.dash-pop-foot .danger-text {
+  margin-left: calc(-1 * var(--s-2));
+  color: var(--attn);
+}
+/* One column that never grows past the popover; the confirm prompt takes its own line. */
+.dash-pop {
+  grid-template-columns: minmax(0, 1fr);
+}
+.dash-pop-foot {
+  flex-wrap: wrap;
+}
+.dash-pop-foot .dash-pop-label {
+  flex-basis: 100%;
+}
+.dash-pop-foot .btn-sm:first-of-type:not(.danger-text) {
+  margin-left: auto;
 }
