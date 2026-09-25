@@ -1933,6 +1933,11 @@ export interface components {
              * @description Entity icon path in the web app, if one exists
              */
             logo?: string | null;
+            /**
+             * Logo Full
+             * @description Full entity logo path in the web app, if one exists
+             */
+            logo_full?: string | null;
             /** Aliases */
             aliases: string[];
             /**
@@ -1978,6 +1983,11 @@ export interface components {
              * @description Entity icon path in the web app, if one exists
              */
             logo?: string | null;
+            /**
+             * Logo Full
+             * @description Full entity logo path in the web app, if one exists
+             */
+            logo_full?: string | null;
         };
         /** SubjectSummary */
         SubjectSummary: {
@@ -1997,6 +2007,11 @@ export interface components {
              * @description Entity icon path in the web app, if one exists
              */
             logo?: string | null;
+            /**
+             * Logo Full
+             * @description Full entity logo path in the web app, if one exists
+             */
+            logo_full?: string | null;
             /** Aliases */
             aliases: string[];
             /**

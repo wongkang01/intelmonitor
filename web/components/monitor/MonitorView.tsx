@@ -33,8 +33,17 @@ export function MonitorView({ id }: { id: string }) {
   return (
     <>
       <div className="mon-head">
+        {p.subject.logo_full && (
+          // Local logo files need no image optimization; the name below carries the meaning.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            className={`mon-logo${p.subject.kind === "country" ? " flag" : ""}`}
+            src={p.subject.logo_full}
+            alt=""
+          />
+        )}
         <h1>
-          <EntityIcon subject={p.subject} size={28} />
+          {!p.subject.logo_full && <EntityIcon subject={p.subject} size={28} />}
           {p.subject.name}
         </h1>
         <p>

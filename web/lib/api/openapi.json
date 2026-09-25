@@ -5002,6 +5002,18 @@
             "title": "Logo",
             "description": "Entity icon path in the web app, if one exists"
           },
+          "logo_full": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Full",
+            "description": "Full entity logo path in the web app, if one exists"
+          },
           "aliases": {
             "items": {
               "type": "string"
@@ -5128,6 +5140,18 @@
             ],
             "title": "Logo",
             "description": "Entity icon path in the web app, if one exists"
+          },
+          "logo_full": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Full",
+            "description": "Full entity logo path in the web app, if one exists"
           }
         },
         "type": "object",
@@ -5186,6 +5210,18 @@
             ],
             "title": "Logo",
             "description": "Entity icon path in the web app, if one exists"
+          },
+          "logo_full": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Full",
+            "description": "Full entity logo path in the web app, if one exists"
           },
           "aliases": {
             "items": {

@@ -40,6 +40,9 @@ class SubjectRef(BaseModel):
     logo: str | None = Field(
         default=None, description="Entity icon path in the web app, if one exists"
     )
+    logo_full: str | None = Field(
+        default=None, description="Full entity logo path in the web app, if one exists"
+    )
 
 
 class SubjectSummary(SubjectRef):

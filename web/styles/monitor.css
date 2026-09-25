@@ -370,3 +370,19 @@
   align-items: center;
   gap: var(--s-3);
 }
+/* An entity's full logo sits above its name, at a fixed height so wordmarks and seals line up. */
+.mon-logo {
+  display: block;
+  height: 36px;
+  width: auto;
+  max-width: 280px;
+  margin-bottom: var(--s-3);
+  object-fit: contain;
+  object-position: left center;
+}
+.mon-logo.flag {
+  width: 48px;
+  border-radius: var(--r-badge);
+  box-shadow: 0 0 0 1px var(--line);
+  object-fit: cover;
+}

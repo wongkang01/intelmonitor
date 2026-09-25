@@ -32,7 +32,8 @@ class Entity(BaseModel):
     kind: EntityKind
     aliases: list[str]
     domains: list[str]
-    logo: str | None = None  # icon path served by the web app, e.g. /logos/ocbc.svg
+    logo: str | None = None  # small icon served by the web app, e.g. /logos/ocbc.svg
+    logo_full: str | None = None  # full logo for the monitor page, e.g. /logos/full/ocbc.svg
 
 
 class SubjectsSeed(BaseModel):
