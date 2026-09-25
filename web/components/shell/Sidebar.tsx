@@ -4,12 +4,16 @@
 // The Monitors section holding the current subject opens itself, so the current page is always marked.
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { useDashboards, useSubjects } from "@/lib/api/queries";
 import { TYPE_PLURAL } from "@/lib/format";
 import { monitorHref, type SubjectType } from "@/lib/widgets";
 import { ChevronIcon, PlusIcon } from "@/components/ui/icons";
+import { EntityIcon } from "@/components/ui/EntityIcon";
+import type { Schema } from "@/lib/api/client";
+
+import { DashboardDot, DashboardEditPop, useRenameDashboard } from "@/components/dashboard/DashboardIdentity";
 
 import { NewDashboard } from "@/components/dashboard/NewDashboard";
 
@@ -53,14 +57,9 @@ export function Sidebar() {
           <PlusIcon />
           <span>New dashboard</span>
         </button>
-        {dashboards.data?.map((d) => {
-          const href = `/dashboards/${d.id}`;
-          return (
-            <Link key={d.id} href={href} className="navitem" aria-current={pathname === href ? "page" : undefined}>
-              <span>{d.name}</span>
-            </Link>
-          );
-        })}
+        {dashboards.data?.map((d) => (
+          <DashboardRow key={d.id} dashboard={d} current={pathname === `/dashboards/${d.id}`} />
+        ))}
         <div className="navhead">Monitors</div>
         {TYPES.map((type) => {
           const list = subjects.data?.filter((s) => s.type === type) ?? [];
@@ -88,6 +87,7 @@ export function Sidebar() {
                       className="navitem sub"
                       aria-current={pathname === href ? "page" : undefined}
                     >
+                      <EntityIcon subject={s} />
                       <span>{s.name}</span>
                       {s.new_developments > 0 && (
                         <span className="count" aria-label={`${s.new_developments} new`}>
@@ -105,5 +105,68 @@ export function Sidebar() {
       <ProfileMenu />
       <NewDashboard open={creating} onClose={() => setCreating(false)} />
     </nav>
+  );
+}
+
+/** A sidebar dashboard: the dot opens the edit popover, and a double-click renames in place. */
+function DashboardRow({ dashboard: d, current }: { dashboard: Schema<"Dashboard">; current: boolean }) {
+  const [editing, setEditing] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const rename = useRenameDashboard();
+  const dotRef = useRef<HTMLButtonElement>(null);
+  const linkRef = useRef<HTMLAnchorElement>(null);
+
+  const finish = (name: string | null) => {
+    if (name !== null) rename(d, name);
+    setRenaming(false);
+    requestAnimationFrame(() => linkRef.current?.focus());
+  };
+
+  return (
+    <div className="dashrow">
+      <button
+        ref={dotRef}
+        type="button"
+        className="dot-btn"
+        aria-label={`Edit name and color of ${d.name}`}
+        aria-haspopup="dialog"
+        aria-expanded={editing}
+        onClick={() => setEditing((e) => !e)}
+      >
+        <DashboardDot color={d.color} />
+      </button>
+      {renaming ? (
+        <div className="navitem" aria-current={current ? "page" : undefined}>
+          <input
+            className="input"
+            aria-label="Dashboard name"
+            defaultValue={d.name}
+            maxLength={80}
+            autoFocus
+            onFocus={(e) => e.currentTarget.select()}
+            onBlur={(e) => finish(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") finish(e.currentTarget.value);
+              if (e.key === "Escape") finish(null);
+            }}
+          />
+        </div>
+      ) : (
+        <Link
+          ref={linkRef}
+          href={`/dashboards/${d.id}`}
+          className="navitem"
+          aria-current={current ? "page" : undefined}
+          title="Double-click to rename"
+          onDoubleClick={(e) => {
+            e.preventDefault();
+            setRenaming(true);
+          }}
+        >
+          <span>{d.name}</span>
+        </Link>
+      )}
+      {editing && <DashboardEditPop dashboard={d} trigger={dotRef} onClose={() => setEditing(false)} />}
+    </div>
   );
 }

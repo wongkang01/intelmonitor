@@ -537,3 +537,94 @@ main.main {
   padding: 0 var(--s-6);
   color: var(--ink2);
 }
+
+/* Dashboard rows: the dot is its own button (it opens the edit popover), laid over the row link. */
+.dashrow {
+  position: relative;
+  flex: none;
+}
+.dashrow > .navitem {
+  padding-left: 32px;
+}
+.dashrow .navitem input {
+  width: 100%;
+  min-width: 0;
+  height: 26px;
+  margin-left: -6px;
+  padding: 0 5px;
+}
+.dot-btn {
+  position: absolute;
+  z-index: 1;
+  left: 4px;
+  top: 4px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: transparent;
+}
+.dot-btn:hover,
+.dot-btn[aria-expanded="true"] {
+  background: var(--hover);
+}
+.dash-pop {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + var(--s-1));
+  left: 0;
+  width: 232px;
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-widget);
+  box-shadow: var(--shadow-pop);
+  animation: pop-fade 0.12s ease-out;
+}
+.dash-pop-label {
+  font: 500 var(--fs-meta) / var(--lh-meta) var(--font);
+  color: var(--ink2);
+}
+.dash-pop .input {
+  width: 100%;
+}
+.swatches {
+  display: flex;
+  gap: var(--s-1);
+}
+/* 20px swatches with a 24px hit area; the selected one carries a ring. */
+.swatch {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+}
+.swatch[aria-checked="true"] {
+  box-shadow: 0 0 0 2px var(--ink);
+}
+.search-hit {
+  gap: var(--s-2);
+}
+/* In the sidebar the popover spans the row, so the scroll area never scrolls sideways. */
+.side-scroll {
+  overflow-x: hidden;
+}
+.dashrow .dash-pop {
+  right: 0;
+  width: auto;
+}
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+}
+.swatch {
+  width: auto;
+  height: auto;
+  aspect-ratio: 1;
+}

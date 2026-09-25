@@ -51,16 +51,19 @@ entities:
     kind: bank
     aliases: [OCBC Bank, Oversea-Chinese Banking Corporation, OCBC Group]
     domains: [ocbc.com]
+    logo: /logos/ocbc.svg
   - id: uob
     name: UOB
     kind: bank
     aliases: [United Overseas Bank, UOB Group]
     domains: [uobgroup.com]
+    logo: /logos/uob.svg
   - id: maybank
     name: Maybank
     kind: bank
     aliases: [Malayan Banking, Malayan Banking Berhad, Maybank Group]
     domains: [maybank.com]
+    logo: /logos/maybank.svg
   - id: cimb
     name: CIMB
     kind: bank
@@ -113,6 +116,7 @@ entities:
     kind: stablecoin_issuer
     aliases: [Tether Holdings, Tether Limited, USDT]
     domains: [tether.to]
+    logo: /logos/tether.svg
   - id: paxos
     name: Paxos
     kind: stablecoin_issuer
@@ -129,28 +133,34 @@ entities:
     kind: country
     aliases: [Republic of Singapore]
     domains: [gov.sg]
+    logo: /logos/singapore.svg
   - id: malaysia
     name: Malaysia
     kind: country
     aliases: []
     domains: [gov.my]
+    logo: /logos/malaysia.svg
   - id: indonesia
     name: Indonesia
     kind: country
     aliases: [Republic of Indonesia]
     domains: [go.id]
+    logo: /logos/indonesia.svg
   - id: thailand
     name: Thailand
     kind: country
     aliases: [Kingdom of Thailand]
     domains: [go.th]
+    logo: /logos/thailand.svg
   - id: vietnam
     name: Vietnam
     kind: country
     aliases: [Viet Nam]
     domains: [gov.vn]
+    logo: /logos/vietnam.svg
   - id: philippines
     name: Philippines
     kind: country
     aliases: [Republic of the Philippines]
     domains: [gov.ph]
+    logo: /logos/philippines.svg

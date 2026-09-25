@@ -141,8 +141,17 @@ WidgetType = Literal[
 ]
 
 
+# Sidebar dot colors. Hues sit away from the status colors (red, amber, green) so a dot never reads
+# as a state.
+DashboardColor = Literal["blue", "teal", "purple", "pink", "orange", "olive", "slate", "brown"]
+DASHBOARD_COLORS: tuple[DashboardColor, ...] = get_args(DashboardColor)
+
+
 class DashboardSpec(BaseModel):
     name: str = Field(min_length=1, max_length=80)
+    color: DashboardColor | None = Field(
+        default=None, description="Sidebar dot; assigned by position when unset"
+    )
     subject_ids: list[SubjectId] = Field(description="The subjects the dashboard follows")
     widgets: list[Widget]
 

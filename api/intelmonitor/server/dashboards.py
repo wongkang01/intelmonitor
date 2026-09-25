@@ -10,7 +10,13 @@ from pydantic import TypeAdapter
 from intelmonitor.config import SEED_DIR
 from intelmonitor.server.custom_questions import keep_ids
 from intelmonitor.server.queries import NotFoundError, now
-from intelmonitor.server.widgets import CUSTOM_PREFIX, Dashboard, DashboardSpec, QuestionWidget
+from intelmonitor.server.widgets import (
+    CUSTOM_PREFIX,
+    DASHBOARD_COLORS,
+    Dashboard,
+    DashboardSpec,
+    QuestionWidget,
+)
 from intelmonitor.store.db import get_meta, set_meta
 
 
@@ -42,6 +48,8 @@ def _insert(
 
 def _from_row(row: sqlite3.Row) -> Dashboard:
     spec = DashboardSpec.model_validate_json(row["spec"])
+    if spec.color is None:
+        spec.color = DASHBOARD_COLORS[row["position"] % len(DASHBOARD_COLORS)]
     return Dashboard(
         **spec.model_dump(),
         id=row["id"],

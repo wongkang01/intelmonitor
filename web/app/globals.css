@@ -703,3 +703,60 @@ dialog .toast-region .toast {
     transition: none !important;
   }
 }
+
+/* Dashboard dot colors. Hues avoid the status red, amber and green so a dot never reads as a state. */
+:root {
+  --dash-blue: oklch(0.58 0.14 255);
+  --dash-teal: oklch(0.6 0.1 195);
+  --dash-purple: oklch(0.55 0.15 300);
+  --dash-pink: oklch(0.62 0.15 350);
+  --dash-orange: oklch(0.68 0.14 55);
+  --dash-olive: oklch(0.6 0.1 115);
+  --dash-slate: oklch(0.55 0.03 250);
+  --dash-brown: oklch(0.5 0.07 50);
+}
+.dash-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+}
+
+/* Entity icons: a logo, a country flag or a monogram in a small tile. */
+.ent-icon {
+  --ei: 16px;
+  width: var(--ei);
+  height: var(--ei);
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+  vertical-align: middle;
+  border-radius: var(--r-badge);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font: 600 9px / 1 var(--font);
+  color: var(--ink2);
+}
+.ent-icon.s20 {
+  --ei: 20px;
+  font-size: 10px;
+}
+.ent-icon.s28 {
+  --ei: 28px;
+  font-size: 12px;
+  border-radius: var(--r-ctl);
+}
+.ent-icon:not(:has(img)) {
+  background: var(--rail);
+}
+.ent-icon img {
+  width: 100%;
+  height: 100%;
+  padding: 12%;
+  object-fit: contain;
+}
+.ent-icon.flag img {
+  padding: 0;
+  object-fit: cover;
+}

@@ -2169,6 +2169,28 @@
             "minLength": 1,
             "title": "Name"
           },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "blue",
+                  "teal",
+                  "purple",
+                  "pink",
+                  "orange",
+                  "olive",
+                  "slate",
+                  "brown"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color",
+            "description": "Sidebar dot; assigned by position when unset"
+          },
           "subject_ids": {
             "items": {
               "type": "string"
@@ -2256,6 +2278,28 @@
             "maxLength": 80,
             "minLength": 1,
             "title": "Name"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "blue",
+                  "teal",
+                  "purple",
+                  "pink",
+                  "orange",
+                  "olive",
+                  "slate",
+                  "brown"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color",
+            "description": "Sidebar dot; assigned by position when unset"
           },
           "subject_ids": {
             "items": {
@@ -4946,6 +4990,18 @@
             ],
             "title": "Kind"
           },
+          "logo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo",
+            "description": "Entity icon path in the web app, if one exists"
+          },
           "aliases": {
             "items": {
               "type": "string"
@@ -5060,6 +5116,18 @@
               }
             ],
             "title": "Kind"
+          },
+          "logo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo",
+            "description": "Entity icon path in the web app, if one exists"
           }
         },
         "type": "object",
@@ -5106,6 +5174,18 @@
               }
             ],
             "title": "Kind"
+          },
+          "logo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo",
+            "description": "Entity icon path in the web app, if one exists"
           },
           "aliases": {
             "items": {

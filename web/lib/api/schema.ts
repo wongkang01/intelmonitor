@@ -848,6 +848,11 @@ export interface components {
             /** Name */
             name: string;
             /**
+             * Color
+             * @description Sidebar dot; assigned by position when unset
+             */
+            color?: ("blue" | "teal" | "purple" | "pink" | "orange" | "olive" | "slate" | "brown") | null;
+            /**
              * Subject Ids
              * @description The subjects the dashboard follows
              */
@@ -873,6 +878,11 @@ export interface components {
         DashboardSpec: {
             /** Name */
             name: string;
+            /**
+             * Color
+             * @description Sidebar dot; assigned by position when unset
+             */
+            color?: ("blue" | "teal" | "purple" | "pink" | "orange" | "olive" | "slate" | "brown") | null;
             /**
              * Subject Ids
              * @description The subjects the dashboard follows
@@ -1918,6 +1928,11 @@ export interface components {
             type: "topic" | "group" | "entity";
             /** Kind */
             kind: ("bank" | "central_bank" | "stablecoin_issuer" | "country") | null;
+            /**
+             * Logo
+             * @description Entity icon path in the web app, if one exists
+             */
+            logo?: string | null;
             /** Aliases */
             aliases: string[];
             /**
@@ -1958,6 +1973,11 @@ export interface components {
             type: "topic" | "group" | "entity";
             /** Kind */
             kind: ("bank" | "central_bank" | "stablecoin_issuer" | "country") | null;
+            /**
+             * Logo
+             * @description Entity icon path in the web app, if one exists
+             */
+            logo?: string | null;
         };
         /** SubjectSummary */
         SubjectSummary: {
@@ -1972,6 +1992,11 @@ export interface components {
             type: "topic" | "group" | "entity";
             /** Kind */
             kind: ("bank" | "central_bank" | "stablecoin_issuer" | "country") | null;
+            /**
+             * Logo
+             * @description Entity icon path in the web app, if one exists
+             */
+            logo?: string | null;
             /** Aliases */
             aliases: string[];
             /**

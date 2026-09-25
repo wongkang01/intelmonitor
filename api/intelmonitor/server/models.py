@@ -37,6 +37,9 @@ class SubjectRef(BaseModel):
     name: str
     type: SubjectType
     kind: EntityKind | None
+    logo: str | None = Field(
+        default=None, description="Entity icon path in the web app, if one exists"
+    )
 
 
 class SubjectSummary(SubjectRef):

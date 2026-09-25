@@ -24,6 +24,7 @@ import { CustomQuestionComposer } from "@/components/custom/CustomQuestion";
 import { PlusIcon, SearchIcon } from "@/components/ui/icons";
 import { CloseButton, Modal } from "@/components/ui/Modal";
 import { WidgetCard } from "@/components/widgets/WidgetCard";
+import { EntityIcon } from "@/components/ui/EntityIcon";
 
 const TYPES: SubjectType[] = ["topic", "group", "entity"];
 /** Previews render at dashboard size (one grid column, 176px rows) and scale down only if the sheet is narrow. */
@@ -110,6 +111,7 @@ export function Gallery({
                     aria-current={s.id === subject?.id}
                     onClick={() => setSelected(s.id)}
                   >
+                    <EntityIcon subject={s} />
                     <span className="subj-name">{s.name}</span>
                     {s.new_developments > 0 && <span className="meta">{s.new_developments} new</span>}
                   </button>
@@ -122,7 +124,10 @@ export function Gallery({
       </div>
       <div className="gallery">
         <div className="gallery-head">
-          <h3>{subject?.name}</h3>
+          <h3>
+            {subject && <EntityIcon subject={subject} size={20} />}
+            {subject?.name}
+          </h3>
           {subject && (
             <span className="meta">
               {[

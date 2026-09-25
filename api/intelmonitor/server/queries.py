@@ -63,7 +63,8 @@ def subject(subject_id: str) -> Subject:
 
 def subject_ref(subject_id: str) -> SubjectRef:
     s = subject(subject_id)
-    return SubjectRef(id=s.id, name=s.name, type=s.type, kind=s.kind)
+    logo = next((e.logo for e in load_subjects().entities if e.id == subject_id), None)
+    return SubjectRef(id=s.id, name=s.name, type=s.type, kind=s.kind, logo=logo)
 
 
 def subject_links(subject_id: str) -> SubjectLinks:

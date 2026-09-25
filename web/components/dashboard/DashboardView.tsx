@@ -12,6 +12,7 @@ import { PlusIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
 
 import { AddWidgetSheet } from "./AddWidgetSheet";
+import { DashboardDot, DashboardEditPop } from "./DashboardIdentity";
 import { WidgetGrid } from "./WidgetGrid";
 
 const HIGHLIGHT_MS = 1600;
@@ -24,6 +25,8 @@ export function DashboardView({ id }: { id: string }) {
   const save = useSaveDashboard(() => toast({ message: "Could not save the dashboard" }));
   const [editing, setEditing] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [identity, setIdentity] = useState(false);
+  const dotRef = useRef<HTMLButtonElement>(null);
   const [settingsFor, setSettingsFor] = useState<string | null>(null);
   const [highlight, setHighlight] = useState<string | null>(null);
   const latest = useRef<Dashboard | undefined>(undefined);
@@ -89,7 +92,21 @@ export function DashboardView({ id }: { id: string }) {
     <>
       <div className="pagehead dash-head">
         <div className="grow">
-          <h1>{d.name}</h1>
+          <div className="dash-title">
+            <button
+              ref={dotRef}
+              type="button"
+              className="dot-btn"
+              aria-label={`Edit name and color of ${d.name}`}
+              aria-haspopup="dialog"
+              aria-expanded={identity}
+              onClick={() => setIdentity((v) => !v)}
+            >
+              <DashboardDot color={d.color} />
+            </button>
+            <h1>{d.name}</h1>
+            {identity && <DashboardEditPop dashboard={d} trigger={dotRef} onClose={() => setIdentity(false)} />}
+          </div>
           <p>{editing ? "Drag to reorder. Click a widget for settings." : <SubjectLinks subjects={named} />}</p>
         </div>
         <button type="button" className="btn" onClick={() => setAdding(true)}>

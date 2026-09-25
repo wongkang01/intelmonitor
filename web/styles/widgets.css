@@ -515,3 +515,32 @@ a.qr:hover .ql {
 .self-start {
   align-self: flex-start;
 }
+
+/* Dashboard title with its color dot, which opens the name and color popover. */
+.dash-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  margin-left: -4px;
+}
+.dash-title .dot-btn {
+  position: static;
+}
+.dash-title .dash-dot {
+  width: 10px;
+  height: 10px;
+}
+.dash-title .dash-pop {
+  top: calc(100% + var(--s-2));
+}
+.ent-name,
+.gallery-head h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.pick,
+.subj {
+  gap: var(--s-2);
+}
