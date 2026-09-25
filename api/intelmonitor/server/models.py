@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 from pydantic import AfterValidator, BaseModel, Field
 
 from intelmonitor.pipeline.subjects import all_subjects
-from intelmonitor.seed import EntityKind, SubjectType
+from intelmonitor.seed import EntityKind, SubjectType, TopicIcon
 
 State = Literal["stable", "watch", "needs_attention", "new"]
 Stage = Literal["signal", "consultation", "proposed", "enacted", "enforced"]
@@ -42,6 +42,9 @@ class SubjectRef(BaseModel):
     )
     logo_full: str | None = Field(
         default=None, description="Full entity logo path in the web app, if one exists"
+    )
+    icon: TopicIcon | None = Field(
+        default=None, description="Topic glyph from the web icon library"
     )
 
 

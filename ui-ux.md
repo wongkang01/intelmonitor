@@ -316,6 +316,7 @@ Monitor sections are 32 px apart; the page title sits 24 px above the content; t
 
 **Motion:** only in response to the user: reflow on reorder, sheet open, drawer slide, the Generate prompt moving down, a short crossfade into widget settings, and a short fade-in for a widget the user or agent just added.
 No continuous animations (no wiggle, pulse, shimmer or spinners).
+One exception: while Generate waits for the agent's first change, the canvas blurs under a "Generating your dashboard" card with three rising dots; the dots animate only transform and opacity, and everything stops when the first widget lands.
 All motion is off under reduced-motion settings.
 
 **Dark mode (P1):** same tokens, redefined; badges keep their meaning.

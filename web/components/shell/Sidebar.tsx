@@ -10,7 +10,7 @@ import { useDashboards, useSubjects } from "@/lib/api/queries";
 import { TYPE_PLURAL } from "@/lib/format";
 import { monitorHref, type SubjectType } from "@/lib/widgets";
 import { ChevronIcon, MoreIcon, PlusIcon } from "@/components/ui/icons";
-import { EntityIcon } from "@/components/ui/EntityIcon";
+import { SubjectIcon } from "@/components/ui/SubjectIcon";
 import type { Schema } from "@/lib/api/client";
 
 import { DashboardDot, DashboardEditPop, useRenameDashboard } from "@/components/dashboard/DashboardIdentity";
@@ -87,7 +87,7 @@ export function Sidebar() {
                       className="navitem sub"
                       aria-current={pathname === href ? "page" : undefined}
                     >
-                      <EntityIcon subject={s} />
+                      <SubjectIcon subject={s} />
                       <span>{s.name}</span>
                       {s.new_developments > 0 && (
                         <span className="count" aria-label={`${s.new_developments} new`}>

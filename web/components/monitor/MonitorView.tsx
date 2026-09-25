@@ -21,7 +21,7 @@ import { DevelopmentRow, StateBadge } from "@/components/widgets/parts";
 
 import { StageTrack } from "./StageTrack";
 import { Dotted, Section, StateChange } from "./parts";
-import { EntityIcon } from "@/components/ui/EntityIcon";
+import { SubjectIcon } from "@/components/ui/SubjectIcon";
 
 type Page = Schema<"MonitorPage">;
 
@@ -43,7 +43,7 @@ export function MonitorView({ id }: { id: string }) {
           />
         )}
         <h1>
-          {!p.subject.logo_full && <EntityIcon subject={p.subject} size={28} />}
+          {!p.subject.logo_full && <SubjectIcon subject={p.subject} size={28} />}
           {p.subject.name}
         </h1>
         <p>

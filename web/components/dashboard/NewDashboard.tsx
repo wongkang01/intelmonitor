@@ -489,6 +489,8 @@ function GeneratePane({
   };
 
   const { summary, note, changes } = readReply(draft.reply || (draft.running ? "Working on your dashboard" : ""));
+  // Until the agent's first change lands, the canvas blurs under a "Generating" card.
+  const waiting = draft.running && draft.changed.size === 0;
   // Outline only small edits to an existing draft; a first build or a big change is listed instead.
   const outline = state.before > 0 && draft.changed.size <= OUTLINE_MAX ? [...draft.changed] : [];
 
@@ -521,14 +523,33 @@ function GeneratePane({
               )}
             </div>
           )}
-          <div className="nd-canvas nd-gen-scroll" inert={draft.running}>
-            <WidgetGrid
-              widgets={draft.widgets}
-              dashboardSubjectIds={subjectIds}
-              editing={!draft.running}
-              highlight={outline}
-              {...grid}
-            />
+          <div className={`nd-stage${waiting ? " waiting" : ""}`}>
+            <div className="nd-canvas nd-gen-scroll" inert={draft.running}>
+              {waiting && draft.widgets.length === 0 ? (
+                <GhostGrid />
+              ) : (
+                <WidgetGrid
+                  widgets={draft.widgets}
+                  dashboardSubjectIds={subjectIds}
+                  editing={!draft.running}
+                  highlight={outline}
+                  {...grid}
+                />
+              )}
+            </div>
+            {waiting && (
+              <div className="nd-generating" role="status">
+                <span className="nd-generating-card">
+                  <SparkleIcon size={14} />
+                  Generating your dashboard
+                  <span className="nd-dots" aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                </span>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -558,6 +579,17 @@ function GeneratePane({
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Static placeholder shapes of a dashboard, shown blurred while the first build is on its way. */
+function GhostGrid() {
+  return (
+    <div className="nd-ghosts" aria-hidden="true">
+      {["L", "M", "S", "S", "M", "M"].map((size, i) => (
+        <span key={i} className={`nd-ghost ${size}`} />
+      ))}
     </div>
   );
 }

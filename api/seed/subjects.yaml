@@ -8,14 +8,17 @@ topics:
     name: Banking regulation
     covers: Basel III implementation, capital and liquidity, AML/CFT, operational and technology resilience, supervisory enforcement
     keywords: [Basel III, capital requirements, liquidity coverage ratio, AML/CFT, anti-money laundering, operational resilience, technology risk, supervisory enforcement, bank penalty]
+    icon: landmark
   - id: geopolitics
     name: Geopolitics
     covers: US-China relations, tariffs, sanctions and export controls, South China Sea, regional security events with financial effects
     keywords: [US-China relations, tariffs, sanctions, export controls, South China Sea, regional security, trade war]
+    icon: globe
   - id: stablecoins
     name: Stablecoins
     covers: Stablecoin regulation and licensing, reserves and pegs, issuer activity, bank involvement, tokenised deposits
     keywords: [stablecoin regulation, stablecoin licensing, stablecoin reserves, depeg, stablecoin issuer, tokenised deposits, tokenization]
+    icon: coins
 
 groups:
   - id: singapore-banks

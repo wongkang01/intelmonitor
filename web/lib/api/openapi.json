@@ -5014,6 +5014,23 @@
             "title": "Logo Full",
             "description": "Full entity logo path in the web app, if one exists"
           },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "landmark",
+                  "coins",
+                  "globe"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon",
+            "description": "Topic glyph from the web icon library"
+          },
           "aliases": {
             "items": {
               "type": "string"
@@ -5152,6 +5169,23 @@
             ],
             "title": "Logo Full",
             "description": "Full entity logo path in the web app, if one exists"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "landmark",
+                  "coins",
+                  "globe"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon",
+            "description": "Topic glyph from the web icon library"
           }
         },
         "type": "object",
@@ -5222,6 +5256,23 @@
             ],
             "title": "Logo Full",
             "description": "Full entity logo path in the web app, if one exists"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "landmark",
+                  "coins",
+                  "globe"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon",
+            "description": "Topic glyph from the web icon library"
           },
           "aliases": {
             "items": {

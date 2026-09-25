@@ -14,7 +14,7 @@ import { useEvidenceHref } from "@/components/shell/Evidence";
 import { SubjectLink } from "@/components/shell/SubjectLink";
 
 import { DevelopmentRow, Head, StateBadge, StateWords, stateText } from "./parts";
-import { EntityIcon } from "@/components/ui/EntityIcon";
+import { SubjectIcon } from "@/components/ui/SubjectIcon";
 
 export interface BodyProps {
   widget: Widget;
@@ -386,7 +386,7 @@ function WatchlistBody({ data, widget, onChange }: BodyProps & { data: DataOf<"w
         <div className="rows scroll" role="listbox" aria-label="Matching entities">
           {matches.map((s) => (
             <button key={s.id} type="button" role="option" aria-selected={false} className="pick" onClick={() => add(s.id)}>
-              <EntityIcon subject={s} />
+              <SubjectIcon subject={s} />
               <span className="pick-name">{s.name}</span>
               {s.new_developments > 0 && <span className="w-meta">{s.new_developments} new</span>}
             </button>
@@ -429,7 +429,7 @@ function WatchRow({
       </span>
       <span className="ent-body">
         <span className="ent-name">
-          <EntityIcon subject={e.entity} size={20} />
+          <SubjectIcon subject={e.entity} size={20} />
           <Link href={monitorHref(e.entity.id)} className="stretch">
             {e.entity.name}
           </Link>

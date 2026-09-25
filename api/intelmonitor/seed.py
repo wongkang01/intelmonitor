@@ -10,6 +10,8 @@ from intelmonitor.config import SEED_DIR
 
 EntityKind = Literal["bank", "central_bank", "stablecoin_issuer", "country"]
 SubjectType = Literal["topic", "group", "entity"]
+# Topic glyphs the web app draws from its icon library.
+TopicIcon = Literal["landmark", "coins", "globe"]
 
 
 class Topic(BaseModel):
@@ -17,6 +19,7 @@ class Topic(BaseModel):
     name: str
     covers: str
     keywords: list[str]
+    icon: TopicIcon | None = None
 
 
 class Group(BaseModel):

@@ -760,3 +760,8 @@ dialog .toast-region .toast {
   padding: 0;
   object-fit: cover;
 }
+/* Topic glyphs: a monochrome line icon on the neutral tile. */
+.ent-icon.glyph {
+  background: var(--rail);
+  color: var(--ink2);
+}

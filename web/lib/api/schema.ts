@@ -1938,6 +1938,11 @@ export interface components {
              * @description Full entity logo path in the web app, if one exists
              */
             logo_full?: string | null;
+            /**
+             * Icon
+             * @description Topic glyph from the web icon library
+             */
+            icon?: ("landmark" | "coins" | "globe") | null;
             /** Aliases */
             aliases: string[];
             /**
@@ -1988,6 +1993,11 @@ export interface components {
              * @description Full entity logo path in the web app, if one exists
              */
             logo_full?: string | null;
+            /**
+             * Icon
+             * @description Topic glyph from the web icon library
+             */
+            icon?: ("landmark" | "coins" | "globe") | null;
         };
         /** SubjectSummary */
         SubjectSummary: {
@@ -2012,6 +2022,11 @@ export interface components {
              * @description Full entity logo path in the web app, if one exists
              */
             logo_full?: string | null;
+            /**
+             * Icon
+             * @description Topic glyph from the web icon library
+             */
+            icon?: ("landmark" | "coins" | "globe") | null;
             /** Aliases */
             aliases: string[];
             /**

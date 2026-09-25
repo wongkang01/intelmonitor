@@ -63,7 +63,9 @@ def subject(subject_id: str) -> Subject:
 
 def subject_ref(subject_id: str) -> SubjectRef:
     s = subject(subject_id)
-    entity = next((e for e in load_subjects().entities if e.id == subject_id), None)
+    seed = load_subjects()
+    entity = next((e for e in seed.entities if e.id == subject_id), None)
+    topic = next((t for t in seed.topics if t.id == subject_id), None)
     return SubjectRef(
         id=s.id,
         name=s.name,
@@ -71,6 +73,7 @@ def subject_ref(subject_id: str) -> SubjectRef:
         kind=s.kind,
         logo=entity.logo if entity else None,
         logo_full=entity.logo_full if entity else None,
+        icon=topic.icon if topic else None,
     )
 
 

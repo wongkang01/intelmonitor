@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/icons";
 
 import { useEvidenceHref } from "./Evidence";
-import { EntityIcon } from "@/components/ui/EntityIcon";
+import { SubjectIcon } from "@/components/ui/SubjectIcon";
 
 const MAX_HITS = 8;
 
@@ -171,7 +171,7 @@ function Search() {
               onMouseEnter={() => setActive(i)}
               onClick={() => go(h)}
             >
-              <EntityIcon subject={h.subject} />
+              <SubjectIcon subject={h.subject} />
               <b>{h.subject.name}</b>
               {h.matched !== h.subject.name && <span className="alias">{h.matched}</span>}
               <span className="type">{TYPE_LABEL[h.subject.type]}</span>
