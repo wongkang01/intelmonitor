@@ -38,14 +38,28 @@ It extends `poc-plan.md`; where they disagree, this plan wins for the items it l
    On Singapore banks, the Since widget says 79 new, but "Show all" opens `/monitors/singapore-banks`, which says 34 new.
    The Banking regulation items drop out.
    "Show all" on a dashboard widget opens a view scoped to that dashboard's subjects.
+   Built: a Since or Developments widget that follows every subject on a dashboard links to `/developments?dashboard=<id>`, with `&changed=1` for Since.
+   The page lists the dashboard's developments with the monitor page's What changed rows, and its counts match the widget's ("79 new, 1 updated, 9 need attention").
+   It reads `GET /developments?dashboard_id=<id>&changed=true`, which now returns every match unless `limit` is set.
+   Answer changes are not listed there, since they are not developments.
+   B6 replaces this page at the same route, adding facets as further parameters.
+   The evidence drawer now keeps a page's own query parameters when it opens and closes.
 4. **Search placeholder.**
    The placeholder reads "Search or ask about a topic, group or entity", but there is no ask.
    Reword it to what search does.
+   Built: "Search monitors, developments and documents"; the field's accessible name is "Search".
 5. **Full-text search.**
    `GET /search?q=basel` returns `[]` because search only matches subject names.
    Add SQLite FTS5 over development titles and summaries and document titles and text.
    The ⌘K panel groups results: subjects, developments, documents.
    A development opens the evidence drawer; a document opens its development's evidence.
+   Built: `documents_fts` indexes document titles and text, kept in sync by triggers on `source_documents`.
+   `developments_fts` indexes each run's development titles with, as summary, the statements of the development's other findings; developments have no summary column, and the title is the lead finding's statement.
+   The pipeline reindexes a run when it stores its developments, and the store builds both tables from existing data when they are first created.
+   `GET /search` returns `{subjects, developments, documents}`; the full-text groups cover the latest run, up to `limit` (5) each, best first by BM25 with titles weighted 4 to 1.
+   Only documents that are a source of a latest-run development are listed, since a result opens that development's evidence; a document cited by several opens the first in display order.
+   Every word must match and the last also matches as a prefix, so results follow typing; there is no stemming, which keeps prefixes predictable.
+   The panel shows at most 5 rows per group; arrows and Enter move through all groups in order.
 6. **Honest run history.**
    Repeated manual reruns of the same as-of date each say "No new developments", because each compares with the previous execution.
    Word each row against the previous as-of date instead.

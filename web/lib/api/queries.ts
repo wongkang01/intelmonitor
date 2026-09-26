@@ -45,6 +45,7 @@ export const keys = {
   alerts: ["alerts"],
   dataSources: ["data-sources"],
   development: (id: string) => ["development", id],
+  developments: (query: DevelopmentsQuery) => ["developments", query],
   answerEvidence: (subjectId: string, questionId: string) => ["answer-evidence", subjectId, questionId],
   monitorPage: (id: string) => ["monitor-page", id],
   search: (text: string) => ["search", text],
@@ -52,6 +53,9 @@ export const keys = {
   graph: (query: GraphQuery) => ["graph", query],
   customSlots: ["custom-question-slots"],
 } as const;
+
+/** Query parameters of GET /developments: a scope (subjects or a dashboard) and filters. */
+export type DevelopmentsQuery = NonNullable<operations["list_developments"]["parameters"]["query"]>;
 
 /** Query parameters of GET /graph: center subject, hops (1 or 2) and optional filters. */
 export type GraphQuery = NonNullable<operations["get_graph"]["parameters"]["query"]>;
@@ -156,6 +160,13 @@ export const useDevelopment = (id: string | null) =>
     enabled: id !== null,
   });
 
+/** The latest run's developments in display order, for a scope. */
+export const useDevelopments = (query: DevelopmentsQuery) =>
+  useQuery({
+    queryKey: keys.developments(query),
+    queryFn: () => unwrap(api.GET("/developments", { params: { query } })),
+  });
+
 /** The answer behind a standing question and the developments it relies on. */
 export const useAnswerEvidence = (target: { subjectId: string; questionId: string } | null) =>
   useQuery({
@@ -184,7 +195,10 @@ export const useGraph = (query: GraphQuery) =>
     placeholderData: keepPreviousData,
   });
 
-/** Subjects whose name or an alias matches `text`, best first. */
+/**
+ * Subjects whose name or an alias matches `text`, and the latest run's developments and source
+ * documents whose text does, each group best first.
+ */
 export const searchOptions = (text: string) =>
   queryOptions({
     queryKey: keys.search(text.trim().toLowerCase()),

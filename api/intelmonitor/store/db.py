@@ -4,6 +4,7 @@ import sqlite3
 from pathlib import Path
 
 from intelmonitor.config import DATA_DIR
+from intelmonitor.store import search
 
 DB_PATH = DATA_DIR / "intelmonitor.db"
 
@@ -262,6 +263,29 @@ CREATE TABLE IF NOT EXISTS custom_question_answers (
     document_ids TEXT NOT NULL,        -- JSON [document_id]: the top matches Claude read
     PRIMARY KEY (question_id, run_id)
 );
+
+-- Full-text search (store/search.py). Both tables keep their own copy of the text, so they do not
+-- depend on rowids staying put. Triggers index documents on every write; the pipeline indexes a
+-- run's developments when it stores them, with the statements of all their findings as summary.
+CREATE VIRTUAL TABLE IF NOT EXISTS documents_fts USING fts5(
+    title, text, document_id UNINDEXED, tokenize = 'unicode61 remove_diacritics 2'
+);
+CREATE TRIGGER IF NOT EXISTS source_documents_fts_insert AFTER INSERT ON source_documents BEGIN
+    INSERT INTO documents_fts (title, text, document_id) VALUES (new.title, new.text, new.id);
+END;
+CREATE TRIGGER IF NOT EXISTS source_documents_fts_delete AFTER DELETE ON source_documents BEGIN
+    DELETE FROM documents_fts WHERE document_id = old.id;
+END;
+CREATE TRIGGER IF NOT EXISTS source_documents_fts_update AFTER UPDATE OF title, text
+ON source_documents BEGIN
+    DELETE FROM documents_fts WHERE document_id = old.id;
+    INSERT INTO documents_fts (title, text, document_id) VALUES (new.title, new.text, new.id);
+END;
+
+CREATE VIRTUAL TABLE IF NOT EXISTS developments_fts USING fts5(
+    title, summary, run_id UNINDEXED, development_id UNINDEXED,
+    tokenize = 'unicode61 remove_diacritics 2'
+);
 """
 
 
@@ -272,7 +296,12 @@ def connect(path: Path = DB_PATH) -> sqlite3.Connection:
     conn = sqlite3.connect(path, timeout=30, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")  # the API reads while a pipeline run writes
+    indexed = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE name = 'developments_fts'"
+    ).fetchone()
     conn.executescript(SCHEMA)
+    if indexed is None:
+        search.rebuild(conn)  # the search tables are new: index what is already stored
     return conn
 
 

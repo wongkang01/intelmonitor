@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useMarkReviewed, useMonitorPage } from "@/lib/api/queries";
-import { answerText, capitalize, dateTime, daysBetween, inDays, plural, shortDate, TYPE_PLURAL } from "@/lib/format";
+import { answerText, capitalize, changeCounts, dateTime, daysBetween, inDays, plural, shortDate, TYPE_PLURAL } from "@/lib/format";
 import { monitorHref, type SubjectType } from "@/lib/widgets";
 import { CustomQuestionComposer, CustomQuestionEditor } from "@/components/custom/CustomQuestion";
 import { useEvidenceHref } from "@/components/shell/Evidence";
@@ -91,18 +91,13 @@ function WhatChanged({ page }: { page: Page }) {
   const evidence = useEvidenceHref();
   const shown = all ? wc.developments : wc.developments.slice(0, FIRST_ROWS);
   const base = wc.run.previous_run_id;
-  const counts = [
-    wc.new_count > 0 && `${wc.new_count} new`,
-    wc.updated_count > 0 && `${wc.updated_count} updated`,
-    wc.needs_attention_count > 0 && `${wc.needs_attention_count} ${wc.needs_attention_count === 1 ? "needs" : "need"} attention`,
-  ].filter(Boolean);
   return (
     <Section
       id="what-changed"
       title="What changed since last review"
       meta={base ? `Run of ${shortDate(wc.run.as_of)} against ${shortDate(base)}` : `Run of ${shortDate(wc.run.as_of)}`}
     >
-      <p className="mon-lead">{counts.length > 0 ? counts.join(", ") : "Nothing new or updated"}</p>
+      <p className="mon-lead">{changeCounts(wc) || "Nothing new or updated"}</p>
       {wc.developments.length > 0 && (
         <div className="rows">
           {shown.map((d) => (

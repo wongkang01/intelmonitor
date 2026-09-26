@@ -116,6 +116,7 @@ export function DashboardView({ id }: { id: string }) {
       <WidgetGrid
         widgets={d.widgets}
         dashboardSubjectIds={d.subject_ids}
+        dashboardId={d.id}
         editing={editing}
         settingsFor={settingsFor}
         highlight={highlight ? [highlight] : []}

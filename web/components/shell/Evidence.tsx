@@ -3,9 +3,10 @@
 // Evidence drawer over the current page. `?evidence=<development id>` shows a development's
 // sources; `?answer=<subject id>:<question id>` shows a standing question answer with the
 // developments it relies on. Build links with useEvidenceHref. Esc or Close drops the parameter.
+// The page's own parameters (the developments view's scope) stay as they are.
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Fragment, useEffect, useRef, type ReactNode } from "react";
+import { Fragment, useEffect, useEffectEvent, useRef, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useAnswerEvidence, useDevelopment } from "@/lib/api/queries";
@@ -18,13 +19,26 @@ import { DevelopmentBadge } from "@/components/widgets/parts";
 import { Notes } from "./Notes";
 import { SubjectLink } from "./SubjectLink";
 
+type DrawerParam = "evidence" | "answer";
+
+/** The page's href with the drawer set to `open`, or closed when `open` is omitted. */
+export function drawerHref(pathname: string, params: URLSearchParams, open?: [DrawerParam, string]) {
+  const next = new URLSearchParams(params);
+  next.delete("evidence");
+  next.delete("answer");
+  if (open) next.set(...open);
+  const query = next.toString();
+  return query ? `${pathname}?${query}` : pathname;
+}
+
 /** Hrefs that open the evidence drawer over the current page. */
 export function useEvidenceHref() {
   const pathname = usePathname();
+  const params = useSearchParams();
   return {
-    development: (id: string) => `${pathname}?evidence=${encodeURIComponent(id)}`,
+    development: (id: string) => drawerHref(pathname, params, ["evidence", id]),
     answer: (subjectId: string, questionId: string) =>
-      `${pathname}?answer=${encodeURIComponent(`${subjectId}:${questionId}`)}`,
+      drawerHref(pathname, params, ["answer", `${subjectId}:${questionId}`]),
   };
 }
 
@@ -46,6 +60,8 @@ export function EvidenceDrawer() {
   const heading = useRef<HTMLHeadingElement>(null);
   const open = developmentId !== null || answer !== null;
   const opened = developmentId ?? answerParam;
+  const close = () => router.replace(drawerHref(pathname, params), { scroll: false });
+  const closeOnEscape = useEffectEvent(close);
 
   useEffect(() => {
     if (!opened) return;
@@ -53,7 +69,7 @@ export function EvidenceDrawer() {
     heading.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !typingIn(e.target) && !document.querySelector("dialog[open]")) {
-        router.replace(pathname, { scroll: false });
+        closeOnEscape();
       }
     };
     document.addEventListener("keydown", onKey);
@@ -61,7 +77,7 @@ export function EvidenceDrawer() {
       document.removeEventListener("keydown", onKey);
       if (opener?.isConnected && !opener.closest(".drawer")) opener.focus();
     };
-  }, [opened, pathname, router]);
+  }, [opened]);
 
   if (!open) return null;
   const failed = developmentId ? development.isError : answerEvidence.isError;
@@ -72,7 +88,7 @@ export function EvidenceDrawer() {
         <h2 id="evidence-title" tabIndex={-1} ref={heading}>
           Evidence
         </h2>
-        <CloseButton onClick={() => router.replace(pathname, { scroll: false })} label="Close evidence" />
+        <CloseButton onClick={close} label="Close evidence" />
       </div>
       <div className="drawer-body">
         {failed && <p className="ev-empty">Could not load this evidence.</p>}

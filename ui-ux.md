@@ -53,7 +53,8 @@ The row's options menu has Move up and Move down for keyboard and touch.
 **Profile menu:** opens upward from the profile button. Settings, Data sources, Run history, Keyboard shortcuts. Esc or a click outside closes it.
 
 **Top bar:** 56 px tall, one row.
-The search field flexes from the left: "Search or ask about a topic, group or entity" with ⌘K, 32 px, bordered.
+The search field flexes from the left: "Search monitors, developments and documents" with ⌘K, 32 px, bordered.
+Results come in three groups: monitors open their page, and developments and documents open the evidence drawer.
 Typing a name jumps to its page.
 Typing a question gets an answer with citations (P1; the POC only jumps to pages).
 To the right of the search field, 8 px apart: a run status chip and an alerts button, both 32 px with a 1 px border at the 6 px control radius.

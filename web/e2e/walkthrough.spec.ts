@@ -6,7 +6,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 
 import { api, API_URL, type Schema } from "../lib/api/client";
-import { answerText, shortDate } from "../lib/format";
+import { answerText, changeCounts, shortDate } from "../lib/format";
 
 import { runDir, screenshotName, STEPS } from "./steps";
 
@@ -108,6 +108,15 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       const meta = `Run of ${shortDate(latest.as_of)} against ${shortDate(latest.previous_run_id ?? "")}`;
       await expect(widget.locator(".wm")).toHaveText(meta);
       await expect(widget.locator(".row.dev").first()).toContainText(wc.developments[0].title);
+
+      // Show all opens the dashboard's changed developments, with the widget's counts.
+      await widget.getByRole("link", { name: "Show all" }).click();
+      await expect(page).toHaveURL(`/developments?dashboard=${starter.id}&changed=1`);
+      const changes = page.getByRole("region", { name: "What changed since last review" });
+      await expect(changes.locator(".mon-lead")).toHaveText(changeCounts(wc));
+      await expect(changes.locator(".row.dev")).toHaveCount(wc.developments.length);
+      await page.goBack();
+      await expect(page).toHaveURL(`/dashboards/${starter.id}`);
     });
 
     await step(STEPS[1], async () => {
@@ -280,7 +289,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
     });
 
     await step(STEPS[5], async () => {
-      const search = page.getByRole("combobox", { name: "Search or ask" });
+      const search = page.getByRole("combobox", { name: "Search" });
       await page.locator("body").click({ position: { x: 5, y: 5 } });
       await page.keyboard.press("ControlOrMeta+k");
       await expect(search).toBeFocused();
@@ -440,6 +449,43 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
         els.map((el) => (el.querySelector<HTMLElement>(".dash-dot")?.style.background ?? "")),
       );
       expect(dots).toEqual(afterMove.map((id) => `var(--dash-${colors.get(id)})`));
+    });
+
+    await step(STEPS[9], async () => {
+      // A word from a latest-run development title that finds developments and documents.
+      const all = await unwrap(api.GET("/developments", { params: { query: { limit: 20 } } }));
+      const words = [...new Set(all.flatMap((d) => d.title.match(/\b[A-Za-z]{6,}\b/g) ?? []))];
+      let found: { word: string; results: Schema<"SearchResults"> } | null = null;
+      for (const word of words) {
+        const results = await unwrap(api.GET("/search", { params: { query: { q: word } } }));
+        if (results.developments.length && results.documents.length) {
+          found = { word, results };
+          break;
+        }
+      }
+      if (!found) throw new Error("no title word finds both developments and documents");
+      const { word, results } = found;
+      const search = page.getByRole("combobox", { name: "Search" });
+      const list = page.getByRole("listbox", { name: "Search results" });
+      const drawer = page.getByTestId("evidence-drawer");
+
+      const development = results.developments[0];
+      await page.keyboard.press("ControlOrMeta+k");
+      await search.pressSequentially(word, { delay: 20 });
+      const devOption = list.getByRole("group", { name: "Developments" }).getByRole("option").first();
+      await expect(devOption).toContainText(development.title);
+      await devOption.click();
+      await expect(page).toHaveURL(new RegExp(`[?&]evidence=${encodeURIComponent(development.id)}$`));
+      await expect(drawer.getByRole("heading", { level: 3 })).toHaveText(development.title);
+
+      const document = results.documents[0];
+      await page.keyboard.press("ControlOrMeta+k");
+      await search.pressSequentially(word, { delay: 20 });
+      const docOption = list.getByRole("group", { name: "Documents" }).getByRole("option").first();
+      await expect(docOption).toContainText(document.title);
+      await docOption.click();
+      await expect(page).toHaveURL(new RegExp(`[?&]evidence=${encodeURIComponent(document.development_id)}$`));
+      await expect(drawer.locator(".source a").filter({ hasText: document.title }).first()).toBeVisible();
     });
 
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);

@@ -362,6 +362,27 @@ class SearchHit(BaseModel):
     matched: str = Field(description="The name or alias that matched")
 
 
+class DocumentHit(BaseModel):
+    id: str
+    title: str
+    domain: str
+    published_at: datetime
+    snippet: str = Field(description="Plain text around the best match, with … where clipped")
+    development_id: str = Field(
+        description="The development whose evidence it opens: the first citing it in display order"
+    )
+
+
+class SearchResults(BaseModel):
+    subjects: list[SearchHit] = Field(description="By name and alias, best first")
+    developments: list[DevelopmentSummary] = Field(
+        description="The latest run's, by title and summary, best first"
+    )
+    documents: list[DocumentHit] = Field(
+        description="Sources of the latest run's developments, by title and text, best first"
+    )
+
+
 class DataSourceStats(BaseModel):
     source: str
     collection: Collection

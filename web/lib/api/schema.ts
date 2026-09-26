@@ -81,8 +81,8 @@ export interface paths {
         };
         /**
          * Search
-         * @description Subjects by name and alias: exact matches first, then prefixes, then word prefixes, then
-         *     substrings.
+         * @description Subjects by name and alias, plus up to `limit` of the latest run's developments and up to
+         *     `limit` of their source documents by full text.
          */
         get: operations["search"];
         put?: never;
@@ -103,7 +103,8 @@ export interface paths {
         /**
          * List Developments
          * @description The latest run's developments in display order, optionally for some subjects (groups
-         *     include their members) or only those new or updated since the previous run.
+         *     include their members), for a dashboard's subjects, or only those new or updated since the
+         *     previous run. A dashboard's changed developments are the ones its Since widget counts.
          */
         get: operations["list_developments"];
         put?: never;
@@ -1237,6 +1238,30 @@ export interface components {
              */
             quotes: components["schemas"]["Quote"][];
         };
+        /** DocumentHit */
+        DocumentHit: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Domain */
+            domain: string;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+            /**
+             * Snippet
+             * @description Plain text around the best match, with … where clipped
+             */
+            snippet: string;
+            /**
+             * Development Id
+             * @description The development whose evidence it opens: the first citing it in display order
+             */
+            development_id: string;
+        };
         /**
          * DocumentPart
          * @description A document part.
@@ -1853,6 +1878,24 @@ export interface components {
              * @description The name or alias that matched
              */
             matched: string;
+        };
+        /** SearchResults */
+        SearchResults: {
+            /**
+             * Subjects
+             * @description By name and alias, best first
+             */
+            subjects: components["schemas"]["SearchHit"][];
+            /**
+             * Developments
+             * @description The latest run's, by title and summary, best first
+             */
+            developments: components["schemas"]["DevelopmentSummary"][];
+            /**
+             * Documents
+             * @description Sources of the latest run's developments, by title and text, best first
+             */
+            documents: components["schemas"]["DocumentHit"][];
         };
         /** SinceData */
         SinceData: {
@@ -2595,6 +2638,7 @@ export interface operations {
         parameters: {
             query: {
                 q: string;
+                limit?: number;
             };
             header?: never;
             path?: never;
@@ -2608,7 +2652,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SearchHit"][];
+                    "application/json": components["schemas"]["SearchResults"];
                 };
             };
             /** @description Validation Error */
@@ -2626,8 +2670,9 @@ export interface operations {
         parameters: {
             query?: {
                 subject_id?: string[] | null;
+                dashboard_id?: string | null;
                 changed?: boolean;
-                limit?: number;
+                limit?: number | null;
             };
             header?: never;
             path?: never;

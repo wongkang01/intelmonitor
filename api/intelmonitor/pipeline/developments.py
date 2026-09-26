@@ -28,6 +28,7 @@ from intelmonitor.pipeline.params import (
     SAME_EVENT_THRESHOLD,
 )
 from intelmonitor.pipeline.subjects import all_subjects
+from intelmonitor.store import search
 
 _COLLECTION_RANK = {"dms": 0, "official": 1, "news": 2}
 
@@ -353,4 +354,5 @@ def store_developments(conn: sqlite3.Connection, run_id: str, devs: list[Develop
             "VALUES (?, ?, ?, ?)",
             [(run_id, d.id, f.id, f.document_id) for f in d.findings],
         )
+    search.index_developments(conn, run_id)
     conn.commit()

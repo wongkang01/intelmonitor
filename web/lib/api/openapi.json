@@ -130,7 +130,7 @@
     "/search": {
       "get": {
         "summary": "Search",
-        "description": "Subjects by name and alias: exact matches first, then prefixes, then word prefixes, then\nsubstrings.",
+        "description": "Subjects by name and alias, plus up to `limit` of the latest run's developments and up to\n`limit` of their source documents by full text.",
         "operationId": "search",
         "parameters": [
           {
@@ -142,6 +142,18 @@
               "minLength": 1,
               "title": "Q"
             }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 5,
+              "title": "Limit"
+            }
           }
         ],
         "responses": {
@@ -150,11 +162,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SearchHit"
-                  },
-                  "title": "Response Search"
+                  "$ref": "#/components/schemas/SearchResults"
                 }
               }
             }
@@ -175,7 +183,7 @@
     "/developments": {
       "get": {
         "summary": "List Developments",
-        "description": "The latest run's developments in display order, optionally for some subjects (groups\ninclude their members) or only those new or updated since the previous run.",
+        "description": "The latest run's developments in display order, optionally for some subjects (groups\ninclude their members), for a dashboard's subjects, or only those new or updated since the\nprevious run. A dashboard's changed developments are the ones its Since widget counts.",
         "operationId": "list_developments",
         "parameters": [
           {
@@ -198,6 +206,22 @@
             }
           },
           {
+            "name": "dashboard_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dashboard Id"
+            }
+          },
+          {
             "name": "changed",
             "in": "query",
             "required": false,
@@ -212,10 +236,15 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer",
-              "maximum": 500,
-              "minimum": 1,
-              "default": 50,
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "title": "Limit"
             }
           }
@@ -3176,6 +3205,47 @@
         ],
         "title": "DocumentDetail"
       },
+      "DocumentHit": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "domain": {
+            "type": "string",
+            "title": "Domain"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Published At"
+          },
+          "snippet": {
+            "type": "string",
+            "title": "Snippet",
+            "description": "Plain text around the best match, with \u2026 where clipped"
+          },
+          "development_id": {
+            "type": "string",
+            "title": "Development Id",
+            "description": "The development whose evidence it opens: the first citing it in display order"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "domain",
+          "published_at",
+          "snippet",
+          "development_id"
+        ],
+        "title": "DocumentHit"
+      },
       "DocumentPart": {
         "properties": {
           "type": {
@@ -4792,6 +4862,41 @@
           "matched"
         ],
         "title": "SearchHit"
+      },
+      "SearchResults": {
+        "properties": {
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            },
+            "type": "array",
+            "title": "Subjects",
+            "description": "By name and alias, best first"
+          },
+          "developments": {
+            "items": {
+              "$ref": "#/components/schemas/DevelopmentSummary"
+            },
+            "type": "array",
+            "title": "Developments",
+            "description": "The latest run's, by title and summary, best first"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentHit"
+            },
+            "type": "array",
+            "title": "Documents",
+            "description": "Sources of the latest run's developments, by title and text, best first"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subjects",
+          "developments",
+          "documents"
+        ],
+        "title": "SearchResults"
       },
       "SinceData": {
         "properties": {

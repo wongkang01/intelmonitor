@@ -276,6 +276,8 @@ main.main {
   border: 1px solid var(--line-strong);
   border-radius: var(--r-widget);
   box-shadow: var(--shadow-pop);
+  max-height: calc(100vh - 72px);
+  overflow-y: auto;
 }
 .search-hit {
   height: 32px;
@@ -299,6 +301,30 @@ main.main {
 }
 .search-hit .type {
   margin-left: auto;
+}
+/* Development and document rows: one line each, the title and the document's matched text clipped
+   so the date or domain stays at the right end. */
+.search-hit.development b,
+.search-hit.document b,
+.search-hit.document .alias {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.search-hit.document b {
+  flex: none;
+  max-width: 50%;
+}
+.search-hit.document .alias {
+  flex: 1;
+}
+.search-hit.development .type,
+.search-hit.document .type {
+  flex: none;
+}
+.search-list .pop-group {
+  padding: var(--s-2) var(--s-2) var(--s-1);
 }
 .search-list .empty {
   margin: 0;

@@ -1,7 +1,7 @@
 // The walkthrough's steps, in order: poc-plan.md, Verification > E2E. The test runs them as
 // test.step titles and the reporter lists them in index.html, including any that never ran.
 export const STEPS = [
-  "Since your last review shows Run 2 changes",
+  "Since your last review shows Run 2 changes, Show all lists them",
   "Evidence highlights the quote in its source",
   "Edit mode: drag, remove, reload keeps the layout",
   "New dashboard, Build",
@@ -10,6 +10,7 @@ export const STEPS = [
   "Custom question with answer and citations",
   "Graph view: 2 hops, click a node, its page opens",
   "Sidebar: drag and Move up reorder dashboards, colors stay",
+  "⌘K full text: a development and a document open their evidence",
 ] as const;
 
 /** Where each run writes its artifacts; playwright.config.ts sets it once per run. */

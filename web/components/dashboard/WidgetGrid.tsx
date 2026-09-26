@@ -77,6 +77,7 @@ function moved(ids: string[], id: string, targetId: string, after: boolean): str
 export function WidgetGrid({
   widgets,
   dashboardSubjectIds,
+  dashboardId,
   editing,
   settingsFor,
   highlight,
@@ -88,6 +89,8 @@ export function WidgetGrid({
 }: {
   widgets: Widget[];
   dashboardSubjectIds: string[];
+  /** Set for a saved dashboard, so widgets following all its subjects link to its developments. */
+  dashboardId?: string;
   editing: boolean;
   settingsFor: string | null;
   /** Widgets to outline, such as one just added; the last one is scrolled into view. */
@@ -316,6 +319,7 @@ export function WidgetGrid({
             key={w.id}
             widget={w}
             dashboardSubjectIds={dashboardSubjectIds}
+            dashboardId={dashboardId}
             variant="grid"
             editing={editing}
             settingsOpen={editing && settingsFor === w.id}

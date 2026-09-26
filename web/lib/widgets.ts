@@ -159,14 +159,24 @@ export function setEntities(widget: Widget, entityIds: string[]): Widget {
 export const allowsDashboardScope = (widget: Widget) =>
   widget.type === "since" || widget.type === "developments";
 
-/** The monitor page a tap on the widget opens, or null when only its rows link somewhere. */
-export function widgetHref(widget: Widget, dashboardSubjectIds: string[]): string | null {
+/**
+ * Where a tap on the widget goes, or null when only its rows link somewhere: its subject's monitor
+ * page or, for a widget following every subject on a saved dashboard, that dashboard's developments
+ * (the changed ones for Since), so the page counts what the widget counts.
+ */
+export function widgetHref(widget: Widget, dashboardSubjectIds: string[], dashboardId?: string): string | null {
   if (widget.type === "watchlist") return null;
-  const id = widget.settings.subject_id ?? dashboardSubjectIds[0];
-  return id ? monitorHref(id) : null;
+  const id = widget.settings.subject_id;
+  if (id) return monitorHref(id);
+  if (dashboardId) return developmentsHref(dashboardId, widget.type === "since");
+  return dashboardSubjectIds[0] ? monitorHref(dashboardSubjectIds[0]) : null;
 }
 
 export const monitorHref = (subjectId: string) => `/monitors/${subjectId}`;
+
+/** A dashboard's developments, or only those new or updated in the latest run. */
+export const developmentsHref = (dashboardId: string, changed: boolean) =>
+  `/developments?dashboard=${encodeURIComponent(dashboardId)}${changed ? "&changed=1" : ""}`;
 
 /** The subjects a set of widgets follows, in order: widget subjects, else watchlist entities. */
 export function subjectsUsed(widgets: Widget[]): string[] {

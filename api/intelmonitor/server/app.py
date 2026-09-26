@@ -41,7 +41,7 @@ from intelmonitor.server.models import (
     RunInfo,
     RunSchedule,
     RunStatus,
-    SearchHit,
+    SearchResults,
     SubjectConfidence,
     SubjectDetail,
     SubjectSummary,
@@ -50,11 +50,11 @@ from intelmonitor.server.queries import (
     NoRunError,
     NotFoundError,
     Queries,
-    aliases,
     now,
     subject,
     subject_ref,
 )
+from intelmonitor.server.search import search as search_all
 from intelmonitor.server.widgets import (
     Dashboard,
     DashboardSpec,
@@ -170,31 +170,14 @@ def get_monitor_page(q: Q, subject_id: str) -> MonitorPage:
 
 
 @app.get("/search")
-def search(q: Q, text: Annotated[str, Query(alias="q", min_length=1)]) -> list[SearchHit]:
-    """Subjects by name and alias: exact matches first, then prefixes, then word prefixes, then
-    substrings."""
-    needle = text.strip().lower()
-    hits: list[tuple[int, int, SearchHit]] = []
-    for position, s in enumerate(all_subjects().values()):
-        best: tuple[int, str] | None = None
-        for name in [s.name, *aliases(s.id)]:
-            low = name.lower()
-            if low == needle:
-                rank = 0
-            elif low.startswith(needle):
-                rank = 1
-            elif any(w.startswith(needle) for w in low.split()):
-                rank = 2
-            elif needle in low:
-                rank = 3
-            else:
-                continue
-            if best is None or rank < best[0]:
-                best = (rank, name)
-        if best:
-            hit = SearchHit(subject=subject_ref(s.id), matched=best[1])
-            hits.append((best[0], position, hit))
-    return [h for _, _, h in sorted(hits, key=lambda t: (t[0], t[1]))]
+def search(
+    q: Q,
+    text: Annotated[str, Query(alias="q", min_length=1)],
+    limit: Annotated[int, Query(ge=1, le=50)] = 5,
+) -> SearchResults:
+    """Subjects by name and alias, plus up to `limit` of the latest run's developments and up to
+    `limit` of their source documents by full text."""
+    return search_all(q, text, limit)
 
 
 # ---- developments, evidence, documents, graph
@@ -204,12 +187,17 @@ def search(q: Q, text: Annotated[str, Query(alias="q", min_length=1)]) -> list[S
 def list_developments(
     q: Q,
     subject_id: Annotated[list[str] | None, Query()] = None,
+    dashboard_id: str | None = None,
     changed: bool = False,
-    limit: Annotated[int, Query(ge=1, le=500)] = 50,
+    limit: Annotated[int | None, Query(ge=1)] = None,
 ) -> list[DevelopmentSummary]:
     """The latest run's developments in display order, optionally for some subjects (groups
-    include their members) or only those new or updated since the previous run."""
-    devs = q.developments_in(subject_id) if subject_id else list(q.devs.by_id.values())
+    include their members), for a dashboard's subjects, or only those new or updated since the
+    previous run. A dashboard's changed developments are the ones its Since widget counts."""
+    ids = list(subject_id or [])
+    if dashboard_id is not None:
+        ids += dash.get_dashboard(q.conn, dashboard_id).subject_ids
+    devs = q.developments_in(ids) if ids else list(q.devs.by_id.values())
     return [d for d in devs if d.change or not changed][:limit]
 
 

@@ -94,6 +94,16 @@ export function inDays(n: number): string {
 export const plural = (n: number, word: string, many = `${word}s`) =>
   `${n} ${n === 1 ? word : many}`;
 
+/** "79 new, 1 updated, 9 need attention" for a run's changes; zero counts are left out. */
+export const changeCounts = (c: Pick<Schema<"WhatChanged">, "new_count" | "updated_count" | "needs_attention_count">) =>
+  [
+    c.new_count > 0 && `${c.new_count} new`,
+    c.updated_count > 0 && `${c.updated_count} updated`,
+    c.needs_attention_count > 0 && `${c.needs_attention_count} ${c.needs_attention_count === 1 ? "needs" : "need"} attention`,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
 /** First letters of up to three words: "Wong Kang" is "WK", "DBS" is "D". */
 export const initials = (name: string) =>
   name

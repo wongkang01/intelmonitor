@@ -132,10 +132,10 @@ def check_subject(c: Check, sid: str) -> dict[str, int]:
         g = page["group"]
         need(g["common_issues"] or g["outliers"], f"{sid}: no common issues or outliers")
 
-    hits = c.get("/search", params={"q": detail["name"]})
+    hits = c.get("/search", params={"q": detail["name"]})["subjects"]
     need(hits and hits[0]["subject"]["id"] == sid, f"{sid}: search by name")
     if detail["aliases"]:
-        hits = c.get("/search", params={"q": detail["aliases"][0]})
+        hits = c.get("/search", params={"q": detail["aliases"][0]})["subjects"]
         need(any(h["subject"]["id"] == sid for h in hits), f"{sid}: search by alias")
 
     one = c.get("/graph", params={"center": sid, "hops": 1})

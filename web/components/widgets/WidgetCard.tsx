@@ -15,6 +15,8 @@ import { WidgetSettings } from "./WidgetSettings";
 export interface WidgetCardProps {
   widget: Widget;
   dashboardSubjectIds: string[];
+  /** The saved dashboard it sits on; widgets following all its subjects then link to its developments. */
+  dashboardId?: string;
   /** grid: on a dashboard. lifted: the copy that follows the pointer while dragging. preview: gallery. */
   variant: "grid" | "lifted" | "preview";
   editing?: boolean;
@@ -31,6 +33,7 @@ export interface WidgetCardProps {
 export function WidgetCard({
   widget,
   dashboardSubjectIds,
+  dashboardId,
   variant,
   editing = false,
   settingsOpen = false,
@@ -45,7 +48,7 @@ export function WidgetCard({
   const catalog = useCatalog();
   const query = useWidgetData(widget, dashboardSubjectIds);
   const name = catalog.data?.find((t) => t.type === widget.type)?.name ?? "";
-  const href = widgetHref(widget, dashboardSubjectIds);
+  const href = widgetHref(widget, dashboardSubjectIds, dashboardId);
   const interactive = variant === "grid" && !editing;
 
   // Only faces that appear after a toggle play the flip.
