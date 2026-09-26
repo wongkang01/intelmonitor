@@ -372,7 +372,7 @@ export function useAddNote() {
   });
 }
 
-/** Deletes a dashboard and drops it from the sidebar list. */
+/** Deletes a dashboard (a soft delete) and drops it from the sidebar list. */
 export function useDeleteDashboard() {
   const client = useQueryClient();
   return useMutation({
@@ -389,6 +389,23 @@ export function useDeleteDashboard() {
   });
 }
 
+/**
+ * Undoes a dashboard delete; the sidebar refetches to show it in its place. The cache updates here,
+ * not in callbacks passed to mutate, so a toast's Undo works after the menu that deleted it closed.
+ */
+export function useRestoreDashboard() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (dashboardId: string) =>
+      unwrap(api.POST("/dashboards/{dashboard_id}/restore", { params: { path: { dashboard_id: dashboardId } } })),
+    onSuccess: (restored) => {
+      client.setQueryData(keys.dashboard(restored.id), restored);
+      return client.invalidateQueries({ queryKey: keys.dashboards });
+    },
+  });
+}
+
+/** Deletes a note (a soft delete); useRestoreNote undoes it. */
 export function useDeleteNote() {
   const client = useQueryClient();
   return useMutation({
@@ -398,6 +415,15 @@ export function useDeleteNote() {
       });
       if (error !== undefined || !response.ok) throw new ApiError(response.status, error);
     },
+    onSuccess: () => invalidateNotes(client),
+  });
+}
+
+export function useRestoreNote() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (noteId: number) =>
+      unwrap(api.POST("/notes/{note_id}/restore", { params: { path: { note_id: noteId } } })),
     onSuccess: () => invalidateNotes(client),
   });
 }

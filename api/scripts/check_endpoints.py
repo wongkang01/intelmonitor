@@ -227,6 +227,10 @@ def check_dashboards(c: Check) -> None:
     c.call("PUT", f"/dashboards/{did}", expect=422, json=bad)
     c.call("DELETE", f"/dashboards/{did}", expect=204)
     c.call("GET", f"/dashboards/{did}", expect=404)
+    need(all(d["id"] != did for d in c.get("/dashboards")), "deleted dashboard not listed")
+    c.call("POST", f"/dashboards/{did}/restore")
+    need(c.get(f"/dashboards/{did}")["name"] == "API check", "dashboard restore")
+    c.call("DELETE", f"/dashboards/{did}", expect=204)
 
 
 def check_actions(c: Check) -> None:
@@ -242,6 +246,10 @@ def check_actions(c: Check) -> None:
     )
     need(any(n["id"] == note["id"] for n in c.get("/notes", params={"subject_id": "ocbc"})), "note")
     need(any(n["id"] == note["id"] for n in c.get(f"/developments/{dev_id}")["notes"]), "dev note")
+    c.call("DELETE", f"/notes/{note['id']}", expect=204)
+    need(all(n["id"] != note["id"] for n in c.get(f"/developments/{dev_id}")["notes"]), "deleted")
+    c.call("POST", f"/notes/{note['id']}/restore")
+    need(any(n["id"] == note["id"] for n in c.get(f"/developments/{dev_id}")["notes"]), "restore")
     c.call("DELETE", f"/notes/{note['id']}", expect=204)
 
 

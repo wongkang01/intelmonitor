@@ -57,7 +57,6 @@ from intelmonitor.server.search import search as search_all
 from intelmonitor.server.widgets import (
     Dashboard,
     DashboardSpec,
-    QuestionWidget,
     WidgetData,
     WidgetDataRequest,
     WidgetTypeInfo,
@@ -319,7 +318,14 @@ def update_dashboard(q: Q, dashboard_id: str, spec: DashboardSpec) -> Dashboard:
 
 @app.delete("/dashboards/{dashboard_id}", status_code=204)
 def delete_dashboard(q: Q, dashboard_id: str) -> None:
+    """Soft delete: the dashboard leaves every list and read until it is restored."""
     dash.delete_dashboard(q.conn, dashboard_id)
+
+
+@app.post("/dashboards/{dashboard_id}/restore")
+def restore_dashboard(q: Q, dashboard_id: str) -> Dashboard:
+    """Undo a delete; the dashboard returns to its place in the sidebar."""
+    return dash.restore_dashboard(q.conn, dashboard_id)
 
 
 @app.get("/dashboards/{dashboard_id}/data")
@@ -368,18 +374,31 @@ def add_note(q: Q, request: NoteRequest) -> Note:
         (request.subject_id, request.development_id, request.text.strip(), q.run.id, now()),
     )
     q.conn.commit()
-    notes = q.notes(request.subject_id, request.development_id)
-    return next(n for n in notes if n.id == cursor.lastrowid)
+    assert cursor.lastrowid is not None
+    return q.note(cursor.lastrowid)
 
 
 @app.delete("/notes/{note_id}", status_code=204)
 def delete_note(q: Q, note_id: int) -> None:
+    """Soft delete: the note leaves every list until it is restored."""
     cursor = q.conn.execute(
-        "DELETE FROM analyst_actions WHERE id = ? AND kind = 'note'", (note_id,)
+        "UPDATE analyst_actions SET deleted_at = ? "
+        "WHERE id = ? AND kind = 'note' AND deleted_at IS NULL",
+        (now(), note_id),
     )
     q.conn.commit()
     if cursor.rowcount == 0:
         raise NotFoundError(f"note {note_id}")
+
+
+@app.post("/notes/{note_id}/restore")
+def restore_note(q: Q, note_id: int) -> Note:
+    """Undo a delete. Restoring a note that is not deleted changes nothing."""
+    q.conn.execute(
+        "UPDATE analyst_actions SET deleted_at = NULL WHERE id = ? AND kind = 'note'", (note_id,)
+    )
+    q.conn.commit()
+    return q.note(note_id)
 
 
 # ---- custom questions
@@ -425,15 +444,7 @@ async def edit_custom_question(
 def delete_custom_question(q: Q, question_id: str) -> None:
     """Discard a draft or delete a kept question, and drop widgets that show it."""
     cq.delete(q.conn, question_id)
-    for d in dash.list_dashboards(q.conn):
-        kept = [
-            w
-            for w in d.widgets
-            if not (isinstance(w, QuestionWidget) and w.settings.question_id == question_id)
-        ]
-        if len(kept) != len(d.widgets):
-            spec = DashboardSpec(name=d.name, subject_ids=d.subject_ids, widgets=kept)
-            dash.update_dashboard(q.conn, d.id, spec)
+    dash.drop_question_widgets(q.conn, question_id)
 
 
 # ---- profile menu: settings, data sources, run history

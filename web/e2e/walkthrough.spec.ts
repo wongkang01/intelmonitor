@@ -315,8 +315,16 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       });
       await actions.getByRole("textbox", { name: "Note" }).fill(text);
       await actions.getByRole("button", { name: "Add note" }).click();
-      await expect(actions.locator(".note p", { hasText: text })).toBeVisible();
+      const note = actions.locator(".note", { hasText: text });
+      await expect(note).toBeVisible();
       await expect(actions.getByRole("textbox", { name: "Note" })).toHaveValue("");
+
+      // Deleting is a soft delete: the toast's Undo restores the note.
+      await note.getByRole("button", { name: "Delete note" }).click();
+      await expect(note).toHaveCount(0);
+      const toast = page.locator(".toast", { hasText: "Deleted note" });
+      await toast.getByRole("button", { name: "Undo" }).click();
+      await expect(note).toBeVisible();
     });
 
     await step(STEPS[6], async () => {

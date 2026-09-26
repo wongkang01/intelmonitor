@@ -5,7 +5,7 @@
 import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
 
 import type { Schema } from "@/lib/api/client";
-import { useAddNote, useDeleteNote, type NoteTarget } from "@/lib/api/queries";
+import { useAddNote, useDeleteNote, useRestoreNote, type NoteTarget } from "@/lib/api/queries";
 import { dateTime } from "@/lib/format";
 import { XIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
@@ -14,6 +14,7 @@ export function Notes({ target, notes }: { target: NoteTarget; notes: Schema<"No
   const [text, setText] = useState("");
   const add = useAddNote();
   const remove = useDeleteNote();
+  const restore = useRestoreNote();
   const toast = useToast();
   const root = useRef<HTMLDivElement>(null);
   // A note deleted from its focused button, and the note whose delete button takes focus (or null
@@ -33,6 +34,15 @@ export function Notes({ target, notes }: { target: NoteTarget; notes: Schema<"No
     if (remove.isPending && remove.variables === note.id) return;
     if (document.activeElement === button) deleted.current = { id: note.id, next: (notes[i + 1] ?? notes[i - 1])?.id ?? null };
     remove.mutate(note.id, {
+      onSuccess: () =>
+        toast({
+          message: "Deleted note",
+          action: {
+            label: "Undo",
+            run: () =>
+              restore.mutateAsync(note.id).catch(() => toast({ message: "Could not restore the note" })),
+          },
+        }),
       onError: () => {
         deleted.current = null;
         toast({ message: "Could not delete the note" });

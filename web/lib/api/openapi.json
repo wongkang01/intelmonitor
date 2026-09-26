@@ -811,6 +811,7 @@
       },
       "delete": {
         "summary": "Delete Dashboard",
+        "description": "Soft delete: the dashboard leaves every list and read until it is restored.",
         "operationId": "delete_dashboard",
         "parameters": [
           {
@@ -826,6 +827,46 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboards/{dashboard_id}/restore": {
+      "post": {
+        "summary": "Restore Dashboard",
+        "description": "Undo a delete; the dashboard returns to its place in the sidebar.",
+        "operationId": "restore_dashboard",
+        "parameters": [
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Dashboard Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -1065,6 +1106,7 @@
     "/notes/{note_id}": {
       "delete": {
         "summary": "Delete Note",
+        "description": "Soft delete: the note leaves every list until it is restored.",
         "operationId": "delete_note",
         "parameters": [
           {
@@ -1080,6 +1122,46 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notes/{note_id}/restore": {
+      "post": {
+        "summary": "Restore Note",
+        "description": "Undo a delete. Restoring a note that is not deleted changes nothing.",
+        "operationId": "restore_note",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Note Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Note"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",

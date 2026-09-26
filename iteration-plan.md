@@ -80,6 +80,12 @@ It extends `poc-plan.md`; where they disagree, this plan wins for the items it l
    Deleting a note or a dashboard sets `deleted_at` instead of removing the row.
    The existing toast offers Undo.
    A restore endpoint exists for each; the Trash view waits for mocks.
+   Built: `dashboards` and `analyst_actions` gained a `deleted_at` column; the store adds missing columns in place when it opens, keeping every row.
+   Every read skips deleted rows, and editing or reordering treats a deleted dashboard as gone.
+   `POST /dashboards/{id}/restore` and `POST /notes/{id}/restore` undo a delete; restoring something not deleted changes nothing.
+   A restored dashboard returns to its sidebar position, and Undo reopens it if it was open when deleted.
+   Deleting a custom question also drops its widgets from deleted dashboards, so a restored one never shows a question that is gone.
+   Deleted rows are kept with no purge, so the walkthrough's cleanup leaves soft-deleted "E2E" dashboards and notes behind; the Trash work should decide how they are purged.
 
 ### B. Mocked first, built after the pick
 

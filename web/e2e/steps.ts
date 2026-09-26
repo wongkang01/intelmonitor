@@ -6,7 +6,7 @@ export const STEPS = [
   "Edit mode: drag, remove, reload keeps the layout",
   "New dashboard, Build",
   "New dashboard, Generate",
-  "Monitor page from ⌘K: mark reviewed, add a note",
+  "Monitor page from ⌘K: mark reviewed, add a note, delete and Undo",
   "Custom question with answer and citations",
   "Graph view: 2 hops, click a node, its page opens",
   "Sidebar: drag and Move up reorder dashboards, colors stay",

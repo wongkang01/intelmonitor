@@ -277,8 +277,31 @@ export interface paths {
         /** Update Dashboard */
         put: operations["update_dashboard"];
         post?: never;
-        /** Delete Dashboard */
+        /**
+         * Delete Dashboard
+         * @description Soft delete: the dashboard leaves every list and read until it is restored.
+         */
         delete: operations["delete_dashboard"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dashboards/{dashboard_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore Dashboard
+         * @description Undo a delete; the dashboard returns to its place in the sidebar.
+         */
+        post: operations["restore_dashboard"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -349,8 +372,31 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Note */
+        /**
+         * Delete Note
+         * @description Soft delete: the note leaves every list until it is restored.
+         */
         delete: operations["delete_note"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notes/{note_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore Note
+         * @description Undo a delete. Restoring a note that is not deleted changes nothing.
+         */
+        post: operations["restore_note"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3029,6 +3075,37 @@ export interface operations {
             };
         };
     };
+    restore_dashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dashboard_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Dashboard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_dashboard_data: {
         parameters: {
             query?: never;
@@ -3175,6 +3252,37 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_note: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                note_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Note"];
+                };
             };
             /** @description Validation Error */
             422: {

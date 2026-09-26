@@ -474,23 +474,34 @@ class Queries:
         return min(latest, default=None)
 
     def notes(self, subject_id: str | None = None, development_id: str | None = None) -> list[Note]:
+        """Notes that are not deleted, newest first."""
         rows = self.conn.execute(
-            "SELECT * FROM analyst_actions WHERE kind = 'note' "
+            "SELECT * FROM analyst_actions WHERE kind = 'note' AND deleted_at IS NULL "
             "AND (? IS NULL OR subject_id = ?) AND (? IS NULL OR development_id = ?) "
             "ORDER BY created_at DESC, id DESC",
             (subject_id, subject_id, development_id, development_id),
         ).fetchall()
-        return [
-            Note(
-                id=r["id"],
-                subject_id=r["subject_id"],
-                development_id=r["development_id"],
-                text=r["text"],
-                run_id=r["run_id"],
-                created_at=r["created_at"],
-            )
-            for r in rows
-        ]
+        return [_note(r) for r in rows]
+
+    def note(self, note_id: int) -> Note:
+        row = self.conn.execute(
+            "SELECT * FROM analyst_actions WHERE id = ? AND kind = 'note' AND deleted_at IS NULL",
+            (note_id,),
+        ).fetchone()
+        if row is None:
+            raise NotFoundError(f"note {note_id}")
+        return _note(row)
+
+
+def _note(r: sqlite3.Row) -> Note:
+    return Note(
+        id=r["id"],
+        subject_id=r["subject_id"],
+        development_id=r["development_id"],
+        text=r["text"],
+        run_id=r["run_id"],
+        created_at=r["created_at"],
+    )
 
 
 def expand(subject_ids: Iterable[str]) -> set[str]:

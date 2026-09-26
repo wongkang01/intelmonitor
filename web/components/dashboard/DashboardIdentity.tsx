@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type RefObject } from "react";
 
 import type { Schema } from "@/lib/api/client";
-import { useDeleteDashboard, useSaveDashboard } from "@/lib/api/queries";
+import { useDeleteDashboard, useRestoreDashboard, useSaveDashboard } from "@/lib/api/queries";
 import { useToast } from "@/components/ui/Toast";
 
 type Dashboard = Schema<"Dashboard">;
@@ -49,6 +49,7 @@ export function DashboardEditPop({
   const save = useSaveDashboard();
   const rename = useRenameDashboard();
   const remove = useDeleteDashboard();
+  const restore = useRestoreDashboard();
   const toast = useToast();
   const router = useRouter();
   const pathname = usePathname();
@@ -76,8 +77,18 @@ export function DashboardEditPop({
     remove.mutate(dashboard.id, {
       onSuccess: () => {
         onClose();
-        toast({ message: `Deleted ${dashboard.name}` });
-        if (pathname === `/dashboards/${dashboard.id}`) router.push("/");
+        const href = `/dashboards/${dashboard.id}`;
+        const wasOpen = pathname === href;
+        // Undo runs after this menu has closed, so it uses the promise, not mutate callbacks.
+        const undo = () =>
+          restore
+            .mutateAsync(dashboard.id)
+            .then(() => {
+              if (wasOpen) router.push(href);
+            })
+            .catch(() => toast({ message: "Could not restore the dashboard" }));
+        toast({ message: `Deleted ${dashboard.name}`, action: { label: "Undo", run: undo } });
+        if (wasOpen) router.push("/");
       },
       onError: () => toast({ message: "Could not delete the dashboard" }),
     });

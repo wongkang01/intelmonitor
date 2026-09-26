@@ -219,7 +219,8 @@ CREATE TABLE IF NOT EXISTS dashboards (
     starter INTEGER NOT NULL,          -- 1 for the seeded starter dashboards
     position INTEGER NOT NULL,         -- sidebar order
     created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    deleted_at TEXT                    -- set when deleted; restoring clears it
 );
 
 CREATE TABLE IF NOT EXISTS analyst_actions (
@@ -229,7 +230,8 @@ CREATE TABLE IF NOT EXISTS analyst_actions (
     development_id TEXT,
     text TEXT,                         -- set for notes
     run_id TEXT,                       -- the latest run when the action was taken
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    deleted_at TEXT                    -- set when a note is deleted; restoring clears it
 );
 CREATE INDEX IF NOT EXISTS analyst_actions_subject ON analyst_actions (subject_id, kind);
 
@@ -288,6 +290,24 @@ CREATE VIRTUAL TABLE IF NOT EXISTS developments_fts USING fts5(
 );
 """
 
+# Columns added to tables after stores were created. connect() adds any a store lacks, in place.
+ADDED_COLUMNS = [
+    ("dashboards", "deleted_at", "TEXT"),
+    ("analyst_actions", "deleted_at", "TEXT"),
+]
+
+
+def _add_columns(conn: sqlite3.Connection) -> None:
+    for table, column, declaration in ADDED_COLUMNS:
+        columns = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+        if column not in columns:
+            try:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {declaration}")
+            except sqlite3.OperationalError as error:
+                if "duplicate column" not in str(error):  # another process added it first
+                    raise
+    conn.commit()
+
 
 def connect(path: Path = DB_PATH) -> sqlite3.Connection:
     """Open the store and make sure the schema exists."""
@@ -300,6 +320,7 @@ def connect(path: Path = DB_PATH) -> sqlite3.Connection:
         "SELECT 1 FROM sqlite_master WHERE name = 'developments_fts'"
     ).fetchone()
     conn.executescript(SCHEMA)
+    _add_columns(conn)
     if indexed is None:
         search.rebuild(conn)  # the search tables are new: index what is already stored
     return conn

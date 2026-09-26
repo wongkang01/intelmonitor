@@ -345,7 +345,7 @@ It covers:
 3. Edit mode: drag a widget, remove one, reload, check the layout persisted.
 4. New dashboard, Build: pick a subject, add three widgets, rearrange, create, check it appears in the sidebar.
 5. New dashboard, Generate: send a prompt, check widgets arrive, Undo, send again, Keep, create.
-6. Open a monitor page from ⌘K, mark reviewed, add a note.
+6. Open a monitor page from ⌘K, mark reviewed, add a note, delete it and Undo.
 7. Add a custom question, keep it, check the answer and citations.
 8. Open the graph view, expand to 2 hops, click a node, check its page opens.
 9. Drag a sidebar dashboard to the top, move another with Move up, reload, check the order persisted and colors did not change.
