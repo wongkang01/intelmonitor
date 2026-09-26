@@ -1,6 +1,6 @@
-/* Touch: on any device with a touch screen, list rows, nav items and menu items grow to 44px. A mouse
-   keeps mock A's 32 and 34px rows: stacked rows touch, so a row's hit area is the whole full-width
-   row and cannot be taller than the row without covering its neighbours.
+/* Touch: on any device with a touch screen, list rows, nav items, menu items and the dashboard options
+   controls grow to 44px. A mouse keeps mock A's 32 and 34px rows: stacked rows touch, so a row's hit
+   area is the whole full-width row and cannot be taller than the row without covering its neighbours.
    Imported last, so these sizes win over each area's own. */
 @media (any-pointer: coarse) {
   .navitem,
@@ -17,6 +17,13 @@
   .qr {
     min-height: 44px;
     padding-block: 13px;
+  }
+  /* The dashboard options popover: its buttons, and four columns of 44px color swatches. */
+  .dash-pop .btn {
+    height: 44px;
+  }
+  .swatches {
+    grid-template-columns: repeat(4, 1fr);
   }
   /* The sidebar options button: 44px wide and the row's full height. */
   .more-btn::after {

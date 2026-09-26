@@ -8,6 +8,7 @@ import { useState, type KeyboardEvent } from "react";
 import type { Schema, Widget, WidgetData } from "@/lib/api/client";
 import { useMarkReviewed, useSubjects, type DataOf } from "@/lib/api/queries";
 import { answerText, dateTime, daysBetween, inDays, plural, shortDate } from "@/lib/format";
+import { useCoarsePointer } from "@/lib/dom";
 import { monitorHref, setEntities } from "@/lib/widgets";
 import { PlusIcon, XIcon } from "@/components/ui/icons";
 import { useEvidenceHref } from "@/components/shell/Evidence";
@@ -51,22 +52,28 @@ const runMeta = (run: Schema<"RunRef">) =>
     ? `Run of ${shortDate(run.as_of)} against ${shortDate(run.previous_run_id)}`
     : `Run of ${shortDate(run.as_of)}`;
 
-/** Rows shown under the Needs attention label, then New fills up to NEW_UNTIL rows (Large only). */
-const SINCE_ROWS = { M: 1, L: 6 } as const;
-const NEW_UNTIL = 5;
+/**
+ * Rows shown under the Needs attention label, then New fills up to `until` rows (Large only). The 44px
+ * touch rows from `styles/touch.css` fit one row fewer.
+ */
+const SINCE_ROWS = {
+  mouse: { M: 1, L: 6, until: 5 },
+  touch: { M: 1, L: 5, until: 4 },
+} as const;
 
 function SinceBody({ data, widget, href }: BodyProps & { data: DataOf<"since"> }) {
   const wc = data.what_changed;
   const review = useMarkReviewed();
   const size = widget.size === "L" ? "L" : "M";
+  const rows = SINCE_ROWS[useCoarsePointer() ? "touch" : "mouse"];
   const hero =
     [wc.new_count > 0 && `${wc.new_count} new`, wc.needs_attention_count > 0 && needs(wc.needs_attention_count)]
       .filter(Boolean)
       .join(", ") || (wc.updated_count > 0 ? `${wc.updated_count} updated` : "No new developments");
   const attention = wc.developments.filter((d) => d.needs_attention);
   const fresh = wc.developments.filter((d) => !d.needs_attention && d.change === "new");
-  const attentionShown = attention.slice(0, SINCE_ROWS[size]);
-  const room = size === "L" ? NEW_UNTIL - attentionShown.length : attentionShown.length ? 0 : 1;
+  const attentionShown = attention.slice(0, rows[size]);
+  const room = size === "L" ? rows.until - attentionShown.length : attentionShown.length ? 0 : 1;
   const freshShown = fresh.slice(0, Math.max(0, room));
   const changes = [
     wc.updated_count ? `${wc.updated_count} updated` : null,

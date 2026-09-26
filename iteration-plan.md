@@ -33,6 +33,8 @@ It extends `poc-plan.md`; where they disagree, this plan wins for the items it l
    Built: the 44 px touch sizes never applied, because each area's stylesheet came later in the cascade and reset the height.
    They now live in `web/styles/touch.css`, imported last, and apply on any device with a touch screen (`any-pointer: coarse`).
    The sidebar options button has a 44 px wide hit area as tall as its row.
+   In the dashboard options popover, Move up, Move down and Delete are 44 px tall on touch, and the color swatches are 44 px circles in two rows of four.
+   The Since widget shows one row fewer on touch, so its 44 px rows stay clear of its footer.
    With a mouse, rows stay 32 and 34 px: stacked rows touch, so a row's hit area cannot be taller than the row without covering its neighbours, and 44 px rows would loosen the layout.
 3. **Dashboard-scoped "Show all".**
    On Singapore banks, the Since widget says 79 new, but "Show all" opens `/monitors/singapore-banks`, which says 34 new.
