@@ -648,6 +648,53 @@
         }
       }
     },
+    "/dashboards/order": {
+      "put": {
+        "summary": "Reorder Dashboards",
+        "description": "Sets the sidebar order: every dashboard id once, first to last. Colors stay as they are.",
+        "operationId": "reorder_dashboards",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "title": "Ids"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Dashboard"
+                  },
+                  "type": "array",
+                  "title": "Response Reorder Dashboards"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/dashboards/{dashboard_id}": {
       "get": {
         "summary": "Get Dashboard",
@@ -2169,28 +2216,6 @@
             "minLength": 1,
             "title": "Name"
           },
-          "color": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "blue",
-                  "teal",
-                  "purple",
-                  "pink",
-                  "orange",
-                  "olive",
-                  "slate",
-                  "brown"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Color",
-            "description": "Sidebar dot; assigned by position when unset"
-          },
           "subject_ids": {
             "items": {
               "type": "string"
@@ -2239,6 +2264,21 @@
             },
             "type": "array",
             "title": "Widgets"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "blue",
+              "teal",
+              "purple",
+              "pink",
+              "orange",
+              "olive",
+              "slate",
+              "brown"
+            ],
+            "title": "Color",
+            "description": "Sidebar dot; reordering never changes it"
           },
           "id": {
             "type": "string",
@@ -2264,6 +2304,7 @@
           "name",
           "subject_ids",
           "widgets",
+          "color",
           "id",
           "starter",
           "created_at",
@@ -2278,28 +2319,6 @@
             "maxLength": 80,
             "minLength": 1,
             "title": "Name"
-          },
-          "color": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "blue",
-                  "teal",
-                  "purple",
-                  "pink",
-                  "orange",
-                  "olive",
-                  "slate",
-                  "brown"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Color",
-            "description": "Sidebar dot; assigned by position when unset"
           },
           "subject_ids": {
             "items": {
@@ -2349,6 +2368,28 @@
             },
             "type": "array",
             "title": "Widgets"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "blue",
+                  "teal",
+                  "purple",
+                  "pink",
+                  "orange",
+                  "olive",
+                  "slate",
+                  "brown"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color",
+            "description": "Sidebar dot. Unset on create picks the least used color; unset on update keeps the stored one"
           }
         },
         "type": "object",

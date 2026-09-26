@@ -242,6 +242,7 @@ export type Dashboard = Schema<"Dashboard">;
 function putDashboard(dashboard: Dashboard) {
   const body: Schema<"DashboardSpec"> = {
     name: dashboard.name,
+    color: dashboard.color,
     subject_ids: dashboard.subject_ids,
     widgets: dashboard.widgets.map((w, order) => ({ ...w, order })),
   };
@@ -279,6 +280,30 @@ export function useSaveDashboard(onError?: () => void) {
     (dashboard: Dashboard) => {
       storeDashboard(client, dashboard);
       mutate(dashboard);
+    },
+    [client, mutate],
+  );
+}
+
+/**
+ * Returns `reorder(ids)`, which sets the sidebar order to `ids` (every dashboard once). The list
+ * reorders at once; moves save one at a time in call order, and a failure refetches the list.
+ */
+export function useReorderDashboards() {
+  const client = useQueryClient();
+  const { mutate } = useMutation({
+    mutationFn: (ids: string[]) => unwrap(api.PUT("/dashboards/order", { body: ids })),
+    scope: { id: "dashboard-order" },
+    onError: () => client.invalidateQueries({ queryKey: keys.dashboards }),
+  });
+  return useCallback(
+    (ids: string[]) => {
+      client.setQueryData<Dashboard[]>(keys.dashboards, (list) => {
+        if (!list) return list;
+        const byId = new Map(list.map((d) => [d.id, d]));
+        return ids.flatMap((id) => byId.get(id) ?? []);
+      });
+      mutate(ids);
     },
     [client, mutate],
   );

@@ -22,11 +22,18 @@ It extends `poc-plan.md`; where they disagree, this plan wins for the items it l
 1. **Sidebar reorder.**
    Drag dashboard rows in the sidebar.
    The row's options menu gets Move up and Move down for keyboard users.
-   `PUT /dashboards/order` takes the full list of ids and rewrites `dashboards.position`.
-   The dashboard color stays fixed when the order changes (today it is derived from `position`).
+   `PUT /dashboards/order` takes the full list of ids and rewrites `dashboards.position`; a list that is not every dashboard once gets a 409.
+   The dashboard color stays fixed when the order changes: each dashboard now stores its color.
+   Existing dashboards kept the color their position gave them, a new one gets the least used color, and a save without a color keeps the stored one.
+   Picking a color in the options menu now persists; before, the web client left it out of the save.
+   Drag works with a mouse or pen; touch scrolls the sidebar, so touch users use Move up and Move down.
 2. **44 px hit targets.**
    Sidebar rows, nav items and list rows are 32 to 35 px tall; `PRODUCT.md` asks for 44 px targets.
    Pad the hit areas without making the layout visibly looser.
+   Built: the 44 px touch sizes never applied, because each area's stylesheet came later in the cascade and reset the height.
+   They now live in `web/styles/touch.css`, imported last, and apply on any device with a touch screen (`any-pointer: coarse`).
+   The sidebar options button has a 44 px wide hit area as tall as its row.
+   With a mouse, rows stay 32 and 34 px: stacked rows touch, so a row's hit area cannot be taller than the row without covering its neighbours, and 44 px rows would loosen the layout.
 3. **Dashboard-scoped "Show all".**
    On Singapore banks, the Since widget says 79 new, but "Show all" opens `/monitors/singapore-banks`, which says 34 new.
    The Banking regulation items drop out.

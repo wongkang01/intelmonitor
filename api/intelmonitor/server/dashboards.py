@@ -1,8 +1,10 @@
 """Dashboards: stored as DashboardSpec JSON. The starter dashboards in seed/dashboards.yaml are
-inserted once, the first time the store has none, so deleting one keeps it deleted."""
+inserted once, the first time the store has none, so deleting one keeps it deleted.
+Every stored dashboard has a color, so reordering the sidebar never recolors one."""
 
 import sqlite3
 import uuid
+from collections import Counter
 
 import yaml
 from pydantic import TypeAdapter
@@ -14,6 +16,7 @@ from intelmonitor.server.widgets import (
     CUSTOM_PREFIX,
     DASHBOARD_COLORS,
     Dashboard,
+    DashboardColor,
     DashboardSpec,
     QuestionWidget,
 )
@@ -24,7 +27,12 @@ class StarterDashboard(DashboardSpec):
     id: str
 
 
+class OrderError(ValueError):
+    """A new sidebar order that is not exactly the stored dashboards."""
+
+
 def seed_dashboards(conn: sqlite3.Connection) -> None:
+    _store_colors(conn)
     if get_meta(conn, "dashboards_seeded"):
         return
     raw = yaml.safe_load((SEED_DIR / "dashboards.yaml").read_text())
@@ -34,9 +42,32 @@ def seed_dashboards(conn: sqlite3.Connection) -> None:
     set_meta(conn, "dashboards_seeded", now())
 
 
+def _store_colors(conn: sqlite3.Connection) -> None:
+    """Stores the color that dashboards saved before colors were stored showed, which came from
+    their position."""
+    rows = conn.execute(
+        "SELECT id, spec, position FROM dashboards WHERE json_extract(spec, '$.color') IS NULL"
+    ).fetchall()
+    for row in rows:
+        spec = DashboardSpec.model_validate_json(row["spec"])
+        spec.color = DASHBOARD_COLORS[row["position"] % len(DASHBOARD_COLORS)]
+        conn.execute(
+            "UPDATE dashboards SET spec = ? WHERE id = ?", (spec.model_dump_json(), row["id"])
+        )
+    conn.commit()
+
+
+def _next_color(conn: sqlite3.Connection) -> DashboardColor:
+    """The least used color, earliest in the palette on a tie."""
+    used = Counter(d.color for d in list_dashboards(conn))
+    return min(DASHBOARD_COLORS, key=lambda c: used[c])
+
+
 def _insert(
     conn: sqlite3.Connection, dashboard_id: str, spec: DashboardSpec, starter: bool, position: int
 ) -> None:
+    if spec.color is None:
+        spec = spec.model_copy(update={"color": _next_color(conn)})
     at = now()
     conn.execute(
         "INSERT OR IGNORE INTO dashboards (id, spec, starter, position, created_at, updated_at) "
@@ -48,8 +79,6 @@ def _insert(
 
 def _from_row(row: sqlite3.Row) -> Dashboard:
     spec = DashboardSpec.model_validate_json(row["spec"])
-    if spec.color is None:
-        spec.color = DASHBOARD_COLORS[row["position"] % len(DASHBOARD_COLORS)]
     return Dashboard(
         **spec.model_dump(),
         id=row["id"],
@@ -93,6 +122,9 @@ def create_dashboard(conn: sqlite3.Connection, spec: DashboardSpec) -> Dashboard
 
 
 def update_dashboard(conn: sqlite3.Connection, dashboard_id: str, spec: DashboardSpec) -> Dashboard:
+    """Replaces the spec; a spec without a color keeps the stored one."""
+    if spec.color is None:
+        spec = spec.model_copy(update={"color": get_dashboard(conn, dashboard_id).color})
     _keep_custom_questions(conn, spec)
     cursor = conn.execute(
         "UPDATE dashboards SET spec = ?, updated_at = ? WHERE id = ?",
@@ -102,6 +134,18 @@ def update_dashboard(conn: sqlite3.Connection, dashboard_id: str, spec: Dashboar
     if cursor.rowcount == 0:
         raise NotFoundError(f"dashboard {dashboard_id}")
     return get_dashboard(conn, dashboard_id)
+
+
+def reorder_dashboards(conn: sqlite3.Connection, ids: list[str]) -> list[Dashboard]:
+    """Rewrites the sidebar order: `ids` lists every dashboard once, first to last."""
+    stored = {r["id"] for r in conn.execute("SELECT id FROM dashboards").fetchall()}
+    if len(ids) != len(set(ids)) or set(ids) != stored:
+        raise OrderError("the order must list every dashboard exactly once")
+    conn.executemany(
+        "UPDATE dashboards SET position = ? WHERE id = ?", [(i, d) for i, d in enumerate(ids)]
+    )
+    conn.commit()
+    return list_dashboards(conn)
 
 
 def delete_dashboard(conn: sqlite3.Connection, dashboard_id: str) -> None:

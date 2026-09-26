@@ -1,7 +1,7 @@
 "use client";
 
-// A dashboard's identity: its colored dot, and the options popover (name, color, delete) that the
-// sidebar row's "more" button opens.
+// A dashboard's identity: its colored dot, and the options popover (name, color, order, delete) that
+// the sidebar row's "more" button opens.
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type RefObject } from "react";
 
@@ -10,12 +10,12 @@ import { useDeleteDashboard, useSaveDashboard } from "@/lib/api/queries";
 import { useToast } from "@/components/ui/Toast";
 
 type Dashboard = Schema<"Dashboard">;
-type DashboardColor = NonNullable<Dashboard["color"]>;
+type DashboardColor = Dashboard["color"];
 
 const COLORS: DashboardColor[] = ["blue", "teal", "purple", "pink", "orange", "olive", "slate", "brown"];
 
 export function DashboardDot({ color }: { color: Dashboard["color"] }) {
-  return <span className="dash-dot" style={{ background: `var(--dash-${color ?? "slate"})` }} />;
+  return <span className="dash-dot" style={{ background: `var(--dash-${color})` }} />;
 }
 
 /** Saves a new name, ignoring blanks and unchanged names. */
@@ -27,14 +27,23 @@ export function useRenameDashboard() {
   };
 }
 
-/** Name field, color swatches and Delete, anchored under `trigger`. Esc or an outside click closes it. */
+/**
+ * Name field, color swatches, Move up and Move down, and Delete, anchored under `trigger`. Esc or an
+ * outside click closes it. `index` of `count` is the dashboard's place in the sidebar.
+ */
 export function DashboardEditPop({
   dashboard,
   trigger,
+  index,
+  count,
+  onMove,
   onClose,
 }: {
   dashboard: Dashboard;
   trigger: RefObject<HTMLElement | null>;
+  index: number;
+  count: number;
+  onMove: (step: -1 | 1) => void;
   onClose: () => void;
 }) {
   const save = useSaveDashboard();
@@ -46,6 +55,22 @@ export function DashboardEditPop({
   const [name, setName] = useState(dashboard.name);
   const [confirming, setConfirming] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const upRef = useRef<HTMLButtonElement>(null);
+  const downRef = useRef<HTMLButtonElement>(null);
+  const lastStep = useRef<-1 | 1 | null>(null);
+
+  // Moving the row re-inserts it, which drops focus; put it back on the button just pressed. At the
+  // ends the buttons use aria-disabled, so the focused one stays focusable.
+  useEffect(() => {
+    if (lastStep.current !== null) (lastStep.current === -1 ? upRef : downRef).current?.focus();
+  }, [index]);
+
+  const atEnd = (step: -1 | 1) => (step === -1 ? index === 0 : index === count - 1);
+  const move = (step: -1 | 1) => {
+    if (atEnd(step)) return;
+    lastStep.current = step;
+    onMove(step);
+  };
 
   const deleteDashboard = () =>
     remove.mutate(dashboard.id, {
@@ -114,6 +139,14 @@ export function DashboardEditPop({
             onClick={() => save({ ...dashboard, color: c })}
           />
         ))}
+      </div>
+      <div className="dash-pop-moves">
+        <button ref={upRef} type="button" className="btn btn-sm" aria-disabled={atEnd(-1)} onClick={() => move(-1)}>
+          Move up
+        </button>
+        <button ref={downRef} type="button" className="btn btn-sm" aria-disabled={atEnd(1)} onClick={() => move(1)}>
+          Move down
+        </button>
       </div>
       <div className="dash-pop-foot">
         {confirming ? (

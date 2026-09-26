@@ -538,10 +538,38 @@ main.main {
   color: var(--ink2);
 }
 
-/* Dashboard rows: the dot is its own button (it opens the edit popover), laid over the row link. */
+/* Dashboard rows: the dot is laid over the row link, and the options button sits at its right end. */
+.dashlist {
+  display: flex;
+  flex-direction: column;
+}
 .dashrow {
   position: relative;
   flex: none;
+}
+/* While a drag is under way the lifted row follows the pointer and the rows it passes slide a slot. */
+.dashlist.sorting {
+  cursor: grabbing;
+  user-select: none;
+}
+.dashlist.sorting .navitem {
+  cursor: inherit;
+}
+.dashlist.sorting .dashrow {
+  transition: transform 0.15s ease-out;
+}
+.dashlist.sorting .dashrow:not(.lifted) .navitem:not([aria-current="page"]) {
+  background: transparent;
+}
+.dashlist.sorting .dashrow .more-btn {
+  opacity: 0;
+}
+.dashrow.lifted {
+  z-index: 2;
+  transition: none;
+  border-radius: var(--r-ctl);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
 }
 .dashrow > .navitem {
   padding-left: 32px;
@@ -557,19 +585,22 @@ main.main {
   position: absolute;
   z-index: 1;
   left: 12px;
-  top: 12px;
+  top: 0;
+  bottom: 0;
   display: flex;
+  align-items: center;
   pointer-events: none;
 }
 .dashrow > .navitem {
   padding-right: 36px;
 }
-/* The options button shows on row hover, on keyboard focus, and while its popover is open. */
+/* The options button shows on row hover, on keyboard focus, and while its popover is open. Its hit
+   area is 44px wide and the row's full height, 44px on touch. */
 .more-btn {
   position: absolute;
   z-index: 1;
   right: 4px;
-  top: 4px;
+  top: calc(50% - 12px);
   width: 24px;
   height: 24px;
   display: grid;
@@ -580,6 +611,11 @@ main.main {
   background: transparent;
   color: var(--ink2);
   opacity: 0;
+}
+.more-btn::after {
+  content: "";
+  position: absolute;
+  inset: -4px -4px -4px -16px;
 }
 .dashrow:hover .more-btn,
 .dashrow.open .more-btn,
@@ -652,6 +688,10 @@ main.main {
   width: auto;
   height: auto;
   aspect-ratio: 1;
+}
+.dash-pop-moves {
+  display: flex;
+  gap: var(--s-2);
 }
 .dash-pop-foot {
   display: flex;

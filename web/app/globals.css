@@ -674,26 +674,6 @@ dialog .toast-region .toast {
   position: relative;
 }
 
-/* Touch: list rows, nav items and menu items grow to 44px. A mouse keeps mock A's 32 and 34px rows,
-   whose hit area is the whole full-width row. */
-@media (pointer: coarse) {
-  .navitem,
-  .subj,
-  .search-hit,
-  .menu button {
-    height: 44px;
-  }
-  .gmenu-item,
-  .pick {
-    min-height: 44px;
-  }
-  .row,
-  .qr {
-    min-height: 44px;
-    padding-block: 13px;
-  }
-}
-
 /* Motion only follows user actions, and none of it runs under reduced motion. */
 @media (prefers-reduced-motion: reduce) {
   *,

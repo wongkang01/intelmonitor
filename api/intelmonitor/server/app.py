@@ -7,7 +7,7 @@ from datetime import date, datetime
 from typing import Annotated
 
 from ag_ui.core import RunAgentInput
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import Body, Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.routing import APIRoute
@@ -110,6 +110,11 @@ async def _no_run(_: Request, error: NoRunError) -> JSONResponse:
 
 @app.exception_handler(cq.CapReachedError)
 async def _cap(_: Request, error: cq.CapReachedError) -> JSONResponse:
+    return JSONResponse({"detail": str(error)}, status_code=409)
+
+
+@app.exception_handler(dash.OrderError)
+async def _order(_: Request, error: dash.OrderError) -> JSONResponse:
     return JSONResponse({"detail": str(error)}, status_code=409)
 
 
@@ -305,6 +310,13 @@ def list_dashboards(q: Q) -> list[Dashboard]:
 @app.post("/dashboards", status_code=201)
 def create_dashboard(q: Q, spec: DashboardSpec) -> Dashboard:
     return dash.create_dashboard(q.conn, spec)
+
+
+# Declared before /dashboards/{dashboard_id} so "order" is not read as an id.
+@app.put("/dashboards/order")
+def reorder_dashboards(q: Q, ids: Annotated[list[str], Body()]) -> list[Dashboard]:
+    """Sets the sidebar order: every dashboard id once, first to last. Colors stay as they are."""
+    return dash.reorder_dashboards(q.conn, ids)
 
 
 @app.get("/dashboards/{dashboard_id}")

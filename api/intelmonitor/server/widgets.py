@@ -147,11 +147,10 @@ DashboardColor = Literal["blue", "teal", "purple", "pink", "orange", "olive", "s
 DASHBOARD_COLORS: tuple[DashboardColor, ...] = get_args(DashboardColor)
 
 
-class DashboardSpec(BaseModel):
+class DashboardContent(BaseModel):
+    """What a dashboard shows; the spec and the stored dashboard add a color."""
+
     name: str = Field(min_length=1, max_length=80)
-    color: DashboardColor | None = Field(
-        default=None, description="Sidebar dot; assigned by position when unset"
-    )
     subject_ids: list[SubjectId] = Field(description="The subjects the dashboard follows")
     widgets: list[Widget]
 
@@ -166,7 +165,16 @@ class DashboardSpec(BaseModel):
         return self
 
 
-class Dashboard(DashboardSpec):
+class DashboardSpec(DashboardContent):
+    color: DashboardColor | None = Field(
+        default=None,
+        description="Sidebar dot. Unset on create picks the least used color; unset on update "
+        "keeps the stored one",
+    )
+
+
+class Dashboard(DashboardContent):
+    color: DashboardColor = Field(description="Sidebar dot; reordering never changes it")
     id: str
     starter: bool
     created_at: datetime

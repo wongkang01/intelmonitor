@@ -32,7 +32,7 @@ async function widgetIds(scope: Page | Locator): Promise<string[]> {
   return grid(scope).evaluateAll((els) => els.map((el) => el.getAttribute("data-widget-id") ?? ""));
 }
 
-/** Presses on `from`, drags past the threshold, and drops on the right half of `to`. */
+/** Presses on `from`, drags past the threshold, and drops on the right half of `to`: widgets or sidebar rows. */
 async function drag(page: Page, from: Locator, to: Locator) {
   const a = await from.boundingBox();
   const b = await to.boundingBox();
@@ -391,6 +391,55 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       const subject = await unwrap(api.GET("/subjects/{subject_id}", { params: { path: { subject_id: opened } } }));
       await expect(page.getByRole("heading", { level: 1, name: subject.name, exact: true })).toBeVisible();
       await expect(page.getByRole("heading", { name: "What changed since last review" })).toBeVisible();
+    });
+
+    await step(STEPS[8], async () => {
+      const before = await unwrap(api.GET("/dashboards"));
+      expect(before.length, "at least three dashboards to reorder").toBeGreaterThanOrEqual(3);
+      const colors = new Map(before.map((d) => [d.id, d.color]));
+      cleanups.push(async () => {
+        await unwrap(api.PUT("/dashboards/order", { body: before.map((d) => d.id) }));
+      });
+      const orderUrl = new URL("dashboards/order", apiBase).href;
+      const nav = page.getByRole("navigation", { name: "Main" });
+      const rows = nav.locator(".dashrow");
+      const order = () => rows.evaluateAll((els) => els.map((el) => el.getAttribute("data-dashboard-id") ?? ""));
+      const ids = before.map((d) => d.id);
+      await expect.poll(order).toEqual(ids);
+
+      // Drag the last dashboard to the top; the drop saves the order and does not open the dashboard.
+      const url = page.url();
+      const dropped = page.waitForResponse(isPut(orderUrl));
+      await drag(page, rows.last(), rows.first());
+      expect((await dropped).ok()).toBe(true);
+      expect(page.url()).toBe(url);
+      const afterDrag = [ids.at(-1) ?? "", ...ids.slice(0, -1)];
+      await expect.poll(order).toEqual(afterDrag);
+
+      // Keyboard: Move up from the options popover keeps focus on the button as the row moves.
+      const second = before.find((d) => d.id === afterDrag[1]);
+      if (!second) throw new Error("the second dashboard is missing");
+      await nav.getByRole("button", { name: `Options for ${second.name}`, exact: true }).first().click();
+      const moveUp = page.getByRole("dialog", { name: `Edit ${second.name}` }).getByRole("button", { name: "Move up" });
+      const moved = page.waitForResponse(isPut(orderUrl));
+      await moveUp.focus();
+      await page.keyboard.press("Enter");
+      expect((await moved).ok()).toBe(true);
+      const afterMove = [afterDrag[1], afterDrag[0], ...afterDrag.slice(2)];
+      await expect.poll(order).toEqual(afterMove);
+      await expect(moveUp).toBeFocused();
+      await expect(moveUp).toHaveAttribute("aria-disabled", "true");
+      await page.keyboard.press("Escape");
+
+      // The order persists and every dashboard keeps its color.
+      await page.reload();
+      await expect.poll(order).toEqual(afterMove);
+      const saved = await unwrap(api.GET("/dashboards"));
+      expect(saved.map((d) => [d.id, d.color])).toEqual(afterMove.map((id) => [id, colors.get(id)]));
+      const dots = await rows.evaluateAll((els) =>
+        els.map((el) => (el.querySelector<HTMLElement>(".dash-dot")?.style.background ?? "")),
+      );
+      expect(dots).toEqual(afterMove.map((id) => `var(--dash-${colors.get(id)})`));
     });
 
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);

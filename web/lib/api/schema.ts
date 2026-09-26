@@ -244,6 +244,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dashboards/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Reorder Dashboards
+         * @description Sets the sidebar order: every dashboard id once, first to last. Colors stay as they are.
+         */
+        put: operations["reorder_dashboards"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/dashboards/{dashboard_id}": {
         parameters: {
             query?: never;
@@ -848,17 +868,18 @@ export interface components {
             /** Name */
             name: string;
             /**
-             * Color
-             * @description Sidebar dot; assigned by position when unset
-             */
-            color?: ("blue" | "teal" | "purple" | "pink" | "orange" | "olive" | "slate" | "brown") | null;
-            /**
              * Subject Ids
              * @description The subjects the dashboard follows
              */
             subject_ids: string[];
             /** Widgets */
             widgets: (components["schemas"]["SinceWidget"] | components["schemas"]["QuestionWidget"] | components["schemas"]["SummaryWidget"] | components["schemas"]["DevelopmentsWidget"] | components["schemas"]["DirectionWidget"] | components["schemas"]["WatchlistWidget"] | components["schemas"]["UpcomingWidget"])[];
+            /**
+             * Color
+             * @description Sidebar dot; reordering never changes it
+             * @enum {string}
+             */
+            color: "blue" | "teal" | "purple" | "pink" | "orange" | "olive" | "slate" | "brown";
             /** Id */
             id: string;
             /** Starter */
@@ -879,17 +900,17 @@ export interface components {
             /** Name */
             name: string;
             /**
-             * Color
-             * @description Sidebar dot; assigned by position when unset
-             */
-            color?: ("blue" | "teal" | "purple" | "pink" | "orange" | "olive" | "slate" | "brown") | null;
-            /**
              * Subject Ids
              * @description The subjects the dashboard follows
              */
             subject_ids: string[];
             /** Widgets */
             widgets: (components["schemas"]["SinceWidget"] | components["schemas"]["QuestionWidget"] | components["schemas"]["SummaryWidget"] | components["schemas"]["DevelopmentsWidget"] | components["schemas"]["DirectionWidget"] | components["schemas"]["WatchlistWidget"] | components["schemas"]["UpcomingWidget"])[];
+            /**
+             * Color
+             * @description Sidebar dot. Unset on create picks the least used color; unset on update keeps the stored one
+             */
+            color?: ("blue" | "teal" | "purple" | "pink" | "orange" | "olive" | "slate" | "brown") | null;
         };
         /**
          * DataSource
@@ -2856,6 +2877,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Dashboard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reorder_dashboards: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": string[];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Dashboard"][];
                 };
             };
             /** @description Validation Error */

@@ -348,6 +348,7 @@ It covers:
 6. Open a monitor page from ⌘K, mark reviewed, add a note.
 7. Add a custom question, keep it, check the answer and citations.
 8. Open the graph view, expand to 2 hops, click a node, check its page opens.
+9. Drag a sidebar dashboard to the top, move another with Move up, reload, check the order persisted and colors did not change.
 
 ## Risks
 

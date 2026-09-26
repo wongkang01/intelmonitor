@@ -47,6 +47,8 @@ Primary user: a supervisory or policy analyst who follows a few topics, sectors 
 | Profile menu | Settings, Data sources, Run history, Keyboard shortcuts | Profile button at the bottom of the sidebar |
 
 **Sidebar:** Dashboards ("New dashboard" first, then the user's dashboards), then Monitors (Topics, Groups, Entities, with counts), then the profile button (avatar, name, role) pinned to the bottom. Nothing else.
+Dashboards reorder by dragging a row; the others slide a slot to make room, and each keeps its color.
+The row's options menu has Move up and Move down for keyboard and touch.
 
 **Profile menu:** opens upward from the profile button. Settings, Data sources, Run history, Keyboard shortcuts. Esc or a click outside closes it.
 

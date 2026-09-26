@@ -9,6 +9,7 @@ export const STEPS = [
   "Monitor page from ⌘K: mark reviewed, add a note",
   "Custom question with answer and citations",
   "Graph view: 2 hops, click a node, its page opens",
+  "Sidebar: drag and Move up reorder dashboards, colors stay",
 ] as const;
 
 /** Where each run writes its artifacts; playwright.config.ts sets it once per run. */
