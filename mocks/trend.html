@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IntelMonitor trend mocks</title>
+<style>
+:root{
+  --canvas:oklch(0.972 0.004 260);
+  --surface:oklch(0.993 0.002 260);
+  --rail:oklch(0.955 0.005 260);
+  --hover:oklch(0.925 0.006 260);
+  --line:oklch(0.93 0.005 260);
+  --line-strong:oklch(0.885 0.007 260);
+  --line-field:oklch(0.80 0.01 260);
+  --ink:oklch(0.23 0.012 260);
+  --ink2:oklch(0.47 0.014 260);
+  --ink3:oklch(0.56 0.012 260);
+  --accent:oklch(0.52 0.17 258);
+  --accent-strong:oklch(0.46 0.16 258);
+  --new:oklch(0.48 0.15 258); --new-bg:oklch(0.955 0.022 250);
+  --watch:oklch(0.47 0.105 62); --watch-bg:oklch(0.965 0.035 80);
+  --attn:oklch(0.50 0.17 28); --attn-bg:oklch(0.955 0.022 25);
+  --stable:oklch(0.47 0.10 155);
+  --mark:oklch(0.94 0.07 95);
+  --on-ink:oklch(0.97 0.004 260);
+  --on-ink2:oklch(0.80 0.01 260);
+  --on-ink-link:oklch(0.80 0.10 258);
+  /* Radius: badge 4, control 6, widget, panel and popover 10, popup and sheet 14. The drawer is square. */
+  --r-badge:4px; --r-ctl:6px; --r-widget:10px; --r-sheet:14px;
+  /* Depth: one thin low shadow on in-page surfaces. Overlays add a 1px border. */
+  --shadow-low:0 1px 3px oklch(0.23 0.012 260 / 0.11);
+  --shadow-pop:0 6px 20px oklch(0.23 0.012 260 / 0.12);
+  --shadow-modal:0 12px 32px oklch(0.23 0.012 260 / 0.16);
+  --scrim:oklch(0.23 0.012 260 / 0.24);
+  /* Type: 12 meta, 13 body and rows, 15 section and answers, 22 widget hero, 28 page title. */
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --stat:112px;
+  --tb:36px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--canvas);color:var(--ink);font:400 13px/18px var(--font);-webkit-font-smoothing:antialiased;overflow:hidden}
+h1,h2,h3,p,dl,dd,dt,ul{margin:0;padding:0}
+button,input,textarea,select{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer;text-align:left}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+.i{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.i.s12{width:12px;height:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.grow{flex:1}
+.c2,.c3,.c1{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+.c1{-webkit-line-clamp:1}.c2{-webkit-line-clamp:2}.c3{-webkit-line-clamp:3}
+.meta{font-size:12px;line-height:16px;color:var(--ink2)}
+.num{font-variant-numeric:tabular-nums}
+.lk{color:var(--accent);font-weight:500}
+.lk:hover{text-decoration:underline}
+.sl:hover{text-decoration:underline}
+.t-attn{color:var(--attn)}.t-watch{color:var(--watch)}.t-stable{color:var(--stable)}.t-new{color:var(--new)}.t-upd{color:var(--ink2)}
+.arr{color:var(--ink2);font-weight:400;padding:0 2px}
+
+/* Mock toolbar (not part of the design) */
+.tb{height:var(--tb);display:flex;align-items:center;gap:16px;padding:0 16px;background:var(--ink);color:var(--on-ink);font-size:12px;white-space:nowrap}
+.tb b{font-weight:600}
+.tbs{display:flex;gap:2px;padding:2px;border-radius:var(--r-ctl);background:oklch(0.32 0.012 260)}
+.tbs button{height:24px;padding:0 10px;border-radius:var(--r-badge);color:var(--on-ink2)}
+.tbs button[aria-pressed=true]{background:var(--on-ink);color:var(--ink);font-weight:500}
+.tbt{height:24px;padding:0 10px;border-radius:var(--r-badge);border:1px solid oklch(0.40 0.012 260);color:var(--on-ink2)}
+.tbt[aria-pressed=true]{border-color:var(--on-ink);color:var(--on-ink)}
+.tbn{margin-left:auto;color:var(--on-ink2);overflow:hidden;text-overflow:ellipsis}
+
+/* Shell */
+.app{height:calc(100vh - var(--tb));display:grid;grid-template-columns:232px minmax(0,1fr)}
+.side{background:var(--rail);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.brand{height:56px;display:flex;align-items:center;padding:0 16px;font-size:15px;font-weight:600;letter-spacing:-.01em;flex:none}
+.nav{flex:1;overflow:auto;padding:4px 8px 16px}
+.nl{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);padding:16px 8px 4px}
+.nl:first-child{padding-top:4px}
+.ni{position:relative;width:100%;height:32px;display:flex;align-items:center;gap:8px;padding:0 8px;border-radius:var(--r-ctl);font-weight:500;color:var(--ink)}
+.ni:hover{background:var(--hover)}
+.ni[aria-current=page]{background:var(--surface);box-shadow:var(--shadow-low);font-weight:600}
+.ni .i{color:var(--ink2)}
+.ni .cnt{margin-left:auto;font-size:12px;font-weight:400;color:var(--ink2);font-variant-numeric:tabular-nums}
+.ni.sub{padding-left:32px}
+.ni .chev{transition:transform .15s ease-out}
+.ni[aria-expanded=true] .chev{transform:rotate(90deg)}
+.prof{flex:none;border-top:1px solid var(--line);padding:8px}
+.prof button{width:100%;height:48px;display:flex;align-items:center;gap:8px;padding:0 8px;border-radius:var(--r-ctl)}
+.prof button:hover{background:var(--hover)}
+.av{width:28px;height:28px;border-radius:50%;background:var(--hover);display:grid;place-items:center;font-size:12px;font-weight:600;flex:none}
+.who{display:flex;flex-direction:column;line-height:16px;min-width:0}
+.who b{font-weight:500}
+.main{position:relative;overflow:auto;min-width:0}
+.top{position:sticky;top:0;z-index:30;height:56px;display:flex;align-items:center;gap:8px;padding:0 32px;background:var(--canvas);border-bottom:1px solid var(--line)}
+.search{flex:1;height:32px;display:flex;align-items:center;gap:8px;padding:0 6px 0 10px;background:var(--surface);border:1px solid var(--line-field);border-radius:var(--r-ctl);color:var(--ink3)}
+.search:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.search input{flex:1;min-width:0;border:0;outline:0;background:none;color:var(--ink);height:30px}
+.search input::placeholder{color:var(--ink3)}
+input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none}
+.kbd{height:20px;padding:0 5px;border:1px solid var(--line-strong);border-radius:var(--r-badge);font-size:12px;line-height:18px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.trw{position:relative;flex:none}
+.chip{height:32px;min-width:224px;display:flex;align-items:center;gap:8px;padding:0 10px 0 12px;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-ctl);color:var(--ink2);white-space:nowrap}
+.chip b{color:var(--ink);font-weight:600}
+.chip .chev{margin-left:auto;color:var(--ink3);transition:transform .15s ease-out}
+.chip[aria-expanded=true] .chev{transform:rotate(180deg)}
+.chip:hover,.bell:hover,.chip[aria-expanded=true],.bell[aria-expanded=true]{background:var(--hover)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--stable);flex:none}
+.half{width:8px;height:8px;flex:none;color:var(--new)}
+.bell{height:32px;min-width:32px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 7px;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-ctl);color:var(--ink2)}
+.cntb{height:16px;padding:0 4px;border-radius:var(--r-badge);font-size:12px;line-height:16px;font-weight:600;font-variant-numeric:tabular-nums;background:var(--attn-bg);color:var(--attn)}
+/* 44px hit areas for 32px controls */
+.chip,.bell,.btn,.ib,.minus{position:relative}
+.chip::after,.bell::after,.btn::after{content:"";position:absolute;inset:-6px -2px}
+.ib::after,.minus::after{content:"";position:absolute;inset:-8px}
+
+/* Popovers */
+.pop{position:absolute;right:0;top:calc(100% + 8px);width:400px;max-height:min(560px,calc(100vh - 96px));display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-widget);box-shadow:var(--shadow-pop);overflow:hidden;z-index:40}
+.ph{height:44px;flex:none;display:flex;align-items:center;gap:8px;padding:0 8px 0 16px;border-bottom:1px solid var(--line)}
+.ph b{font-weight:600}
+.pb{overflow:auto;flex:1}
+.pf{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px 0 16px;border-top:1px solid var(--line)}
+.pg{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);padding:12px 16px 4px}
+.rr{display:grid;grid-template-columns:16px minmax(0,1fr) auto;column-gap:12px;align-items:start;padding:8px 16px;border-top:1px solid var(--line)}
+.rr .meta{grid-column:2/4;margin-top:2px}
+.pb>.rr:first-child{border-top:0}
+.rr .mk{height:18px;display:flex;align-items:center}
+.rr .mk .i{width:12px;height:12px;stroke-width:2}
+.rr b{font-weight:500}
+.rr .res{font-size:12px;line-height:18px;color:var(--ink2);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ar{width:100%;display:grid;grid-template-columns:var(--stat) minmax(0,1fr);gap:12px;align-items:start;padding:8px 16px;border-top:1px solid var(--line)}
+.ar:hover,.ar:focus-visible,.rr:hover{background:var(--hover)}
+.ar:focus-visible{outline-offset:-2px}
+.ar .tt{font-weight:500}
+
+/* Buttons and fields */
+.btn{height:32px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:var(--r-ctl);font-weight:500;white-space:nowrap;background:var(--surface);border:1px solid var(--line-strong);color:var(--ink)}
+.btn:hover{background:var(--hover)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.pri:hover{background:var(--accent-strong);border-color:var(--accent-strong)}
+.btn.sm{height:28px;padding:0 10px}
+.btn.gh{background:none;border-color:transparent}
+.btn.gh:hover{background:var(--hover)}
+.btn.gh.ac{color:var(--accent)}
+.btn:disabled,.btn:disabled:hover{background:var(--surface);border-color:var(--line-strong);color:var(--ink3);cursor:default}
+.btn.gh:disabled,.btn.gh:disabled:hover{background:none;border-color:transparent}
+.ib{width:28px;height:28px;display:grid;place-items:center;border-radius:var(--r-ctl);color:var(--ink2);flex:none}
+.ib:hover{background:var(--hover);color:var(--ink)}
+.fld{height:32px;padding:0 10px;background:var(--surface);border:1px solid var(--line-field);border-radius:var(--r-ctl);color:var(--ink)}
+.fld::placeholder,textarea::placeholder{color:var(--ink3)}
+.fld:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+textarea.fld{height:64px;padding:6px 10px;resize:vertical;width:100%;display:block}
+.seg{display:inline-flex;height:28px;padding:2px;gap:2px;background:var(--rail);border-radius:var(--r-ctl);flex:none}
+.seg button{height:24px;padding:0 10px;border-radius:var(--r-badge);border:1px solid transparent;color:var(--ink2);font-weight:500;font-size:12px}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed=true],.seg button[aria-selected=true]{background:var(--surface);border-color:var(--line-strong);color:var(--ink)}
+
+/* Badges */
+.b{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:var(--r-badge);font-size:12px;line-height:18px;font-weight:500;white-space:nowrap}
+.b-attn{background:var(--attn-bg);color:var(--attn)}
+.b-watch{background:var(--watch-bg);color:var(--watch)}
+.b-new{background:var(--new-bg);color:var(--new)}
+.b-upd,.b-custom{background:var(--rail);color:var(--ink2)}
+.b-stable{padding:0;color:var(--stable)}
+
+/* Page */
+.page{padding:24px 32px 48px}
+.ph1{display:flex;align-items:flex-end;gap:8px;margin-bottom:24px}
+.ph1 h1{font-size:28px;line-height:34px;font-weight:600;letter-spacing:-.015em}
+.ph1 p{margin-top:2px;color:var(--ink2)}
+.ph1 p a{color:var(--ink2)}
+.ph1 p a:hover{color:var(--ink);text-decoration:underline}
+
+/* Widget grid */
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:176px;gap:16px;grid-auto-flow:row dense}
+.w{position:relative;background:var(--surface);border-radius:var(--r-widget);box-shadow:var(--shadow-low);padding:12px;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.w.z-M{grid-column:span 2}.w.z-L{grid-column:span 2;grid-row:span 2}
+.wh{display:flex;align-items:baseline;gap:8px;min-height:16px;margin-bottom:8px}
+.wt{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);white-space:nowrap}
+a.wt:hover{color:var(--ink);text-decoration:underline}
+.wm{margin-left:auto;font-size:12px;line-height:16px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.hero{font-size:22px;line-height:28px;font-weight:600;letter-spacing:-.01em;margin-bottom:8px}
+.ans{font-size:15px;line-height:20px;font-weight:600}
+.wf{margin-top:auto;display:flex;align-items:center;gap:8px;padding-top:8px}
+.wf .meta{margin-left:auto}
+.gl{display:flex;align-items:center;gap:6px;font-size:12px;line-height:16px;font-weight:500;padding:4px 0}
+.gl .lk{margin-left:auto;font-size:12px}
+.gl .dot{background:currentColor}
+.rows{display:flex;flex-direction:column;min-height:0}
+.r{display:grid;grid-template-columns:var(--stat) minmax(0,1fr) auto;gap:12px;align-items:baseline;padding:8px 0;border-top:1px solid var(--line);text-align:left;width:100%}
+.r.ns{grid-template-columns:minmax(0,1fr) auto}
+.r .tt{font-weight:500;min-width:0}
+.r .d{font-size:12px;line-height:16px;color:var(--ink2);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.r .sc{align-self:start}
+button.r:hover .tt,a.r:hover .tt{text-decoration:underline;text-decoration-color:var(--line-field)}
+.w .r .tt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qs2{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}
+.qr{display:flex;align-items:baseline;gap:8px;padding:7px 0;border-top:1px solid var(--line);min-width:0}
+.qr .ql{color:var(--ink2);white-space:nowrap}
+.qr .qa{margin-left:auto;font-weight:600;text-align:right}
+.spark{display:block;width:100%;height:40px;margin:8px 0;color:var(--ink2)}
+.ent{display:grid;grid-template-columns:var(--stat) minmax(0,1fr) 28px;gap:0 12px;padding:8px 0;border-top:1px solid var(--line)}
+.ent .en{display:flex;align-items:baseline;gap:8px}
+.ent .en b{font-weight:600}
+.ent .hs{margin-top:2px}
+.ent .lt{display:flex;gap:8px;margin-top:2px}
+.ent .lt span:first-child{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ent .ib{margin-top:-5px}
+.add{display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;border:1px solid var(--line-field);border-radius:var(--r-ctl);color:var(--ink3);margin-bottom:8px;background:var(--surface)}
+.add input{flex:1;border:0;outline:0;background:none;min-width:0;color:var(--ink)}
+.add input::placeholder{color:var(--ink3)}
+.add:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Edit mode */
+.editing .w{outline:1px dashed var(--accent);outline-offset:-1px;cursor:grab}
+.editing .w .wh{padding-right:28px}
+.minus{position:absolute;top:8px;right:8px;width:24px;height:24px;display:grid;place-items:center;border-radius:var(--r-ctl);background:var(--surface);border:1px solid var(--line-strong);color:var(--ink2);z-index:2}
+.minus:hover{background:var(--hover);color:var(--ink)}
+.toast{position:fixed;left:264px;bottom:24px;z-index:70;height:36px;display:flex;align-items:center;gap:12px;padding:0 8px 0 12px;background:var(--ink);color:var(--on-ink);border-radius:var(--r-ctl);box-shadow:var(--shadow-pop)}
+.toast button{height:28px;padding:0 8px;border-radius:var(--r-badge);color:var(--on-ink-link);font-weight:600}
+.toast button:hover{background:oklch(0.32 0.012 260)}
+
+/* Monitor page */
+.mon{display:grid;grid-template-columns:minmax(0,1fr) 296px;gap:16px;align-items:start}
+.panel{background:var(--surface);border-radius:var(--r-widget);box-shadow:var(--shadow-low);padding:16px}
+.rail{position:sticky;top:80px}
+.sec+.sec{margin-top:32px}
+.sh{display:flex;align-items:baseline;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--line-strong)}
+.sh h2{font-size:15px;line-height:20px;font-weight:600}
+.sh .meta{margin-left:auto}
+.lead{display:flex;align-items:baseline;gap:8px;padding:12px 0 8px}
+.lead b{font-weight:600}
+.sub3{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);padding:16px 0 4px}
+.mon .r{align-items:start}
+.mon .r .tt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.mon .r .d{line-height:18px}
+.mon .r .meta{margin-top:2px}
+.qrow .ql{font-weight:500;display:flex;align-items:center;gap:8px}
+.qrow .qq{font-size:12px;line-height:16px;color:var(--ink2);margin-top:2px}
+.qrow .qa{margin-top:4px;max-width:70ch}
+.qrow .meta{margin-top:4px}
+.more{margin-top:8px}
+dl.links{display:grid;grid-template-columns:64px minmax(0,1fr);gap:8px 12px;padding:12px 0}
+dl.links dt{font-size:12px;line-height:18px;font-weight:500;color:var(--ink2)}
+dl.links a{color:var(--ink)}
+dl.links a:hover{text-decoration:underline}
+.act{padding-top:12px;display:flex;flex-direction:column;gap:12px}
+.act .rw{display:flex;align-items:center;gap:12px}
+
+/* Evidence drawer */
+.drawer{position:fixed;top:calc(var(--tb) + 56px);right:0;bottom:0;width:520px;z-index:20;background:var(--surface);border-left:1px solid var(--line-strong);box-shadow:var(--shadow-pop);display:flex;flex-direction:column}
+.dh{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px 0 20px;border-bottom:1px solid var(--line)}
+.dh h2{font-size:15px;line-height:20px;font-weight:600}
+.db{flex:1;overflow:auto;padding:16px 20px 32px}
+.db .ans{margin:4px 0}
+.dsec{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);padding:24px 0 8px;border-bottom:1px solid var(--line-strong)}
+.dev{padding:12px 0;border-bottom:1px solid var(--line)}
+.dev .top2{display:flex;align-items:center;gap:8px}
+.dev .tt{font-weight:600;margin-top:8px}
+.src{padding:12px 0 0 12px;margin-top:12px;border-top:1px solid var(--line)}
+.src a{color:var(--accent);font-weight:500}
+.src a:hover{text-decoration:underline}
+.src .pass{margin-top:6px;color:var(--ink);max-width:70ch}
+mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 1px}
+
+/* Sheet and popup */
+.scrim{position:fixed;inset:var(--tb) 0 0 0;background:var(--scrim);z-index:50}
+.modal{position:fixed;z-index:51;left:50%;top:calc(var(--tb) + (100vh - var(--tb)) / 2);transform:translate(-50%,-50%);width:min(1152px,calc(100vw - 64px));height:min(772px,calc(100vh - var(--tb) - 48px));display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-sheet);box-shadow:var(--shadow-modal);overflow:hidden}
+.mh{height:48px;flex:none;display:flex;align-items:center;gap:16px;padding:0 12px 0 20px;border-bottom:1px solid var(--line)}
+.mh h2{font-size:15px;line-height:20px;font-weight:600}
+.mh .ib{margin-left:auto}
+.mb{flex:1;min-height:0;display:flex;flex-direction:column}
+.mf{height:56px;flex:none;display:flex;align-items:center;gap:12px;padding:0 20px;border-top:1px solid var(--line)}
+.mf label{font-weight:500}
+.mf .fld{width:260px}
+.gbar{height:40px;flex:none;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid var(--line)}
+.gbar .lk{display:inline-flex;align-items:center;gap:4px}
+.gal{flex:1;min-height:0;display:grid;grid-template-columns:240px minmax(0,1fr)}
+.subs{background:var(--rail);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.subs .search{flex:none;margin:12px 12px 4px;height:32px}
+.subs .list{overflow:auto;padding:0 8px 12px}
+.subs .ni{height:30px}
+.subs .ni .cnt{color:var(--ink2)}
+.offers{overflow:auto;background:var(--canvas);padding:20px 24px 32px}
+.oh{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.oh h3{font-size:15px;line-height:20px;font-weight:600}
+.og{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);padding:20px 0 8px;border-bottom:1px solid var(--line-strong);margin-bottom:16px}
+.offer{display:grid;grid-template-columns:184px auto;gap:24px;align-items:start;margin-bottom:24px}
+.offer .on{font-weight:600;margin-bottom:8px}
+.offer .oc{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.pv{width:544px}
+.pv.z-S{width:264px;height:176px}.pv.z-M{height:176px}.pv.z-L{height:368px}
+.pv .w{height:100%}
+.canvas{flex:1;min-height:0;overflow:auto;background:var(--canvas);padding:16px 20px 24px}
+.canvas .grid{grid-template-columns:repeat(4,264px);justify-content:start}
+.ch{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.ch b{font-weight:600}
+.chat{flex:none;padding:12px 20px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.chat .you{color:var(--ink2)}
+.chat details summary{cursor:pointer;list-style:none}
+.chat details summary b{font-weight:600}
+.chat details summary::-webkit-details-marker{display:none}
+.chat details ul{list-style:none;margin-top:4px;color:var(--ink2)}
+.dock{flex:none;display:flex;gap:8px;padding:12px 20px;border-top:1px solid var(--line)}
+.dock .fld{flex:1}
+.pend{display:flex;align-items:center;gap:4px;color:var(--ink2)}
+.pend b{color:var(--ink);font-weight:500;margin-right:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:1180px){.app{grid-template-columns:200px minmax(0,1fr)}.mon{grid-template-columns:minmax(0,1fr)}.rail{position:static}.toast{left:232px}}
+
+/* Shared additions matching the running app (dashboard dots, entity icons, rail links, profile menu). */
+:root{
+  --dash-blue:oklch(0.58 0.14 255);--dash-teal:oklch(0.6 0.1 195);--dash-purple:oklch(0.55 0.15 300);--dash-slate:oklch(0.55 0.03 250);
+}
+.dash-dot{width:8px;height:8px;flex:none;border-radius:50%}
+.ni .i.sm{width:14px;height:14px}
+.ent-icon{--ei:16px;width:var(--ei);height:var(--ei);flex:none;display:inline-grid;place-items:center;overflow:hidden;border-radius:var(--r-badge);background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink2);vertical-align:middle}
+.ent-icon svg{width:100%;height:100%}
+.ent-icon.s28{--ei:28px;border-radius:var(--r-ctl);background:var(--rail)}
+.ent-icon.s28 .i{width:16px;height:16px}
+.ph1 .ttl{display:flex;align-items:center;gap:12px}
+.ph1 .ttl .dash-dot{width:10px;height:10px}
+dl.links{grid-template-columns:64px minmax(0,1fr);gap:0 12px;padding:4px 0 12px}
+dl.links dt{padding-top:12px}
+dl.links dd{display:flex;flex-direction:column}
+dl.links dd a{height:44px;display:flex;align-items:center;border-bottom:1px solid var(--line)}
+/* Profile menu, opening upward */
+.pwrap{position:relative}
+.pmenu{position:absolute;left:8px;right:8px;bottom:calc(100% + 4px);background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-widget);box-shadow:var(--shadow-pop);padding:4px;z-index:45}
+.pmenu button{width:100%;height:32px;display:flex;align-items:center;gap:8px;padding:0 8px;border-radius:var(--r-ctl);font-weight:500;position:relative}
+.pmenu button::after{content:"";position:absolute;inset:-6px 0}
+.pmenu button:hover,.pmenu button.hl{background:var(--hover)}
+.pmenu button .i{color:var(--ink2)}
+.pmenu .kbd{margin-left:auto}
+.pmenu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+/* Mock chrome: a second toolbar line naming the direction and its trade-off */
+.tb{flex-wrap:nowrap}
+.tbd{min-height:32px;display:flex;align-items:center;gap:12px;padding:6px 16px;background:oklch(0.30 0.012 260);color:var(--on-ink);font-size:12px;line-height:16px}
+.tbd b{font-weight:600;white-space:nowrap}
+.tbd span{color:var(--on-ink2)}
+body.two .app{height:calc(100vh - var(--tb) - var(--tbd,32px))}
+
+/* Trend mock. Chart marks stay neutral; red marks only "Needs attention", as everywhere else. */
+:root{
+  --v-mat:oklch(0.72 0.012 260);
+  --st1:oklch(0.82 0.012 260);--st2:oklch(0.72 0.012 260);--st3:oklch(0.61 0.012 260);--st4:oklch(0.49 0.012 260);--st5:oklch(0.36 0.012 260);
+}
+.chart{display:block;width:100%;overflow:visible}
+.chart text{font:400 12px/16px var(--font);fill:var(--ink2);font-variant-numeric:tabular-nums}
+.chart .val{fill:var(--ink);font-weight:500}
+.chart .xl.on{fill:var(--ink);font-weight:600}
+.chart .pre{fill:var(--ink3)}
+.chart .hit{fill:transparent;cursor:pointer}
+.chart .hit:focus-visible{outline:none;stroke:var(--accent);stroke-width:2}
+.chart .band{fill:var(--rail)}
+.tr-grid{display:grid;grid-template-columns:180px minmax(0,1fr);column-gap:0}
+.tr-side{padding:12px 16px 0 0;display:flex;flex-direction:column;gap:4px}
+.tr-side .ans{margin-bottom:2px}
+.lg{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.lg span{display:flex;align-items:center;gap:8px;height:20px}
+.lg i{width:10px;height:10px;border-radius:2px;flex:none}
+.lg em{font-style:normal;margin-left:auto;color:var(--ink2);font-variant-numeric:tabular-nums;font-size:12px}
+.tr-bar{display:flex;align-items:center;gap:12px;padding:12px 0 4px}
+.tr-bar .meta{margin-left:auto}
+.strip-row{display:grid;grid-template-columns:180px minmax(0,1fr);align-items:center;min-height:44px;border-top:1px solid var(--line)}
+.strip-row .sl2{padding-right:16px;min-width:0}
+.strip-row .sl2 b{font-weight:500;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip-row .sl2 .meta{display:block}
+.filt{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 4px 0 10px;border:1px solid var(--line-strong);border-radius:var(--r-ctl);background:var(--surface);font-weight:500;font-size:12px;position:relative}
+.filt .ib{width:20px;height:20px}
+.tip{position:fixed;z-index:80;pointer-events:none;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-ctl);box-shadow:var(--shadow-pop);padding:8px 10px;min-width:180px;font-size:12px;line-height:16px}
+.tip b{display:block;font-weight:600;margin-bottom:4px;font-size:13px}
+.tip div{display:flex;align-items:center;gap:8px}
+.tip i{width:8px;height:8px;border-radius:2px;flex:none}
+.tip em{font-style:normal;margin-left:auto;font-variant-numeric:tabular-nums;padding-left:12px}
+.tip .meta{margin-top:4px}
+/* Direction B: week table */
+.wt-tab{width:100%;border-collapse:collapse;table-layout:fixed;font-variant-numeric:tabular-nums}
+.wt-tab th,.wt-tab td{padding:0;text-align:center;font-weight:400}
+.wt-tab col.lab{width:168px}.wt-tab col.tot{width:52px}
+.wt-tab thead th{height:44px;vertical-align:middle}
+.wt-tab thead th button{width:100%;height:44px;font-size:12px;color:var(--ink2);text-align:center;border-radius:var(--r-ctl)}
+.wt-tab thead th button:hover{background:var(--hover);color:var(--ink)}
+.wt-tab thead th.on button{color:var(--ink);font-weight:600}
+.wt-tab .on{background:var(--rail)}
+.wt-tab tbody td,.wt-tab tbody th{height:32px;border-top:1px solid var(--line)}
+.wt-tab tbody th{text-align:left;font-weight:500;padding-right:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wt-tab tbody th .ent-icon{margin-right:6px}
+.wt-tab tr.grp th{height:32px;padding-top:12px;font-size:12px;color:var(--ink2);font-weight:500;border-top:0;vertical-align:bottom}
+.wt-tab tr.grp td{border-top:0}
+.wt-tab td.z{color:var(--ink3)}
+.wt-tab td.pre{color:var(--ink3)}
+.wt-tab td.tot,.wt-tab th.tot{text-align:right;color:var(--ink2)}
+.wt-tab tr.hrow td,.wt-tab tr.hrow th{height:72px;vertical-align:bottom;padding-bottom:6px}
+.wt-tab tr.hrow td svg{display:block;margin:0 auto}
+.wt-tab tr.hrow td span{display:block;font-weight:600;margin-bottom:4px}
+.runs-tab{width:100%;border-collapse:collapse}
+.runs-tab th{font-size:12px;font-weight:500;color:var(--ink2);text-align:left;height:32px;padding:0 12px 0 0}
+.runs-tab td{border-top:1px solid var(--line);padding:8px 12px 8px 0;vertical-align:top}
+.runs-tab col.run{width:124px}
+.runs-tab .rq b{font-weight:500}
+.runs-tab .rq .meta{display:block;margin-top:2px}
+.runs-tab .fut{color:var(--ink3)}
+/* Direction C */
+.scrub{padding:8px 0 4px}
+.scrub-h{display:flex;align-items:center;gap:8px;height:28px}
+.scrub-h .meta{margin-left:auto}
+.mini-row{display:grid;grid-template-columns:var(--stat) minmax(0,1fr) 248px 96px;gap:12px;align-items:center;padding:6px 0;border-top:1px solid var(--line);min-height:44px;width:100%;text-align:left}
+.mini-row:hover{background:var(--hover)}
+.mini-row .nm{display:flex;align-items:center;gap:8px;font-weight:500}
+.mini-row .nm .meta{font-weight:400}
+.mini-row .ct{text-align:right;font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.mini-row .ct b{color:var(--ink);font-weight:600;font-size:13px}
+.hist{color:var(--ink2)}
+.hist b{font-weight:500}
+.dirlink{display:flex;gap:8px;align-items:center}
+.w.hov{outline:2px solid var(--accent);outline-offset:2px}
+
+</style>
+</head>
+<body class="two">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 16 16"><path d="M4 8h8"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-down" viewBox="0 0 16 16"><path d="M4.5 6.5 8 10l3.5-3.5"/></symbol>
+  <symbol id="i-right" viewBox="0 0 16 16"><path d="M6.5 4.5 10 8l-3.5 3.5"/></symbol>
+  <symbol id="i-up" viewBox="0 0 16 16"><path d="M4.5 10 8 6.5l3.5 3.5"/></symbol>
+  <symbol id="i-left" viewBox="0 0 16 16"><path d="M9.5 4.5 6 8l3.5 3.5"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 16 16"><path d="M4 11V7.5a4 4 0 0 1 8 0V11l1 1.5H3L4 11Z"/><path d="M6.5 14a1.6 1.6 0 0 0 3 0"/></symbol>
+  <symbol id="i-check" viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.6l4.5-5"/></symbol>
+  <symbol id="i-excl" viewBox="0 0 12 12"><path d="M6 2v4.8M6 9.6v.2"/></symbol>
+  <symbol id="i-send" viewBox="0 0 16 16"><path d="M8 13V3M4 7l4-4 4 4"/></symbol>
+</svg>
+  <symbol id="i-landmark" viewBox="0 0 16 16"><path d="M2.5 6 8 3l5.5 3M3.5 13.5h9M4.5 7.5v4M8 7.5v4M11.5 7.5v4"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M2.5 8h11M8 2.5c1.6 1.6 2.3 3.4 2.3 5.5S9.6 11.9 8 13.5M8 2.5C6.4 4.1 5.7 5.9 5.7 8s.7 3.9 2.3 5.5"/></symbol>
+  <symbol id="i-link" viewBox="0 0 16 16"><path d="M7 9a2.5 2.5 0 0 0 3.5 0l2-2A2.5 2.5 0 0 0 9 3.5l-.7.7M9 7a2.5 2.5 0 0 0-3.5 0l-2 2A2.5 2.5 0 0 0 7 12.5l.7-.7"/></symbol>
+  <symbol id="i-help" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M6.4 6.4a1.7 1.7 0 0 1 3.3.5c0 1.1-1.7 1.4-1.7 2.4M8 11.2v.1"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2"/><path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14M3.8 3.8l1 1M11.2 11.2l1 1M3.8 12.2l1-1M11.2 4.8l1-1"/></symbol>
+  <symbol id="i-db" viewBox="0 0 16 16"><ellipse cx="8" cy="4.5" rx="4.5" ry="1.8"/><path d="M3.5 4.5v7c0 1 2 1.8 4.5 1.8s4.5-.8 4.5-1.8v-7M3.5 8c0 1 2 1.8 4.5 1.8s4.5-.8 4.5-1.8"/></symbol>
+  <symbol id="i-history" viewBox="0 0 16 16"><path d="M2.8 8a5.2 5.2 0 1 0 1.5-3.7M2.8 3v2.3h2.3M8 5.5V8l1.8 1.2"/></symbol>
+  <symbol id="i-keyboard" viewBox="0 0 16 16"><rect x="2" y="4.5" width="12" height="7" rx="1.2"/><path d="M4.5 7h.1M7 7h.1M9.5 7h.1M12 7h-.5M5.5 9.5h5"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 16 16"><path d="M8 2.5 9.3 6.7 13.5 8 9.3 9.3 8 13.5 6.7 9.3 2.5 8l4.2-1.3Z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M5.5 3.5v9l7-4.5Z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 16 16"><path d="M3 3.5h4a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 0 7 11.5H3ZM13 3.5H9.5A1.5 1.5 0 0 0 8 5v8a1.5 1.5 0 0 1 1.5-1.5H13Z"/></symbol>
+
+</svg>
+<div class="tb" role="toolbar" aria-label="Mock views"><b>B1 · Trend on monitor pages</b>
+  <div class="tbs"><button data-dir="A">A · Chart</button><button data-dir="B">B · Week table</button><button data-dir="C">C · Woven in</button></div>
+  <div class="tbs"><button data-view="dash">Dashboard</button><button data-view="topic">Topic</button><button data-view="group">Group</button></div>
+  <span class="tbn">Real counts: run of 24 Sep, material = Notable or higher, weeks by first publication</span></div>
+<div class="tbd" id="tbd"></div>
+<div id="root"></div>
+<script>
+const LOGO={"dbs": "<svg viewBox=\"-0.10 0.20 27.00 27.00\" xmlns=\"http://www.w3.org/2000/svg\"><g fill=\"none\" fill-rule=\"evenodd\"><path d=\"m4.45698 22.731h17.88336v-18.064h-17.88336z\" fill=\"#fff\"/><path d=\"m21.75624 22.164-6.48945-5.497s-.87912-.867-1.86516-.867c-.99594 0-1.87506.867-1.87506.867l-6.48747 5.497-.02079-.019 5.44302-6.555s.85635-.885.85635-1.893c0-.998-.85635-1.884-.85635-1.884l-5.44302-6.56.02079-.023 6.48747 5.503s.87912.869 1.87506.869c.98604 0 1.86516-.869 1.86516-.869l6.48945-5.503.02673.029-5.45391 6.554s-.85041.886-.85041 1.884c0 1.008.85041 1.893.85041 1.893l5.45391 6.553zm3.03633-8.467v-.002c0-1.777.07128-3.37 1.3761-6.168.37719-.814 1.21176-2-.01782-3.384-.99891-1.006-2.13345-.841-2.89773-.396.43956-.772.60291-1.923-.39501-2.933-1.36917-1.238-2.54727-.397-3.34917-.014-2.77299 1.321-4.34214 1.394-6.10731 1.394-1.7721 0-3.34323-.073-6.11028-1.394-.80586-.383-1.98891-1.224-3.35412.014-.99792 1.01-.82962 2.161-.39006 2.933-.76626-.447-1.90278-.61-2.90268.396-1.22859 1.384-.39006 2.57-.0198 3.384 1.31274 2.798 1.38501 4.391 1.38501 6.17 0 1.784-.07227 3.381-1.38501 6.177-.37026.808-1.20879 2.002.0198 3.385.9999 1.003 2.13642.837 2.90268.397-.43956.774-.60786 1.922.39006 2.922 1.36521 1.247 2.54826.404 3.35412.021 2.76903-1.32 4.33818-1.39 6.11028-1.39 1.76517 0 3.33432.07 6.10632 1.39.80289.383 1.98099 1.226 3.35016-.021.99792-1 .83061-2.148.39303-2.922.76626.44 1.9008.612 2.89971-.397 1.22958-1.383.39501-2.577.01782-3.385-1.30482-2.8-1.3761-4.393-1.3761-6.177z\" fill=\"#f33\"/><path d=\"m45.96471 24.186c2.22453-.805 4.97772-4.639 4.52133-10.677-.43956-5.841-2.64429-10.43-8.51499-10.861 0 0-1.11177-.081-2.04336-.085-.99891-.007-1.21275-.041-1.287 1.037-.12771 2.017-.16434 17.726-.03663 19.993.01485.311.04851 1.057 1.32957 1.188 2.34234.229 4.27977.045 6.03108-.595zm-2.27106-22.533c4.96782-.023 11.50479 3.417 11.47905 12.011-.01683 7.475-5.36085 12.079-10.296 12.079l-12.53241.003.01584-.267c.70488-.127 1.49688-.571 1.62855-1.045.41481-1.801.32076-18.279.0693-20.993-.0792-.849-.7425-1.396-1.54737-1.53l-.02475-.258s10.09503.006 11.20779 0zm27.47745 18.185c.099-5.177-3.65805-6.55-7.54875-6.765-.08118-.006-.05049-.2.0099-.21 1.26423-.051 6.29046-.639 6.08652-5.489-.20394-4.726-3.75309-4.832-5.05098-4.852-1.0593-.014-1.28997-.014-1.73745.008-.75339.033-.94149.089-.93753.915 0 .105-.16533 8.514-.26433 14.426-.04653 3.213-.0594 5.687-.0594 5.687.01881.589-.05346 1.186 1.38204 1.254 1.48203.073 3.39273.135 4.73022-.152 1.22463-.264 3.3066-1.17 3.38976-4.822zm-1.53747-6.96c5.84397 1.463 6.19641 5.724 6.11523 6.922-.2673 5.335-4.74606 5.946-6.54984 5.946h-13.78674l.01584-.269c1.00188-.139 1.75329-.693 1.75329-2.471l.08118-18.373c.02277-1.992-.49599-2.601-1.58796-2.731l-.02475-.249h10.4247c1.91367 0 7.67646-.384 8.1675 4.967.39006 4.282-4.26789 6.071-4.60845 6.258zm22.47993-11.152.23661-.002.08118 4.293-.26037-.002c-.41877-1.748-2.08197-3.396-5.41728-3.568-3.93921-.209-5.64201 2.162-5.66775 4.406-.02277 2.982 2.28096 3.598 5.69349 4.439 1.60776.397 7.56558 1.182 7.0884 7.944-.33066 4.723-4.36788 6.969-10.08414 6.791 0 0-2.37501-.08-5.6925-1.009-.6138-.176-.77715.033-1.02366.49l-.27126.014.00891-4.629.26235.013c.13068.469.16731 1.342 1.00881 2.082.61281.546 2.05326 1.894 5.21235 1.929 3.10068.042 5.67072-1.28 6.01524-4.794.09405-.945-.00495-3.108-2.09583-4.094-1.63548-.772-6.17661-1.281-8.37738-3.23 0 0-2.61063-1.837-2.19879-5.266.57816-4.846 4.58271-6.058 8.18037-6.132 0 0 3.21849-.032 5.78259.637 0 0 .62766.172 1.14741-.028.21087-.071.30987-.204.37125-.284z\" fill=\"#000\"/></g></svg>", "ocbc": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"8.5 77.9 37.4 37.4\"><g fill-rule=\"evenodd\" clip-rule=\"evenodd\"><path fill=\"#fff\" d=\"M0 0h192.756v192.756H0V0z\"/><path d=\"M139.652 99.918c0-1.857-1.152-3.717-3.363-4.159v-.089c1.77-.62 3.008-2.301 3.008-4.071 0-3.009-2.301-4.602-6.371-4.602-2.389 0-4.867 0-6.459.088v18.496c2.389 0 4.424.088 5.574.088 5.752.001 7.611-3.097 7.611-5.751zm-4.248-7.788c0 1.682-1.24 2.655-3.807 2.655h-1.414v-4.867c.619 0 1.326-.089 2.123-.089 2.301.001 3.098.974 3.098 2.301zm.354 7.876c0 1.682-1.238 2.744-3.629 2.744-.797 0-1.504-.088-1.945-.088v-5.223h1.592c2.388 0 3.982.709 3.982 2.567zM153.102 105.582c-.088-1.062-.088-2.391-.088-3.451v-5.752c0-2.921-1.326-4.691-5.752-4.691-1.857 0-3.629.354-5.045.796l.355 3.009c1.15-.708 2.832-1.062 4.07-1.062 2.035 0 2.742.708 2.742 2.124v.709c-4.777 0-8.053 1.77-8.053 5.043 0 2.213 1.416 3.541 3.982 3.541 2.125 0 3.805-1.062 4.514-2.566-.088.707-.178 1.504-.178 2.301h3.453v-.001zm-3.717-5.664c0 1.594-1.238 3.273-3.008 3.273-.973 0-1.594-.529-1.594-1.414 0-1.152.797-2.213 4.602-2.213v.354zM168.5 105.582v-9.558c0-2.389-.973-4.336-4.158-4.336-2.301 0-3.895 1.15-4.779 2.743.178-.796.178-1.858.178-2.478h-3.363v13.628h3.539v-6.549c0-2.39 1.504-4.425 3.275-4.425 1.326 0 1.77.885 1.77 2.302v8.672h3.538v.001zM184.252 105.582l-5.221-7.346 4.867-6.282h-4.425l-4.071 5.663V85.582h-3.539v20h3.539v-6.727l4.336 6.727h4.514zM69.476 96.024c0-6.46-3.982-9.292-9.204-9.292-5.486 0-9.911 3.805-9.911 9.822 0 5.842 3.008 9.381 9.203 9.381 5.487.001 9.912-3.804 9.912-9.911zm-4.867.355c0 4.158-2.566 5.662-4.779 5.662-3.186 0-4.602-2.211-4.602-5.84 0-3.805 2.301-5.575 4.69-5.575 3.009 0 4.691 1.947 4.691 5.753zM85.67 105.139l-.531-3.805c-.974.354-2.478.619-3.54.619-3.628 0-5.221-2.035-5.221-5.664 0-3.362 1.77-5.486 5.044-5.486 1.239 0 2.478.177 3.628.531l.531-3.894c-1.238-.354-2.743-.442-4.07-.442-6.637 0-10.177 3.982-10.177 10 0 4.248 2.035 8.85 9.38 8.85 1.682 0 3.452-.266 4.956-.709zM103.281 99.83c0-1.859-1.24-3.629-3.275-4.071v-.089c1.77-.708 2.92-2.301 2.92-3.982 0-3.097-2.566-4.69-6.902-4.69-2.478 0-5.486 0-7.345.088v18.496c2.92 0 5.133.088 6.371.088 5.841 0 8.231-2.92 8.231-5.84zm-5.22-7.522c0 1.416-1.152 2.212-3.364 2.212H93.37v-4.071h1.858c1.946 0 2.833.708 2.833 1.859zm.263 7.61c0 1.416-1.15 2.301-3.185 2.301-.708 0-1.416-.088-1.77-.088v-4.426h1.504c2.125 0 3.451.709 3.451 2.213zM119.564 105.139l-.531-3.805c-.975.354-2.479.619-3.451.619-3.629 0-5.223-2.035-5.223-5.664 0-3.362 1.771-5.486 4.957-5.486 1.238 0 2.477.177 3.627.531l.531-3.894c-1.238-.354-2.654-.442-4.07-.442-6.637 0-10.176 3.982-10.176 10 0 4.248 2.035 8.85 9.379 8.85 1.77 0 3.541-.266 4.957-.709zM19.832 90.538l-7.699-5.132c1.239-1.682 2.743-3.186 4.513-4.336l6.637 6.814c-1.328.618-2.567 1.503-3.451 2.654zm-2.037 4.867l-8.761-3.363c.531-2.124 1.328-4.071 2.478-5.84l7.876 4.867c-.884 1.239-1.415 2.743-1.593 4.336zm10.532 3.982l-9.469-3.628a9.51 9.51 0 0 1 1.77-3.982l7.699 4.867v2.743zm0-3.186l-7.345-4.867c.885-1.062 2.036-1.858 3.363-2.389l3.982 3.982v3.274zm-18.761 6.283a17.725 17.725 0 0 1-1.062-6.105c0-1.24.088-2.39.354-3.541l8.938 3.186v.354c0 2.123.708 4.158 2.036 5.752h.088a9.528 9.528 0 0 1-1.239-4.691c0-.354 0-.707.088-1.061l9.558 3.361v2.744H9.566v.001zm.62 1.682c-.089-.354-.266-.709-.442-1.062h5.575l.974 1.062h8.23l-1.77 1.857H12.575c-.266-.972-1.239-1.769-2.389-1.857zm21.061.441a12.628 12.628 0 0 0 1.77-1.238c.354-.266.708-.619.973-.973 1.416-1.682 2.301-3.717 2.301-6.018a9.291 9.291 0 0 0-9.292-9.292c-1.062 0-2.124.177-3.009.531l-6.46-7.168a18.941 18.941 0 0 1 9.469-2.566 18.43 18.43 0 0 1 18.495 18.496c0 10.176-8.23 18.494-18.495 18.494-5.044 0-9.646-2.035-13.009-5.398h22.654l.177-.176-23.893-.975-.177-.176h25.31l.088-.178-26.459-1.238-.089-.09h10.266c0 .001 5.22.178 9.38-2.035z\" fill=\"#c82e37\"/></g></svg>", "uob": "<svg viewBox=\"2088 39 104 112.85\" xmlns=\"http://www.w3.org/2000/svg\"><g stroke-width=\"3.276\"><g fill=\"#e1091d\"><path d=\"m2175.642 148.863c0 2.657 3.652 2.987 5.644 2.987h1.66c4.98-.327 4.98-2.322 4.98-2.987v-106.876c.327-2.66-3.322-2.987-5.644-2.987h-.983c-2.005 0-5.657.328-5.657 2.987zm-66.714 0c0 2.657 3.652 2.987 5.644 2.987h1.66c4.98-.327 4.98-2.322 4.98-2.987v-106.876c0-2.66-3.322-2.987-5.644-2.987h-.983c-2.339 0-5.657.328-5.657 2.987zm22.238 0c0 2.657 3.652 2.987 5.644 2.987h1.992c4.978-.327 4.978-2.322 4.978-2.987v-106.876c0-2.66-3.652-2.987-5.643-2.987h-1.327c-1.992 0-5.644.328-5.644 2.987zm22.238 0c0 2.657 3.652 2.987 5.644 2.987h1.66c4.98-.327 4.98-2.322 4.98-2.987v-106.876c0-2.66-3.653-2.987-5.644-2.987h-.983c-2.005 0-5.657.328-5.657 2.987z\"/><path d=\"m2094.987 89.12c-2.66 0-2.987 3.652-2.987 5.644v1.991c.328 4.979 2.322 4.979 2.987 4.979h106.876c2.656 0 2.987-3.652 2.987-5.644v-1.326c0-1.992-.327-5.644-2.987-5.644z\"/></g><path d=\"m2360.516 129.278c-17.59 0-24.24-9.627-24.24-34.518 0-24.567 6.306-33.522 23.912-33.522h.655c17.26 0 23.912 8.962 23.912 33.522-.327 24.895-6.97 34.518-24.24 34.518m0-81.98c-29.873 0-43.48 14.936-43.48 47.793 0 32.527 13.942 48.128 42.485 48.459h1.327c28.877 0 42.815-15.932 42.815-48.459 0-33.191-13.273-47.794-43.146-47.794m-120.483 88.952c5.975 4.648 14.272 6.64 27.548 6.64h.655c13.276 0 21.573-1.992 27.882-6.64 8.628-6.637 10.298-14.586 10.298-29.54v-54.099a3.348 3.348 0 0 0 -.982-2.656c-1.343-1.337-4.33-1.992-9.31-1.992a13.548 13.548 0 0 0 -8.961 1.992 3.348 3.348 0 0 0 -.983 2.656v56.425c0 9.293 0 11.285-4.314 14.937a24.24 24.24 0 0 1 -14.272 3.652 22.035 22.035 0 0 1 -14.275-3.668c-4.314-3.319-4.314-5.31-4.314-14.603v-56.743a3.348 3.348 0 0 0 -.983-2.656 13.548 13.548 0 0 0 -8.984-1.992 13.548 13.548 0 0 0 -8.962 1.992 3.348 3.348 0 0 0 -.983 2.656v54.1c.655 14.936 1.992 22.902 10.954 29.539m215.061-7.299h-21.242v-28.212h22.569c12.614 0 14.936 5.31 14.936 14.272.328 11.95-3.983 13.94-16.263 13.94m-21.242-67.378h21.573c11.284 0 11.95 5.644 11.95 12.945 0 8.962-3.984 12.611-13.608 12.611h-19.915zm44.81-7.966c-4.979-3.652-10.954-4.98-22.569-4.98h-38.504a3.325 3.325 0 0 0 -3.318 3.32v87.624a3.325 3.325 0 0 0 3.318 3.318h40.493c10.953 0 18.585-.327 25.221-5.31 7.302-5.643 8.632-14.602 8.632-21.241a23.63 23.63 0 0 0 -8.297-19.582 32.304 32.304 0 0 0 -7.636-3.652l-1.66-.655 1.66-.655c7.966-3.653 10.623-8.962 10.623-19.251-.328-5.31-1.327-14.272-7.966-18.92\" fill=\"#002469\"/></g></svg>"};
+const DASH={"dash":{"n":"Singapore banks","subs":["Singapore banks","Banking regulation"],"w":[{"id":"sgb-since","t":"since","z":"L","d":{"meta":"Run of 24 Sep against 17 Sep","hero":"79 new, 9 need attention","na":9,"nn":70,"attn":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","d":"23 Sep","st":"attn","m":"OCBC, Singapore banks \u00b7 incident \u00b7 1 source"},{"id":"9724fb50f5b197e1-0","t":"Singapore published a 32-page national anti-money laundering strategy jointly produced by MHA, MOF and MAS to address money laundering risks.","d":"23 Sep","st":"attn","m":"Singapore, Banking regulation, MAS +2 \u00b7 regulatory \u00b7 1 source"},{"id":"ed7d0023d140a394-0","t":"Switzerland's upper house of parliament voted on 2026-09-23 for capital rules requiring UBS to back its foreign units with 90% Common Equity Tier 1 capital, opposed by UBS's lobbying.","d":"23 Sep","st":"attn","m":"Banking regulation \u00b7 regulatory \u00b7 1 source"},{"id":"0992fe865722b0e5-0","t":"MAS stress test found about 32% of Singapore-listed companies would be at risk under a severe AI investment downturn, accounting for 16% of corporate debt.","d":"22 Sep","st":"attn","m":"Singapore, MAS, Singapore banks \u00b7 regulatory \u00b7 3 sources"},{"id":"8038ed30a717ce9f-0","t":"More than 200 customers filed a lawsuit against DBS Bank in Singapore seeking to recover about $17 million in Lehman Brothers-linked investment losses.","d":"20 Sep","st":"attn","m":"DBS, Singapore banks \u00b7 incident \u00b7 1 source"},{"id":"01e736463285d60c-0","t":"The Federal Reserve Board will consider final revisions to its stress testing framework in the coming weeks, per Vice Chair Bowman's September 18, 2026 speech.","d":"18 Sep","st":"attn","m":"Fed, Central banks, Banking regulation \u00b7 regulatory \u00b7 2 sources"}],"new":[{"id":"5c11a21ea2c0ef12-0","t":"UOB Thailand had cumulatively extended 74.6 billion baht in sustainable financing by the end of 2025.","d":"23 Sep","st":"new","m":"UOB, Thailand \u00b7 financial \u00b7 1 source"},{"id":"5c11a21ea2c0ef12-3","t":"UOB helped arrange 7.3 billion baht in green financing for GSA Data Center 01, a joint venture between Gulf Development, Singtel and AIS, to build a 25.6-megawatt LEED Gold data centre.","d":"23 Sep","st":"new","m":"UOB, Thailand \u00b7 strategy \u00b7 1 source"},{"id":"c6293c2fa9eddb4a-3","t":"Group 1 banks reported a \u20ac1.2 billion regulatory capital shortfall at end-2025 under the fully phased-in Basel III framework, up from \u20ac0.9 billion at end-June 2025.","d":"23 Sep","st":"new","m":"Banking regulation \u00b7 financial \u00b7 1 source"}],"foot":"1 updated \u00b7 11 answers changed"}},{"id":"sgb-summary","t":"summary","z":"M","d":{"sub":"Singapore banks","ans":[{"l":"Common issues","q":"Is the same issue showing up at several members?","s":"watch","a":"All three banks posted Q2 profit growth amid NII pressure; sector provisioning coverage rose to 147%, and MAS flagged shared AI-downturn corporate debt risk.","lb":7,"c":false,"n":3},{"l":"Exposure","q":"Which members are most and least exposed to new developments?","s":"attn","a":"OCBC (ATM/online outage) and DBS (Lehman-linked $17m lawsuit) most exposed; UOB faces CRE provisioning risk but was upgraded by Macquarie.","lb":7,"c":false,"n":7,"p":"watch"},{"l":"Outliers","q":"Is any member behaving differently from its peers?","s":"watch","a":"DBS stands out with a S$1 trillion wealth AUM target and centre expansion; OCBC hit by a systems outage; UOB trades at half peers' price-to-book.","lb":14,"c":false,"n":6},{"l":"Topics","q":"Which tracked topics are affecting this group most right now?","s":"watch","a":"Top themes: UOB's CRE exposure/provisioning risk, DBS's wealth-management expansion, AI/digital investment (OCBC Malaysia, UOB), and Q2 earnings amid NII pressure.","lb":14,"c":false,"n":14},{"l":"Peer moves","q":"Did any member make a move its peers are likely to follow?","s":"new","a":"DBS's gold-vaulting expansion prompted OCBC to seek bullion storage; DBS's Swift DLT tokenised payment and UOB's AI portfolio tool are template moves others may follow.","lb":30,"c":false,"n":5},{"l":"Contagion","q":"Could an issue at one member spread to others?","s":"watch","a":"MAS stress test flags shared AI-downturn corporate debt risk to all banks; sector-wide provisioning rose to 147% and OCBC's outage raises operational-resilience scrutiny.","lb":14,"c":false,"n":3}]}},{"id":"sgb-direction","t":"direction","z":"S","d":{"sub":"Banking regulation","trend":"Rising","wk":[9,9,3,3,18,17,15,29],"cap":"29 this week, 16.7 a week before"}},{"id":"sgb-upcoming","t":"upcoming","z":"S","d":{"sub":"Banking regulation","date":"1 Dec","rel":"in 68 days","l":"Deadline for comments on toolkit and discussion paper","dev":"CPMI-IOSCO opened a public consultation seeking stakeholder input on the cyber resilience toolkit and third-party service provider discussion paper, with comments due by 01 December 2026."}},{"id":"sgb-watchlist","t":"watchlist","z":"L","d":{"entries":[{"n":"DBS","s":"attn","nn":10,"na":5,"hl":"Incidents","hs":"200+ customers sued DBS for ~$17M over Lehman-linked High Notes 5 losses; DBS says suit is without merit, will defend.","lt":"DBS Group set a target to grow wealth assets under management to over S$1 trillion (US$774 billion) by 2030, up about S$400 billion from S$632 billion at end-2025.","ld":"23 Sep"},{"n":"OCBC","s":"attn","nn":12,"na":1,"hl":"Incidents","hs":"OCBC ATM, internet and mobile banking disrupted 23 Sep 2026; CEO Conner said customer data remained protected.","lt":"Despite NII pressure, quarterly net profits at all three Singapore banks rose year on year, up 9 per cent at DBS, 22 per cent at OCBC and 10 per cent at UOB.","ld":"20 Sep"},{"n":"UOB","s":"watch","nn":14,"na":2,"hl":"Adverse","hs":"Macquarie flags US/Greater China CRE exposure: $181M provisions per 10% collateral drop, $100M for NPL slippage; $345M buffer available.","lt":"UOB Thailand had cumulatively extended 74.6 billion baht in sustainable financing by the end of 2025.","ld":"23 Sep"}]}},{"id":"sgb-developments","t":"developments","z":"M","d":{"meta":"241 in scope","rows":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","d":"23 Sep","st":"attn","m":"OCBC, Singapore banks \u00b7 incident \u00b7 1 source"},{"id":"9724fb50f5b197e1-0","t":"Singapore published a 32-page national anti-money laundering strategy jointly produced by MHA, MOF and MAS to address money laundering risks.","d":"23 Sep","st":"attn","m":"Singapore, Banking regulation, MAS +2 \u00b7 regulatory \u00b7 1 source"},{"id":"ed7d0023d140a394-0","t":"Switzerland's upper house of parliament voted on 2026-09-23 for capital rules requiring UBS to back its foreign units with 90% Common Equity Tier 1 capital, opposed by UBS's lobbying.","d":"23 Sep","st":"attn","m":"Banking regulation \u00b7 regulatory \u00b7 1 source"}]}},{"id":"sgb-question","t":"question","z":"S","d":{"l":"Enforcement","q":"Were any enforcement actions or penalties announced against banks?","s":"attn","a":"BNM fined 9 banks RM5.6m for outages and RM1m against Bank Rakyat; OFSI fined Citibank \u00a34.7m; APRA penalized ING Bank Australia.","lb":30,"c":false,"n":6,"p":"watch","sub":"Banking regulation"}}]},"alerts":{"attn":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","d":"23 Sep","st":"attn","m":"OCBC, Singapore banks \u00b7 incident \u00b7 1 source"},{"id":"9724fb50f5b197e1-0","t":"Singapore published a 32-page national anti-money laundering strategy jointly produced by MHA, MOF and MAS to address money laundering risks.","d":"23 Sep","st":"attn","m":"Singapore, Banking regulation, MAS +2 \u00b7 regulatory \u00b7 1 source"},{"id":"ed7d0023d140a394-0","t":"Switzerland's upper house of parliament voted on 2026-09-23 for capital rules requiring UBS to back its foreign units with 90% Common Equity Tier 1 capital, opposed by UBS's lobbying.","d":"23 Sep","st":"attn","m":"Banking regulation \u00b7 regulatory \u00b7 1 source"},{"id":"0992fe865722b0e5-0","t":"MAS stress test found about 32% of Singapore-listed companies would be at risk under a severe AI investment downturn, accounting for 16% of corporate debt.","d":"22 Sep","st":"attn","m":"Singapore, MAS, Singapore banks \u00b7 regulatory \u00b7 3 sources"},{"id":"8038ed30a717ce9f-0","t":"More than 200 customers filed a lawsuit against DBS Bank in Singapore seeking to recover about $17 million in Lehman Brothers-linked investment losses.","d":"20 Sep","st":"attn","m":"DBS, Singapore banks \u00b7 incident \u00b7 1 source"},{"id":"01e736463285d60c-0","t":"The Federal Reserve Board will consider final revisions to its stress testing framework in the coming weeks, per Vice Chair Bowman's September 18, 2026 speech.","d":"18 Sep","st":"attn","m":"Fed, Central banks, Banking regulation \u00b7 regulatory \u00b7 2 sources"},{"id":"4a7d8fb5c30ac562-1","t":"Bowman said the Fed expects to finalize, before the end of 2026, reforms to risk-based capital requirements for large and small banks and to the GSIB surcharge.","d":"18 Sep","st":"attn","m":"Fed, Central banks, Banking regulation \u00b7 regulatory \u00b7 1 source"},{"id":"5b3753cd2b41e758-1","t":"The independent review found Federal Reserve supervisory staff knew or should have known about SVB's vulnerabilities as early as March 2022 but failed to take prompt, decisive action.","d":"18 Sep","st":"attn","m":"Fed, Banking regulation \u00b7 regulatory \u00b7 1 source"},{"id":"fcb5a1966f0619c9-0","t":"On 29 June 2012, euro-area heads of state and government announced the Commission would propose creation of the ECB Single Supervisory Mechanism (SSM).","d":"18 Sep","st":"attn","m":"ECB, Central banks, Banking regulation \u00b7 regulatory \u00b7 1 source"}],"watch":[{"id":"57a9a7a4e0372d3a-0","t":"Bain & Company, DBS Group Holdings and Vriens & Partners project Southeast Asia's six largest economies to grow an average of 4.8% annually over the next decade, with widening structural divergence.","d":"16 Sep","st":"watch","m":"SEA countries, Singapore, Malaysia +5 \u00b7 other \u00b7 3 sources"},{"id":"657e6e93ead4ae13-3","t":"Singapore banks' total provisioning coverage rose steadily over the past year to reach 147% in the second quarter of 2026, guarding against potential rises in credit costs.","d":"22 Sep","st":"watch","m":"MAS, Singapore banks \u00b7 financial \u00b7 1 source"},{"id":"0bcf9d2a967ec327-4","t":"DBS Group Research economists said on Sept 18, 2026 that there is no resolution in sight to the Middle East crisis, and high oil prices could push inflation up and pressure central banks to raise rates.","d":"18 Sep","st":"watch","m":"Central banks, DBS \u00b7 market \u00b7 1 source"}]},"ev":{"sub":"OCBC","l":"Adverse","q":"Is there anything that could hurt this bank?","lb":7,"s":"attn","p":"watch","a":"Service disruption to ATM/internet/mobile banking on 23 Sep despite rising Q3 profit (+22% y-o-y).","pa":"Q2 net interest income fell y-o-y; UOBKH cut OCBC to 'hold' (S$32.50 target); shares fell 2.7% to S$31.","devs":[{"id":"1c5f03888832ab30-0","st":"attn","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","m":"Significant \u00b7 incident \u00b7 23 Sep 2026","cf":"Tagged to OCBC, Singapore banks \u00b7 high confidence","src":[{"t":"OCBC says all customer data protected during today\u2019s disruption","m":"23 Sep 2026 \u00b7 News \u00b7 theedgemalaysia.com \u00b7 new this run","pre":"OCBC says all customer data protected during today\u2019s disruption Wednesday 23 Sep 2026 ","mk":"All customer data was protected with \u201cappropriate security measures\u201d during today\u2019s disruption of automated-teller machine, Internet and mobile-phone banking services, David Conner, chief executive officer of Oversea- Chinese Banking Corp., Singapore\u2019s second-biggest bank, said in an e-mailed statement.","post":""}]},{"id":"15318a0fa093f5ba-3","st":"new","t":"Despite NII pressure, quarterly net profits at all three Singapore banks rose year on year, up 9 per cent at DBS, 22 per cent at OCBC and 10 per cent at UOB.","m":"Notable \u00b7 financial \u00b7 20 Sep 2026","cf":"Tagged to Singapore banks, UOB, DBS, OCBC \u00b7 low confidence","src":[{"t":"Fed hike throws Singapore banks a margin lifeline; UOB most likely to feel impact - The Business Times","m":"17 Sep 2026 \u00b7 News \u00b7 businesstimes.com.sg \u00b7 new this run","pre":"\u2026US Fed stance means further US dollar strength and a pathway for the gap between Sora and the Secured Overnight Financing Rate (a key benchmark for US dollar interest rates) to narrow,\u201d he said. ","mk":"Macquarie sees UOB as the most exposed to higher rates. About 43 per cent of its loans are denominated in Singapore dollars, compared with 37 to 38 per cent for DBS and OCBC, while NII accounts for 66 per cent of revenue, against around 58 per cent for its two peers.","post":" For DBS, the impact is less straightforward. The lender said in August that its US dollar book remained negatively sensitive to higher rates, with\u2026"},{"t":"Fed hike throws Singapore banks a margin lifeline; UOB likely to ...","m":"17 Sep 2026 \u00b7 News \u00b7 businesstimes.com.sg \u00b7 new this run","pre":"\u2026quarter. DBS\u2019 NII fell 2 per cent year on year to S$3.58 billion as NIM declined to 1.87 per cent. OCBC\u2019s NII slipped 1 per cent to S$2.26 billion, while UOB\u2019s fell 2 per cent to S$2.3 billion. ","mk":"Their quarterly net profits nevertheless rose 9 per cent to S$3.08 billion, 22 per cent to S$2.22 billion and 10 per cent to S$1.48 billion, respectively.","post":" Their earnings were instead supported by areas including wealth management, fees, trading and balance sheet growth. The rate backdrop has also\u2026"},{"t":"UOB shares rise after Fed hikes rates; yen weakens against Singdollar: Markets this week | The Straits Times","m":"20 Sep 2026 \u00b7 News \u00b7 straitstimes.com \u00b7 new this run","pre":"\u2026Singapore-dollar assets. This would allow banks to reprice loans at higher rates and support net interest income (NII), which had been under pressure as rates declined during the first half of 2026. ","mk":"Macquarie Equity Research\u2019s Jayden Vantarakis said that while all three local banks stand to benefit from higher Singapore rates, UOB has the most to gain.","post":" About 43 per cent of UOB\u2019s loans are denominated in Singapore dollars, compared with 37 to 38 per cent for DBS and OCBC. UOB also earns more NII in\u2026"}]}]},"prof":{"display_name":"Analyst","role":"Supervisory analyst","default_dashboard_id":"singapore-banks"}};
+const TD={"weeks":[{"s":"3 Jul","e":"9 Jul"},{"s":"10 Jul","e":"16 Jul"},{"s":"17 Jul","e":"23 Jul"},{"s":"24 Jul","e":"30 Jul"},{"s":"31 Jul","e":"6 Aug"},{"s":"7 Aug","e":"13 Aug"},{"s":"14 Aug","e":"20 Aug"},{"s":"21 Aug","e":"27 Aug"},{"s":"28 Aug","e":"3 Sep"},{"s":"4 Sep","e":"10 Sep"},{"s":"11 Sep","e":"17 Sep"},{"s":"18 Sep","e":"24 Sep"}],"topic":{"n":"Banking regulation","desc":"Basel III implementation, capital and liquidity, AML/CFT, operational and technology resilience, supervisory enforcement","sum":"45 new, 6 need attention","rows":[{"id":"9724fb50f5b197e1-0","t":"Singapore published a 32-page national anti-money laundering strategy jointly produced by MHA, MOF and MAS to address money laundering risks.","m":"Singapore, Banking regulation +3 \u00b7 regulatory \u00b7 1 source","d":"23 Sep","st":"attn","lvl":"Significant"},{"id":"ed7d0023d140a394-0","t":"Switzerland's upper house of parliament voted on 2026-09-23 for capital rules requiring UBS to back its foreign units with 90% Common Equity Tier 1 capital, opposed by UBS's lobbying.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"23 Sep","st":"attn","lvl":"Significant"},{"id":"01e736463285d60c-0","t":"The Federal Reserve Board will consider final revisions to its stress testing framework in the coming weeks, per Vice Chair Bowman's September 18, 2026 speech.","m":"Fed, Central banks +1 \u00b7 regulatory \u00b7 2 sources","d":"18 Sep","st":"attn","lvl":"Significant"},{"id":"4a7d8fb5c30ac562-1","t":"Bowman said the Fed expects to finalize, before the end of 2026, reforms to risk-based capital requirements for large and small banks and to the GSIB surcharge.","m":"Fed, Central banks +1 \u00b7 regulatory \u00b7 1 source","d":"18 Sep","st":"attn","lvl":"Significant"},{"id":"5b3753cd2b41e758-1","t":"The independent review found Federal Reserve supervisory staff knew or should have known about SVB's vulnerabilities as early as March 2022 but failed to take prompt, decisive action.","m":"Fed, Banking regulation \u00b7 regulatory \u00b7 1 source","d":"18 Sep","st":"attn","lvl":"Significant"},{"id":"fcb5a1966f0619c9-0","t":"On 29 June 2012, euro-area heads of state and government announced the Commission would propose creation of the ECB Single Supervisory Mechanism (SSM).","m":"ECB, Central banks +1 \u00b7 regulatory \u00b7 1 source","d":"18 Sep","st":"attn","lvl":"Significant"}],"total":45,"qc":[{"l":"New developments","sub":"Banking regulation","f":"watch","to":"attn","a":"Fed's SVB review found supervisory failures since 2022; Swiss parliament backed 90% CET1 rule for UBS; Singapore issued national AML strategy."},{"l":"Enforcement","sub":"Banking regulation","f":"watch","to":"attn","a":"Yes: BNM fined 9 banks RM5.6m for outages and RM1m against Bank Rakyat; OFSI fined Citibank \u00a34.7m; APRA penalized ING Bank Australia."}],"qs":[{"id":"topic.new-developments","l":"New developments","q":"What material developments happened on this topic?","a":"Fed's SVB review found supervisory failures since 2022; Swiss parliament backed 90% CET1 rule for UBS; Singapore issued national AML strategy.","s":"attn","p":"watch","lb":7,"n":0,"nd":10,"c":false},{"id":"topic.direction","l":"Direction","q":"Is the picture getting more or less severe than at the last run?","a":"More severe: Basel III capital shortfall widened to \u20ac1.2bn, Fed confirmed SVB supervisory failures, Swiss/UBS capital fight escalates, fragmentation studies show lending harm.","s":"watch","p":"watch","lb":14,"n":0,"nd":8,"c":false},{"id":"topic.whos-moving","l":"Who's moving","q":"Which jurisdictions or bodies took action, and are they converging or splitting?","a":"MAS, BNM, Fed, ECB, Switzerland, Thailand, OFSI, APRA, FATF and China all active; Swiss parliament/committee and BoE/EU split on capital timelines.","s":"watch","p":"watch","lb":30,"n":0,"nd":14,"c":false},{"id":"topic.upcoming","l":"Upcoming","q":"What deadlines, effective dates, meetings or consultation closes fall in the next 90 days?","a":"CPMI-IOSCO cyber resilience/third-party toolkit consultation closes 1 Dec 2026; no other near-term deadlines identified within 90 days.","s":"new","p":"new","lb":60,"n":1,"nd":1,"c":false},{"id":"topic.impact","l":"Impact","q":"Which tracked groups and entities are affected, and how?","a":"UBS faces stricter Swiss capital rules; Fed-supervised banks face stress-test/capital reforms; Group 1 banks show growing Basel III shortfall; 9 Malaysian banks fined.","s":"watch","p":"watch","lb":7,"n":0,"nd":8,"c":false},{"id":"topic.local-relevance","l":"Local relevance","q":"What does this mean for Singapore and MAS-supervised institutions?","a":"Singapore issued a joint MHA-MOF-MAS national AML strategy; Fed's SVB review and Basel III capital-shortfall data offer benchmarks for MAS supervision.","s":"watch","p":"watch","lb":7,"n":0,"nd":5,"c":false},{"id":"banking-regulation.stage","l":"Stage","q":"Is each item a signal, consultation, proposal, enacted rule or enforcement?","a":"Full spectrum present: FATF/RBI signals, CPMI-IOSCO consultation, Swiss/MAS TLAC proposals, MAS/BNM/Fed enacted rules, and OFSI/APRA/BNM/Fed enforcement actions.","s":"new","p":"new","lb":30,"n":10,"nd":10,"c":false},{"id":"banking-regulation.enforcement","l":"Enforcement","q":"Were any enforcement actions or penalties announced against banks?","a":"Yes: BNM fined 9 banks RM5.6m for outages and RM1m against Bank Rakyat; OFSI fined Citibank \u00a34.7m; APRA penalized ING Bank Australia.","s":"attn","p":"watch","lb":30,"n":0,"nd":6,"c":false}],"mat":[0,0,0,10,9,9,3,3,18,17,15,29],"attn":[0,0,0,4,6,6,0,1,5,7,1,6],"cat":[{},{},{},{"regulatory":9,"strategy":1},{"regulatory":9},{"regulatory":8,"incident":1},{"regulatory":3},{"regulatory":3},{"regulatory":15,"incident":2,"financial":1},{"regulatory":13,"financial":4},{"regulatory":15},{"regulatory":22,"financial":4,"market":1,"incident":2}],"stage":[{},{},{},{"enforced":1,"signal":8},{"enforced":7,"consultation":2},{"enforced":7,"proposed":1,"signal":2},{"consultation":2,"enforced":2},{"enacted":3},{"proposed":2,"enforced":5,"signal":5},{"enforced":12,"enacted":8,"proposed":2,"consultation":8,"signal":2},{"consultation":7,"proposed":4,"enforced":1,"signal":3,"enacted":5},{"proposed":5,"enacted":9,"enforced":12,"signal":3}],"byweek":{"9 Jul":[0],"16 Jul":[0],"23 Jul":[0],"30 Jul":[{"id":"e1dd501949aa018f-1","t":"The Monetary Authority of Singapore has announced plans to reduce private banking account opening timelines to within a month by the end of 2026.","m":"Singapore banks, Singapore +1 \u00b7 regulatory \u00b7 1 source","d":"29 Jul","st":"attn","lvl":"Significant"},{"id":"91e427fa017cece1-2","t":"MAS introduced a new requirement on 1 July 2026 for key financial institutions to conduct AI-assisted red teaming on critical internet-facing systems to identify cyberattack paths.","m":"MAS, Singapore +1 \u00b7 regulatory \u00b7 2 sources","d":"28 Jul","st":"attn","lvl":"Significant"},{"id":"a276ea331e747bbc-0","t":"MAS and ABS announced on 28 July 2026 the establishment of the AI-Driven Cyber and Technology Risk Taskforce (ACT), an industry-wide initiative to strengthen cyber and technology resilience against AI-driven threats.","m":"MAS, Singapore +3 \u00b7 regulatory \u00b7 2 sources","d":"28 Jul","st":"attn","lvl":"Significant"},{"id":"f5712a900f0e448c-1","t":"MAS will issue supervisory expectations for quantum resilience later in 2026, setting progressive timelines for financial institutions to achieve quantum resilience before the end of the decade.","m":"MAS, Singapore +2 \u00b7 regulatory \u00b7 1 source","d":"28 Jul","st":"attn","lvl":"Significant"},{"id":"91e427fa017cece1-3","t":"Singapore's 5th round FATF Mutual Evaluation produced positive outcomes validating MAS' robust and risk-focused AML/CFT supervision of the financial sector.","m":"MAS, Singapore +1 \u00b7 regulatory \u00b7 2 sources","d":"28 Jul","st":"","lvl":"Notable"},{"id":"7a9c368c60ddecff-0","t":"MAS issued a 3-year prohibition order against Mr Li Jinbo, former CIO of EC World Asset Management, effective 27 July 2026, for market manipulation misconduct.","m":"MAS, Singapore +2 \u00b7 regulatory \u00b7 1 source","d":"27 Jul","st":"","lvl":"Notable"},10],"6 Aug":[{"id":"00fd43f948435ad0-0","t":"US regulators fined UBS Financial Services $125 million on August 3, 2026 for Bank Secrecy Act violations, the largest-ever civil fine against a broker-dealer under the law.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"3 Aug","st":"attn","lvl":"Significant"},{"id":"00fd43f948435ad0-1","t":"UBS Financial Services admitted to willful violations of the Bank Secrecy Act as part of the US enforcement action.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"3 Aug","st":"attn","lvl":"Significant"},{"id":"00fd43f948435ad0-2","t":"US regulators targeted UBS transactions involving the border region, drug cartels, Iran, Russia and Venezuela in the anti-money laundering enforcement action.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"3 Aug","st":"attn","lvl":"Significant"},{"id":"00fd43f948435ad0-3","t":"UBS said it cooperated with regulators and is strengthening its anti-money laundering program following the enforcement action.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"3 Aug","st":"attn","lvl":"Significant"},{"id":"80075f89774f989f-1","t":"MAS found Lai Mei Lin not fit and proper under section 7 of the FSMA following her criminal convictions for forgery and computer misuse.","m":"MAS, Singapore +1 \u00b7 regulatory \u00b7 1 source","d":"3 Aug","st":"attn","lvl":"Significant"},{"id":"80075f89774f989f-2","t":"On 6 August 2024, Lai Mei Lin was convicted of forgery and unauthorised computer access offences and sentenced to eight months' imprisonment.","m":"Singapore, Banking regulation \u00b7 regulatory \u00b7 1 source","d":"3 Aug","st":"attn","lvl":"Significant"},9],"13 Aug":[{"id":"1823b7bc6c52ac0b-3","t":"Zerohash's former chief compliance officer alleged in a lawsuit that he and his staff internally identified over 200 significant compliance gaps, including deficiencies in the firm's anti-money-laundering controls.","m":"Banking regulation \u00b7 incident \u00b7 1 source","d":"12 Aug","st":"attn","lvl":"Significant"},{"id":"254cae6b67b88531-0","t":"MAS issued a 4-year Prohibition Order against former Standard Chartered relationship manager Low Jia Mei, effective 12 August 2026, for unauthorised access to customer information.","m":"MAS, Singapore +1 \u00b7 regulatory \u00b7 1 source","d":"12 Aug","st":"attn","lvl":"Significant"},{"id":"254cae6b67b88531-1","t":"On 26 February 2024, Low Jia Mei was convicted of unauthorised access to computer material and fined $12,000 under Singapore's Computer Misuse Act.","m":"Singapore, Banking regulation \u00b7 regulatory \u00b7 1 source","d":"12 Aug","st":"attn","lvl":"Significant"},{"id":"254cae6b67b88531-2","t":"MAS found Low Jia Mei not to be a fit and proper person under its Fit and Proper Guidelines following her criminal conviction.","m":"MAS, Banking regulation \u00b7 regulatory \u00b7 1 source","d":"12 Aug","st":"attn","lvl":"Significant"},{"id":"4fe9790da2456cb6-0","t":"Former Basel Committee secretary general Neil Esho warned that the EU dropping the Basel output floor capital rule, to help lenders compete with Wall Street, would be a \"disaster\".","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"11 Aug","st":"attn","lvl":"Significant"},{"id":"4fe9790da2456cb6-1","t":"Neil Esho said EU adoption of the US approach of rejecting the output floor would be \"a big step too far\".","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"11 Aug","st":"attn","lvl":"Significant"},9],"20 Aug":[{"id":"94168456a1c029b6-1","t":"The Federal Reserve Board announced termination on August 13, 2026 of its April 2017 Cease and Desist Order against Deutsche Bank AG, DB USA Corporation, and Deutsche Bank AG New York Branch.","m":"Fed, Banking regulation +1 \u00b7 regulatory \u00b7 1 source","d":"20 Aug","st":"","lvl":"Notable"},{"id":"2e90f08010015861-2","t":"The Bank of Thailand has been standardising 19 fee items in the banking sector to reduce financial costs for SMEs.","m":"Thailand, SEA countries +2 \u00b7 regulatory \u00b7 2 sources","d":"14 Aug","st":"","lvl":"Notable"},{"id":"2e90f08010015861-1","t":"The Bank of Thailand opened a public hearing on proposed rules to strengthen risk management of cash-related transactions worth at least 5 million baht to combat money laundering.","m":"Thailand, SEA countries +2 \u00b7 regulatory \u00b7 1 source","d":"14 Aug","st":"","lvl":"Notable"},3],"27 Aug":[{"id":"41eeaaed0a14ed51-1","t":"MAS issued final liquidity risk management guidelines for banks in Singapore.","m":"Banking regulation, SEA countries +3 \u00b7 regulatory \u00b7 1 source","d":"24 Aug","st":"attn","lvl":"Significant"},{"id":"27a2b37bd33ff240-0","t":"The OCC and FDIC finalized rules on 2026-08-27 formally defining 'unsafe and unsound' bank practices, giving examiners firm guidelines to police lenders.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"27 Aug","st":"","lvl":"Notable"},{"id":"41eeaaed0a14ed51-0","t":"Thailand's SEC amended private fund regulations to enhance disclosure requirements.","m":"Banking regulation, SEA countries +1 \u00b7 regulatory \u00b7 1 source","d":"24 Aug","st":"","lvl":"Notable"},3],"3 Sep":[{"id":"64b33a2c234d098b-1","t":"FATF found illicit informal-transfer networks now launder proceeds from fraud, cybercrime, terrorist financing, illegal gaming and organised crime, beyond traditional cash-based crime.","m":"Banking regulation \u00b7 regulatory \u00b7 2 sources","d":"3 Sep","st":"attn","lvl":"Significant"},{"id":"64b33a2c234d098b-0","t":"FATF reported on 2026-09-03 that criminal misuse of hawala and other informal money-transfer networks (HOSSPs) is a widespread and growing global problem, urging firms and governments to act.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"3 Sep","st":"attn","lvl":"Significant"},{"id":"64b33a2c234d098b-2","t":"FATF member states reported that professional service providers such as lawyers, accountants, auditors, consultants and real estate agents are increasingly facilitating informal money-laundering schemes.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"3 Sep","st":"attn","lvl":"Significant"},{"id":"64b33a2c234d098b-3","t":"FATF said encrypted communications, fintech, anonymity-enhancing tools and crypto have transformed informal money-transfer networks, making them faster, more opaque and more resilient to detection.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"3 Sep","st":"attn","lvl":"Significant"},{"id":"64b33a2c234d098b-4","t":"FATF noted that underground banking and HOSSP-based money laundering have become increasingly professionalised, with some operations now functioning like sophisticated businesses.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"3 Sep","st":"attn","lvl":"Significant"},{"id":"b7705dc218904e83-0","t":"Bank of Thailand is developing a \"Bangkok Blueprint for Fraud-Resilient Financial Services\" with the IMF and World Bank, to be launched as an international reference standard at October's IMF-World Bank annual meetings.","m":"Thailand, SEA countries +1 \u00b7 regulatory \u00b7 1 source","d":"3 Sep","st":"","lvl":"Notable"},18],"10 Sep":[{"id":"90c865c3456042e4-1","t":"Jain warned that dependence on overlapping datasets and similar infrastructure from few cloud and model providers could transmit disruption or error across many institutions simultaneously if one firm fails.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"10 Sep","st":"attn","lvl":"Significant"},{"id":"5acb03fef2960e31-0","t":"Singapore's Parliament received the Financial Services and Markets (Amendment) Bill 2026 for First Reading on 8 September 2026, empowering MAS to impose minimum TLAC requirements on systemically important FIs.","m":"Singapore, MAS +2 \u00b7 regulatory \u00b7 1 source","d":"8 Sep","st":"attn","lvl":"Significant"},{"id":"6faa4dc6ec16f9b3-2","t":"CPMI-IOSCO opened a public consultation seeking stakeholder input on the cyber resilience toolkit and third-party service provider discussion paper, with comments due by 01 December 2026.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"8 Sep","st":"attn","lvl":"Significant"},{"id":"e1e37b2bb5d3ac07-0","t":"China's Ministry of Finance led a capital injection package worth about 360 billion yuan (US$54 billion) into the country's largest state-owned insurers and state banks on Sunday, 6 September 2026.","m":"Banking regulation \u00b7 financial \u00b7 2 sources","d":"6 Sep","st":"attn","lvl":"Significant"},{"id":"3394a3e1424a6978-0","t":"MAS issued the MAS Notice 643A (Amendment) 2026 on 4 September 2026, revising rules on banks' exposures and credit facilities to related concerns, effective 4 September 2027.","m":"MAS, Singapore +1 \u00b7 regulatory \u00b7 3 sources","d":"4 Sep","st":"attn","lvl":"Significant"},{"id":"4df958f06a407676-1","t":"MAS Notice 656 (Amendment) 2026, dated 22 May 2026, took effect on 1 July 2026, amending definitions such as CCP trade exposures, cover pool and qualifying MDB.","m":"MAS, Singapore +1 \u00b7 regulatory \u00b7 1 source","d":"4 Sep","st":"attn","lvl":"Significant"},17],"17 Sep":[{"id":"af4d3db7407d020f-0","t":"The CCBG Subcommittee on Banking Supervision and Financial Stability finalized regional guidelines on cybersecurity, climate-related financial risk, and cross-border crisis management.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"14 Sep","st":"attn","lvl":"Significant"},{"id":"72b0119853eb5eb3-0","t":"The UK's FCA opened an investigation into Euro Exchange Securities UK Ltd on 17 September 2026 over suspected anti-money laundering process failings.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"17 Sep","st":"","lvl":"Notable"},{"id":"d4ed1d59863245d2-0","t":"ECB Supervisory Board Chair Claudia Buch warned on 2026-09-15 in Frankfurt against a regulatory debate that risks weakening European banking rules.","m":"ECB, Central banks +1 \u00b7 regulatory \u00b7 1 source","d":"15 Sep","st":"","lvl":"Notable"},{"id":"5871dfe4f8f17177-0","t":"EU financial services commissioner Maria Luis Albuquerque rejected banks' request to split a planned financial system reform package into two parts.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"14 Sep","st":"","lvl":"Notable"},{"id":"a2785a5739e66b05-0","t":"PBoC plans to introduce new metrics into its Macro Prudential Assessment framework to curb banks' excessive holdings of long-dated bonds, sources told Reuters on September 14, 2026.","m":"PBoC, Central banks +1 \u00b7 regulatory \u00b7 1 source","d":"14 Sep","st":"","lvl":"Notable"},{"id":"076440233e187b06-0","t":"The Bank of England announced it will consult on targeted changes to trading capital rules for internal-model banks while keeping the Jan 1, 2028 deadline.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"13 Sep","st":"","lvl":"Notable"},15],"24 Sep":[{"id":"9724fb50f5b197e1-0","t":"Singapore published a 32-page national anti-money laundering strategy jointly produced by MHA, MOF and MAS to address money laundering risks.","m":"Singapore, Banking regulation +3 \u00b7 regulatory \u00b7 1 source","d":"23 Sep","st":"attn","lvl":"Significant"},{"id":"ed7d0023d140a394-0","t":"Switzerland's upper house of parliament voted on 2026-09-23 for capital rules requiring UBS to back its foreign units with 90% Common Equity Tier 1 capital, opposed by UBS's lobbying.","m":"Banking regulation \u00b7 regulatory \u00b7 1 source","d":"23 Sep","st":"attn","lvl":"Significant"},{"id":"01e736463285d60c-0","t":"The Federal Reserve Board will consider final revisions to its stress testing framework in the coming weeks, per Vice Chair Bowman's September 18, 2026 speech.","m":"Fed, Central banks +1 \u00b7 regulatory \u00b7 2 sources","d":"18 Sep","st":"attn","lvl":"Significant"},{"id":"4a7d8fb5c30ac562-1","t":"Bowman said the Fed expects to finalize, before the end of 2026, reforms to risk-based capital requirements for large and small banks and to the GSIB surcharge.","m":"Fed, Central banks +1 \u00b7 regulatory \u00b7 1 source","d":"18 Sep","st":"attn","lvl":"Significant"},{"id":"5b3753cd2b41e758-1","t":"The independent review found Federal Reserve supervisory staff knew or should have known about SVB's vulnerabilities as early as March 2022 but failed to take prompt, decisive action.","m":"Fed, Banking regulation \u00b7 regulatory \u00b7 1 source","d":"18 Sep","st":"attn","lvl":"Significant"},{"id":"fcb5a1966f0619c9-0","t":"On 29 June 2012, euro-area heads of state and government announced the Commission would propose creation of the ECB Single Supervisory Mechanism (SSM).","m":"ECB, Central banks +1 \u00b7 regulatory \u00b7 1 source","d":"18 Sep","st":"attn","lvl":"Significant"},29]},"track":[["signal",13],["consultation",15],["proposed",13],["enacted",23],["enforced",30]]},"group":{"n":"Singapore banks","desc":"the group Singapore banks (DBS, OCBC, UOB), as a group or through any of its members","sum":"34 new, 1 updated, 3 need attention","rows":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","m":"OCBC, Singapore banks \u00b7 incident \u00b7 1 source","d":"23 Sep","st":"attn","lvl":"Significant"},{"id":"0992fe865722b0e5-0","t":"MAS stress test found about 32% of Singapore-listed companies would be at risk under a severe AI investment downturn, accounting for 16% of corporate debt.","m":"Singapore, MAS +1 \u00b7 regulatory \u00b7 3 sources","d":"22 Sep","st":"attn","lvl":"Significant"},{"id":"8038ed30a717ce9f-0","t":"More than 200 customers filed a lawsuit against DBS Bank in Singapore seeking to recover about $17 million in Lehman Brothers-linked investment losses.","m":"DBS, Singapore banks \u00b7 incident \u00b7 1 source","d":"20 Sep","st":"attn","lvl":"Significant"},{"id":"5c11a21ea2c0ef12-0","t":"UOB Thailand had cumulatively extended 74.6 billion baht in sustainable financing by the end of 2025.","m":"UOB, Thailand \u00b7 financial \u00b7 1 source","d":"23 Sep","st":"new","lvl":"Notable"},{"id":"5c11a21ea2c0ef12-3","t":"UOB helped arrange 7.3 billion baht in green financing for GSA Data Center 01, a joint venture between Gulf Development, Singtel and AIS, to build a 25.6-megawatt LEED Gold data centre.","m":"UOB, Thailand \u00b7 strategy \u00b7 1 source","d":"23 Sep","st":"new","lvl":"Notable"},{"id":"e558b126131ded1e-0","t":"DBS Group set a target to grow wealth assets under management to over S$1 trillion (US$774 billion) by 2030, up about S$400 billion from S$632 billion at end-2025.","m":"DBS, Singapore banks \u00b7 strategy \u00b7 1 source","d":"23 Sep","st":"new","lvl":"Notable"}],"total":35,"qc":[{"l":"Exposure","sub":"Singapore banks","f":"watch","to":"attn","a":"OCBC (ATM/online outage) and DBS (Lehman-linked $17m lawsuit) most exposed; UOB faces CRE provisioning risk but was upgraded by Macquarie."},{"l":"Incidents","sub":"DBS","f":"stable","to":"attn","a":"200+ customers sued DBS for ~$17M over Lehman-linked High Notes 5 losses; DBS says suit is without merit, will defend."},{"l":"Adverse","sub":"DBS","f":"watch","to":"attn","a":"Lehman-linked lawsuit (~$17M), Middle East crisis inflation/rate risk flagged by DBS Research, and modest share price dip."},{"l":"Incidents","sub":"OCBC","f":"stable","to":"attn","a":"OCBC ATM, internet and mobile banking disrupted 23 Sep 2026; CEO Conner said customer data remained protected."},{"l":"Adverse","sub":"OCBC","f":"watch","to":"attn","a":"Service disruption to ATM/internet/mobile banking on 23 Sep despite rising Q3 profit (+22% y-o-y)."},{"l":"Geographic exposure","sub":"DBS","f":"stable","to":"watch","a":"DBS Research warns unresolved Middle East crisis and high oil prices could lift inflation and rate pressure; no direct DBS exposure identified."},{"l":"Digital assets","sub":"DBS","f":"new","to":"stable","a":"No new tokenisation/crypto news since last run; Sept 5 DBS-Citigroup tokenised-deposit payment pilot remains latest activity."},{"l":"Stablecoin exposure","sub":"DBS","f":"new","to":"stable","a":"DBS and Citi launched weekend cross-border tokenised deposit payments via Swift; DBS scaling tokenised finance investment."},{"l":"Regulatory","sub":"UOB","f":"attn","to":"stable","a":"No new regulatory actions, findings or obligations reported in the last 30 days."}],"qs":[{"id":"group.common-issues","l":"Common issues","q":"Is the same issue showing up at several members?","a":"All three banks posted Q2 profit growth amid NII pressure; sector provisioning coverage rose to 147%, and MAS flagged shared AI-downturn corporate debt risk.","s":"watch","p":"watch","lb":7,"n":0,"nd":3,"c":false},{"id":"group.exposure","l":"Exposure","q":"Which members are most and least exposed to new developments?","a":"OCBC (ATM/online outage) and DBS (Lehman-linked $17m lawsuit) most exposed; UOB faces CRE provisioning risk but was upgraded by Macquarie.","s":"attn","p":"watch","lb":7,"n":0,"nd":7,"c":false},{"id":"group.outliers","l":"Outliers","q":"Is any member behaving differently from its peers?","a":"DBS stands out with a S$1 trillion wealth AUM target and centre expansion; OCBC hit by a systems outage; UOB trades at half peers' price-to-book.","s":"watch","p":"watch","lb":14,"n":0,"nd":6,"c":false},{"id":"group.topics","l":"Topics","q":"Which tracked topics are affecting this group most right now?","a":"Top themes: UOB's CRE exposure/provisioning risk, DBS's wealth-management expansion, AI/digital investment (OCBC Malaysia, UOB), and Q2 earnings amid NII pressure.","s":"watch","p":"watch","lb":14,"n":0,"nd":14,"c":false},{"id":"group.peer-moves","l":"Peer moves","q":"Did any member make a move its peers are likely to follow?","a":"DBS's gold-vaulting expansion prompted OCBC to seek bullion storage; DBS's Swift DLT tokenised payment and UOB's AI portfolio tool are template moves others may follow.","s":"new","p":"new","lb":30,"n":5,"nd":5,"c":false},{"id":"group.contagion","l":"Contagion","q":"Could an issue at one member spread to others?","a":"MAS stress test flags shared AI-downturn corporate debt risk to all banks; sector-wide provisioning rose to 147% and OCBC's outage raises operational-resilience scrutiny.","s":"watch","p":"watch","lb":14,"n":0,"nd":3,"c":false}],"mat":[0,0,0,6,1,3,1,6,1,10,8,19],"attn":[0,0,0,2,0,0,0,3,1,3,0,3],"cat":[{},{},{},{"strategy":2,"regulatory":2,"financial":2},{"financial":1},{"strategy":3},{"strategy":1},{"strategy":2,"financial":1,"regulatory":1,"incident":2},{"regulatory":1},{"management":3,"market":2,"strategy":5},{"financial":2,"other":1,"strategy":5},{"regulatory":1,"market":2,"incident":3,"financial":6,"strategy":7}],"stage":[{},{},{},{"signal":1},{},{},{},{},{},{},{},{}],"byweek":{"9 Jul":[0],"16 Jul":[0],"23 Jul":[0],"30 Jul":[{"id":"e1dd501949aa018f-1","t":"The Monetary Authority of Singapore has announced plans to reduce private banking account opening timelines to within a month by the end of 2026.","m":"Singapore banks, Singapore +1 \u00b7 regulatory \u00b7 1 source","d":"29 Jul","st":"attn","lvl":"Significant"},{"id":"a276ea331e747bbc-0","t":"MAS and ABS announced on 28 July 2026 the establishment of the AI-Driven Cyber and Technology Risk Taskforce (ACT), an industry-wide initiative to strengthen cyber and technology resilience against AI-driven threats.","m":"MAS, Singapore +3 \u00b7 regulatory \u00b7 2 sources","d":"28 Jul","st":"attn","lvl":"Significant"},{"id":"18d0b150f6193d66-0","t":"OCBC is deploying an AI agent platform to cut private banking account approval times to 15 business days, ahead of the regulator's roughly one-month target.","m":"OCBC, Singapore banks \u00b7 strategy \u00b7 3 sources","d":"29 Jul","st":"","lvl":"Notable"},{"id":"e1dd501949aa018f-2","t":"DBS says it can complete wealth onboarding and open accounts within a week, with AI implementation driving 20% more new HNW/UHNW clients and halving turnaround time in the first five months of 2026.","m":"Singapore banks \u00b7 financial \u00b7 1 source","d":"29 Jul","st":"","lvl":"Notable"},{"id":"f5712a900f0e448c-3","t":"MAS is working with GovTech, police and five banks to test whether AI models trained on cross-bank and public-private data can improve detection of scam transactions, with results expected in 2027.","m":"MAS, Singapore +1 \u00b7 strategy \u00b7 1 source","d":"28 Jul","st":"","lvl":"Notable"},{"id":"f5712a900f0e448c-4","t":"As of May 2026, funds protected under Singapore banks' \"money lock\" feature reached S$47 billion, nearly double the amount a year earlier, while Singapore reported fewer scam cases and lower losses in 2025.","m":"MAS, Singapore +1 \u00b7 financial \u00b7 1 source","d":"28 Jul","st":"","lvl":"Notable"},6],"6 Aug":[{"id":"1a047016757c78da-0","t":"OCBC's second-quarter net profit jumped 22%, beating analyst estimates, driven by wealth management and fee income.","m":"Singapore banks, DBS +3 \u00b7 financial \u00b7 5 sources","d":"6 Aug","st":"","lvl":"Notable"},1],"13 Aug":[{"id":"7f902c8b223fdcbe-3","t":"UOB said over 30,000 employees have access to Microsoft Copilot with more than 300 AI use cases rolled out, and has engaged an external auditor to measure AI's financial impact by year-end.","m":"UOB \u00b7 strategy \u00b7 1 source","d":"8 Aug","st":"","lvl":"Notable"},{"id":"26fb7095347cb8fa-0","t":"DBS CEO Tan Su Shan said the bank is using far more AI tokens but paying less per token due to caching, multi-provider use and routing simple queries to smaller models.","m":"DBS \u00b7 strategy \u00b7 1 source","d":"7 Aug","st":"","lvl":"Notable"},{"id":"26fb7095347cb8fa-4","t":"DBS CEO Tan Su Shan identified Taiwan as the market with the most wealth management growth potential over the next two to three years, citing its AI ecosystem, and expressed optimism about India given stronger interest in foreign currency deposits after central bank hedging-cost support.","m":"DBS \u00b7 strategy \u00b7 1 source","d":"7 Aug","st":"","lvl":"Notable"},3],"20 Aug":[{"id":"1ea7984589a0410f-2","t":"Singapore's top three banks said they are focused on managing the costs of using AI to avoid deploying it for its own sake.","m":"Singapore banks, DBS +2 \u00b7 strategy \u00b7 1 source","d":"14 Aug","st":"","lvl":"Notable"},1],"27 Aug":[{"id":"a9ef7d4a256fa643-1","t":"UOB was deceived by a furniture rebate scheme between 2011 and 2013 that caused it to unknowingly breach the 80% loan-to-value limit set by the Monetary Authority of Singapore.","m":"UOB, Singapore \u00b7 incident \u00b7 1 source","d":"24 Aug","st":"attn","lvl":"Significant"},{"id":"a9ef7d4a256fa643-2","t":"All 38 purchasers of the fraudulently financed Marina Collection units defaulted, and UOB repossessed 37 of the 38 units.","m":"UOB \u00b7 incident \u00b7 1 source","d":"24 Aug","st":"attn","lvl":"Significant"},{"id":"021297fe36fabd7a-0","t":"DBS expects its tokenised finance investment to catch up with and potentially overtake spending on traditional payments and custody within two to three years.","m":"DBS \u00b7 strategy \u00b7 1 source","d":"21 Aug","st":"attn","lvl":"Significant"},{"id":"a5b55266e299204d-0","t":"The Appellate Division of the High Court increased UOB's award against Lippo Marina Collection from $17.7 million to $76.1 million on Aug 24, 2026.","m":"UOB, Singapore banks \u00b7 regulatory \u00b7 2 sources","d":"24 Aug","st":"","lvl":"Notable"},{"id":"021297fe36fabd7a-1","t":"DBS has processed about S$10 billion in tokenised payments cumulatively over the past two years, according to Lim Soon Chong, group head of global transaction services.","m":"DBS \u00b7 financial \u00b7 1 source","d":"21 Aug","st":"","lvl":"Notable"},{"id":"021297fe36fabd7a-2","t":"DBS says investment in tokenised finance remains smaller than traditional payments and custody investment today but its share has risen over the past few years, without disclosing the current split.","m":"DBS \u00b7 strategy \u00b7 1 source","d":"21 Aug","st":"","lvl":"Notable"},6],"3 Sep":[{"id":"06beecc41a329236-2","t":"BI and MAS appointed nine Indonesian and three Singaporean banks, including DBS, OCBC and UOB, as Appointed Cross Currency Dealers to operationalise the Rupiah-Singapore Dollar framework.","m":"Singapore, Indonesia +3 \u00b7 regulatory \u00b7 1 source","d":"31 Aug","st":"attn","lvl":"Significant"},1],"10 Sep":[{"id":"9e51fd9cea11cfef-0","t":"DBS Bank and Citigroup executed a cross-border US dollar payment on Sept 5, 2026 using tokenised deposits via the Swift Digital Ledger, taking minutes versus up to two business days.","m":"DBS, Singapore banks +2 \u00b7 strategy \u00b7 2 sources","d":"7 Sep","st":"attn","lvl":"Significant"},{"id":"9e51fd9cea11cfef-1","t":"DBS said in August 2026 it expects its investment in tokenised finance to match or overtake traditional payment and custody spending within two to three years.","m":"DBS, Stablecoins \u00b7 strategy \u00b7 1 source","d":"7 Sep","st":"attn","lvl":"Significant"},{"id":"164175b6db0ab488-1","t":"Lam Chee Kin will report to DBS CEO Piyush Gupta and join the bank's group management committee, per an internal memo.","m":"DBS \u00b7 management \u00b7 1 source","d":"6 Sep","st":"attn","lvl":"Significant"},{"id":"3225dec9e6c9bac5-2","t":"Morgan Stanley said DBS, OCBC and UOB have increasingly built integrated corporate, transaction banking, wealth management and capital markets capabilities across Asean, monetising client relationships beyond lending.","m":"Singapore banks \u00b7 strategy \u00b7 1 source","d":"7 Sep","st":"","lvl":"Notable"},{"id":"9e51fd9cea11cfef-2","t":"DBS is the only Asian-headquartered bank among the 12 members of Swift's core design group for its digital ledger architecture.","m":"DBS, Singapore banks \u00b7 strategy \u00b7 2 sources","d":"7 Sep","st":"","lvl":"Notable"},{"id":"9e51fd9cea11cfef-4","t":"A July 2025 DBS report found about 50 per cent of finance leaders are exploring blockchain-powered capabilities for liquidity and foreign-exchange risk toolkits.","m":"DBS, Stablecoins \u00b7 market \u00b7 2 sources","d":"7 Sep","st":"","lvl":"Notable"},10],"17 Sep":[{"id":"15318a0fa093f5ba-3","t":"Despite NII pressure, quarterly net profits at all three Singapore banks rose year on year, up 9 per cent at DBS, 22 per cent at OCBC and 10 per cent at UOB.","m":"Singapore banks, UOB +2 \u00b7 financial \u00b7 3 sources","d":"17 Sep","st":"new","lvl":"Notable"},{"id":"15318a0fa093f5ba-2","t":"In the second quarter, DBS, OCBC and UOB all reported year-on-year declines in net interest income as DBS's net interest margin fell to 1.87 per cent.","m":"Singapore banks, UOB +2 \u00b7 financial \u00b7 2 sources","d":"17 Sep","st":"","lvl":"Notable"},{"id":"a085dad241d4f7aa-1","t":"DBS increased its gold vaulting space this year to support growing demand from private wealth and institutional clients.","m":"DBS, Singapore banks \u00b7 strategy \u00b7 1 source","d":"17 Sep","st":"","lvl":"Notable"},{"id":"a085dad241d4f7aa-2","t":"Oversea-Chinese Banking Corp (OCBC) has approached precious metal storage providers to secure additional bullion storage space, according to people familiar with the matter.","m":"Singapore banks \u00b7 strategy \u00b7 1 source","d":"17 Sep","st":"","lvl":"Notable"},{"id":"57a9a7a4e0372d3a-0","t":"Bain & Company, DBS Group Holdings and Vriens & Partners project Southeast Asia's six largest economies to grow an average of 4.8% annually over the next decade, with widening structural divergence.","m":"SEA countries, Singapore +6 \u00b7 other \u00b7 3 sources","d":"16 Sep","st":"upd","lvl":"Notable"},{"id":"63fbabd74544b5f2-0","t":"OCBC group chief sustainability officer Mike Ng said Asean governments should first sign overarching bilateral agreements on cross-border electricity trade to mitigate Asean Power Grid risks.","m":"SEA countries, OCBC \u00b7 strategy \u00b7 1 source","d":"16 Sep","st":"","lvl":"Notable"},8],"24 Sep":[{"id":"1c5f03888832ab30-0","t":"OCBC experienced a disruption to its ATM, Internet and mobile banking services on 23 September 2026, with CEO David Conner stating all customer data remained protected.","m":"OCBC, Singapore banks \u00b7 incident \u00b7 1 source","d":"23 Sep","st":"attn","lvl":"Significant"},{"id":"0992fe865722b0e5-0","t":"MAS stress test found about 32% of Singapore-listed companies would be at risk under a severe AI investment downturn, accounting for 16% of corporate debt.","m":"Singapore, MAS +1 \u00b7 regulatory \u00b7 3 sources","d":"22 Sep","st":"attn","lvl":"Significant"},{"id":"8038ed30a717ce9f-0","t":"More than 200 customers filed a lawsuit against DBS Bank in Singapore seeking to recover about $17 million in Lehman Brothers-linked investment losses.","m":"DBS, Singapore banks \u00b7 incident \u00b7 1 source","d":"20 Sep","st":"attn","lvl":"Significant"},{"id":"5c11a21ea2c0ef12-0","t":"UOB Thailand had cumulatively extended 74.6 billion baht in sustainable financing by the end of 2025.","m":"UOB, Thailand \u00b7 financial \u00b7 1 source","d":"23 Sep","st":"new","lvl":"Notable"},{"id":"5c11a21ea2c0ef12-3","t":"UOB helped arrange 7.3 billion baht in green financing for GSA Data Center 01, a joint venture between Gulf Development, Singtel and AIS, to build a 25.6-megawatt LEED Gold data centre.","m":"UOB, Thailand \u00b7 strategy \u00b7 1 source","d":"23 Sep","st":"new","lvl":"Notable"},{"id":"e558b126131ded1e-0","t":"DBS Group set a target to grow wealth assets under management to over S$1 trillion (US$774 billion) by 2030, up about S$400 billion from S$632 billion at end-2025.","m":"DBS, Singapore banks \u00b7 strategy \u00b7 1 source","d":"23 Sep","st":"new","lvl":"Notable"},19]},"mem":[{"group":0},{"group":0},{"group":0},{"ocbc":1,"group":6},{"several":1,"group":0},{"several":2,"dbs":3,"uob":1,"group":0},{"several":2,"group":0},{"dbs":3,"dbs_a":1,"uob":3,"uob_a":2,"group":0},{"group":1},{"dbs":7,"dbs_a":3,"uob":5,"group":2},{"several":5,"dbs":2,"ocbc":3,"uob":2,"group":2},{"several":1,"dbs":7,"ocbc":11,"ocbc_a":1,"uob":12,"dbs_a":1,"group":2}],"common":[{"id":"15318a0fa093f5ba-3","t":"Despite NII pressure, quarterly net profits at all three Singapore banks rose year on year, up 9 per cent at DBS, 22 per cent at OCBC and 10 per cent at UOB.","m":"Singapore banks, UOB +2 \u00b7 financial \u00b7 3 sources","d":"17 Sep","st":"new","lvl":"Notable"},{"id":"15318a0fa093f5ba-2","t":"In the second quarter, DBS, OCBC and UOB all reported year-on-year declines in net interest income as DBS's net interest margin fell to 1.87 per cent.","m":"Singapore banks, UOB +2 \u00b7 financial \u00b7 2 sources","d":"17 Sep","st":"","lvl":"Notable"},{"id":"2c611c200ee18f97-1","t":"UOBKH downgraded DBS to 'sell' with a S$74.70 target and OCBC to 'hold' with a S$32.50 target, removing OCBC from its conviction buy list.","m":"Singapore banks, OCBC +1 \u00b7 financial \u00b7 1 source","d":"16 Sep","st":"","lvl":"Minor"}]}};
+// Shared shell for the iteration mocks: helpers, sidebar, top bar, dashboard widgets. Data comes from the running API.
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ic=(n,c='')=>`<svg class="i ${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const WORD={attn:'Needs attention',watch:'Watch',stable:'Stable',new:'New',upd:'Updated'};
+const badge=s=>s?`<span class="b b-${s}">${WORD[s]}</span>`:'';
+const stateText=(s,p)=>p&&p!==s?`<span class="t-${p}">${WORD[p]}</span><span class="arr">→</span><span class="t-${s}">${WORD[s]}</span>`:`<span class="t-${s}">${WORD[s]}</span>`;
+const plural=(n,w,p)=>`${n} ${n===1?w:(p||w+'s')}`;
+const logo=id=>LOGO[id]?`<span class="ent-icon">${LOGO[id]}</span>`:'';
+const DASHES=[['Singapore banks','blue'],['Stablecoin watch','teal'],['Geopolitics in SEA','purple'],['OCBC','slate']];
+const TOPICS=[['Banking regulation','landmark',45,'banking-regulation'],['Geopolitics','globe',34],['Stablecoins','link',17]];
+const GROUPS=[['Singapore banks',35,'singapore-banks'],['SEA regional banks',49],['Central banks',144],['Stablecoin issuers',6],['SEA countries',146]];
+const HALF='';
+
+function head(t,meta,href=true){return `<div class="wh">${href?`<a class="wt" href="#">${esc(t)}</a>`:`<span class="wt">${esc(t)}</span>`}${meta?`<span class="wm">${esc(meta)}</span>`:''}</div>`}
+function devRow(r,opt={}){
+  return `<button class="r${opt.ns?' ns':''}" data-ev="${esc(r.id)}">${opt.ns?'':`<span class="sc">${badge(r.st)}</span>`}<span class="tt" title="${esc(r.t)}">${esc(r.t)}</span><span class="d">${esc(r.d)}</span></button>`;
+}
+// Widget bodies copied from mocks/refine-a.html; opt.dirFoot adds the Direction widget's trend link.
+const BODY={
+  since(d,z){
+    return head('Since your last review',d.meta)+`<p class="hero">${esc(d.hero)}</p>
+    <div class="gl t-attn"><span class="dot"></span>Needs attention · ${d.na}<a class="lk" href="#">Show all</a></div>
+    <div class="rows">${d.attn.slice(0,z==='L'?6:1).map(r=>devRow(r,{ns:1})).join('')}</div>
+    <div class="wf"><a class="lk" href="#" data-anchor="markall">Mark all reviewed</a><span class="meta">${esc(d.foot)}</span></div>`;
+  },
+  summary(d){
+    return head('Standing questions',d.sub)+`<div class="qs2">${d.ans.slice(0,6).map(x=>`<a class="qr" href="#" title="${esc(x.q)}"><span class="ql">${esc(x.l)}</span><span class="qa">${x.s==='new'&&!x.p?`<span class="t-new">${x.n} new</span>`:stateText(x.s,x.p)}</span></a>`).join('')}</div>`;
+  },
+  direction(d,z,opt={}){
+    const w=d.wk,max=Math.max(...w),min=Math.min(...w),n=w.length;
+    const pts=w.map((v,i)=>`${(i/(n-1)*236+2).toFixed(1)},${(36-(v-min)/(max-min||1)*32).toFixed(1)}`);
+    const last=pts[n-1].split(',');
+    return head('Direction of travel',d.sub)+`<p class="ans">${esc(d.trend)}</p>
+    <svg class="spark" viewBox="0 0 240 40" preserveAspectRatio="none" role="img" aria-label="Material developments per week: ${w.join(', ')}"><polyline points="${pts.join(' ')}" fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke"/><circle cx="${last[0]}" cy="${last[1]}" r="2.5" fill="var(--ink)"/></svg>
+    <p class="meta">${esc(d.cap)}</p>${opt.dirFoot||''}`;
+  },
+  upcoming(d){
+    return head('Upcoming',d.sub)+`<p class="ans">${esc(d.date)} <span class="meta" style="font-weight:400">· ${esc(d.rel)}</span></p>
+    <p class="c2" style="margin-top:4px">${esc(d.l)}</p><p class="meta c2" style="margin-top:4px">${esc(d.dev)}</p>`;
+  },
+  question(d){
+    return head(d.l,d.sub)+`<p class="ans">${stateText(d.s,d.p)}</p><p class="c3" style="margin-top:4px">${esc(d.a)}</p>
+    <div class="wf"><a class="lk" href="#" data-anchor="evidence">See evidence</a></div>`;
+  },
+  watchlist(d,z){
+    return head('Watchlist',plural(d.entries.length,'entity','entities'))+`<label class="add">${ic('plus')}<input aria-label="Add an entity" placeholder="Add a bank, central bank, issuer or country"></label>
+    <div class="rows">${d.entries.map(e=>`<div class="ent"><span class="sc">${badge(e.s)}</span><div style="min-width:0">
+      <div class="en">${logo(e.n.toLowerCase())}<a href="#" class="sl"><b>${esc(e.n)}</b></a><span class="meta num">${e.nn} new · ${e.na} ${e.na===1?'needs':'need'} attention</span></div>
+      <p class="hs c2"><span style="color:var(--ink2)">${esc(e.hl)}:</span> ${esc(e.hs)}</p><p class="lt meta"><span>${esc(e.lt)}</span><span class="num">${esc(e.ld)}</span></p>
+      </div><button class="ib" aria-label="Remove ${esc(e.n)}">${ic('x')}</button></div>`).join('')}</div>`;
+  },
+  developments(d,z){
+    return head('Developments',d.meta)+`<div class="rows">${d.rows.slice(0,3).map(r=>devRow(r)).join('')}</div>`;
+  },
+};
+const NAME={since:'Since your last review',summary:'Monitor summary',direction:'Direction of travel',upcoming:'Upcoming',question:'Standing question',watchlist:'Watchlist',developments:'Developments'};
+function widget(w,opt={}){
+  return `<article class="w z-${w.z}" data-w="${esc(w.t)}${w.id==='dbs-q'?'2':''}" aria-label="${esc(NAME[w.t])}">${BODY[w.t](w.d,w.z,opt)}</article>`;
+}
+// The live Singapore banks dashboard also carries a DBS Incidents question widget.
+const DBSQ={id:'dbs-q',t:'question',z:'S',d:{l:'Incidents',sub:'DBS',s:'attn',p:'stable',a:'200+ customers sued DBS for ~$17M over Lehman-linked High Notes 5 losses; DBS says suit is without merit, will defend.'}};
+
+function sidebar(o={}){
+  const cur=o.cur||'Singapore banks';
+  const open=o.open||null;
+  const monRow=(label,k,n)=>`<button class="ni" aria-expanded="${open===k}" data-exp="${k}">${ic('right','chev')}${label}<span class="cnt">${n}</span></button>`;
+  const sub=(label,cnt,icon)=>`<a class="ni sub${icon?' ico':''}" href="#" ${label===cur?'aria-current="page"':''} ${icon?'style="padding-left:24px"':''}>${icon?ic(icon,'sm'):''}${esc(label)}<span class="cnt">${cnt}</span></a>`;
+  return `<nav class="side" aria-label="Main" data-anchor="sidebar"><div class="brand">IntelMonitor</div><div class="nav">
+    <div class="nl">Dashboards</div>
+    <button class="ni" data-anchor="newdash">${ic('plus')}New dashboard</button>
+    ${DASHES.map(([n,c])=>`<a class="ni" href="#" ${n===cur&&!open?'aria-current="page"':''}><span class="dash-dot" style="background:var(--dash-${c})"></span>${esc(n)}</a>`).join('')}
+    <div class="nl">Monitors</div>
+    ${monRow('Topics','topic',3)}${open==='topic'?TOPICS.map(t=>sub(t[0],t[2],t[1])).join(''):''}
+    ${monRow('Groups','group',5)}${open==='group'?GROUPS.map(g=>sub(g[0],g[1])).join(''):''}
+    ${monRow('Entities','entity',22)}
+  </div><div class="prof pwrap">${o.menu||''}<button aria-haspopup="menu" aria-expanded="${!!o.menu}" data-anchor="profile"><span class="av">A</span><span class="who"><b>Analyst</b><span class="meta">Supervisory analyst</span></span>${ic('up','grow')}</button></div></nav>`;
+}
+function topbar(){
+  return `<header class="top"><label class="search">${ic('search')}<input type="search" aria-label="Search" placeholder="Search subjects, developments and documents"><span class="kbd">⌘K</span></label>
+  <div class="trw"><button class="chip" aria-haspopup="dialog" aria-expanded="false"><span class="dot"></span><span><b>Monitoring</b> · Last run 24 Sep</span>${ic('down','chev s12')}</button></div>
+  <div class="trw"><button class="bell" aria-label="Alerts">${ic('bell')}</button></div></header>`;
+}
+function dashPage(opt={}){
+  const d=DASH.dash;
+  const ws=d.w.slice();ws.push(DBSQ);
+  return `<div class="page"><div class="ph1"><div class="grow"><h1 class="ttl"><span class="dash-dot" style="background:var(--dash-blue)"></span>${esc(d.n)}</h1><p>${d.subs.map(s=>`<a href="#">${esc(s)}</a>`).join(', ')}</p></div>
+  <button class="btn">${ic('plus')}Add widget</button><button class="btn">Edit</button></div>
+  <div class="grid">${ws.map(w=>widget(w,opt)).join('')}</div></div>`;
+}
+
+// B1 Trend mock. TD holds weekly counts from data/intelmonitor.db (run 2026-09-24) and page data from the API.
+const W=TD.weeks, NW=W.length, PRE=3; // corpus starts 27 Jul, so the first three weeks hold no documents
+const wkLabel=i=>`${W[i].s}–${W[i].e}`.replace(/ (\w+)–(\d+) \1$/,'–$2 $1');
+const STAGES=[['signal','Signal','--st1'],['consultation','Consultation','--st2'],['proposed','Proposed','--st3'],['enacted','Enacted','--st4'],['enforced','Enforced','--st5']];
+const MEMBERS=[['dbs','DBS'],['ocbc','OCBC'],['uob','UOB'],['several','Several'],['group','Group only']];
+const MARK={attn:'var(--attn)',watch:'var(--watch)',stable:'var(--stable)',new:'var(--new)'};
+const RUNW=[10,11]; // weeks holding the runs of 17 Sep and 24 Sep
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const DIRS={
+  A:{name:'A · Chart with a split switch',why:'One 12-week chart under What changed, switchable to stage or member, with answer states on the same week axis. Reads fast; one split visible at a time.'},
+  B:{name:'B · Week table',why:'Every split as numbers in one week-by-row table, and answer states per run with words. Densest and exact; shape is read from numbers, not bars.'},
+  C:{name:'C · Woven into existing sections',why:'No new section: a week picker heads What changed, stage and member rows get their own bars, question rows get their history. Always in context; no single place to read the trend.'},
+};
+const S={dir:'A',view:'topic',week:null,split:'mat'};
+function subj(){return S.view==='group'?TD.group:TD.topic}
+
+// ---------- Charts ----------
+function yMax(v){const m=Math.max(1,...v);const st=m<=10?2:m<=20?5:10;return Math.ceil(m/st)*st}
+// A stacked column chart over the 12 weeks. segs: [{c:color,v:[12],l:label}] bottom-up.
+function columns(segs,o){
+  const Wd=o.w||620,H=o.h||160,T=18,B=22,L=o.l??0,R=8,ph=H-T-B,bw=(Wd-L-R)/NW,bar=Math.min(24,bw*.5);
+  const tot=W.map((_,i)=>sum(segs.map(s=>s.v[i])));
+  const ym=o.ym||yMax(tot),y=v=>T+ph-v/ym*ph;
+  let g='';
+  if(S.week!=null) g+=`<rect class="band" x="${L+S.week*bw+1}" y="0" width="${bw-2}" height="${H}" rx="4"/>`;
+  if(o.grid!==false) for(let t=0;t<=ym;t+=ym/(ym>20?3:2)){g+=`<line x1="${L}" x2="${Wd-R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/>`;if(o.yl)g+=`<text x="${L-6}" y="${y(t)+4}" text-anchor="end">${Math.round(t)}</text>`}
+  if(o.pre!==false)g+=`<text class="pre" x="${L+bw*PRE/2}" y="${T+ph/2+4}" text-anchor="middle">Before corpus</text>`;
+  const max=Math.max(...tot);
+  W.forEach((_,i)=>{
+    const cx=L+i*bw+bw/2;let base=0;
+    const nz=segs.filter(s=>s.v[i]>0);
+    nz.forEach((s,k)=>{const h=s.v[i]/ym*ph;const top=k===nz.length-1;const y0=T+ph-base-h, gap=k>0?2:0;
+      const hh=Math.max(1,h-gap);const r=top?Math.min(4,hh):0;const x=cx-bar/2,yt=y0;
+      g+=`<path d="M${x},${yt+hh}V${yt+r}q0,-${r} ${r},-${r}H${x+bar-r}q${r},0 ${r},${r}V${yt+hh}Z" fill="${s.c}"/>`;base+=h;});
+    if(o.vals!==false&&(i===NW-1||tot[i]===max)&&tot[i]) g+=`<text class="val" x="${cx}" y="${y(tot[i])-5}" text-anchor="middle">${tot[i]}</text>`;
+    if(o.xl!==false&&(o.xlAll||i>=PRE||i===0)&&!(i>0&&i<PRE)) g+=`<text class="xl${S.week===i?' on':''}" x="${cx}" y="${H-6}" text-anchor="middle">${W[i].s}</text>`;
+    if(i>=PRE) g+=`<rect class="hit" data-week="${i}" x="${L+i*bw}" y="0" width="${bw}" height="${H}" tabindex="0" role="button" aria-label="Week of ${wkLabel(i)}: ${tot[i]}"><title></title></rect>`;
+  });
+  return `<svg class="chart" viewBox="0 0 ${Wd} ${H}" style="height:${H}px" data-segs='${esc(JSON.stringify(segs.map(s=>({l:s.l,c:s.c,v:s.v}))))}'>${g}</svg>`;
+}
+// Tiny bars for a table cell or row: no axis, shared scale ym.
+function mini(v,ym,w=248,h=28,hl){
+  const bw=w/NW,bar=Math.min(10,bw*.55);let g='';
+  if(S.week!=null)g+=`<rect class="band" x="${S.week*bw}" y="0" width="${bw}" height="${h}" rx="3"/>`;
+  g+=`<line x1="0" x2="${w}" y1="${h-.5}" y2="${h-.5}" stroke="var(--line-strong)"/>`;
+  v.forEach((x,i)=>{if(!x)return;const bh=Math.max(2,x/ym*(h-2)),a=hl?hl[i]:0,ah=a?Math.max(2,a/ym*(h-2)):0,x0=i*bw+bw/2-bar/2;
+    if(bh-ah>0)g+=`<rect x="${x0}" y="${h-1-bh}" width="${bar}" height="${bh-ah-(a?2:0)}" rx="2" fill="var(--v-mat)"/>`;
+    if(a)g+=`<rect x="${x0}" y="${h-1-ah}" width="${bar}" height="${ah}" fill="var(--attn)"/>`;});
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" style="height:${h}px;width:${w}px" aria-hidden="true">${g}</svg>`;
+}
+function matSegs(s){const other=s.mat.map((v,i)=>v-s.attn[i]);return [{l:'Needs attention',c:'var(--attn)',v:s.attn},{l:'Other material',c:'var(--v-mat)',v:other}]}
+function stageSegs(s){return STAGES.map(([k,l,c])=>({l,c:`var(${c})`,v:s.stage.map(w=>w[k]||0)}))}
+function memVals(k){return TD.group.mem.map(w=>w[k]||0)}
+
+// ---------- Monitor page ----------
+function dev(r){return `<button class="r" data-ev="${esc(r.id)}"><span class="sc">${badge(r.st)}</span><span style="min-width:0"><span class="tt">${esc(r.t)}</span><span class="meta c1">${esc(r.m)}</span></span><span class="d">${esc(r.d)}</span></button>`}
+function whatChanged(s){
+  const wk=S.week!=null?s.byweek[W[S.week].e]:null;
+  const scrub=S.dir==='C'?scrubber(s):'';
+  let body;
+  if(wk){const n=wk[wk.length-1],rows=wk.slice(0,-1);
+    body=`<p class="lead"><b>${n} material</b><span class="filt">Week of ${wkLabel(S.week)}<button class="ib" data-act="clearweek" aria-label="Show since last review">${ic('x','s12')}</button></span></p>
+    <div class="rows">${rows.map(dev).join('')}</div><p class="more"><a class="lk" href="#">Show all ${n}</a></p>`;
+  }else{
+    body=`<p class="lead"><b>${esc(s.sum)}</b></p><div class="rows">${s.rows.slice(0,S.view==='group'?4:5).map(dev).join('')}</div>
+    <p class="more"><a class="lk" href="#">Show all ${s.total}</a></p>
+    <p class="sub3">${plural(s.qc.length,'answer')} changed</p>
+    <div class="rows">${s.qc.slice(0,2).map(c=>`<div class="r"><span class="sc">${badge(c.to)}</span><div style="min-width:0"><div class="tt">${esc(c.l)}${c.sub!==s.n?` <span class="meta">${esc(c.sub)}</span>`:''}</div><p style="margin-top:2px">${esc(c.a)}</p><p class="meta" style="margin-top:4px">${stateText(c.to,c.f)} · <a class="lk" href="#">See evidence</a></p></div><span></span></div>`).join('')}</div>`;
+  }
+  return `<section class="sec" id="what-changed"><div class="sh"><h2>What changed since last review</h2><span class="meta">Run of 24 Sep against 17 Sep</span></div>${scrub}${body}</section>`;
+}
+function questions(s){
+  const hist=q=>S.dir==='C'?`<span class="hist">17 Sep <b class="t-${q.p}">${WORD[q.p]}</b> · 24 Sep <b class="t-${q.s}">${q.s==='new'?q.n+' new':WORD[q.s]}</b></span> · `:(q.p&&q.p!==q.s?stateText(q.s,q.p)+' · ':'');
+  const rows=s.qs.map(q=>`<div class="r qrow"><span class="sc">${q.s==='new'?`<span class="b b-new">${q.n} new</span>`:badge(q.s)}</span><div style="min-width:0"><div class="ql">${esc(q.l)}</div><p class="qq">${esc(q.q)}</p><p class="qa">${esc(q.a)}</p>
+    <p class="meta">${hist(q)}Last ${q.lb} days · <a class="lk" href="#">See evidence</a></p></div><span></span></div>`).join('');
+  const changed=s.qs.filter(q=>q.p&&q.p!==q.s).length;
+  return `<section class="sec"><div class="sh"><h2>Standing questions</h2><span class="meta">${plural(changed,'answer')} changed</span></div><div class="rows">${rows}</div>
+  <p class="more"><button class="btn sm gh ac">${ic('plus')}Add a question</button><span class="meta" style="margin-left:12px">8 custom questions left</span></p></section>`;
+}
+function stageTrack(s){
+  if(S.dir==='C') return `<section class="sec" id="stage"><div class="sh"><h2>Stage</h2><span class="meta">12 weeks to 24 Sep</span></div>
+    ${STAGES.map(([k,l])=>{const v=s.stage.map(w=>w[k]||0);const last30=sum(v.slice(-4)),prev30=sum(v.slice(-8,-4));return `<button class="mini-row"><span style="font-weight:500">${l}</span><span class="nm"><span class="meta num">${last30} in the last 4 weeks, ${prev30} in the 4 before</span></span>${mini(v,12)}<span class="ct"><b>${sum(v)}</b></span></button>`}).join('')}</section>`;
+  return `<section class="sec"><div class="sh"><h2>Stage</h2><span class="meta">Last 30 days</span></div>
+  <div class="seg" style="display:flex;height:32px;margin-top:12px">${s.track.map(([k,n],i)=>`<button style="flex:1;height:28px;text-align:center" aria-pressed="${i===4}">${k[0].toUpperCase()+k.slice(1)} <span class="num" style="color:var(--ink2);font-weight:400;margin-left:4px">${n}</span></button>`).join('')}</div>
+  <p class="sub3">Enforced: 30 developments, top 3</p></section>`;
+}
+function members(){
+  const g=TD.group, st={dbs:'attn',ocbc:'attn',uob:'watch'};
+  const ym=Math.max(...MEMBERS.flatMap(([k])=>memVals(k)));
+  return `<section class="sec" id="members"><div class="sh"><h2>Members</h2><span class="meta">Developments per week, 12 weeks to 24 Sep</span></div>
+  ${MEMBERS.map(([k,l])=>{const v=memVals(k),a=g.mem.map(w=>w[k+'_a']||0);return `<button class="mini-row"><span class="sc">${badge(st[k])}</span><span class="nm">${logo(k)}${esc(k==="several"?"Several members":l)}<span class="meta num">${sum(a)?plural(sum(a),'needs attention','need attention').replace(/^(\d+) needs attention$/,'$1 needs attention'):''}</span></span>${mini(v,ym,248,28,a)}<span class="ct"><b>${v[NW-1]}</b> this week</span></button>`}).join('')}</section>`;
+}
+function groupExtra(){
+  const g=TD.group;
+  return `<section class="sec"><div class="sh"><h2>Common issues</h2><span class="meta">Last 14 days</span></div><div class="rows">${g.common.map(dev).join('')}</div></section>
+  <section class="sec"><div class="sh"><h2>Outliers</h2><span class="meta">Last 14 days</span></div><p style="padding-top:12px">No member stands out from its peers.</p></section>`;
+}
+
+// ---------- Direction A ----------
+function trendA(s){
+  const g=S.view==='group';
+  const splits=g?[['mat','Material'],['mem','By member']]:[['mat','Material'],['stage','By stage']];
+  const split=splits.some(x=>x[0]===S.split)?S.split:'mat';
+  let side,chart;
+  const thisW=s.mat[NW-1],prev=(sum(s.mat.slice(-4,-1))/3).toFixed(1);
+  if(split==='mat'){
+    const segs=matSegs(s);chart=columns(segs,{w:620,h:176,yl:false});
+    side=`<p class="ans">${thisW>=prev*1.25?'Rising':'Flat'}</p><p class="meta">${thisW} this week, ${prev} a week over the three before</p>
+    <div class="lg">${segs.map(x=>`<span><i style="background:${x.c}"></i>${x.l}<em>${sum(x.v)}</em></span>`).join('')}</div>`;
+  }else if(split==='stage'){
+    const segs=stageSegs(s);chart=columns(segs,{w:620,h:176});
+    side=`<p class="ans">Enacted and enforced lead</p><p class="meta">Developments with a stage, by first publication</p>
+    <div class="lg">${segs.slice().reverse().map(x=>`<span><i style="background:${x.c}"></i>${x.l}<em>${sum(x.v)}</em></span>`).join('')}</div>`;
+  }else{
+    const ym=yMax(MEMBERS.flatMap(([k])=>memVals(k)));
+    chart=`<div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;padding-top:12px">${MEMBERS.map(([k,l])=>{const v=memVals(k);return `<div><div style="display:flex;align-items:center;gap:6px;height:20px;font-weight:500;white-space:nowrap">${logo(k)}${esc(l)}<span class="meta num" style="margin-left:auto">${sum(v)}</span></div>${columns([{l,c:'var(--v-mat)',v},{l:'Needs attention',c:'var(--attn)',v:W.map(()=>0)}],{w:112,h:120,ym,xl:false,vals:false,pre:false})}</div>`}).join('')}</div>`;
+    side=`<p class="ans">UOB and OCBC up</p><p class="meta">Developments per week, same scale in each</p>`;
+  }
+  const strip=s.qs.map(q=>{const bw=(620-8)/NW;let g='';
+    if(S.week!=null)g+=`<rect class="band" x="${S.week*bw+1}" y="0" width="${bw-2}" height="44" rx="4"/>`;
+    g+=`<line x1="0" x2="612" y1="22" y2="22" stroke="var(--line)"/>`;
+    [[RUNW[0],q.p],[RUNW[1],q.s]].forEach(([i,st])=>{if(st)g+=`<rect x="${i*bw+2}" y="16" width="${bw-4}" height="12" rx="3" fill="${MARK[st]}"><title>Run of ${i===10?'17':'24'} Sep: ${WORD[st]}</title></rect>`});
+    return `<div class="strip-row"><div class="sl2"><b>${esc(q.l)}</b><span class="meta">${stateText(q.s,q.p)}</span></div><svg class="chart" viewBox="0 0 620 44" style="height:44px">${g}</svg></div>`}).join('');
+  return `<section class="sec" id="trend"><div class="sh"><h2>Trend</h2><span class="meta">12 weeks to 24 Sep</span></div>
+    <div class="tr-bar"><div class="seg" role="group" aria-label="Split">${splits.map(([k,l])=>`<button data-split="${k}" aria-pressed="${k===split}">${l}</button>`).join('')}</div><span class="meta">${S.week!=null?'':'Pick a week to filter What changed'}</span></div>
+    <div class="tr-grid"><div class="tr-side">${side}</div><div>${chart}</div></div>
+    <p class="sub3" style="display:flex;gap:16px">Answers at each run<span style="margin-left:auto;display:flex;gap:12px;font-weight:400">${['attn','watch','new','stable'].map(k=>`<span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:2px;background:${MARK[k]}"></i>${WORD[k]}</span>`).join('')}</span></p>
+    ${strip}</section>`;
+}
+
+// ---------- Direction B ----------
+function trendB(s){
+  const g=S.view==='group';
+  const on=i=>S.week===i?' on':'';
+  const cells=(v,cls='')=>v.map((x,i)=>i<PRE?`<td class="pre${on(i)}">·</td>`:`<td class="${x?'':'z'}${on(i)}">${x||'·'}</td>`).join('')+`<td class="tot">${sum(v)}</td>`;
+  const tot=s.mat,ym=yMax(tot);
+  const hero=`<tr class="hrow"><th>Material<span class="meta" style="display:block;font-weight:400">Notable or higher</span></th>${tot.map((x,i)=>{if(i<PRE)return `<td class="pre${on(i)}">${i===1?'<span class="meta" style="font-weight:400;white-space:nowrap">Before corpus</span>':''}</td>`;const a=s.attn[i],h=36,bh=x/ym*h,ah=a/ym*h;return `<td class="${on(i)}"><span>${x}</span><svg width="14" height="${h}" aria-hidden="true">${x-a?`<rect x="0" y="${h-bh}" width="14" height="${Math.max(0,bh-ah-(a?2:0))}" rx="${a?0:3}" fill="var(--v-mat)"/>`:''}${a?`<rect x="0" y="${h-ah}" width="14" height="${ah}" fill="var(--attn)"/>`:''}</svg></td>`}).join('')}<td class="tot"><span>${sum(tot)}</span></td></tr>`;
+  const cats={};s.cat.forEach(w=>Object.entries(w).forEach(([k,v])=>cats[k]=(cats[k]||0)+v));
+  const top=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+  const keep=top.slice(0,4),rest=top.slice(4);
+  const catRows=keep.map(k=>[k[0].toUpperCase()+k.slice(1),s.cat.map(w=>w[k]||0)]);
+  if(rest.length)catRows.push(['Other',s.cat.map(w=>sum(rest.map(k=>w[k]||0)))]);
+  const grp=l=>`<tr class="grp"><th colspan="${NW+2}">${l}</th></tr>`;
+  const split=g?grp('By member')+MEMBERS.map(([k,l])=>`<tr><th>${logo(k)}${esc(k==="several"?"Several members":l)}</th>${cells(memVals(k))}</tr>`).join('')
+    :grp('By stage')+STAGES.map(([k,l])=>`<tr><th>${l}</th>${cells(s.stage.map(w=>w[k]||0))}</tr>`).join('');
+  const table=`<table class="wt-tab"><colgroup><col class="lab">${W.map(()=>'<col>').join('')}<col class="tot"></colgroup>
+    <thead><tr><th></th>${W.map((w,i)=>`<th class="${on(i).trim()}">${i<PRE?`<span class="meta" style="color:var(--ink3)">${w.s}</span>`:`<button data-week="${i}" aria-label="Week of ${wkLabel(i)}">${w.s}</button>`}</th>`).join('')}<th class="tot"><span class="meta">Total</span></th></tr></thead>
+    <tbody>${hero}<tr><th>Needs attention</th>${cells(s.attn)}</tr>${grp('By category, material only')}${catRows.map(([l,v])=>`<tr><th>${l}</th>${cells(v)}</tr>`).join('')}${split}</tbody></table>`;
+  const runs=`<table class="runs-tab"><colgroup><col><col class="run"><col class="run"></colgroup>
+    <thead><tr><th>Answers at each run</th><th>17 Sep</th><th>24 Sep</th></tr></thead>
+    <tbody>${s.qs.map(q=>`<tr><td class="rq"><b>${esc(q.l)}</b><span class="meta c1">${esc(q.q)}</span></td><td>${q.p?badge(q.p):''}</td><td>${q.s==='new'?`<span class="b b-new">${q.n} new</span>`:badge(q.s)}</td></tr>`).join('')}</tbody></table>`;
+  return `<section class="sec" id="trend"><div class="sh"><h2>Trend</h2><span class="meta">12 weeks to 24 Sep, by first publication</span></div>${table}<div style="margin-top:24px">${runs}</div></section>`;
+}
+
+// ---------- Direction C ----------
+function scrubber(s){
+  const segs=matSegs(s),thisW=s.mat[NW-1],prev=(sum(s.mat.slice(-4,-1))/3).toFixed(1);
+  return `<div class="scrub" id="trend"><div class="scrub-h"><span class="meta" style="margin-left:0"><b style="color:var(--ink);font-weight:600">Rising</b> · ${thisW} material this week, ${prev} a week over the three before</span>
+    <span class="meta" style="display:flex;gap:12px"><span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:2px;background:var(--attn)"></i>Needs attention</span><span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:2px;background:var(--v-mat)"></i>Other material</span></span></div>
+    ${columns(segs,{w:800,h:112,grid:false})}</div>`;
+}
+
+// ---------- Views ----------
+function monPage(){
+  const s=subj(),g=S.view==='group';
+  const head=g?`<h1>${esc(s.n)}</h1><p>${['DBS','OCBC','UOB'].map(n=>`<a href="#">${n}</a>`).join(', ')}</p>`
+    :`<h1 class="ttl"><span class="ent-icon s28">${ic('landmark')}</span>${esc(s.n)}</h1><p>${esc(s.desc)}</p>`;
+  let secs;
+  if(S.dir==='A') secs=whatChanged(s)+trendA(s)+questions(s)+(g?groupExtra():stageTrack(s));
+  else if(S.dir==='B') secs=whatChanged(s)+questions(s)+trendB(s)+(g?groupExtra():stageTrack(s));
+  else secs=whatChanged(s)+questions(s)+(g?members()+groupExtra():stageTrack(s));
+  const links=g?{Topics:['Banking regulation','Stablecoins','Geopolitics'],Entities:['DBS','OCBC','UOB']}:{Groups:['Singapore banks','SEA regional banks','Central banks'],Entities:['DBS','OCBC','UOB','Maybank','CIMB','MAS','Fed']};
+  return `<div class="page"><div class="ph1"><div class="grow">${head}</div></div>
+  <div class="mon"><div class="panel">${secs}</div>
+  <aside class="panel rail"><section class="sec"><div class="sh"><h2>Links</h2></div>
+    <dl class="links">${Object.entries(links).map(([k,v])=>`<dt>${k}</dt><dd>${v.map(n=>`<a href="#">${esc(n)}</a>`).join('')}</dd>`).join('')}</dl><a class="lk" href="#">Open graph view</a></section>
+    <section class="sec"><div class="sh"><h2>Actions</h2></div><div class="act"><div class="rw"><button class="btn pri">Mark reviewed</button><span class="meta">Not reviewed yet</span></div><textarea class="fld" aria-label="Note" placeholder="Add a note"></textarea></div></section></aside></div></div>`;
+}
+function render(){
+  document.querySelectorAll('[data-dir]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dir===S.dir));
+  document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===S.view));
+  $('#tbd').innerHTML=S.view==='dash'?`<b>Dashboard</b><span>The Direction widget's See trend opens /monitors/banking-regulation#trend. Every direction below lands on its trend anchor.</span>`:`<b>${DIRS[S.dir].name}</b><span>${DIRS[S.dir].why}</span>`;
+  const dirFoot=`<div class="wf"><a class="lk" href="#" data-go="topic">See trend</a></div>`;
+  const main=S.view==='dash'?dashPage({dirFoot}):monPage();
+  $('#root').innerHTML=`<div class="app">${sidebar({cur:S.view==='topic'?'Banking regulation':S.view==='group'?'Singapore banks':'Singapore banks',open:S.view==='topic'?'topic':S.view==='group'?'group':null})}<main class="main">${topbar()}${main}</main></div>`;
+  if(S.view==='dash'){const w=$('[data-w="direction"]');w.classList.add('hov');w.querySelector('.meta').textContent='29 this week, 16.7 a week before';}
+}
+function scrollTo(id){const m=$('.main'),el=document.getElementById(id);if(m&&el)m.scrollTop=el.getBoundingClientRect().top-m.getBoundingClientRect().top+m.scrollTop-72;}
+function go(){render();requestAnimationFrame(()=>{if(S.view!=='dash')scrollTo(S.scroll||(S.week!=null||S.dir==='C'?'what-changed':'trend'));S.scroll=null})}
+const tip=document.createElement('div');tip.className='tip';tip.hidden=true;document.body.appendChild(tip);
+document.addEventListener('mouseover',e=>{
+  const h=e.target.closest('rect.hit');if(!h){tip.hidden=true;return}
+  const i=+h.dataset.week,segs=JSON.parse(h.closest('svg').dataset.segs);
+  tip.innerHTML=`<b>Week of ${wkLabel(i)}</b>${segs.slice().reverse().filter(s=>s.v[i]||segs.length<3).map(s=>`<div><i style="background:${s.c}"></i>${s.l}<em>${s.v[i]}</em></div>`).join('')}<p class="meta">Click to filter What changed</p>`;
+  const r=h.getBoundingClientRect();tip.style.left=Math.min(innerWidth-220,r.right+4)+'px';tip.style.top=(r.top+8)+'px';tip.hidden=false;
+});
+document.addEventListener('click',e=>{
+  const t=e.target;
+  const d=t.closest('[data-dir]');if(d){S.dir=d.dataset.dir;if(S.view==='dash')S.view='topic';S.week=null;go();return}
+  const v=t.closest('[data-view]');if(v){S.view=v.dataset.view;S.week=null;go();return}
+  const gt=t.closest('[data-go]');if(gt){e.preventDefault();S.view=gt.dataset.go;S.week=null;go();return}
+  const wk=t.closest('[data-week]');if(wk){S.week=+wk.dataset.week;tip.hidden=true;go();return}
+  const sp=t.closest('[data-split]');if(sp){S.split=sp.dataset.split;render();return}
+  if(t.closest('[data-act="clearweek"]')){S.week=null;go();return}
+  if(t.closest('a[href="#"]'))e.preventDefault();
+});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('rect.hit')){e.preventDefault();S.week=+e.target.dataset.week;go()}});
+// ?d=A|B|C&v=dash|topic|group&w=<week index>&split=mat|stage|mem sets the view, for screenshots.
+const P=new URLSearchParams(location.search);
+if(P.get('d'))S.dir=P.get('d');if(P.get('v'))S.view=P.get('v');if(P.get('w'))S.week=+P.get('w');if(P.get('split'))S.split=P.get('split');if(P.get('s'))S.scroll=P.get('s');
+go();
+
+</script>
+</body>
+</html>
