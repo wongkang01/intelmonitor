@@ -58,7 +58,8 @@ Results come in three groups: monitors open their page, and developments and doc
 Typing a name jumps to its page.
 Typing a question gets an answer with citations (P1; the POC only jumps to pages).
 To the right of the search field, 8 px apart: a run status chip and an alerts button, both 32 px with a 1 px border at the 6 px control radius.
-The chip shows a static 6 px dot and "**Monitoring** · Last run 06:00" and opens a Runs popover: runs newest first, each with a status mark, when, how (scheduled or manual), duration, source count and result, then "Next scheduled run" and a Run now button.
+The chip shows a static 6 px dot and "**Monitoring** · Last run 06:00" and opens a Runs popover: runs newest first, each with a status mark, when, how (Command line or Run now), duration, source count and result against the previous as-of date, then "Runs are manual for now." and a Run now button.
+There is no scheduler in the POC, so the popover promises no next run.
 While a run is in progress the chip reads "**Running now** · 22 sources" with a static half-filled mark, and the list shows a Running now row.
 Words and static marks carry the run state: no spinner, pulse or halo.
 The chip has a fixed minimum width, so switching states does not move the bell.

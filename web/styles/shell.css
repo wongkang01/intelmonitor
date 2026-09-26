@@ -487,9 +487,10 @@ main.main {
 }
 
 /* A run: status glyph, "Run of 24 Sep" with its result on the right, then when, how, time, sources. */
+/* The title keeps one line; a long result wraps under itself, right-aligned. */
 .run-row {
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) auto;
+  grid-template-columns: 16px auto minmax(0, 1fr);
   column-gap: var(--s-3);
   align-items: start;
   padding: var(--s-2) var(--s-4);
@@ -500,6 +501,7 @@ main.main {
 }
 .run-row b {
   font-weight: 500;
+  white-space: nowrap;
 }
 .run-row b.now {
   font-weight: 600;
@@ -517,7 +519,6 @@ main.main {
   color: var(--ink2);
   text-align: right;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 .run-row .res .attn {
   color: var(--attn);

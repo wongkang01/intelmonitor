@@ -1470,25 +1470,6 @@
         }
       }
     },
-    "/runs/schedule": {
-      "get": {
-        "summary": "Run Schedule",
-        "description": "The planned cadence and next run. Nominal: the POC has no scheduler.",
-        "operationId": "run_schedule",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RunSchedule"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/runs/now": {
       "post": {
         "summary": "Run Now",
@@ -4614,15 +4595,16 @@
           "trigger": {
             "type": "string",
             "enum": [
-              "scheduled",
+              "cli",
               "manual"
             ],
-            "title": "Trigger"
+            "title": "Trigger",
+            "description": "cli: `im run`. manual: Run now"
           },
           "how": {
             "type": "string",
             "title": "How",
-            "description": "\"Scheduled\", or \"Manual, <display name>\""
+            "description": "\"Command line\", or \"Run now, <display name>\""
           },
           "sources": {
             "type": "integer",
@@ -4660,7 +4642,7 @@
               }
             ],
             "title": "Result",
-            "description": "\"4 new, 2 need attention\", \"First run, N developments\" or \"No new developments\"; null unless complete"
+            "description": "Against the previous run: \"4 new, 2 need attention since 17 Sep\", \"No new developments since 17 Sep\" or \"First run, N developments\"; null unless complete"
           },
           "started_at": {
             "type": "string",
@@ -4744,31 +4726,6 @@
           "previous_run_id"
         ],
         "title": "RunRef"
-      },
-      "RunSchedule": {
-        "properties": {
-          "cadence": {
-            "type": "string",
-            "title": "Cadence"
-          },
-          "next_run_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Next Run At"
-          },
-          "nominal": {
-            "type": "boolean",
-            "title": "Nominal",
-            "description": "True in the POC: no scheduler runs, this is the planned cadence"
-          }
-        },
-        "type": "object",
-        "required": [
-          "cadence",
-          "next_run_at",
-          "nominal"
-        ],
-        "title": "RunSchedule"
       },
       "RunStatus": {
         "properties": {

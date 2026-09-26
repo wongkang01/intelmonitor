@@ -21,12 +21,11 @@ import {
   useAlerts,
   useMarkAlertsRead,
   useRunNow,
-  useRunSchedule,
   useRunStatus,
   useRuns,
   useSearch,
 } from "@/lib/api/queries";
-import { aheadTime, clock, duration, plural, relativeTime, shortDate, shortTime, TYPE_LABEL } from "@/lib/format";
+import { duration, plural, relativeTime, shortDate, shortTime, TYPE_LABEL } from "@/lib/format";
 import { monitorHref } from "@/lib/widgets";
 import {
   BellIcon,
@@ -427,31 +426,18 @@ function RunsPopover({
   runs?: Run[];
   failed: boolean;
 }) {
-  const schedule = useRunSchedule();
   const runNow = useRunNow();
   const busy = running || runNow.isPending;
-  const next = schedule.data;
 
   return (
     <Popover
       id="runs-popover"
       label="Runs"
-      head={
-        <>
-          <b>Runs</b>
-          {next && (
-            <span className="cap">
-              {next.cadence} at {clock(next.next_run_at)}
-            </span>
-          )}
-        </>
-      }
+      head={<b>Runs</b>}
       foot={
         <>
           <span className="cap grow">
-            {runNow.isError
-              ? "Could not start a run. Try again."
-              : next && `Next scheduled run: ${aheadTime(next.next_run_at)}`}
+            {runNow.isError ? "Could not start a run. Try again." : "Runs are manual for now."}
           </span>
           <button
             type="button"

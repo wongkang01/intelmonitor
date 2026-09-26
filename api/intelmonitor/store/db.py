@@ -45,14 +45,14 @@ CREATE TABLE IF NOT EXISTS runs (
     error TEXT
 );
 
--- One row per execution of a run: `im run` counts as scheduled, Run now in the app as manual.
--- A manual rerun recomputes an existing run in place, so runs keeps one row per date and the
--- executions live here. The counts compare against what the execution replaced, or against the
--- previous run when the date had not been computed before.
+-- One row per execution of a run: `im run` on the command line, or Run now in the app. There is
+-- no scheduler yet. A rerun recomputes an existing run in place, so runs keeps one row per date
+-- and the executions live here. The counts compare against the previous run, the latest earlier
+-- as-of date, so every execution of a date reports what that date found.
 CREATE TABLE IF NOT EXISTS run_log (
     id INTEGER PRIMARY KEY,
     run_id TEXT NOT NULL,              -- the runs row it computed
-    trigger TEXT NOT NULL,             -- scheduled or manual
+    trigger TEXT NOT NULL,             -- cli (`im run`) or manual (Run now)
     triggered_by TEXT,                 -- the profile's display name, for manual runs
     status TEXT NOT NULL,              -- running, complete or failed
     sources INTEGER NOT NULL,          -- distinct ingest sources among its documents

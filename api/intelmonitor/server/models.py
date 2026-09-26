@@ -74,8 +74,8 @@ class RunInfo(BaseModel):
     as_of: date
     previous_run_id: str | None
     status: Literal["running", "complete", "failed"]
-    trigger: Literal["scheduled", "manual"]
-    how: str = Field(description='"Scheduled", or "Manual, <display name>"')
+    trigger: Literal["cli", "manual"] = Field(description="cli: `im run`. manual: Run now")
+    how: str = Field(description='"Command line", or "Run now, <display name>"')
     sources: int = Field(description="Distinct ingest sources among its documents")
     documents: int
     developments: int
@@ -83,8 +83,8 @@ class RunInfo(BaseModel):
     updated_count: int
     needs_attention_count: int = Field(description="New or updated and needing attention")
     result: str | None = Field(
-        description='"4 new, 2 need attention", "First run, N developments" or '
-        '"No new developments"; null unless complete'
+        description='Against the previous run: "4 new, 2 need attention since 17 Sep", '
+        '"No new developments since 17 Sep" or "First run, N developments"; null unless complete'
     )
     started_at: datetime
     finished_at: datetime | None
@@ -99,14 +99,6 @@ class RunStatus(BaseModel):
     sources: int | None
     estimate_seconds: float | None = Field(
         description="Median duration of earlier executions, when there are any"
-    )
-
-
-class RunSchedule(BaseModel):
-    cadence: str
-    next_run_at: datetime
-    nominal: bool = Field(
-        description="True in the POC: no scheduler runs, this is the planned cadence"
     )
 
 

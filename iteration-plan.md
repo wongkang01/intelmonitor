@@ -65,6 +65,10 @@ It extends `poc-plan.md`; where they disagree, this plan wins for the items it l
    Word each row against the previous as-of date instead.
    Runs 1 and 2 are labelled Scheduled and the popover promises "Next scheduled run", but there is no scheduler (`/runs/schedule` returns `nominal: true`).
    Label runs by how they actually ran and say plainly that runs are manual for now.
+   Built: every execution's counts compare with the previous as-of date, like the run's stored changes, and the result line names it: "303 new, 15 updated, 34 need attention since 17 Sep".
+   `im run` is logged as `cli` and shown as "Command line"; Run now shows "Run now, Analyst".
+   At startup the API relabels old "scheduled" rows and gives each old rerun that changed nothing the counts of the execution before it.
+   `GET /runs/schedule` is gone; the popover foot reads "Runs are manual for now."
 7. **Trend data.**
    `GET /subjects/{id}/trend` returns, over 12 weeks ending on the run date:
    material developments per week split by category;

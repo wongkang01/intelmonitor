@@ -1,20 +1,23 @@
 """The run log: one row per pipeline execution, with who started it and what it found.
 
-compute_run writes it. The server reads it for run history, the run status chip and Run now."""
+compute_run writes it. The server reads it for run history, the run status chip and Run now.
+There is no scheduler yet: every execution is `im run` on the command line or Run now in the app."""
 
 import sqlite3
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Literal
 
 from intelmonitor.pipeline.diff import DevelopmentChange
+from intelmonitor.store.db import get_meta, set_meta
 
-Trigger = Literal["scheduled", "manual"]
+# cli: `im run`. manual: Run now in the app.
+Trigger = Literal["cli", "manual"]
 
 
 @dataclass(frozen=True)
 class Outcome:
-    """What one execution found, relative to what it replaced or to the previous run."""
+    """What one execution found, relative to the previous run (the latest earlier as-of date)."""
 
     developments: int
     first_run: bool
@@ -47,9 +50,10 @@ def outcome(
     )
 
 
-def result_line(o: Outcome) -> str:
-    """ "4 new, 2 need attention", "First run, 120 developments" or "No new developments"."""
-    if o.first_run:
+def result_line(o: Outcome, previous: date | None) -> str:
+    """ "4 new, 2 need attention since 17 Sep", "No new developments since 17 Sep", or
+    "First run, 120 developments". `previous` is the as-of date of the run compared against."""
+    if o.first_run or previous is None:
         return f"First run, {o.developments} developments"
     parts = [
         f"{o.new_count} new" if o.new_count else "",
@@ -58,7 +62,8 @@ def result_line(o: Outcome) -> str:
         if o.needs_attention_count
         else "",
     ]
-    return ", ".join(p for p in parts if p) or "No new developments"
+    counts = ", ".join(p for p in parts if p) or "No new developments"
+    return f"{counts} since {previous.day} {previous:%b}"
 
 
 def start(
@@ -118,7 +123,7 @@ def interrupt_stale(conn: sqlite3.Connection) -> None:
 
 
 def backfill(conn: sqlite3.Connection) -> None:
-    """Log runs computed before the run log existed as scheduled executions, from their stored
+    """Log runs computed before the run log existed, which `im run` computed, from their stored
     changes against the previous run."""
     for r in conn.execute(
         "SELECT * FROM runs WHERE id NOT IN (SELECT run_id FROM run_log)"
@@ -138,7 +143,7 @@ def backfill(conn: sqlite3.Connection) -> None:
         ).fetchone()[0]
         conn.execute(
             "INSERT INTO run_log (run_id, trigger, status, sources, documents, started_at, "
-            "finished_at, error) VALUES (?, 'scheduled', ?, ?, ?, ?, ?, ?)",
+            "finished_at, error) VALUES (?, 'cli', ?, ?, ?, ?, ?, ?)",
             (
                 r["id"],
                 r["status"],
@@ -153,4 +158,39 @@ def backfill(conn: sqlite3.Connection) -> None:
         if r["status"] == "complete":
             first = r["previous_run_id"] is None
             finish(conn, execution_id, outcome(conn, r["id"], changes, first), r["finished_at"])
+    conn.commit()
+
+
+_COUNTS_VS_PREVIOUS_RUN = "run_log_counts_vs_previous_run"
+
+
+def migrate(conn: sqlite3.Connection) -> None:
+    """Brings run logs written by earlier versions up to date, in place.
+
+    `im run` was logged as "scheduled", though no scheduler exists. And a rerun of an as-of date
+    counted only what changed against the execution it replaced, so reruns said "No new
+    developments". A rerun that changed nothing found what the execution before it found, so it
+    takes that execution's counts. A rerun that did change something cannot be recounted, since
+    only the latest execution's developments are stored; none was logged before this change."""
+    conn.execute("UPDATE run_log SET trigger = 'cli' WHERE trigger = 'scheduled'")
+    if get_meta(conn, _COUNTS_VS_PREVIOUS_RUN) is None:
+        before: dict[str, tuple[int, int, int, int]] = {}
+        for r in conn.execute(
+            "SELECT * FROM run_log WHERE status = 'complete' ORDER BY id"
+        ).fetchall():
+            counts = (
+                r["first_run"],
+                r["new_count"],
+                r["updated_count"],
+                r["needs_attention_count"],
+            )
+            if r["run_id"] in before and not r["new_count"] and not r["updated_count"]:
+                counts = before[r["run_id"]]
+                conn.execute(
+                    "UPDATE run_log SET first_run = ?, new_count = ?, updated_count = ?, "
+                    "needs_attention_count = ? WHERE id = ?",
+                    (*counts, r["id"]),
+                )
+            before[r["run_id"]] = counts
+        set_meta(conn, _COUNTS_VS_PREVIOUS_RUN, datetime.now(UTC).isoformat())
     conn.commit()

@@ -489,26 +489,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/runs/schedule": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Run Schedule
-         * @description The planned cadence and next run. Nominal: the POC has no scheduler.
-         */
-        get: operations["run_schedule"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/runs/now": {
         parameters: {
             query?: never;
@@ -1784,12 +1764,13 @@ export interface components {
             status: "running" | "complete" | "failed";
             /**
              * Trigger
+             * @description cli: `im run`. manual: Run now
              * @enum {string}
              */
-            trigger: "scheduled" | "manual";
+            trigger: "cli" | "manual";
             /**
              * How
-             * @description "Scheduled", or "Manual, <display name>"
+             * @description "Command line", or "Run now, <display name>"
              */
             how: string;
             /**
@@ -1812,7 +1793,7 @@ export interface components {
             needs_attention_count: number;
             /**
              * Result
-             * @description "4 new, 2 need attention", "First run, N developments" or "No new developments"; null unless complete
+             * @description Against the previous run: "4 new, 2 need attention since 17 Sep", "No new developments since 17 Sep" or "First run, N developments"; null unless complete
              */
             result: string | null;
             /**
@@ -1836,21 +1817,6 @@ export interface components {
             as_of: string;
             /** Previous Run Id */
             previous_run_id: string | null;
-        };
-        /** RunSchedule */
-        RunSchedule: {
-            /** Cadence */
-            cadence: string;
-            /**
-             * Next Run At
-             * Format: date-time
-             */
-            next_run_at: string;
-            /**
-             * Nominal
-             * @description True in the POC: no scheduler runs, this is the planned cadence
-             */
-            nominal: boolean;
         };
         /** RunStatus */
         RunStatus: {
@@ -3521,26 +3487,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RunStatus"];
-                };
-            };
-        };
-    };
-    run_schedule: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RunSchedule"];
                 };
             };
         };

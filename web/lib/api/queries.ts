@@ -41,7 +41,6 @@ export const keys = {
   profile: ["profile"],
   runs: ["runs"],
   runStatus: ["run-status"],
-  runSchedule: ["run-schedule"],
   alerts: ["alerts"],
   dataSources: ["data-sources"],
   development: (id: string) => ["development", id],
@@ -92,10 +91,6 @@ export const useProfile = () =>
 /** Run executions, newest first, each with how it started and its result line. */
 export const useRuns = () =>
   useQuery({ queryKey: keys.runs, queryFn: () => unwrap(api.GET("/runs")) });
-
-/** The planned cadence and next run; nominal in the POC, which has no scheduler. */
-export const useRunSchedule = () =>
-  useQuery({ queryKey: keys.runSchedule, queryFn: () => unwrap(api.GET("/runs/schedule")) });
 
 const RUN_POLL_MS = 2000;
 

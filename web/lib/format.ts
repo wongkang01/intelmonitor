@@ -42,10 +42,9 @@ export function dateTime(iso: string): string {
 }
 
 // Timestamps below are shown in the viewer's local time.
-const weekday = new Intl.DateTimeFormat("en-GB", { weekday: "short" });
-const RELATIVE_DAY: Record<number, string> = { [-1]: "Yesterday", 0: "Today", 1: "Tomorrow" };
+const RELATIVE_DAY: Record<number, string> = { [-1]: "Yesterday", 0: "Today" };
 
-/** Whole calendar days from today to `at`: 0 today, -1 yesterday, 1 tomorrow. */
+/** Whole calendar days from today to `at`: 0 today, -1 yesterday. */
 function dayOffset(at: Date) {
   const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
   return Math.round((midnight(at) - midnight(new Date())) / 86_400_000);
@@ -67,13 +66,6 @@ export function shortTime(iso: string): string {
   if (offset === 0) return clock(iso);
   if (offset === -1) return "yesterday";
   return dayMonth(at);
-}
-
-/** A time ahead: "tomorrow, 06:00" or "Thu 1 Oct, 06:00". */
-export function aheadTime(iso: string): string {
-  const at = new Date(iso);
-  const near = RELATIVE_DAY[dayOffset(at)];
-  return `${near ? near.toLowerCase() : `${weekday.format(at)} ${dayMonth(at)}`}, ${clock(iso)}`;
 }
 
 /** "14 s" or "3 min". */

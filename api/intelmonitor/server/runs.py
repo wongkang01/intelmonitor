@@ -1,24 +1,19 @@
 """Run history, the run status chip and Run now.
 
-The POC has no scheduler: `im run` stands in for scheduled runs, and Run now recomputes Run 2
-(as of T0) over the stored corpus without ingesting. Model calls are cached, so it is quick."""
+The POC has no scheduler, so runs are manual: `im run` on the command line, or Run now in the app,
+which recomputes Run 2 (as of T0) over the stored corpus without ingesting. Model calls are
+cached, so it is quick."""
 
 import asyncio
 import logging
 import sqlite3
 import threading
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime
 from statistics import median
-from zoneinfo import ZoneInfo
 
 from intelmonitor.pipeline import runlog
-from intelmonitor.pipeline.params import RUN_SPACING_DAYS
 from intelmonitor.pipeline.run import compute_run, run_dates
-from intelmonitor.server.models import RunInfo, RunSchedule, RunStatus
-
-# The planned cadence: weekly, like the POC's two runs, at 06:00 Singapore time.
-SCHEDULE_CADENCE = "Weekly"
-SCHEDULE_TIME = time(6, 0, tzinfo=ZoneInfo("Asia/Singapore"))
+from intelmonitor.server.models import RunInfo, RunStatus
 
 log = logging.getLogger("uvicorn.error")
 
@@ -29,14 +24,15 @@ class RunInProgressError(RuntimeError):
 
 def _how(trigger: str, triggered_by: str | None) -> str:
     if trigger == "manual":
-        return f"Manual, {triggered_by}" if triggered_by else "Manual"
-    return "Scheduled"
+        return f"Run now, {triggered_by}" if triggered_by else "Run now"
+    return "Command line"
 
 
 def _run_info(r: sqlite3.Row) -> RunInfo:
     started = datetime.fromisoformat(r["started_at"])
     finished = datetime.fromisoformat(r["finished_at"]) if r["finished_at"] else None
     complete = r["status"] == "complete"
+    previous = date.fromisoformat(r["previous_run_id"]) if r["previous_run_id"] else None
     outcome = runlog.Outcome(
         developments=r["developments"] or 0,
         first_run=bool(r["first_run"]),
@@ -58,7 +54,7 @@ def _run_info(r: sqlite3.Row) -> RunInfo:
         new_count=outcome.new_count,
         updated_count=outcome.updated_count,
         needs_attention_count=outcome.needs_attention_count,
-        result=runlog.result_line(outcome) if complete else None,
+        result=runlog.result_line(outcome, previous) if complete else None,
         started_at=started,
         finished_at=finished,
         duration_seconds=(finished - started).total_seconds() if finished else None,
@@ -165,15 +161,3 @@ def run_now(conn: sqlite3.Connection, triggered_by: str) -> RunStatus:
 
     threading.Thread(target=work, name="run-now", daemon=True).start()
     return started
-
-
-def schedule(conn: sqlite3.Connection) -> RunSchedule:
-    """The next nominal scheduled run: one cadence after the latest run, at SCHEDULE_TIME."""
-    latest = conn.execute("SELECT max(as_of) FROM runs WHERE status = 'complete'").fetchone()[0]
-    base = date.fromisoformat(latest) if latest else run_dates(conn)[1]
-    next_day = base + timedelta(days=RUN_SPACING_DAYS)
-    return RunSchedule(
-        cadence=SCHEDULE_CADENCE,
-        next_run_at=datetime.combine(next_day, SCHEDULE_TIME),
-        nominal=True,
-    )

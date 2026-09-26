@@ -4,7 +4,7 @@ returns data. Writes artifacts/api-check/<timestamp>/results.json.
 Usage (from api/): uv run python scripts/check_endpoints.py [--base https://intelmonitor.api.localhost]
 The custom question check makes Claude and Jev calls the first time; reruns hit the cache. The
 AG-UI check runs the Generate agent, one Claude session. The Run now check recomputes Run 2
-from cache and adds a Manual execution to the run history.
+from cache and adds a Run now execution to the run history.
 """
 
 import argparse
@@ -293,12 +293,11 @@ def check_profile_menu(c: Check) -> None:
 
 
 def check_run_now(c: Check) -> str:
-    """Run now recomputes Run 2 from cache: 202, then 409 while running, then a Manual row."""
-    schedule = c.get("/runs/schedule")
-    need(schedule["cadence"] and schedule["next_run_at"] and schedule["nominal"], "schedule")
+    """Run now recomputes Run 2 from cache: 202, then 409 while running, then a Run now row
+    whose result compares with the previous as-of date, like the execution before it."""
     before = c.get("/runs")
     started = c.call("POST", "/runs/now", expect=202)
-    need(started["running"] and started["sources"] and started["how"].startswith("Manual"), "")
+    need(started["running"] and started["sources"] and started["how"].startswith("Run now"), "")
     c.call("POST", "/runs/now", expect=409)
     deadline = time.monotonic() + 600
     while c.get("/runs/status")["running"]:
@@ -309,6 +308,7 @@ def check_run_now(c: Check) -> str:
     need(len(runs) == len(before) + 1, "Run now adds a run")
     need(latest["status"] == "complete" and latest["trigger"] == "manual", f"run now {latest}")
     need(latest["id"] == before[0]["id"], "Run now recomputes the latest run")
+    need(latest["result"] == before[0]["result"], "a rerun reports what its date found")
     return f"{latest['result']} in {latest['duration_seconds']:.0f}s"
 
 

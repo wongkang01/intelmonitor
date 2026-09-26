@@ -15,13 +15,7 @@ from datetime import UTC, date, datetime, timedelta
 from intelmonitor.pipeline import runlog
 from intelmonitor.pipeline.answers import answer_subjects
 from intelmonitor.pipeline.developments import build_developments
-from intelmonitor.pipeline.diff import (
-    compare,
-    development_changes,
-    development_documents,
-    previous_run,
-    store_changes,
-)
+from intelmonitor.pipeline.diff import development_changes, previous_run, store_changes
 from intelmonitor.pipeline.extract import extract_documents
 from intelmonitor.pipeline.graph import store_graph
 from intelmonitor.pipeline.inference import Inference
@@ -44,7 +38,7 @@ def run_dates(conn: sqlite3.Connection) -> tuple[date, date]:
 async def compute_run(
     as_of: date,
     log: Callable[[str], None] = print,
-    trigger: runlog.Trigger = "scheduled",
+    trigger: runlog.Trigger = "cli",
     triggered_by: str | None = None,
 ) -> None:
     conn = connect()
@@ -54,8 +48,6 @@ async def compute_run(
     started_at = datetime.now(UTC).isoformat()
     existing = conn.execute("SELECT status FROM runs WHERE id = ?", (run_id,)).fetchone()
     recompute = existing is not None and existing["status"] == "complete"
-    # What this execution replaces, so its result line reports only what it changed.
-    replaced = development_documents(conn, run_id) if recompute else None
     execution_id = runlog.start(
         conn, run_id, trigger, triggered_by, len({d.source for d in docs}), len(docs)
     )
@@ -94,7 +86,6 @@ async def compute_run(
         upcoming = store_upcoming(conn, run_id, as_of, devs)
         base_id = previous_run(conn, run_id)
         changes = development_changes(conn, run_id, base_id)
-        changes_base = development_documents(conn, base_id) if base_id else None
         step(f"{upcoming} upcoming dates; answer questions (base run {base_id})")
         await answer_subjects(inf, conn, run_id, as_of, changes, base_id)
         if base_id:
@@ -118,9 +109,9 @@ async def compute_run(
         (started_at, datetime.now(UTC).isoformat(), run_id),
     )
     conn.commit()
-    base = replaced if replaced is not None else changes_base
-    outcome = runlog.outcome(
-        conn, run_id, compare(development_documents(conn, run_id), base or {}), base is None
-    )
+    # Like the run's stored changes, the counts compare with the previous as-of date, so a rerun
+    # of a date reports what the date found, not what the rerun changed.
+    outcome = runlog.outcome(conn, run_id, changes, base_id is None)
     runlog.finish(conn, execution_id, outcome)
-    step(f"complete: {runlog.result_line(outcome)}")
+    previous = date.fromisoformat(base_id) if base_id else None
+    step(f"complete: {runlog.result_line(outcome, previous)}")

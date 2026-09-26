@@ -39,7 +39,6 @@ from intelmonitor.server.models import (
     Review,
     ReviewRequest,
     RunInfo,
-    RunSchedule,
     RunStatus,
     SearchResults,
     SubjectConfidence,
@@ -76,6 +75,7 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
     dash.seed_dashboards(conn)
     runlog.interrupt_stale(conn)
     runlog.backfill(conn)
+    runlog.migrate(conn)
     conn.close()
     yield
 
@@ -474,12 +474,6 @@ def list_runs(q: Q) -> list[RunInfo]:
 @app.get("/runs/status")
 def run_status(q: Q) -> RunStatus:
     return runs.status(q.conn)
-
-
-@app.get("/runs/schedule")
-def run_schedule(q: Q) -> RunSchedule:
-    """The planned cadence and next run. Nominal: the POC has no scheduler."""
-    return runs.schedule(q.conn)
 
 
 @app.post("/runs/now", status_code=202)
