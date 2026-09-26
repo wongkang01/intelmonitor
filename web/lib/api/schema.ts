@@ -72,6 +72,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/subjects/{subject_id}/trend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Subject Trend
+         * @description Developments per week over the 12 weeks ending on the run date, by category (material
+         *     only), by stage for topics and by member for groups, plus each standing question's state per
+         *     run.
+         */
+        get: operations["get_subject_trend"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/search": {
         parameters: {
             query?: never;
@@ -780,6 +802,19 @@ export interface components {
             metadata?: unknown | null;
         } & {
             [key: string]: unknown;
+        };
+        /** CategorySeries */
+        CategorySeries: {
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "incident" | "regulatory" | "financial" | "management" | "strategy" | "policy" | "security" | "market" | "other";
+            /**
+             * Counts
+             * @description Material developments per week, aligned with weeks
+             */
+            counts: number[];
         };
         /** CommonIssue */
         CommonIssue: {
@@ -1491,6 +1526,15 @@ export interface components {
             [key: string]: unknown;
         };
         JsonValue: unknown;
+        /** MemberSeries */
+        MemberSeries: {
+            member: components["schemas"]["SubjectRef"];
+            /**
+             * Counts
+             * @description Developments per week tagged to this member, aligned with weeks
+             */
+            counts: number[];
+        };
         /** MonitorPage */
         MonitorPage: {
             subject: components["schemas"]["SubjectDetail"];
@@ -1657,6 +1701,20 @@ export interface components {
              * @description The developments the new answer relies on
              */
             development_ids: string[];
+        };
+        /** QuestionTrend */
+        QuestionTrend: {
+            /** Question Id */
+            question_id: string;
+            /** Label */
+            label: string;
+            /** Custom */
+            custom: boolean;
+            /**
+             * States
+             * @description Its state in each run, aligned with runs; null where it has no answer
+             */
+            states: (("stable" | "watch" | "needs_attention" | "new") | null)[];
         };
         /** QuestionWidget */
         QuestionWidget: {
@@ -1976,6 +2034,19 @@ export interface components {
              */
             developments: components["schemas"]["DevelopmentSummary"][];
         };
+        /** StageSeries */
+        StageSeries: {
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "signal" | "consultation" | "proposed" | "enacted" | "enforced";
+            /**
+             * Counts
+             * @description Developments per week at this stage, aligned with weeks
+             */
+            counts: number[];
+        };
         /** StageTrack */
         StageTrack: {
             /** Lookback Days */
@@ -2115,6 +2186,47 @@ export interface components {
              * @description Developments needing attention in the latest run
              */
             needs_attention: number;
+        };
+        /**
+         * SubjectTrend
+         * @description A subject's developments per week over the weeks ending on the run date, by first
+         *     publication in the latest run, and its standing questions' states per run.
+         */
+        SubjectTrend: {
+            subject: components["schemas"]["SubjectRef"];
+            run: components["schemas"]["RunRef"];
+            /** Min Materiality Level */
+            min_materiality_level: number;
+            /**
+             * Weeks
+             * @description Oldest first; the last ends on the run date
+             */
+            weeks: components["schemas"]["TrendWeek"][];
+            /**
+             * Categories
+             * @description Every category, in a fixed order
+             */
+            categories: components["schemas"]["CategorySeries"][];
+            /**
+             * Stages
+             * @description Topics only: every stage, earliest first; developments without one are left out
+             */
+            stages: components["schemas"]["StageSeries"][] | null;
+            /**
+             * Members
+             * @description Groups only, in member order; a development tagged to several members counts for each, and one tagged only to the group for none
+             */
+            members: components["schemas"]["MemberSeries"][] | null;
+            /**
+             * Runs
+             * @description Complete runs dated within the weeks, oldest first; the last is the latest
+             */
+            runs: components["schemas"]["RunRef"][];
+            /**
+             * Questions
+             * @description Built-in questions, then kept custom ones
+             */
+            questions: components["schemas"]["QuestionTrend"][];
         };
         /** SummaryData */
         SummaryData: {
@@ -2274,6 +2386,30 @@ export interface components {
             } | null;
         } & {
             [key: string]: unknown;
+        };
+        /** TrendWeek */
+        TrendWeek: {
+            /**
+             * Week Start
+             * Format: date
+             */
+            week_start: string;
+            /**
+             * Week End
+             * Format: date
+             * @description The run date for the last week
+             */
+            week_end: string;
+            /**
+             * Developments
+             * @description Developments first published in the week
+             */
+            developments: number;
+            /**
+             * Material
+             * @description Of those, the ones at or above min_materiality_level
+             */
+            material: number;
         };
         /** UpcomingData */
         UpcomingData: {
@@ -2633,6 +2769,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MonitorPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_subject_trend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectTrend"];
                 };
             };
             /** @description Validation Error */

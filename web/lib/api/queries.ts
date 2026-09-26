@@ -47,6 +47,7 @@ export const keys = {
   developments: (query: DevelopmentsQuery) => ["developments", query],
   answerEvidence: (subjectId: string, questionId: string) => ["answer-evidence", subjectId, questionId],
   monitorPage: (id: string) => ["monitor-page", id],
+  trend: (id: string) => ["trend", id],
   search: (text: string) => ["search", text],
   widgetData: ["widget-data"],
   graph: (query: GraphQuery) => ["graph", query],
@@ -180,6 +181,17 @@ export const useMonitorPage = (id: string) =>
     queryKey: keys.monitorPage(id),
     queryFn: () =>
       unwrap(api.GET("/subjects/{subject_id}/page", { params: { path: { subject_id: id } } })),
+  });
+
+/**
+ * A subject's developments per week over the 12 weeks ending on the run date (by category, and by
+ * stage for topics or member for groups), and each standing question's state per run.
+ */
+export const useTrend = (id: string) =>
+  useQuery({
+    queryKey: keys.trend(id),
+    queryFn: () =>
+      unwrap(api.GET("/subjects/{subject_id}/trend", { params: { path: { subject_id: id } } })),
   });
 
 /** The graph neighbourhood around a subject. Keeps the previous graph while filters refetch. */
@@ -446,7 +458,7 @@ export const useCustomSlots = () =>
 /** Everything that shows custom questions or their answers. */
 function invalidateCustom(client: QueryClient) {
   return Promise.all(
-    [["monitor-page"], keys.widgetData, ["answers"], ["answer-evidence"], keys.customSlots, keys.dashboards, ["dashboard"]].map(
+    [["monitor-page"], ["trend"], keys.widgetData, ["answers"], ["answer-evidence"], keys.customSlots, keys.dashboards, ["dashboard"]].map(
       (queryKey) => client.invalidateQueries({ queryKey }),
     ),
   );

@@ -7,32 +7,40 @@ import json
 import sqlite3
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from functools import cached_property
 from statistics import median
+from typing import get_args
 
 from intelmonitor.pipeline.answers import scope
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS
+from intelmonitor.pipeline.screen import Category
 from intelmonitor.pipeline.subjects import Subject, all_subjects, questions_for
 from intelmonitor.seed import load_subjects
 from intelmonitor.server.models import (
     STAGE_ORDER,
     AnswerChange,
+    CategorySeries,
     CommonIssue,
     DevelopmentSummary,
     GroupInsights,
+    MemberSeries,
     Note,
     Outlier,
     QuestionAnswerView,
     QuestionStateChange,
+    QuestionTrend,
     RunRef,
     StageBucket,
+    StageSeries,
     StageTrack,
     State,
     SubjectDetail,
     SubjectLinks,
     SubjectRef,
     SubjectSummary,
+    SubjectTrend,
+    TrendWeek,
     UpcomingItem,
     WhatChanged,
 )
@@ -40,6 +48,7 @@ from intelmonitor.server.models import (
 UPCOMING_HORIZON_DAYS = 90
 STAGE_LOOKBACK_DAYS = 30
 GROUP_LOOKBACK_DAYS = 14
+TREND_WEEKS = 12
 # Developments at or above this materiality level (Notable) count as material.
 MATERIAL_LEVEL = 2
 # Worst first: the state a subject shows when its answers disagree.
@@ -188,6 +197,20 @@ def _display_key(d: DevelopmentSummary) -> tuple[int, int, int, int, str]:
         -d.last_published.toordinal(),
         d.id,
     )
+
+
+def week_spans(as_of: date, weeks: int) -> list[tuple[date, date]]:
+    """Consecutive 7-day (start, end) spans, oldest first; the last ends on `as_of`."""
+    return [
+        (as_of - timedelta(days=7 * i + 6), as_of - timedelta(days=7 * i))
+        for i in reversed(range(weeks))
+    ]
+
+
+def weekly_counts(dates: Iterable[date], spans: list[tuple[date, date]]) -> list[int]:
+    """How many of the dates fall in each span; dates outside every span are not counted."""
+    ds = list(dates)
+    return [sum(start <= d <= end for d in ds) for start, end in spans]
 
 
 def worst_state(states: Iterable[State]) -> State:
@@ -455,6 +478,70 @@ class Queries:
                 )
         return GroupInsights(
             lookback_days=GROUP_LOOKBACK_DAYS, common_issues=common[:5], outliers=outliers
+        )
+
+    # ---- trend
+
+    def trend(self, subject_id: str) -> SubjectTrend:
+        """Weekly series over TREND_WEEKS weeks ending on the run date, by first publication of
+        the latest run's developments, and each standing question's state in the runs dated
+        within those weeks."""
+        s = subject(subject_id)
+        spans = week_spans(self.run.as_of, TREND_WEEKS)
+        devs = self.developments_in([subject_id])
+        material = [d for d in devs if d.materiality_level >= MATERIAL_LEVEL]
+
+        def counts(of: Iterable[DevelopmentSummary]) -> list[int]:
+            return weekly_counts([d.first_published for d in of], spans)
+
+        runs = [
+            RunRef(id=r["id"], as_of=r["as_of"], previous_run_id=r["previous_run_id"])
+            for r in self.conn.execute(
+                "SELECT id, as_of, previous_run_id FROM runs WHERE status = 'complete' "
+                "AND as_of >= ? AND as_of <= ? ORDER BY as_of",
+                (spans[0][0].isoformat(), self.run.as_of.isoformat()),
+            )
+        ]
+        answers = [self._answer_rows(r.id, subject_id) for r in runs]
+        return SubjectTrend(
+            subject=subject_ref(subject_id),
+            run=self.run,
+            min_materiality_level=MATERIAL_LEVEL,
+            weeks=[
+                TrendWeek(week_start=start, week_end=end, developments=all_n, material=material_n)
+                for (start, end), all_n, material_n in zip(
+                    spans, counts(devs), counts(material), strict=True
+                )
+            ],
+            categories=[
+                CategorySeries(category=c, counts=counts(d for d in material if d.category == c))
+                for c in get_args(Category)
+            ],
+            stages=[
+                StageSeries(stage=stage, counts=counts(d for d in devs if d.stage == stage))
+                for stage in STAGE_ORDER
+            ]
+            if s.type == "topic"
+            else None,
+            members=[
+                MemberSeries(
+                    member=subject_ref(m),
+                    counts=counts(d for d in devs if m in self.devs.subject_ids[d.id]),
+                )
+                for m in s.members
+            ]
+            if s.type == "group"
+            else None,
+            runs=runs,
+            questions=[
+                QuestionTrend(
+                    question_id=q.id,
+                    label=q.label,
+                    custom=q.custom,
+                    states=[a[q.id]["state"] if q.id in a else None for a in answers],
+                )
+                for q in self.question_defs(subject_id)
+            ],
         )
 
     # ---- analyst actions

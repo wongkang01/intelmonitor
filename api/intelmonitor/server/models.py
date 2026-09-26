@@ -6,6 +6,7 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, Field
 
+from intelmonitor.pipeline.screen import Category
 from intelmonitor.pipeline.subjects import all_subjects
 from intelmonitor.seed import EntityKind, SubjectType, TopicIcon
 
@@ -206,6 +207,62 @@ class GroupInsights(BaseModel):
     lookback_days: int
     common_issues: list[CommonIssue]
     outliers: list[Outlier]
+
+
+class TrendWeek(BaseModel):
+    week_start: date
+    week_end: date = Field(description="The run date for the last week")
+    developments: int = Field(description="Developments first published in the week")
+    material: int = Field(description="Of those, the ones at or above min_materiality_level")
+
+
+class CategorySeries(BaseModel):
+    category: Category
+    counts: list[int] = Field(description="Material developments per week, aligned with weeks")
+
+
+class StageSeries(BaseModel):
+    stage: Stage
+    counts: list[int] = Field(description="Developments per week at this stage, aligned with weeks")
+
+
+class MemberSeries(BaseModel):
+    member: SubjectRef
+    counts: list[int] = Field(
+        description="Developments per week tagged to this member, aligned with weeks"
+    )
+
+
+class QuestionTrend(BaseModel):
+    question_id: str
+    label: str
+    custom: bool
+    states: list[State | None] = Field(
+        description="Its state in each run, aligned with runs; null where it has no answer"
+    )
+
+
+class SubjectTrend(BaseModel):
+    """A subject's developments per week over the weeks ending on the run date, by first
+    publication in the latest run, and its standing questions' states per run."""
+
+    subject: SubjectRef
+    run: RunRef
+    min_materiality_level: int
+    weeks: list[TrendWeek] = Field(description="Oldest first; the last ends on the run date")
+    categories: list[CategorySeries] = Field(description="Every category, in a fixed order")
+    stages: list[StageSeries] | None = Field(
+        description="Topics only: every stage, earliest first; developments without one are "
+        "left out"
+    )
+    members: list[MemberSeries] | None = Field(
+        description="Groups only, in member order; a development tagged to several members counts "
+        "for each, and one tagged only to the group for none"
+    )
+    runs: list[RunRef] = Field(
+        description="Complete runs dated within the weeks, oldest first; the last is the latest"
+    )
+    questions: list[QuestionTrend] = Field(description="Built-in questions, then kept custom ones")
 
 
 class Note(BaseModel):

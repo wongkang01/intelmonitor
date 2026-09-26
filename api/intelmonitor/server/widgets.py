@@ -1,7 +1,7 @@
 """Dashboard spec and widgets. One settings schema per widget type drives the gallery, manual
 edits and the Generate agent; `widget_data` fills a widget from the latest run."""
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Annotated, Literal, Self, get_args
 
 from pydantic import BaseModel, Field, JsonValue, model_validator
@@ -25,6 +25,8 @@ from intelmonitor.server.queries import (
     Queries,
     subject_links,
     subject_ref,
+    week_spans,
+    weekly_counts,
     worst_state,
 )
 
@@ -384,14 +386,14 @@ def widget_data(q: Queries, widget: Widget, dashboard_subject_ids: list[str]) ->
 
 def direction(q: Queries, widget_id: str, subject_id: str) -> DirectionData:
     """Material developments per week by first publication, over DIRECTION_WEEKS weeks."""
-    as_of = q.run.as_of
     devs = [d for d in q.developments_in([subject_id]) if d.materiality_level >= MATERIAL_LEVEL]
-    weeks: list[WeekCount] = []
-    for i in reversed(range(DIRECTION_WEEKS)):
-        end = as_of - timedelta(days=7 * i)
-        start = end - timedelta(days=6)
-        count = sum(start <= d.first_published <= end for d in devs)
-        weeks.append(WeekCount(week_start=start.isoformat(), week_end=end.isoformat(), count=count))
+    spans = week_spans(q.run.as_of, DIRECTION_WEEKS)
+    weeks = [
+        WeekCount(week_start=start.isoformat(), week_end=end.isoformat(), count=count)
+        for (start, end), count in zip(
+            spans, weekly_counts((d.first_published for d in devs), spans), strict=True
+        )
+    ]
     this_week = weeks[-1].count
     previous = sum(w.count for w in weeks[-4:-1]) / 3
     if this_week >= previous * 1.25 and this_week - previous >= 2:

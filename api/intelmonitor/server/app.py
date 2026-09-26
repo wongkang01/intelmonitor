@@ -44,6 +44,7 @@ from intelmonitor.server.models import (
     SubjectConfidence,
     SubjectDetail,
     SubjectSummary,
+    SubjectTrend,
 )
 from intelmonitor.server.queries import (
     NoRunError,
@@ -166,6 +167,14 @@ def get_monitor_page(q: Q, subject_id: str) -> MonitorPage:
         reviewed_at=q.reviewed_at([subject_id]),
         notes=q.notes(subject_id=subject_id),
     )
+
+
+@app.get("/subjects/{subject_id}/trend")
+def get_subject_trend(q: Q, subject_id: str) -> SubjectTrend:
+    """Developments per week over the 12 weeks ending on the run date, by category (material
+    only), by stage for topics and by member for groups, plus each standing question's state per
+    run."""
+    return q.trend(subject_id)
 
 
 @app.get("/search")

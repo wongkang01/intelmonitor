@@ -127,6 +127,46 @@
         }
       }
     },
+    "/subjects/{subject_id}/trend": {
+      "get": {
+        "summary": "Get Subject Trend",
+        "description": "Developments per week over the 12 weeks ending on the run date, by category (material\nonly), by stage for topics and by member for groups, plus each standing question's state per\nrun.",
+        "operationId": "get_subject_trend",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Subject Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubjectTrend"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/search": {
       "get": {
         "summary": "Search",
@@ -2031,6 +2071,39 @@
         "title": "AudioPart",
         "description": "An audio part."
       },
+      "CategorySeries": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "incident",
+              "regulatory",
+              "financial",
+              "management",
+              "strategy",
+              "policy",
+              "security",
+              "market",
+              "other"
+            ],
+            "title": "Category"
+          },
+          "counts": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Counts",
+            "description": "Material developments per week, aligned with weeks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "counts"
+        ],
+        "title": "CategorySeries"
+      },
       "CommonIssue": {
         "properties": {
           "development": {
@@ -3822,6 +3895,27 @@
         "description": "An image part."
       },
       "JsonValue": {},
+      "MemberSeries": {
+        "properties": {
+          "member": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "counts": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Counts",
+            "description": "Developments per week tagged to this member, aligned with weeks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "member",
+          "counts"
+        ],
+        "title": "MemberSeries"
+      },
       "MonitorPage": {
         "properties": {
           "subject": {
@@ -4276,6 +4370,51 @@
           "development_ids"
         ],
         "title": "QuestionStateChange"
+      },
+      "QuestionTrend": {
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "custom": {
+            "type": "boolean",
+            "title": "Custom"
+          },
+          "states": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "stable",
+                    "watch",
+                    "needs_attention",
+                    "new"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "States",
+            "description": "Its state in each run, aligned with runs; null where it has no answer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id",
+          "label",
+          "custom",
+          "states"
+        ],
+        "title": "QuestionTrend"
       },
       "QuestionWidget": {
         "properties": {
@@ -5096,6 +5235,35 @@
         ],
         "title": "StageBucket"
       },
+      "StageSeries": {
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": [
+              "signal",
+              "consultation",
+              "proposed",
+              "enacted",
+              "enforced"
+            ],
+            "title": "Stage"
+          },
+          "counts": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Counts",
+            "description": "Developments per week at this stage, aligned with weeks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stage",
+          "counts"
+        ],
+        "title": "StageSeries"
+      },
       "StageTrack": {
         "properties": {
           "lookback_days": {
@@ -5488,6 +5656,96 @@
           "needs_attention"
         ],
         "title": "SubjectSummary"
+      },
+      "SubjectTrend": {
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "min_materiality_level": {
+            "type": "integer",
+            "title": "Min Materiality Level"
+          },
+          "weeks": {
+            "items": {
+              "$ref": "#/components/schemas/TrendWeek"
+            },
+            "type": "array",
+            "title": "Weeks",
+            "description": "Oldest first; the last ends on the run date"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CategorySeries"
+            },
+            "type": "array",
+            "title": "Categories",
+            "description": "Every category, in a fixed order"
+          },
+          "stages": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/StageSeries"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stages",
+            "description": "Topics only: every stage, earliest first; developments without one are left out"
+          },
+          "members": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/MemberSeries"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Members",
+            "description": "Groups only, in member order; a development tagged to several members counts for each, and one tagged only to the group for none"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/RunRef"
+            },
+            "type": "array",
+            "title": "Runs",
+            "description": "Complete runs dated within the weeks, oldest first; the last is the latest"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionTrend"
+            },
+            "type": "array",
+            "title": "Questions",
+            "description": "Built-in questions, then kept custom ones"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "run",
+          "min_materiality_level",
+          "weeks",
+          "categories",
+          "stages",
+          "members",
+          "runs",
+          "questions"
+        ],
+        "title": "SubjectTrend",
+        "description": "A subject's developments per week over the weeks ending on the run date, by first\npublication in the latest run, and its standing questions' states per run."
       },
       "SummaryData": {
         "properties": {
@@ -5890,6 +6148,39 @@
         ],
         "title": "ToolMessage",
         "description": "What a tool returned, as a message in the conversation. Stands alone\nrather than composing BaseMessage, because it carries no name."
+      },
+      "TrendWeek": {
+        "properties": {
+          "week_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Week Start"
+          },
+          "week_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Week End",
+            "description": "The run date for the last week"
+          },
+          "developments": {
+            "type": "integer",
+            "title": "Developments",
+            "description": "Developments first published in the week"
+          },
+          "material": {
+            "type": "integer",
+            "title": "Material",
+            "description": "Of those, the ones at or above min_materiality_level"
+          }
+        },
+        "type": "object",
+        "required": [
+          "week_start",
+          "week_end",
+          "developments",
+          "material"
+        ],
+        "title": "TrendWeek"
       },
       "UpcomingData": {
         "properties": {
