@@ -51,6 +51,8 @@ export const keys = {
   answerEvidence: (subjectId: string, questionId: string) => ["answer-evidence", subjectId, questionId],
   monitorPage: (id: string) => ["monitor-page", id],
   trend: (id: string) => ["trend", id],
+  indicators: (id: string, asOf?: string) => ["indicators", id, asOf],
+  series: (id: string, range: SeriesRange) => ["series", id, range],
   search: (text: string) => ["search", text],
   widgetData: ["widget-data"],
   graph: (query: GraphQuery) => ["graph", query],
@@ -62,6 +64,9 @@ export type DevelopmentsQuery = NonNullable<operations["list_developments"]["par
 
 /** Query parameters of GET /what-changed: subjects or a dashboard. */
 export type WhatChangedQuery = NonNullable<operations["get_what_changed"]["parameters"]["query"]>;
+
+/** Query parameters of GET /series/{series_id}: `from` and `to` period dates, both optional. */
+export type SeriesRange = NonNullable<operations["get_series"]["parameters"]["query"]>;
 
 /** Query parameters of GET /graph: center subject, hops (1 or 2) and optional filters. */
 export type GraphQuery = NonNullable<operations["get_graph"]["parameters"]["query"]>;
@@ -288,6 +293,30 @@ export const useTrend = (id: string) =>
     queryKey: keys.trend(id),
     queryFn: () =>
       unwrap(api.GET("/subjects/{subject_id}/trend", { params: { path: { subject_id: id } } })),
+  });
+
+/**
+ * A subject's measured series, primary then context, each with its latest value, changes over
+ * 1w, 1m, 3m and 1y, percentile in its history and state. `asOf` (YYYY-MM-DD) reads only what
+ * was available by then; the default is today.
+ */
+export const useIndicators = (id: string, asOf?: string) =>
+  useQuery({
+    queryKey: keys.indicators(id, asOf),
+    queryFn: () =>
+      unwrap(
+        api.GET("/subjects/{subject_id}/indicators", {
+          params: { path: { subject_id: id }, query: { as_of: asOf } },
+        }),
+      ),
+  });
+
+/** One series' observations and revisions, with periods in `range`. */
+export const useSeries = (id: string, range: SeriesRange = {}) =>
+  useQuery({
+    queryKey: keys.series(id, range),
+    queryFn: () =>
+      unwrap(api.GET("/series/{series_id}", { params: { path: { series_id: id }, query: range } })),
   });
 
 /** The graph neighbourhood around a subject. Keeps the previous graph while filters refetch. */

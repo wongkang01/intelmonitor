@@ -18,6 +18,7 @@ from intelmonitor.pipeline.developments import build_developments
 from intelmonitor.pipeline.diff import development_changes, previous_run, store_changes
 from intelmonitor.pipeline.extract import extract_documents
 from intelmonitor.pipeline.graph import store_graph
+from intelmonitor.pipeline.indicators import store_run_indicators
 from intelmonitor.pipeline.inference import Inference
 from intelmonitor.pipeline.params import RUN_SPACING_DAYS
 from intelmonitor.pipeline.screen import screen_documents
@@ -86,7 +87,10 @@ async def compute_run(
         upcoming = store_upcoming(conn, run_id, as_of, devs)
         base_id = previous_run(conn, run_id)
         changes = development_changes(conn, run_id, base_id)
-        step(f"{upcoming} upcoming dates; answer questions (base run {base_id})")
+        previous_as_of = date.fromisoformat(base_id) if base_id else None
+        states = store_run_indicators(conn, run_id, as_of, previous_as_of)
+        step(f"{upcoming} upcoming dates; indicators {dict(states)}")
+        step(f"answer questions (base run {base_id})")
         await answer_subjects(inf, conn, run_id, as_of, changes, base_id)
         if base_id:
             step(f"{store_changes(conn, run_id, base_id, changes)} changes vs {base_id}")

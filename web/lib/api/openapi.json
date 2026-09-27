@@ -167,6 +167,137 @@
         }
       }
     },
+    "/subjects/{subject_id}/indicators": {
+      "get": {
+        "summary": "Get Subject Indicators",
+        "description": "The subject's measured series, primary then context, each with its latest value, change\nover 1 week, 1 month, 3 months and 1 year, percentile in its history and state, from what was\navailable by the end of `as_of` (default today).",
+        "operationId": "get_subject_indicators",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "as_of",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubjectIndicators"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/series/{series_id}": {
+      "get": {
+        "summary": "Get Series",
+        "description": "A series' observations with periods from `from` to `to` (inclusive, both optional) and\nthe revisions of those periods.",
+        "operationId": "get_series",
+        "parameters": [
+          {
+            "name": "series_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Series Id"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeriesDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/search": {
       "get": {
         "summary": "Search",
@@ -4930,6 +5061,64 @@
         "title": "ImagePart",
         "description": "An image part."
       },
+      "IndicatorChange": {
+        "properties": {
+          "window": {
+            "type": "string",
+            "enum": [
+              "1w",
+              "1m",
+              "3m",
+              "1y"
+            ],
+            "title": "Window"
+          },
+          "since": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Since",
+            "description": "The period compared with: the last one on or before the window's start"
+          },
+          "from_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Value"
+          },
+          "change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change",
+            "description": "In the indicator's change_basis; null when the window does not apply to the series' frequency, reaches before its history, or starts from zero"
+          }
+        },
+        "type": "object",
+        "required": [
+          "window",
+          "since",
+          "from_value",
+          "change"
+        ],
+        "title": "IndicatorChange"
+      },
       "JsonValue": {},
       "MaterialityLevel": {
         "properties": {
@@ -5166,6 +5355,37 @@
           "text"
         ],
         "title": "NoteRequest"
+      },
+      "Observation": {
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date",
+            "title": "Period"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "preliminary": {
+            "type": "boolean",
+            "title": "Preliminary",
+            "default": false
+          },
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "value",
+          "available_at"
+        ],
+        "title": "Observation",
+        "description": "One value of a series for one period, normalised to the series' unit."
       },
       "Outlier": {
         "properties": {
@@ -5736,6 +5956,37 @@
         ],
         "title": "ReviewRequest"
       },
+      "Revision": {
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date",
+            "title": "Period"
+          },
+          "old_value": {
+            "type": "number",
+            "title": "Old Value"
+          },
+          "new_value": {
+            "type": "number",
+            "title": "New Value"
+          },
+          "revised_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Revised At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "old_value",
+          "new_value",
+          "revised_at"
+        ],
+        "title": "Revision",
+        "description": "A stored value that a later fetch changed."
+      },
       "RunAgentInput": {
         "properties": {
           "threadId": {
@@ -6179,6 +6430,132 @@
         ],
         "title": "SearchResults"
       },
+      "SeriesDetail": {
+        "properties": {
+          "series": {
+            "$ref": "#/components/schemas/SeriesInfo"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesSubject"
+            },
+            "type": "array",
+            "title": "Subjects"
+          },
+          "observations": {
+            "items": {
+              "$ref": "#/components/schemas/Observation"
+            },
+            "type": "array",
+            "title": "Observations",
+            "description": "By period, at their current value"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/Revision"
+            },
+            "type": "array",
+            "title": "Revisions",
+            "description": "Of periods in the range, in the order made"
+          }
+        },
+        "type": "object",
+        "required": [
+          "series",
+          "subjects",
+          "observations",
+          "revisions"
+        ],
+        "title": "SeriesDetail"
+      },
+      "SeriesInfo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit",
+            "description": "\"%\" for ratios and rates, else e.g. \"USD\" or \"SGD per MYR\""
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "daily",
+              "monthly",
+              "quarterly"
+            ],
+            "title": "Frequency"
+          },
+          "decimals": {
+            "type": "integer",
+            "title": "Decimals"
+          },
+          "bad_direction": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down",
+              "none"
+            ],
+            "title": "Bad Direction",
+            "description": "Which way is worse, if either"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "mas",
+              "fred",
+              "coingecko",
+              "defillama",
+              "derived"
+            ],
+            "title": "Source"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "unit",
+          "frequency",
+          "decimals",
+          "bad_direction",
+          "source",
+          "source_url"
+        ],
+        "title": "SeriesInfo"
+      },
+      "SeriesSubject": {
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "primary",
+              "context"
+            ],
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "role"
+        ],
+        "title": "SeriesSubject"
+      },
       "SinceData": {
         "properties": {
           "widget_id": {
@@ -6520,6 +6897,135 @@
           "links"
         ],
         "title": "SubjectDetail"
+      },
+      "SubjectIndicator": {
+        "properties": {
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Observation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "change_basis": {
+            "type": "string",
+            "enum": [
+              "points",
+              "percent"
+            ],
+            "title": "Change Basis"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/IndicatorChange"
+            },
+            "type": "array",
+            "title": "Changes",
+            "description": "1w, 1m, 3m and 1y, in that order"
+          },
+          "percentile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percentile",
+            "description": "Percent of the history below the latest value, ties counting half"
+          },
+          "history_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "History Start"
+          },
+          "history_count": {
+            "type": "integer",
+            "title": "History Count"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "no_data",
+              "stale",
+              "revised",
+              "preliminary",
+              "current"
+            ],
+            "title": "State"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/Revision"
+            },
+            "type": "array",
+            "title": "Revisions",
+            "description": "Revisions made since the previous run, or in the 31 days to the date"
+          },
+          "series": {
+            "$ref": "#/components/schemas/SeriesInfo"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "primary",
+              "context"
+            ],
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "latest",
+          "change_basis",
+          "changes",
+          "percentile",
+          "history_start",
+          "history_count",
+          "state",
+          "revisions",
+          "series",
+          "role"
+        ],
+        "title": "SubjectIndicator"
+      },
+      "SubjectIndicators": {
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "indicators": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectIndicator"
+            },
+            "type": "array",
+            "title": "Indicators",
+            "description": "Primary series first, then context, each in catalogue order"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "as_of",
+          "indicators"
+        ],
+        "title": "SubjectIndicators"
       },
       "SubjectLinks": {
         "properties": {

@@ -2,7 +2,7 @@
 // whatever the pipeline produced through the API to decide what to click and what to expect, and
 // undoes its own changes at the end so it can run again.
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { api, API_URL, type Schema } from "../lib/api/client";
@@ -1029,6 +1029,62 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
         .poll(async () => (await title.boundingBox())?.y)
         .toBe(await bar.evaluate((b) => b.getBoundingClientRect().bottom));
       // The step's screenshot shows this narrow layout; the viewport stays at 1024 px.
+    });
+
+    await step(STEPS[15], async () => {
+      // MAS quotes Asian currencies per 100 units; the store keeps SGD per one unit. Known values
+      // for 18 Sep 2026, checked against FRED cross rates (structured-data-plan.md, F1).
+      for (const [id, unit, value] of [
+        ["fx.sgd.myr", "SGD per MYR", 0.3128],
+        ["fx.sgd.thb", "SGD per THB", 0.038342],
+      ] as const) {
+        const one = await unwrap(
+          api.GET("/series/{series_id}", { params: { path: { series_id: id }, query: { from: "2026-09-18", to: "2026-09-18" } } }),
+        );
+        expect(one.series.unit).toBe(unit);
+        expect(one.observations.map((o) => o.value), `${id} on 18 Sep`).toEqual([value]);
+      }
+
+      // Indicators as of Run 1's date read only what was available by the end of that day, while
+      // today's see later periods. Changes compare with a real earlier value, never with zero, and
+      // a window shorter than the series' frequency stays empty.
+      const run1 = runs.find((r) => r.id === latest.previous_run_id);
+      if (!run1) throw new Error("Run 1 is not in the run history");
+      const asOf = run1.as_of;
+      const sampled = ["singapore-banks", "circle", "malaysia", "fed"];
+      const snapshot: Record<string, Schema<"SubjectIndicators">> = {};
+      let later = 0;
+      for (const subjectId of sampled) {
+        const subject = { subject_id: subjectId };
+        const then = await unwrap(api.GET("/subjects/{subject_id}/indicators", { params: { path: subject, query: { as_of: asOf } } }));
+        const now = await unwrap(api.GET("/subjects/{subject_id}/indicators", { params: { path: subject } }));
+        snapshot[subjectId] = then;
+        expect(then.indicators.length, `${subjectId} has series`).toBeGreaterThan(0);
+        for (const [i, ind] of then.indicators.entries()) {
+          const name = `${ind.series.id} as of ${asOf}`;
+          if (!ind.latest) throw new Error(`${name} has no data`);
+          expect(ind.latest.available_at.slice(0, 10) <= asOf, `${name} was available by then`).toBe(true);
+          const today = now.indicators[i].latest;
+          if (today && today.period > ind.latest.period) later++;
+          for (const c of ind.changes) {
+            if (c.change === null) continue;
+            expect(c.since !== null && c.since < ind.latest.period, `${name} ${c.window} compares with an earlier period`).toBe(true);
+            if (ind.change_basis === "percent") expect(c.from_value, `${name} ${c.window} starts from a value`).not.toBe(0);
+          }
+          if (ind.series.frequency !== "daily") expect(ind.changes.find((c) => c.window === "1w")?.change, `${name} has no 1w change`).toBeNull();
+          expect(ind.percentile).not.toBeNull();
+        }
+      }
+      expect(later, "today's indicators have periods Run 1 could not see").toBeGreaterThan(0);
+
+      // Before any history, every series reads No data rather than failing.
+      const before = await unwrap(
+        api.GET("/subjects/{subject_id}/indicators", { params: { path: { subject_id: "circle" }, query: { as_of: "2020-01-01" } } }),
+      );
+      expect(new Set(before.indicators.map((i) => i.state))).toEqual(new Set(["no_data"]));
+
+      writeFileSync(path.join(dir, "indicators.json"), JSON.stringify({ as_of: asOf, subjects: snapshot }, null, 2));
+      await page.goto(new URL(`subjects/circle/indicators?as_of=${asOf}`, apiBase).href);
     });
 
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);

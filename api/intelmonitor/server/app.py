@@ -25,6 +25,7 @@ from intelmonitor.server import custom_questions as cq
 from intelmonitor.server import dashboards as dash
 from intelmonitor.server import feedback as fb
 from intelmonitor.server import runs
+from intelmonitor.server import series as series_views
 from intelmonitor.server import triage as tri
 from intelmonitor.server.developments import DevelopmentQuery, development_list
 from intelmonitor.server.evidence import development_sources, document_detail, new_documents
@@ -199,6 +200,28 @@ def get_subject_trend(q: Q, subject_id: str) -> SubjectTrend:
     only), by stage for topics and by member for groups, plus each standing question's state per
     run."""
     return q.trend(subject_id)
+
+
+@app.get("/subjects/{subject_id}/indicators")
+def get_subject_indicators(
+    q: Q, subject_id: str, as_of: date | None = None
+) -> series_views.SubjectIndicators:
+    """The subject's measured series, primary then context, each with its latest value, change
+    over 1 week, 1 month, 3 months and 1 year, percentile in its history and state, from what was
+    available by the end of `as_of` (default today)."""
+    return series_views.subject_indicators(q.conn, subject_id, as_of or date.today())
+
+
+@app.get("/series/{series_id}")
+def get_series(
+    q: Q,
+    series_id: str,
+    start: Annotated[date | None, Query(alias="from")] = None,
+    end: Annotated[date | None, Query(alias="to")] = None,
+) -> series_views.SeriesDetail:
+    """A series' observations with periods from `from` to `to` (inclusive, both optional) and
+    the revisions of those periods."""
+    return series_views.series_detail(q.conn, series_id, start, end)
 
 
 @app.get("/search")

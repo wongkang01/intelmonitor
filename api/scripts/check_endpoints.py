@@ -165,6 +165,12 @@ def check_subject(c: Check, sid: str) -> dict[str, int]:
     )
     check_evidence(c, cited["development_ids"][0])
 
+    indicators = c.get(f"/subjects/{sid}/indicators")["indicators"]
+    need(all(i["state"] != "no_data" for i in indicators), f"{sid}: an indicator has no data")
+    if indicators:
+        first = indicators[0]["series"]["id"]
+        need(c.get(f"/series/{first}")["observations"], f"{sid}: {first} has no observations")
+
     for w in widgets_for(sid, kind, page):
         data = c.call("POST", "/widgets/data", json={"widget": w, "dashboard_subject_ids": [sid]})
         check_widget(data)

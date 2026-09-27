@@ -42,7 +42,7 @@ DEFAULT_FLOOR = date(2021, 7, 1)
 RECENT_DAYS = 14
 # Daily market series whose latest point is older than this are stale (plan failure mode 6).
 STALE_AFTER = timedelta(days=1)
-_MARKET_SOURCES = ("coingecko", "defillama")
+MARKET_SOURCES = ("coingecko", "defillama")
 
 
 @dataclass
@@ -165,7 +165,7 @@ def fetch_series(
 
     latest = latest_periods(conn)
     for s in seed.series:
-        if s.source_name in _MARKET_SOURCES and s.id in latest:
+        if s.source_name in MARKET_SOURCES and s.id in latest:
             if today - latest[s.id] > STALE_AFTER:
                 result.stale[s.id] = latest[s.id]
     if result.stale:

@@ -16,6 +16,7 @@ export const STEPS = [
   "Help: ? opens it, Replay tour walks the five coach marks, Esc skips and puts the page back",
   "Developments list: facets, sort and words survive reload and the drawer, What changed triage in the table",
   "Developments list: popovers follow the keyboard, bad parameters are ignored, at 1024 px the bar wraps and titles keep room",
+  "Series: per-100 quotes stored per unit, indicators as of Run 1 see nothing later, gaps never compare with zero",
 ] as const;
 
 /** Where each run writes its artifacts; playwright.config.ts sets it once per run. */

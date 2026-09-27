@@ -102,6 +102,7 @@ def load_questions() -> QuestionsSeed:
 MasTable = Literal["i18", "i12a", "i5b", "fx"]
 Frequency = Literal["daily", "monthly", "quarterly"]
 BadDirection = Literal["up", "down", "none"]
+SourceName = Literal["mas", "fred", "coingecko", "defillama", "derived"]
 
 
 class MasSource(BaseModel):
@@ -181,7 +182,7 @@ class SeriesDef(BaseModel):
     subjects: SeriesSubjects
 
     @property
-    def source_name(self) -> str:
+    def source_name(self) -> SourceName:
         """The series table's source: the API it is fetched from, or derived."""
         return "derived" if isinstance(self.source, DerivedSource) else self.source.kind
 

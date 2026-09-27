@@ -473,10 +473,12 @@ def _series(conn: sqlite3.Connection) -> list[str]:
         return out + ["No series fetched yet: run `im series backfill`."]
     last = FetchSummary.model_validate_json(stored)
     calls = ", ".join(f"{k} {v}" for k, v in last.network.items()) or "none"
+    total = conn.execute("SELECT count(*) FROM series").fetchone()[0]
     out += [
         f"Latest fetch {last.fetched_at:%Y-%m-%d %H:%M} UTC, up to {last.today}, history from "
-        f"{last.floor}: {last.added:,} rows added, {last.revised} revised, "
-        f"{len(last.failures)} series failed. External calls: {calls}.",
+        f"{last.floor}: {total - len(last.failures)} of {total} series fetched, "
+        f"{last.added:,} rows added, {last.revised} revised, {len(last.failures)} series "
+        f"failed. External calls: {calls}.",
         "",
     ]
     rows = conn.execute(
@@ -502,7 +504,42 @@ def _series(conn: sqlite3.Connection) -> list[str]:
     if last.stale:
         stale = ", ".join(f"{k} ({v})" for k, v in last.stale.items())
         out += ["", f"Stale (latest point more than a day old): {stale}."]
-    return out
+    return out + ["", *_run_indicators(conn, total)]
+
+
+def _run_indicators(conn: sqlite3.Connection, total: int) -> list[str]:
+    """What each run's indicators saw, and the look-ahead check: no run indicator may use an
+    observation that became available after the run date."""
+    rows: list[list[object]] = []
+    for run in conn.execute("SELECT id, as_of FROM runs ORDER BY as_of").fetchall():
+        states = Counter[str]()
+        for r in conn.execute(
+            "SELECT state, count(*) AS n FROM run_indicators WHERE run_id = ? GROUP BY state",
+            (run["id"],),
+        ):
+            states[r["state"]] = r["n"]
+        if not states:
+            rows.append([run["id"], "none written", ""])
+            continue
+        states["no_data"] = total - states.total()
+        late = conn.execute(
+            "SELECT count(*) FROM run_indicators i JOIN observations o "
+            "ON o.series_id = i.series_id AND o.period = i.period "
+            "WHERE i.run_id = ? AND substr(o.available_at, 1, 10) > ?",
+            (run["id"], run["as_of"]),
+        ).fetchone()[0]
+        rows.append(
+            [
+                run["id"],
+                ", ".join(f"{k} {v}" for k, v in sorted(states.items()) if v),
+                "pass" if not late else f"FAIL: {late} available after the run date",
+            ]
+        )
+    return [
+        "Run indicators, every series as of the run date:",
+        "",
+        _table(["Run", "States", "No look-ahead"], rows),
+    ]
 
 
 def _minutes(started: str, finished: str | None) -> str:

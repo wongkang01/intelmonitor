@@ -19,6 +19,15 @@ class Observation(BaseModel):
     available_at: datetime  # UTC; when the value could first have been known
 
 
+class Revision(BaseModel):
+    """A stored value that a later fetch changed."""
+
+    period: date
+    old_value: float
+    new_value: float
+    revised_at: datetime  # UTC; the fetch that saw the new value
+
+
 def sync_catalogue(conn: sqlite3.Connection, seed: SeriesSeed) -> None:
     """Rewrites the series and series_subjects tables from the seed."""
     conn.execute("DELETE FROM series")
@@ -145,6 +154,20 @@ def read_observations(
         Observation.model_validate({**dict(r), "value": earlier.get(r["period"], r["value"])})
         for r in rows
     ]
+
+
+def read_revisions(
+    conn: sqlite3.Connection, series_id: str, as_of: date | None = None
+) -> list[Revision]:
+    """A series' revisions in the order they were made; with as_of, only those made by the end of
+    that day."""
+    rows = conn.execute(
+        "SELECT period, old_value, new_value, revised_at FROM observation_revisions "
+        "WHERE series_id = ? AND (? IS NULL OR substr(revised_at, 1, 10) <= ?) "
+        "ORDER BY revised_at, id",
+        (series_id, as_of and as_of.isoformat(), as_of and as_of.isoformat()),
+    ).fetchall()
+    return [Revision.model_validate(dict(r)) for r in rows]
 
 
 def latest_periods(conn: sqlite3.Connection) -> dict[str, date]:

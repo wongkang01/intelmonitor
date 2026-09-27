@@ -97,10 +97,10 @@ Written before the code, per the project's testing rule.
 The tables, adapters, seed, CLI and backfill above.
 API: `GET /series/{id}?from=&to=` returns observations and revisions; `GET /subjects/{id}/indicators` returns the subject's series with latest value, change over 1 week, 1 month, 3 months and 1 year, where the latest value sits in its history (percentile), and state.
 
-Built (store and collection; the two endpoints come next):
+Built, store and collection:
 
 - The five tables are in `api/intelmonitor/store/db.py` and `connect()` creates them in existing stores.
-  `run_indicators` stays empty until runs compute indicators.
+  Every run writes `run_indicators` (see the endpoints below).
 - `api/seed/series.yaml` holds 62 series: 22 MAS, 5 FRED, 5 CoinGecko, 15 DefiLlama and 15 derived.
   `load_series()` in `seed.py` checks that subjects exist, that derived inputs are declared above their use, and that every `fx.sgd.<ccy>` series is SGD per unit with a matching MAS field.
 - Ids: `mas.ltd.*`, `mas.npl.*`, `mas.nrl.*` (loans to non-residents), `fx.sgd.<ccy>`, `fred.*`, `cg.<coin>.price`, `llama.<coin>.supply` and `llama.<coin>.supply.<chain>`, `llama.total.supply`, and `derived.<coin>.peg`, `derived.<coin>.share.<chain>`, `derived.xsgd.price_sgd`.
@@ -121,10 +121,40 @@ Built (store and collection; the two endpoints come next):
   (4) Revisions as above.
   (5) Gaps stay gaps (FRED's "." is skipped).
   (6) The fetch lists CoinGecko and DefiLlama series whose latest point is more than a day old as stale; the "Stale" state belongs to the indicators endpoint.
-  (7) The per-100 conversion was checked against FRED cross rates: SGD per MYR on 18 Sep 2026 is 0.3128 from MAS and 0.3132 from `DEXSIUS / DEXMAUS`, SGD per THB 0.038342 and 0.038294; the E2E unit check comes with the API.
+  (7) The per-100 conversion was checked against FRED cross rates: SGD per MYR on 18 Sep 2026 is 0.3128 from MAS and 0.3132 from `DEXSIUS / DEXMAUS`, SGD per THB 0.038342 and 0.038294; the walkthrough checks both values through `GET /series`.
   (8) `CachedHttp` already retries 429 and never caches it.
   (9) `read_observations` with `as_of`.
 - `data/intelmonitor.db` holds the real backfill from 2021-07-01: 55,890 observations.
+
+Indicator failure modes, written before the code:
+
+1. No observation available as of the date (a skipped source, a date before the history): state "No data", no values, no error.
+2. A window reaching back before the stored history: that change is empty, never a change from zero.
+3. Gaps (weekends, holidays, a missing month): the change uses the last value on or before the window's start.
+4. Month-end periods: one month before 30 Sep is 31 Aug, not 30 Aug, which would skip a month.
+5. A window shorter than the series' frequency (1 week on a monthly series): empty, not a one-month change under a one-week label.
+6. A reference value of zero: no percent change.
+7. Look-ahead: a run as of D sees only observations available by the end of D, at their value before any later revision, and only revisions made by then.
+8. A stale market price: a CoinGecko or DefiLlama series, or one derived from them, whose latest point is more than a day old reads "Stale".
+9. A revision since the last run: the indicator reads "Revised" and lists it.
+
+Built, endpoints and run indicators:
+
+- `GET /series/{id}?from=&to=` returns `SeriesDetail`: the series' catalogue entry, its subjects with role, its observations with periods in the range (inclusive, both optional) at their current value, and the revisions of those periods.
+- `GET /subjects/{id}/indicators?as_of=` returns `SubjectIndicators`: every series mapped to the subject, primary then context in catalogue order, from what was available by the end of `as_of` (default today).
+  Each carries the latest observation, `changes` for 1w, 1m, 3m and 1y, `percentile`, `history_start` and `history_count`, `state`, and recent `revisions`.
+- A change compares the latest value with the last observation on or before the window's start (7 days, or 1, 3 or 12 calendar months, month end to month end).
+  Series in "%" change in percentage points, others in percent (`change_basis`).
+  A change is null when the window is shorter than the frequency (1w on monthly, 1w and 1m on quarterly), reaches before the stored history (CoinGecko's 364 days have no 1y change), or starts from zero.
+- `percentile` is the percent of the stored history, from the backfill floor to the latest value, below the latest value, ties counting half.
+- States, worst first: `no_data` (nothing available by the date), `stale` (a CoinGecko or DefiLlama series, or one derived from them, whose latest point was available more than a day before the end of the date, or before now if that is earlier), `revised` (a revision made since the previous run, or in the 31 days to the date for the endpoint), `preliminary` (the latest value is flagged preliminary), `current`.
+  Labels for them wait for the F4 mock.
+- The computation is `pipeline/indicators.py`, shared by the endpoint and the pipeline: `compute_run` writes every series' indicator as of the run date to `run_indicators` before answering questions, counting revisions from the previous run's date.
+  A series with no data by then gets no row, since `period` and `value` are required.
+- `im ingest` and Run now already fetched series first (above); `im report`'s Series section now says how many series the latest fetch got, and lists each run's indicator states with a look-ahead check: no run indicator may use an observation available after its run date.
+- Web: `useIndicators(id, asOf?)` and `useSeries(id, range)` in `web/lib/api/queries.ts`; no UI yet.
+- The walkthrough's last step checks the per-100 units, that indicators as of Run 1 see nothing later while today's do, that changes never start from zero or from the latest period, and that a date before the history gives "No data"; it writes `indicators.json` to the run's artifacts.
+- Checked against the store on 28 Sep: the loan-to-deposit ratio, all currencies, is 70.3 for Jul 2026 (preliminary), up 0.3, 2.7 and 4.5 points on 70.0, 67.6 and 65.8, at the 55th percentile of 61 months; Fed funds is 3.88 on 24 Sep, unchanged on the week, up 0.25 on the month and three months (3.63) and down 0.21 on the year (4.09); USDC is 0.99988 on 27 Sep, 0.0118% below its peg, up 0.0182 points on the week from 0.030% below.
 
 ### F2. Facts in standing answers
 

@@ -94,6 +94,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/subjects/{subject_id}/indicators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Subject Indicators
+         * @description The subject's measured series, primary then context, each with its latest value, change
+         *     over 1 week, 1 month, 3 months and 1 year, percentile in its history and state, from what was
+         *     available by the end of `as_of` (default today).
+         */
+        get: operations["get_subject_indicators"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/series/{series_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Series
+         * @description A series' observations with periods from `from` to `to` (inclusive, both optional) and
+         *     the revisions of those periods.
+         */
+        get: operations["get_series"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/search": {
         parameters: {
             query?: never;
@@ -1981,6 +2024,26 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** IndicatorChange */
+        IndicatorChange: {
+            /**
+             * Window
+             * @enum {string}
+             */
+            window: "1w" | "1m" | "3m" | "1y";
+            /**
+             * Since
+             * @description The period compared with: the last one on or before the window's start
+             */
+            since: string | null;
+            /** From Value */
+            from_value: number | null;
+            /**
+             * Change
+             * @description In the indicator's change_basis; null when the window does not apply to the series' frequency, reaches before its history, or starts from zero
+             */
+            change: number | null;
+        };
         JsonValue: unknown;
         /**
          * MaterialityLevel
@@ -2065,6 +2128,29 @@ export interface components {
             development_id?: string | null;
             /** Text */
             text: string;
+        };
+        /**
+         * Observation
+         * @description One value of a series for one period, normalised to the series' unit.
+         */
+        Observation: {
+            /**
+             * Period
+             * Format: date
+             */
+            period: string;
+            /** Value */
+            value: number;
+            /**
+             * Preliminary
+             * @default false
+             */
+            preliminary: boolean;
+            /**
+             * Available At
+             * Format: date-time
+             */
+            available_at: string;
         };
         /** Outlier */
         Outlier: {
@@ -2306,6 +2392,26 @@ export interface components {
             subject_ids: string[];
         };
         /**
+         * Revision
+         * @description A stored value that a later fetch changed.
+         */
+        Revision: {
+            /**
+             * Period
+             * Format: date
+             */
+            period: string;
+            /** Old Value */
+            old_value: number;
+            /** New Value */
+            new_value: number;
+            /**
+             * Revised At
+             * Format: date-time
+             */
+            revised_at: string;
+        };
+        /**
          * RunAgentInput
          * @description A request to run an agent. Also echoed back as RUN_STARTED.input. Only
          *     threadId, runId and messages are required: those are the three the SDKs
@@ -2462,6 +2568,63 @@ export interface components {
              */
             documents: components["schemas"]["DocumentHit"][];
         };
+        /** SeriesDetail */
+        SeriesDetail: {
+            series: components["schemas"]["SeriesInfo"];
+            /** Subjects */
+            subjects: components["schemas"]["SeriesSubject"][];
+            /**
+             * Observations
+             * @description By period, at their current value
+             */
+            observations: components["schemas"]["Observation"][];
+            /**
+             * Revisions
+             * @description Of periods in the range, in the order made
+             */
+            revisions: components["schemas"]["Revision"][];
+        };
+        /** SeriesInfo */
+        SeriesInfo: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Unit
+             * @description "%" for ratios and rates, else e.g. "USD" or "SGD per MYR"
+             */
+            unit: string;
+            /**
+             * Frequency
+             * @enum {string}
+             */
+            frequency: "daily" | "monthly" | "quarterly";
+            /** Decimals */
+            decimals: number;
+            /**
+             * Bad Direction
+             * @description Which way is worse, if either
+             * @enum {string}
+             */
+            bad_direction: "up" | "down" | "none";
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "mas" | "fred" | "coingecko" | "defillama" | "derived";
+            /** Source Url */
+            source_url: string;
+        };
+        /** SeriesSubject */
+        SeriesSubject: {
+            subject: components["schemas"]["SubjectRef"];
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "primary" | "context";
+        };
         /** SinceData */
         SinceData: {
             /** Widget Id */
@@ -2600,6 +2763,59 @@ export interface components {
             /** Domains */
             domains: string[];
             links: components["schemas"]["SubjectLinks"];
+        };
+        /** SubjectIndicator */
+        SubjectIndicator: {
+            latest: components["schemas"]["Observation"] | null;
+            /**
+             * Change Basis
+             * @enum {string}
+             */
+            change_basis: "points" | "percent";
+            /**
+             * Changes
+             * @description 1w, 1m, 3m and 1y, in that order
+             */
+            changes: components["schemas"]["IndicatorChange"][];
+            /**
+             * Percentile
+             * @description Percent of the history below the latest value, ties counting half
+             */
+            percentile: number | null;
+            /** History Start */
+            history_start: string | null;
+            /** History Count */
+            history_count: number;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "no_data" | "stale" | "revised" | "preliminary" | "current";
+            /**
+             * Revisions
+             * @description Revisions made since the previous run, or in the 31 days to the date
+             */
+            revisions: components["schemas"]["Revision"][];
+            series: components["schemas"]["SeriesInfo"];
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "primary" | "context";
+        };
+        /** SubjectIndicators */
+        SubjectIndicators: {
+            subject: components["schemas"]["SubjectRef"];
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /**
+             * Indicators
+             * @description Primary series first, then context, each in catalogue order
+             */
+            indicators: components["schemas"]["SubjectIndicator"][];
         };
         /** SubjectLinks */
         SubjectLinks: {
@@ -3379,6 +3595,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SubjectTrend"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_subject_indicators: {
+        parameters: {
+            query?: {
+                as_of?: string | null;
+            };
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectIndicators"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_series: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path: {
+                series_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeriesDetail"];
                 };
             };
             /** @description Validation Error */
