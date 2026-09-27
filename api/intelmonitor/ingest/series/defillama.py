@@ -1,9 +1,10 @@
 """DefiLlama stablecoins (no key): circulating supply per coin, per chain, and for all coins.
 
 One call per coin returns its full daily history, total and per chain, in the coin's peg currency;
-one more returns the market total in USD. Points are dated 00:00 UTC. The fetch date's own point
-is still moving, so it is dropped, and a day's point counts as known at the end of that day.
-Neither URL takes a date, so the fetch date goes into the cache key only.
+one more returns the market total in USD. Points are dated 00:00 UTC. The current UTC day's own
+point is still moving, so it is dropped, and a day's point counts as known at the end of that UTC
+day. Neither URL takes a date, so the UTC fetch date goes into the cache key only: a response
+fetched on one UTC day is never read as final on the next.
 """
 
 from collections.abc import Mapping
@@ -47,13 +48,18 @@ class _Totals(RootModel[list[_TotalPoint]]):
     pass
 
 
+def _vary(window: Window) -> str:
+    """The cache key's day. Marked UTC, so no response cached under a local date is reused."""
+    return f"{window.utc_today.isoformat()} UTC"
+
+
 def _observations(points: list[tuple[int, float]], window: Window) -> list[Observation]:
     observations: list[Observation] = []
     for seconds, value in points:
         if seconds % _DAY_S:
             continue
         period = datetime.fromtimestamp(seconds, UTC).date()
-        if window.floor <= period < window.today:
+        if window.floor <= period < window.utc_today:
             observations.append(
                 Observation(period=period, value=value, available_at=after(period, 1))
             )
@@ -68,7 +74,7 @@ def fetch(
     for series_id, source in sources.items():
         if source.stablecoin is None:
             try:
-                totals = get_json(http, NAMESPACE, ALL_URL, _Totals, vary=window.today.isoformat())
+                totals = get_json(http, NAMESPACE, ALL_URL, _Totals, vary=_vary(window))
             except SourceError as e:
                 fetched.fail([series_id], f"DefiLlama total: {e}")
                 continue
@@ -82,7 +88,7 @@ def fetch(
                     NAMESPACE,
                     COIN_URL.format(id=source.stablecoin),
                     _Coin,
-                    vary=window.today.isoformat(),
+                    vary=_vary(window),
                 )
             except SourceError as e:
                 coins[source.stablecoin] = e

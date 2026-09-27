@@ -7,8 +7,8 @@
 #   coingecko  coin id; daily USD price for the last 365 days
 #   defillama  stablecoin id (omit for all stablecoins) and optional chain; circulating supply
 #   deviation  input and target: percent off the target, (value / target - 1) * 100
-#   product    inputs [a, b]: a times the latest b known when a was
-#   share      part and total: percent of the total, part / total * 100
+#   product    inputs [a, b]: a times b, for each period both have
+#   share      part and total: percent of the total, part / total * 100, for each period both have
 # Derived series (deviation, product, share) may only use series declared above them.
 #
 # FX direction: every FX series is SGD per one unit of the foreign currency, the MAS quote
@@ -421,6 +421,10 @@ series:
     source: {kind: coingecko, coin: xsgd}
     subjects:
       context: [straitsx, stablecoin-issuers, stablecoins]
+  # XSGD's 00:00 UTC price in USD times the same day's MAS rate, so days without a MAS rate
+  # (weekends, Singapore holidays) have no value. An earlier day's rate turns FX moves into false
+  # depegs; CoinGecko's own SGD price converts at a rate out of step with its USD price and is 0.5%
+  # off on ten days a year, where this is never more than 0.45% off.
   - id: derived.xsgd.price_sgd
     name: XSGD price in SGD
     unit: SGD

@@ -1,8 +1,10 @@
 """CoinGecko (demo key): daily USD prices of stablecoins.
 
 One range call per coin covers the last 365 days, the most the demo plan allows; a range over 90
-days comes back as one point a day at 00:00 UTC. The range ends at the end of the fetch date, so a
-new day is a new cache key. Any intraday point is dropped so every period is one instant.
+days comes back as one point a day at 00:00 UTC. The range ends at the end of the current UTC hour,
+so each hour is a new cache key: a UTC day's point arrives within the hour of its availability,
+whatever the local date, and a fetch just before it arrives is not cached for the rest of the day.
+Any intraday point is dropped so every period is one instant.
 """
 
 from collections.abc import Mapping
@@ -40,8 +42,8 @@ def fetch(
     if not settings.coingecko_api_key:
         fetched.fail(sources, "COINGECKO_API_KEY is not set")
         return fetched
-    start = max(window.floor, window.today - timedelta(days=HISTORY_DAYS))
-    end = day_start(window.today) + timedelta(days=1, seconds=-1)
+    start = max(window.floor, window.utc_today - timedelta(days=HISTORY_DAYS))
+    end = window.now.replace(minute=59, second=59, microsecond=0)
     for series_id, source in sources.items():
         try:
             response = get_json(

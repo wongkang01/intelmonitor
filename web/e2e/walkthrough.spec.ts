@@ -1153,17 +1153,51 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       expect(new Set(before.facts.map((f) => f.fact.state))).toEqual(new Set(["no_data"]));
       expect(before.fixed_states).toEqual([]);
 
-      // XSGD held more than 0.5% off its peg from 2 to 4 May 2026, so Peg is fixed at Needs
-      // attention; USDP's single day 0.57% off on 11 Sep 2026 is not 24 hours, so nothing fires.
+      // XSGD's SGD price is its 00:00 UTC USD price times the same day's MAS rate, so days without
+      // a MAS rate have none. Its 2 to 4 May 2026 "depeg" came from pairing it with an earlier
+      // day's rate and is gone, so Peg is not fixed; USDP's single day 0.57% off on 11 Sep 2026 is
+      // not 24 hours either (structured-data-plan.md, F2).
+      const range = { from: "2026-04-27", to: "2026-05-10" };
+      const [usd, rate, sgd] = await Promise.all(
+        ["cg.xsgd.price", "fx.sgd.usd", "derived.xsgd.price_sgd"].map((id) =>
+          unwrap(api.GET("/series/{series_id}", { params: { path: { series_id: id }, query: range } })),
+        ),
+      );
+      const byPeriod = (d: Schema<"SeriesDetail">) => new Map(d.observations.map((o) => [o.period, o.value]));
+      const [usdAt, rateAt] = [byPeriod(usd), byPeriod(rate)];
+      expect(sgd.observations.map((o) => o.period), "XSGD in SGD on the days with a MAS rate").toEqual(
+        usd.observations.map((o) => o.period).filter((p) => rateAt.has(p)),
+      );
+      for (const o of sgd.observations) {
+        expect(o.value, `XSGD in SGD on ${o.period}`).toBeCloseTo((usdAt.get(o.period) ?? NaN) * (rateAt.get(o.period) ?? NaN), 10);
+      }
       const held = await unwrap(
         api.GET("/subjects/{subject_id}/facts", { params: { path: { subject_id: "straitsx" }, query: { as_of: "2026-05-10" } } }),
       );
-      const peg = held.fixed_states.find((f) => f.question_id === "issuer.peg");
-      expect(peg, "a held XSGD depeg fixes Peg").toMatchObject({ series_id: "derived.xsgd.peg", state: "needs_attention", start: "2026-05-02", end: "2026-05-04", hours: 48 });
+      expect(held.fixed_states, "no XSGD depeg in May 2026").toEqual([]);
       const single = await unwrap(
         api.GET("/subjects/{subject_id}/facts", { params: { path: { subject_id: "paxos" }, query: { as_of: "2026-09-24" } } }),
       );
       expect(single.fixed_states).toEqual([]);
+
+      // Answers on FX series name each rate as its fact does, "SGD per MYR", with the SGD's side:
+      // a pair such as SGD/MYR reads as the SGD strengthening when it weakened.
+      const fxAnswers: [string, string][] = [
+        ["malaysia", "country.economic-policy"],
+        ["singapore", "country.economic-policy"],
+        ["philippines", "country.economic-policy"],
+        ["geopolitics", "geopolitics.financial-channels"],
+        ["mas", "central-bank.policy-stance"],
+        ["hkma", "central-bank.policy-stance"],
+      ];
+      for (const [subjectId, questionId] of fxAnswers) {
+        const ev = await unwrap(
+          api.GET("/subjects/{subject_id}/answers/{question_id}/evidence", {
+            params: { path: { subject_id: subjectId, question_id: questionId } },
+          }),
+        );
+        expect(ev.answer.summary, `${subjectId} ${questionId} names no currency pair`).not.toMatch(/\b(?:SGD\/[A-Z]{3}|[A-Z]{3}\/SGD)\b/);
+      }
 
       writeFileSync(path.join(dir, "facts.json"), JSON.stringify({ as_of: past, subjects: snapshot, held, answers: cited }, null, 2));
       await page.goto(new URL(`subjects/straitsx/facts?as_of=2026-05-10`, apiBase).href);

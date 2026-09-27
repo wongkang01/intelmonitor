@@ -47,13 +47,19 @@ def period(d: date, frequency: Frequency) -> str:
             return f"Q{(d.month - 1) // 3 + 1} {d.year}"
 
 
+def fx_currency(s: SeriesDef) -> str | None:
+    """For an FX series (SGD per unit of a currency), that currency's code."""
+    quoted = _FX_UNIT.fullmatch(s.unit)
+    return quoted.group(1) if quoted else None
+
+
 def fx_side(s: SeriesDef, change: float) -> str | None:
     """For an FX series, which way a change moved the SGD: "SGD weaker against the USD". Which
     way is which is easy to get backwards in prose, so every FX change says it."""
-    quoted = _FX_UNIT.fullmatch(s.unit)
-    if quoted is None or change == 0:
+    currency = fx_currency(s)
+    if currency is None or change == 0:
         return None
-    return f"SGD {'weaker' if change > 0 else 'stronger'} against the {quoted.group(1)}"
+    return f"SGD {'weaker' if change > 0 else 'stronger'} against the {currency}"
 
 
 def peg_side(s: SeriesDef, source: Deviation, by_id: dict[str, SeriesDef], v: float) -> str:

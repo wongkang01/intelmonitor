@@ -40,7 +40,8 @@ from intelmonitor.store.series import (
 
 DEFAULT_FLOOR = date(2021, 7, 1)
 RECENT_DAYS = 14
-# Daily market series whose latest point is older than this are stale (plan failure mode 6).
+# Daily market series whose latest point became available longer ago than this are stale (plan
+# failure mode 6). CoinGecko and DefiLlama date points by the UTC day, whatever the local date.
 STALE_AFTER = timedelta(days=1)
 MARKET_SOURCES = ("coingecko", "defillama")
 
@@ -134,7 +135,7 @@ def fetch_series(
             if source.table == "fx":
                 start = min(start, latest.get(series_id, floor))
         start = max(start, floor)
-    window = Window(floor=floor, start=start, today=today)
+    window = Window(floor=floor, start=start, today=today, now=fetched_at)
     log(f"series: fetch to {today}, history from {floor}, MAS exchange rates from {start}")
 
     if mas:
@@ -163,11 +164,10 @@ def fetch_series(
     for reason, n in derived_failures.items():
         log(f"derived: {n} series failed: {reason}")
 
-    latest = latest_periods(conn)
     for s in seed.series:
-        if s.source_name in MARKET_SOURCES and s.id in latest:
-            if today - latest[s.id] > STALE_AFTER:
-                result.stale[s.id] = latest[s.id]
+        if s.source_name in MARKET_SOURCES and (stored := read_observations(conn, s.id)):
+            if fetched_at - stored[-1].available_at > STALE_AFTER:
+                result.stale[s.id] = stored[-1].period
     if result.stale:
         log(f"stale: {', '.join(f'{k} ({v})' for k, v in result.stale.items())}")
 

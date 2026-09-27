@@ -10,7 +10,7 @@ import calendar
 import json
 import sqlite3
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from datetime import UTC, date, datetime, timedelta
 from typing import Literal
 
@@ -34,8 +34,9 @@ ALL_WINDOWS: list[ChangeWindow] = _WINDOWS["daily"]
 REVISION_WINDOW = timedelta(days=31)
 
 # Worst first. no_data: nothing available by the date (a skipped source, or before the history).
-# stale: a market price whose latest point is more than a day old. revised: a value revised since
-# the previous run. preliminary: the latest value is flagged preliminary by its source.
+# stale: a market feed whose latest point is more than a day old, or a series derived from one.
+# revised: a value revised since the previous run. preliminary: the latest value is flagged
+# preliminary by its source.
 IndicatorState = Literal["no_data", "stale", "revised", "preliminary", "current"]
 # Changes of a series in percent are in percentage points; other series change in percent.
 ChangeBasis = Literal["points", "percent"]
@@ -93,22 +94,32 @@ def window_start(latest: date, window: ChangeWindow) -> date:
             return months_before(latest, 12)
 
 
-def _market(s: SeriesDef, by_id: dict[str, SeriesDef]) -> bool:
-    """A market price or supply, or a series derived from one: these can go stale."""
+def _stale(
+    s: SeriesDef,
+    by_id: dict[str, SeriesDef],
+    history: Callable[[str], list[Observation]],
+    at: datetime,
+) -> bool:
+    """A market feed that stopped: a daily CoinGecko or DefiLlama series whose latest point became
+    available more than a day before `at`, or a series derived from one. A derived series takes
+    its staleness from its market inputs, not from its own latest point: XSGD in SGD has no value
+    on days without a MAS rate, a gap like the rate's own, while its price feed is current."""
     if isinstance(s.source, DerivedSource):
-        return any(_market(by_id[i], by_id) for i in derived_inputs(s.source))
-    return s.source_name in MARKET_SOURCES
+        return any(_stale(by_id[i], by_id, history, at) for i in derived_inputs(s.source))
+    if s.source_name not in MARKET_SOURCES or s.frequency != "daily":
+        return False
+    observations = history(s.id)
+    return bool(observations) and at - observations[-1].available_at > STALE_AFTER
 
 
 def indicator(
     s: SeriesDef,
     history: list[Observation],
     revisions: list[Revision],
-    at: datetime,
-    market: bool,
+    stale: bool,
 ) -> Indicator:
-    """One series' indicator from what was known at `at`: its observations by period and the
-    revisions to report."""
+    """One series' indicator from what was known: its observations by period, the revisions to
+    report, and whether its market feed is stale."""
     basis = change_basis(s)
     if not history:
         return Indicator(
@@ -141,7 +152,7 @@ def indicator(
         )
     below = sum(o.value < latest.value for o in history)
     ties = sum(o.value == latest.value for o in history)
-    if market and s.frequency == "daily" and at - latest.available_at > STALE_AFTER:
+    if stale:
         state: IndicatorState = "stale"
     elif revisions:
         state = "revised"
@@ -173,15 +184,20 @@ def compute_indicators(
     by_id = {s.id: s for s in load_series().series}
     since = revised_since or as_of - REVISION_WINDOW
     at = min(day_start(as_of + timedelta(days=1)), datetime.now(UTC))
+    histories: dict[str, list[Observation]] = {}
+
+    def history(series_id: str) -> list[Observation]:
+        if series_id not in histories:
+            histories[series_id] = read_observations(conn, series_id, as_of)
+        return histories[series_id]
+
     out: dict[str, Indicator] = {}
     for series_id in series_ids:
         s = by_id[series_id]
         revisions = [
             r for r in read_revisions(conn, series_id, as_of) if r.revised_at.date() > since
         ]
-        out[series_id] = indicator(
-            s, read_observations(conn, series_id, as_of), revisions, at, _market(s, by_id)
-        )
+        out[series_id] = indicator(s, history(series_id), revisions, _stale(s, by_id, history, at))
     return out
 
 

@@ -21,7 +21,8 @@ from intelmonitor.pipeline.feedback import AnswerCorrection, answer_corrections
 from intelmonitor.pipeline.inference import Inference, StepFailed
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS
 from intelmonitor.pipeline.subjects import Subject, all_subjects, questions_for
-from intelmonitor.seed import QuestionDef
+from intelmonitor.pipeline.wording import fx_currency
+from intelmonitor.seed import QuestionDef, load_series
 
 # Most developments listed in one answer prompt, most material and most recent first.
 MAX_PROMPT_DEVELOPMENTS = 120
@@ -105,6 +106,30 @@ def unsupported_numbers(summary: str, allowed: str) -> list[str]:
     return [n for n in dict.fromkeys(_NUMBER.findall(summary)) if n.replace(",", "") not in plain]
 
 
+# Currency pair names such as SGD/MYR or USD/SGD. Readers take either order as a quote in the
+# other direction, so answers name FX rates as the facts do: "SGD per MYR", with the SGD's side.
+_FX_PAIR = re.compile(r"\b(?:SGD/[A-Z]{3}|[A-Z]{3}/SGD)\b")
+
+
+def fx_pairs(summary: str) -> list[str]:
+    """Currency pair names in `summary`, which an answer on FX series may not use."""
+    return list(dict.fromkeys(_FX_PAIR.findall(summary)))
+
+
+def answer_problems(summary: str, allowed: str, fx: bool) -> list[str]:
+    """Why an answer is asked again: numbers found in neither the facts nor the developments
+    (`allowed`), and, for a question with FX series (`fx`), currency pair names."""
+    problems: list[str] = []
+    if nums := unsupported_numbers(summary, allowed):
+        problems.append(f"numbers in neither the facts nor the developments: {', '.join(nums)}")
+    if fx and (pairs := fx_pairs(summary)):
+        problems.append(
+            f"currency pairs {', '.join(pairs)}: name each rate as its fact does (SGD per MYR) "
+            "and say which way the SGD moved"
+        )
+    return problems
+
+
 def _eligible(q: QuestionDef, devs: list[RunDevelopment], as_of: date) -> list[RunDevelopment]:
     since = as_of - timedelta(days=q.lookback_days)
     return [d for d in devs if d.last_published > since]
@@ -121,7 +146,7 @@ def answer_prompt(
     base_as_of: str | None,
     corrections: list[AnswerCorrection],
     facts: SubjectFacts,
-    unsupported: dict[str, list[str]],
+    problems: dict[str, list[str]],
 ) -> str:
     names = all_subjects()
 
@@ -167,13 +192,13 @@ def answer_prompt(
             "the developments still bear them out:",
         ]
         parts += [c.prompt_line() for c in wanted]
-    if unsupported:
+    if problems:
         parts += [
             "",
-            "Your last answers quoted numbers that are in neither the facts nor the developments. "
-            "Answer again, quoting numbers only as the facts and developments give them:",
+            "Your last answers to these questions broke the rules below. Answer them again, "
+            "quoting numbers only as the facts and developments give them:",
         ]
-        parts += [f"- {qid}: {', '.join(nums)}" for qid, nums in unsupported.items()]
+        parts += [f"- {qid}: {'; '.join(found)}" for qid, found in problems.items()]
     parts += [
         "",
         "Questions. Answer each one using only the developments eligible for it and the facts of "
@@ -200,6 +225,9 @@ def answer_prompt(
   enforcement actions in the last 30 days."
 - Numbers: quote only numbers the facts or developments give, as they give them; never compute,
   convert or estimate new ones. Where a question has series, say what their facts show.
+- Exchange rates: name them as the facts do, "SGD per MYR", and say which way the SGD moved, as
+  in "SGD weaker against the MYR, SGD per MYR up 0.55% on the week". Never write pairs such as
+  SGD/MYR or USD/SGD: readers take them the other way round.
 - state, calm by default. A question with a fixed state takes that state, and its summary says
   why:
   - needs_attention: something could hurt a tracked subject or needs supervisory follow-up now,
@@ -227,7 +255,8 @@ async def answer_subject(
     base_id: str | None,
 ) -> int:
     """Answers the subject's questions and stores them with the facts they were given. Returns
-    how many answers still quote a number found in neither the facts nor the developments."""
+    how many answers still quote a number found in neither the facts nor the developments or,
+    on FX series, a currency pair."""
     questions = questions_for(subject)
     ids = scope(subject)
     longest = max(q.lookback_days for q in questions)
@@ -267,8 +296,14 @@ async def answer_subject(
         + [f"{when} {label}" for when, label, _ in upcoming]
     )
 
+    defs = {s.id: s for s in load_series().series}
+    fx = {
+        q.id
+        for q in questions
+        if any(fx_currency(defs[f.series_id]) for f in facts.for_question(q.id))
+    }
     answered: dict[str, QuestionAnswer] = {}
-    unsupported: dict[str, list[str]] = {}
+    problems: dict[str, list[str]] = {}
     pending = questions
     for attempt in range(2):
         prompt = answer_prompt(
@@ -282,17 +317,19 @@ async def answer_subject(
             base_as_of,
             corrections,
             facts,
-            unsupported,
+            problems,
         )
         ref = f"subject:{subject.id}" + (f":retry{attempt}" if attempt else "")
         result = await inf.claude("answer", ref, prompt, SubjectAnswers, ANSWER_SYSTEM)
         wanted = {q.id for q in pending}
         got = {a.question_id: a for a in result.answers if a.question_id in wanted}
         answered |= got
-        unsupported = {
-            qid: nums for qid, a in got.items() if (nums := unsupported_numbers(a.summary, allowed))
+        problems = {
+            qid: found
+            for qid, a in got.items()
+            if (found := answer_problems(a.summary, allowed, qid in fx))
         }
-        pending = [q for q in questions if q.id not in answered or q.id in unsupported]
+        pending = [q for q in questions if q.id not in answered or q.id in problems]
         if not pending:
             break
     if missing := [q.id for q in questions if q.id not in answered]:
@@ -337,7 +374,7 @@ async def answer_subject(
                     json.dumps([f.text for f in fixed]),
                 ),
             )
-    return len(unsupported)
+    return len(problems)
 
 
 async def answer_subjects(
@@ -348,8 +385,9 @@ async def answer_subjects(
     changes: dict[str, DevelopmentChange],
     base_id: str | None,
 ) -> int:
-    """Answers every subject's questions. Returns how many answers quote a number found in
-    neither their facts nor their developments."""
+    """Answers every subject's questions. Returns how many answers, after one retry, still quote
+    a number found in neither their facts nor their developments or, on FX series, a currency
+    pair."""
     devs = load_run_developments(conn, run_id)
     failures: list[str] = []
     unsupported = 0

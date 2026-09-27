@@ -55,6 +55,7 @@ Rules:
   Each returns typed observations through pydantic models, so schema drift fails loudly.
 - Adapters use the existing `CachedHttp`, so every response lands in `data/raw/` and reruns make no network calls.
   Requests for recent data include the fetch date or an explicit end date in the request, so a new day is a new cache key and old days stay cached.
+  CoinGecko and DefiLlama date their points by the UTC day, so their requests are keyed by UTC time, not the local (SGT) date.
 - `im series fetch` fetches every series up to today; `im series backfill --from 2021-07-01` fills history once.
   `im ingest` and Run now call the fetch first, so a run always has current data.
 - Backfill cost is small: MAS tables and FRED return full history in one call per table or series, DefiLlama in one call per coin, and CoinGecko in one call per coin for 365 days.
@@ -107,24 +108,32 @@ Built, store and collection:
 - Adapters in `api/intelmonitor/ingest/series/` share one interface, `fetch(http, settings, sources, window) -> Fetched`, and never raise for a bad source.
   `collect.py` runs them, saves, derives and logs calls per namespace; `store/series.py` saves observations and reads them.
 - `read_observations(conn, id, as_of)` returns only what was available by the end of `as_of`, at the value it had before any later revision.
-- `available_at`: MAS tables by the create-date rule above (31-day lag for monthly tables, 62 for I.12A); exchange rates the next day; FRED `lag_days` after the date (default 1); CoinGecko the point's own time; DefiLlama the end of the point's day.
+- `available_at`: MAS tables by the create-date rule above (31-day lag for monthly tables, 62 for I.12A); exchange rates the next day; FRED `lag_days` after the date (default 1); CoinGecko the point's own time; DefiLlama the end of the point's UTC day.
 - A fetched value counts as a revision only when it differs at the series' precision and by more than float noise; a preliminary flag that clears without a value change is updated without one.
-- Derived values: `deviation` is percent off the target; `product` and `share` take, for each period of the first input, the latest second input already available at that time, so weekend coin prices use Friday's rate and a later rate never rewrites an earlier result.
+- Derived values: `deviation` is percent off the target; `product` and `share` pair the two inputs by period and are known once both values are, so a period missing from either input gives no value.
+  XSGD in SGD is its 00:00 UTC price in USD times the same day's MAS USD rate, so weekends and Singapore holidays have none.
+  An earlier version paired weekend prices with Friday's rate: the peg then measured FX moves, averaging 0.15% off with 11 false breaches of 0.5% in a year.
+  CoinGecko's own SGD price (`vs_currency=sgd`) was tried and rejected: it converts at a rate out of step with its USD price, matching MAS's next-day rate more closely than the same day's, and is more than 0.5% off on 10 days in a year.
+  Paired with the same day's rate, XSGD averages 0.10% off its peg and is never more than 0.45% off.
 - `im series fetch`, `im series backfill --from 2021-07-01`; `im ingest` fetches series before documents, and Run now fetches them before the run, logging a failure and going ahead.
   `im report` has a Series section: the latest fetch, and per source the series, observations, latest period and revisions.
 - Differs from the plan: every FX series comes from MAS, whose unfiltered exchange-rate URL returns the whole daily history in one call, so FRED is not used for FX and nothing needs throttling.
-  `CachedHttp` gained `vary` (keyed, not sent: the fetch date for URLs without a date parameter), `secret_params` (sent, never keyed or stored: FRED's key) and `cache_errors`.
+  `CachedHttp` gained `vary` (keyed, not sent: the fetch date for URLs without a date parameter, the UTC date for DefiLlama), `secret_params` (sent, never keyed or stored: FRED's key) and `cache_errors`.
   Data API requests send the user agent `intelmonitor/0.1`, because FRED stalls the browser user agent used for official pages.
 - Failure modes: (1) a missing key fails that source's series with one log line per reason, and a rejected key (401 or 403, or FRED's 400) stops that source's further calls; error responses are never cached, so a fixed key works on the next fetch.
   (2) An HTML page is retried, then fails its series, and is never cached or parsed.
   (3) Validation fails one table or response; a missing MAS field fails only its series.
   (4) Revisions as above.
   (5) Gaps stay gaps (FRED's "." is skipped).
-  (6) The fetch lists CoinGecko and DefiLlama series whose latest point is more than a day old as stale; the "Stale" state belongs to the indicators endpoint.
+  (6) The fetch lists CoinGecko and DefiLlama series whose latest point became available more than a day before the fetch as stale; the "Stale" state belongs to the indicators endpoint.
+  Market fetches follow the UTC day, whatever the local date: CoinGecko's range ends at the end of the current UTC hour, so each hour is a new cache key and a UTC day's 00:00 point arrives with the first fetch after it is published.
+  DefiLlama is keyed by the UTC date (`vary` "2026-09-28 UTC") and drops the current UTC day's point, which is still moving.
+  Before this, both used the SGT date: a fetch between 00:00 and 08:00 SGT cached CoinGecko without the new UTC day's point for the whole SGT day, so every price and peg read stale from 08:00 SGT, and stored DefiLlama's moving point as final.
   (7) The per-100 conversion was checked against FRED cross rates: SGD per MYR on 18 Sep 2026 is 0.3128 from MAS and 0.3132 from `DEXSIUS / DEXMAUS`, SGD per THB 0.038342 and 0.038294; the walkthrough checks both values through `GET /series`.
   (8) `CachedHttp` already retries 429 and never caches it.
   (9) `read_observations` with `as_of`.
 - `data/intelmonitor.db` holds the real backfill from 2021-07-01: 55,890 observations.
+  The DefiLlama points stored before they were final (27 Sep 2026, fetched 16:09 UTC that day) and the XSGD price in SGD and peg from the old pairing were deleted and fetched again.
 
 Indicator failure modes, written before the code:
 
@@ -135,7 +144,7 @@ Indicator failure modes, written before the code:
 5. A window shorter than the series' frequency (1 week on a monthly series): empty, not a one-month change under a one-week label.
 6. A reference value of zero: no percent change.
 7. Look-ahead: a run as of D sees only observations available by the end of D, at their value before any later revision, and only revisions made by then.
-8. A stale market price: a CoinGecko or DefiLlama series, or one derived from them, whose latest point is more than a day old reads "Stale".
+8. A stale market price: a CoinGecko or DefiLlama series whose latest point is more than a day old, or a series derived from one, reads "Stale".
 9. A revision since the last run: the indicator reads "Revised" and lists it.
 
 Built, endpoints and run indicators:
@@ -147,7 +156,7 @@ Built, endpoints and run indicators:
   Series in "%" change in percentage points, others in percent (`change_basis`).
   A change is null when the window is shorter than the frequency (1w on monthly, 1w and 1m on quarterly), reaches before the stored history (CoinGecko's 364 days have no 1y change), or starts from zero.
 - `percentile` is the percent of the stored history, from the backfill floor to the latest value, below the latest value, ties counting half.
-- States, worst first: `no_data` (nothing available by the date), `stale` (a CoinGecko or DefiLlama series, or one derived from them, whose latest point was available more than a day before the end of the date, or before now if that is earlier), `revised` (a revision made since the previous run, or in the 31 days to the date for the endpoint), `preliminary` (the latest value is flagged preliminary), `current`.
+- States, worst first: `no_data` (nothing available by the date), `stale` (a daily CoinGecko or DefiLlama series whose latest point was available more than a day before the end of the date, or before now if that is earlier; a derived series is stale when one of its market inputs is, so XSGD's peg over a weekend without MAS rates stays current while its price feed is), `revised` (a revision made since the previous run, or in the 31 days to the date for the endpoint), `preliminary` (the latest value is flagged preliminary), `current`.
   Labels for them wait for the F4 mock.
 - The computation is `pipeline/indicators.py`, shared by the endpoint and the pipeline: `compute_run` writes every series' indicator as of the run date to `run_indicators` before answering questions, counting revisions from the previous run's date.
   A series with no data by then gets no row, since `period` and `value` are required.
@@ -187,11 +196,13 @@ Built:
   `issuer.peg` and `stablecoins.reserves-peg` declare 0.5% for 24 hours, state `needs_attention`.
   With daily prices, 24 hours means two days in a row beyond 0.5% ("over 24 hours" in the brief is read as at least 24).
   Rules only escalate: the stored state is the worse of the model's and the rules'.
-  In the stored history the rule fires for XSGD from 2 to 4 May 2026 (1.0069 SGD at its furthest) and 25 to 26 Jan 2026; USDP's single day 0.57% off on 11 Sep 2026 does not fire.
+  In the stored history the rule never fires: USDP's single day 0.57% off on 11 Sep 2026 is not 24 hours, and XSGD, priced with the same day's MAS rate, is never more than 0.45% off.
+  The XSGD spells it used to find (25 to 26 Jan and 2 to 4 May 2026) came from pairing weekend and holiday prices with an earlier day's rate (see F1, derived values).
 - `pipeline/facts.py`: `subject_facts(conn, subject_id, questions, as_of, revised_since)` returns one `SeriesFact` per linked series and the `FixedState`s of rules that fire.
   It reads observations and indicators as of the date (F1's `read_observations` and `compute_indicators`), so look-ahead is ruled out the same way.
   The sentence is written by code: for a peg, how far it strayed in the window with the lowest and highest price and the latest; for other daily series, the latest value, its 1w, 1m, 3m and 1y changes with the values they start from, the window's range, and its rank in the stored history as counts ("above 523 of the 1,904 values since 1 Jul 2021"); for monthly and quarterly series, the latest release with its preliminary flag and availability date, its changes and rank; revisions since the previous run; "no data available by" or "stale".
   Each FX change says which way the SGD went ("up 0.23% on the week (SGD weaker against the USD; from 1.2733 SGD per USD on 16 Sep 2026)"): without it, answers read a fall in SGD per USD as the SGD weakening.
+  Answers restated these as pairs ("SGD/MYR up 0.55% weekly", "SGD/USD 1.2762"), which read as the SGD strengthening when it weakened, so the prompt tells the model to name rates as the facts do with the SGD's side, and code re-asks once an answer on FX series that names a pair such as SGD/MYR or USD/SGD, like an unsupported number.
   A daily series' window is the longest lookback of the subject's questions that use it.
 - Answer step: the prompt lists the facts as `S:<series id> | <sentence>`, and under each question its `series` and any `fixed state` with the rule's sentence.
   Answers may quote numbers only from the facts and developments; the model returns `series_ids` next to `development_ids`.
@@ -202,8 +213,10 @@ Built:
   The evidence drawer's data source item is not built; it waits for its mock.
 - `im report`'s Series section lists each run's facts, answers citing series and states fixed by rules, with a look-ahead check on every stated observation.
 - Runs: 17 Sep, 15 Aug (new, the past-date check) and 24 Sep were recomputed with facts; 25 or 26 of the 200 answers in each cite series, quoting their numbers ("USDC stayed near peg, 0.9996-0.9999 USD over 14 days; supply rose 2.98% weekly to $75.87bn"), and no rule fires on those dates.
+  After the FX wording and XSGD fixes the three runs were recomputed (30 to 33 new answer calls each): no answer on FX series names a pair, for example "SGD weaker against the MYR, up 0.55% weekly", and 26 answers in each cite series.
   The 15 Aug run's latest stated observation was available on 15 Aug: its NPL facts stop at Q1 2026 and its loan-to-deposit facts at May 2026, while later runs state Q2 and July.
-- The walkthrough's last step checks that linked answers cite series whose facts were known by the run date, that facts as of 15 Aug 2026 state nothing available later while today's do, that a date before the history states no data, and that the XSGD spell fixes Peg while USDP's single day does not; it writes `facts.json`.
+- The walkthrough's last step checks that linked answers cite series whose facts were known by the run date, that facts as of 15 Aug 2026 state nothing available later while today's do, that a date before the history states no data, that XSGD in SGD is each day's USD price times the same day's MAS rate and fixes nothing in May 2026, that USDP's single day fixes nothing, and that the latest answers on FX series name no currency pair; it writes `facts.json`.
+  With no depeg in the stored history, the walkthrough has no case of a rule firing.
 
 ### F3. Detectors: developments from data
 
@@ -257,7 +270,8 @@ Built:
 - Real data, runs of 17 and 24 Sep recomputed (8 and 14 new Jev pair calls, 38 and 44 calls with the answers): in the corpus window only the two rate detectors fire.
   The ECB deposit rate rose 0.25 points to 2.50% on 16 Sep (known 17 Sep): a Notable development of its own, new in Run 1, tagged to the ECB.
   The Fed funds rate rose 0.25 points to 3.88% on 17 Sep (known 18 Sep): same-event merging joined it to the FOMC decision's development (19 sources, with the FOMC statement), which Run 2 updates with it; it is Significant by Jev, needs attention, and alerts through the followed Central banks group.
-  Over the whole history since 2021 the rules fire 221 times (84 of them stablecoin supply moves, mostly XSGD and PYUSD, and 54 SGD weekly moves), a sign the supply rule's 10% is too tight for small coins; the depeg rule fires on XSGD on 26 Jan and 3 May 2026, as F2's rule does.
+  Over the whole history since 2021 the rules fire 219 times (84 of them stablecoin supply moves, mostly PYUSD and USDP, and 54 SGD weekly moves), a sign the supply rule's 10% is too tight for small coins; the depeg rule never fires, as F2's rule does not.
+  Its two XSGD firings (26 Jan and 3 May 2026) came from the old weekend pairing of XSGD with an earlier day's MAS rate and are gone.
   The loan-to-deposit and high-yield thresholds never fire in the stored history.
 - The walkthrough's last step finds the Fed funds detection through search, checks its data document (source table URL, doc type, published after Run 1 and by Run 2, event date), that it changed its development in Run 2, tagged to the Fed, at least Notable, and that the development alerts for the followed subject; in the app, the alert opens the evidence drawer on the data source with the sentence highlighted.
   It writes `detections.json`.
