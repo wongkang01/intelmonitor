@@ -93,37 +93,35 @@ It extends `poc-plan.md`; where they disagree, this plan wins for the items it l
    `POST /dashboards/{id}/restore` and `POST /notes/{id}/restore` undo a delete; restoring something not deleted changes nothing.
    A restored dashboard returns to its sidebar position, and Undo reopens it if it was open when deleted.
    Deleting a custom question also drops its widgets from deleted dashboards, so a restored one never shows a question that is gone.
-   Deleted rows are kept with no purge, so the walkthrough's cleanup leaves soft-deleted "E2E" dashboards and notes behind; the Trash work should decide how they are purged.
+   Deleted rows are kept with no purge, so the walkthrough's cleanup leaves soft-deleted "E2E" dashboards and notes behind; B5 purges them.
 
 ### B. Mocked first, built after the pick
 
-1. **Trend section on monitor pages.**
-   Weekly bars by category, stage movement on topics, member contribution on groups, and a state strip per standing question.
-   Clicking a week filters What changed to that week.
-   The Direction widget links to `/monitors/{id}#trend`.
-2. **Onboarding and help.**
-   A first-run tour of 4 or 5 anchored steps: sidebar (dashboards and monitors), the Since widget, the evidence drawer, Mark reviewed, Generate.
-   A Help item in the profile menu with a glossary of states (New, Updated, Watch, Needs attention, Stable) and materiality levels, plus the shortcuts.
+Mocks: `mocks/*.html`. Picks from the user on 2026-09-27 are noted per item.
+
+1. **Trend section on monitor pages.** Picked A (`mocks/trend.html`), but on hold.
+   The mocks chart counts of developments; the user wants trends to show how the analysis of a topic, group or entity moves over time.
+   That may need backfilled runs or a new pipeline stage, and is being reconsidered before any UI is built.
+2. **Onboarding and help.** Picked A (`mocks/onboarding.html`): coach marks.
+   A first-run tour of 5 steps shown one at a time over the dimmed dashboard: sidebar (dashboards and monitors), the Since widget, the evidence drawer, Mark all reviewed, New dashboard and Generate. Back, Next and Skip.
+   Help is a profile-menu dialog with a glossary of states (New, Updated, Watch, Needs attention, Stable) and materiality levels, the shortcuts, and Replay tour. It replaces the Keyboard shortcuts item, and `?` opens it.
    "Tour seen" lives in the profile.
-3. **Review and triage.**
-   Mark reviewed sets a watermark per subject; "new" counts developments changed in runs after the watermark and not individually read.
-   Per-development states: read, flagged, dismissed, shown as filters in What changed.
-   Alerts cover followed subjects only (subjects on any dashboard, plus a Follow toggle on monitor pages), with per-item read and open-marks-read.
-4. **Correct the AI.**
-   Mark an answer or a subject tag as wrong, with a reason, from the evidence drawer and question rows.
-   The next run respects tag overrides.
-5. **Notes.**
-   Notes can be edited and show "edited".
-   A Trash view restores deleted notes and dashboards.
-6. **Developments list.**
-   A route listing developments with facets: category, materiality, jurisdiction, date, source.
-   It also serves as the dashboard-scoped view from A3.
-7. **Document reader and source labels.**
-   A reader panel for `GET /documents/{id}` with every quote highlighted in context.
-   The drawer shows a source tier and a classification badge.
-   "No sources" answers explain what was checked ("checked 14 documents, 30 days").
-8. **Tablet layout.**
-   Below 1200 px the sidebar collapses and the grid drops to 2 columns.
+3. **Review and triage.** Picked A (`mocks/triage.html`): hover actions.
+   Read, flag and dismiss replace the date on the hovered or focused row; filters are a segmented control (All, Unread, Flagged, Dismissed), and All hides dismissed items.
+   Mark reviewed sets a watermark per subject; "new" counts developments changed in runs after the watermark and not individually read. It keeps flags and dismissals.
+   Follows are an explicit list, seeded from the subjects on dashboards and extended when a dashboard is created; the page-head Follow button can unfollow any subject.
+   Alerts cover followed subjects only, with per-item read, and opening an item marks it read. The bell counts every unread alert.
+4. **Correct the AI.** Picked A (`mocks/feedback.html`): inline per claim.
+   "Mark wrong" under an answer in the drawer and in question-row meta opens an inline form (what is wrong, what it should be, reason).
+   Each subject tag has a "Wrong" link with a reason and Remove tag.
+   The row then shows "You marked this wrong today: ... Undo".
+   Tag corrections are respected by the next run; answer corrections are recorded and shown, and the next run's answer prompt sees them.
+5. **Notes and deletes.** No mock picked: no Trash and no note editing.
+   Deleting a note or dashboard shows the Undo toast for longer (8 s, paused on hover or focus); that is the only restore.
+   Soft-deleted rows are purged when the API starts if they were deleted more than a day ago.
+6. **Developments list.** Picked B (`mocks/developments.html`): filter bar and sortable table. Where it lives is an open question.
+7. **Document reader and source labels.** Dropped: the evidence drawer is enough.
+8. **Tablet layout.** Dropped: the app is desktop web only.
 
 ### C. Later
 
