@@ -57,11 +57,11 @@ export function Sidebar() {
       <Link href="/" className="brand">
         IntelMonitor
       </Link>
-      <div className="side-scroll">
+      <div className="side-scroll" data-tour="sidebar">
         <div className="navhead" id="nav-dashboards">
           Dashboards
         </div>
-        <button type="button" className="navitem" onClick={() => setCreating(true)}>
+        <button type="button" className="navitem" data-tour="new-dashboard" onClick={() => setCreating(true)}>
           <PlusIcon />
           <span>New dashboard</span>
         </button>

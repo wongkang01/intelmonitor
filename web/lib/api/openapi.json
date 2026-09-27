@@ -1920,6 +1920,29 @@
         }
       }
     },
+    "/materiality-levels": {
+      "get": {
+        "summary": "Materiality Levels",
+        "description": "Materiality levels for Help, most material first, with the latest run's count at each.",
+        "operationId": "materiality_levels",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MaterialityLevel"
+                  },
+                  "type": "array",
+                  "title": "Response Materiality Levels"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/runs": {
       "get": {
         "summary": "List Runs",
@@ -4583,6 +4606,49 @@
         "description": "An image part."
       },
       "JsonValue": {},
+      "MaterialityLevel": {
+        "properties": {
+          "level": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Level"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "material": {
+            "type": "boolean",
+            "title": "Material",
+            "description": "Counted as material, as in the Direction widget"
+          },
+          "needs_attention": {
+            "type": "boolean",
+            "title": "Needs Attention"
+          },
+          "developments": {
+            "type": "integer",
+            "title": "Developments",
+            "description": "Developments at this level in the latest run"
+          }
+        },
+        "type": "object",
+        "required": [
+          "level",
+          "name",
+          "description",
+          "material",
+          "needs_attention",
+          "developments"
+        ],
+        "title": "MaterialityLevel",
+        "description": "A materiality level for Help: what it means and how the app treats it."
+      },
       "MemberSeries": {
         "properties": {
           "member": {
@@ -4857,6 +4923,19 @@
               }
             ],
             "title": "Default Dashboard Id"
+          },
+          "tour_seen_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tour Seen At",
+            "description": "When the first-run tour last started; null shows it once"
           }
         },
         "type": "object",

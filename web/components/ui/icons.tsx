@@ -65,10 +65,21 @@ export const HistoryIcon = () => (
   </svg>
 );
 
-export const KeyboardIcon = () => (
+export const HelpIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <rect x="1.8" y="4" width="12.4" height="8" rx="2" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M4.5 10h7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" />
+    <path
+      d="M6.4 6.4a1.7 1.7 0 0 1 3.3.5c0 1.1-1.7 1.4-1.7 2.4M8 11.2v.1"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+export const PlayIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M5.5 3.5v9l7-4.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
   </svg>
 );
 

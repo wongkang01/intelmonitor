@@ -45,6 +45,7 @@ export const keys = {
   follows: ["follows"],
   whatChanged: (query: WhatChangedQuery) => ["what-changed", query],
   dataSources: ["data-sources"],
+  materialityLevels: ["materiality-levels"],
   development: (id: string) => ["development", id],
   developments: (query: DevelopmentsQuery) => ["developments", query],
   answerEvidence: (subjectId: string, questionId: string) => ["answer-evidence", subjectId, questionId],
@@ -226,6 +227,10 @@ export function useSetTriage() {
 
 export const useDataSources = () =>
   useQuery({ queryKey: keys.dataSources, queryFn: () => unwrap(api.GET("/data-sources")) });
+
+/** Materiality levels for Help, most material first, with the latest run's counts. */
+export const useMaterialityLevels = () =>
+  useQuery({ queryKey: keys.materialityLevels, queryFn: () => unwrap(api.GET("/materiality-levels")) });
 
 export const useDevelopment = (id: string | null) =>
   useQuery({

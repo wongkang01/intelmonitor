@@ -219,6 +219,12 @@ nav.side {
 .menu .kbd {
   margin-left: auto;
 }
+.menu hr {
+  width: 100%;
+  margin: var(--s-1) 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
 
 main.main {
   flex: 1;

@@ -1,32 +1,29 @@
 "use client";
 
 // Profile button pinned to the sidebar bottom; its menu opens upward and leads to four dialogs.
-import { useEffect, useRef, useState, type ReactNode } from "react";
+// Help, last after a separator, replaces the old Keyboard shortcuts item; `?` opens it anywhere.
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { useProfile } from "@/lib/api/queries";
 import { typingIn } from "@/lib/dom";
 import { initials } from "@/lib/format";
-import {
-  ChevronUpIcon,
-  HistoryIcon,
-  KeyboardIcon,
-  SettingsIcon,
-  SourcesIcon,
-} from "@/components/ui/icons";
+import { ChevronUpIcon, HelpIcon, HistoryIcon, SettingsIcon, SourcesIcon } from "@/components/ui/icons";
 
-import { DataSourcesDialog, RunHistoryDialog, SettingsDialog, ShortcutsDialog } from "./ProfileDialogs";
+import { DataSourcesDialog, HelpDialog, RunHistoryDialog, SettingsDialog } from "./ProfileDialogs";
+import { useStartTour } from "./Tour";
 
-type DialogName = "settings" | "sources" | "runs" | "shortcuts";
+type DialogName = "settings" | "sources" | "runs" | "help";
 
 const ITEMS: { name: DialogName; label: string; icon: ReactNode; hint?: string }[] = [
   { name: "settings", label: "Settings", icon: <SettingsIcon /> },
   { name: "sources", label: "Data sources", icon: <SourcesIcon /> },
   { name: "runs", label: "Run history", icon: <HistoryIcon /> },
-  { name: "shortcuts", label: "Keyboard shortcuts", icon: <KeyboardIcon />, hint: "?" },
+  { name: "help", label: "Help", icon: <HelpIcon />, hint: "?" },
 ];
 
 export function ProfileMenu() {
   const profile = useProfile();
+  const startTour = useStartTour();
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState<DialogName | null>(null);
   const wrap = useRef<HTMLDivElement>(null);
@@ -49,7 +46,7 @@ export function ProfileMenu() {
       if (e.key === "?" && !typingIn(e.target) && !document.querySelector("dialog[open]")) {
         e.preventDefault();
         setOpen(false);
-        setDialog("shortcuts");
+        setDialog("help");
       }
     };
     document.addEventListener("mousedown", onDown);
@@ -83,19 +80,21 @@ export function ProfileMenu() {
       {open && (
         <div className="menu" id="profile-menu" role="menu" ref={menu} onKeyDown={onMenuKey}>
           {ITEMS.map((item) => (
-            <button
-              key={item.name}
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setOpen(false);
-                setDialog(item.name);
-              }}
-            >
-              {item.icon}
-              {item.label}
-              {item.hint && <span className="kbd">{item.hint}</span>}
-            </button>
+            <Fragment key={item.name}>
+              {item.name === "help" && <hr />}
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                  setDialog(item.name);
+                }}
+              >
+                {item.icon}
+                {item.label}
+                {item.hint && <span className="kbd">{item.hint}</span>}
+              </button>
+            </Fragment>
           ))}
         </div>
       )}
@@ -120,7 +119,14 @@ export function ProfileMenu() {
       <SettingsDialog open={dialog === "settings"} onClose={close} />
       <DataSourcesDialog open={dialog === "sources"} onClose={close} />
       <RunHistoryDialog open={dialog === "runs"} onClose={close} />
-      <ShortcutsDialog open={dialog === "shortcuts"} onClose={close} />
+      <HelpDialog
+        open={dialog === "help"}
+        onClose={close}
+        onReplay={() => {
+          setDialog(null);
+          startTour(button.current);
+        }}
+      />
     </div>
   );
 }

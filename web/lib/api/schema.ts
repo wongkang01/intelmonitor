@@ -688,6 +688,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/materiality-levels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Materiality Levels
+         * @description Materiality levels for Help, most material first, with the latest run's count at each.
+         */
+        get: operations["materiality_levels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/runs": {
         parameters: {
             query?: never;
@@ -1847,6 +1867,30 @@ export interface components {
             [key: string]: unknown;
         };
         JsonValue: unknown;
+        /**
+         * MaterialityLevel
+         * @description A materiality level for Help: what it means and how the app treats it.
+         */
+        MaterialityLevel: {
+            /** Level */
+            level: number;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string;
+            /**
+             * Material
+             * @description Counted as material, as in the Direction widget
+             */
+            material: boolean;
+            /** Needs Attention */
+            needs_attention: boolean;
+            /**
+             * Developments
+             * @description Developments at this level in the latest run
+             */
+            developments: number;
+        };
         /** MemberSeries */
         MemberSeries: {
             member: components["schemas"]["SubjectRef"];
@@ -1945,6 +1989,11 @@ export interface components {
             role: string;
             /** Default Dashboard Id */
             default_dashboard_id: string | null;
+            /**
+             * Tour Seen At
+             * @description When the first-run tour last started; null shows it once
+             */
+            tour_seen_at?: string | null;
         };
         /** QuestionAnswerView */
         QuestionAnswerView: {
@@ -4410,6 +4459,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    materiality_levels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialityLevel"][];
                 };
             };
         };

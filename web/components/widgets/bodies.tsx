@@ -129,6 +129,7 @@ function SinceBody({ data, widget, href }: BodyProps & { data: DataOf<"since"> }
           <button
             type="button"
             className="link"
+            data-tour="mark-reviewed"
             disabled={review.isPending || !hasUnreviewed(wc)}
             onClick={() => review.mutate(data.scope.map((s) => s.id))}
           >

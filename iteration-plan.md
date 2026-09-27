@@ -106,6 +106,13 @@ Mocks: `mocks/*.html`. Picks from the user on 2026-09-27 are noted per item.
    A first-run tour of 5 steps shown one at a time over the dimmed dashboard: sidebar (dashboards and monitors), the Since widget, the evidence drawer, Mark all reviewed, New dashboard and Generate. Back, Next and Skip.
    Help is a profile-menu dialog with a glossary of states (New, Updated, Watch, Needs attention, Stable) and materiality levels, the shortcuts, and Replay tour. It replaces the Keyboard shortcuts item, and `?` opens it.
    "Tour seen" lives in the profile.
+   Built: `Profile.tour_seen_at` records when the tour last started; the tour starts once, on the first dashboard opened while it is null, and marks it when it shows.
+   The tour is a transparent modal `<dialog>` (`components/shell/Tour.tsx`), so the page is inert behind it; a ring's spread shadow dims all but its target, and a target missing from the dashboard (no Since widget) leaves the card centred over a plain scrim.
+   The evidence step opens the drawer on the first Since row, or the first development or answer on the dashboard, and puts the URL back when the step ends.
+   Esc, Skip tour or the close button end it; focus goes to each step's primary button and returns to the profile button after a replay.
+   Help replaces Keyboard shortcuts in the profile menu, after a rule, and `?` opens it; Replay tour opens the default dashboard first when elsewhere.
+   Its materiality rows come from `GET /materiality-levels`: the names, the rubric Jev scores against (moved to `MATERIALITY_RUBRIC` in `pipeline/params.py`), whether each level is material or needs attention, and its count in the latest run.
+   The walkthrough marks the tour seen before it starts and restores the profile after.
 3. **Review and triage.** Picked A (`mocks/triage.html`): hover actions.
    Read, flag and dismiss replace the date on the hovered or focused row; filters are a segmented control (All, Unread, Flagged, Dismissed), and All hides dismissed items.
    Mark reviewed sets a watermark per subject; "new" counts developments changed in runs after the watermark and not individually read. It keeps flags and dismissals.

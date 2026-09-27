@@ -24,6 +24,14 @@ EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
 
 # Materiality levels, indexed 0 to 4 by Jev. NEEDS_ATTENTION_LEVEL or more means "Needs attention".
 MATERIALITY_LEVELS = ["Trivial", "Minor", "Notable", "Significant", "Critical"]
+# What each level means, in the same order: Jev scores against these, and Help shows them.
+MATERIALITY_RUBRIC = [
+    "routine or without consequence for the subjects",
+    "small, expected or narrowly local impact",
+    "worth knowing; a moderate change for a tracked subject",
+    "an important change likely to need supervisory follow-up",
+    "severe, urgent or systemic; needs immediate attention",
+]
 NEEDS_ATTENTION_LEVEL = 3
 
 # Run 1 is computed as of T0 minus this many days, Run 2 as of T0.

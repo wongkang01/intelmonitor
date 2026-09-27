@@ -44,13 +44,19 @@ Primary user: a supervisory or policy analyst who follows a few topics, sectors 
 | Evidence drawer | Sources behind a finding or development | "See evidence" on any item |
 | Graph view | Linked subjects around the current page | "Open graph view" in a page's Links section |
 | New dashboard | Popup with Build and Generate tabs | "New dashboard", first row of the sidebar's Dashboards list |
-| Profile menu | Settings, Data sources, Run history, Keyboard shortcuts | Profile button at the bottom of the sidebar |
+| Profile menu | Settings, Data sources, Run history, Help | Profile button at the bottom of the sidebar |
 
 **Sidebar:** Dashboards ("New dashboard" first, then the user's dashboards), then Monitors (Topics, Groups, Entities, with counts), then the profile button (avatar, name, role) pinned to the bottom. Nothing else.
 Dashboards reorder by dragging a row; the others slide a slot to make room, and each keeps its color.
 The row's options menu has Move up and Move down for keyboard and touch.
 
-**Profile menu:** opens upward from the profile button. Settings, Data sources, Run history, Keyboard shortcuts. Esc or a click outside closes it.
+**Profile menu:** opens upward from the profile button. Settings, Data sources, Run history, then Help after a rule. Esc or a click outside closes it.
+
+**Help:** a 560 px dialog, also opened by `?`: States (New, Updated, Watch, Needs attention, Stable), Materiality (each level's meaning, how the app treats it and its count this run), Keyboard shortcuts, and a foot with Replay tour and when the tour was last seen.
+
+**First-run tour:** five coach marks, one at a time, over the dimmed dashboard: the sidebar, the Since widget, the evidence drawer (opened on the first Since row), Mark all reviewed, and New dashboard.
+Each card is 320 px with "n of 5", a title, one or two sentences, Skip tour, Back and Next (Done on the last), and sits beside a 2 px accent ring around its target.
+It shows once, on the first dashboard opened while the profile has not seen it, and Replay tour starts it again; Esc skips, and focus returns to where it was. Nothing animates.
 
 **Top bar:** 56 px tall, one row.
 The search field flexes from the left: "Search monitors, developments and documents" with ⌘K, 32 px, bordered.

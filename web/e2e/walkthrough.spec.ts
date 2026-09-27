@@ -93,6 +93,13 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
     for (const id of followsAtStart) await unwrap(api.PUT("/follows/{subject_id}", { params: { path: { subject_id: id } } }));
   });
 
+  // The first-run tour would cover the page: the run marks it seen, and puts the profile back after.
+  const profileAtStart = await unwrap(api.GET("/profile"));
+  cleanups.push(async () => void (await unwrap(api.PUT("/profile", { body: profileAtStart }))));
+  if (!profileAtStart.tour_seen_at) {
+    await unwrap(api.PUT("/profile", { body: { ...profileAtStart, tour_seen_at: new Date().toISOString() } }));
+  }
+
   try {
     await step(STEPS[0], async () => {
       await page.goto("/");
@@ -762,6 +769,90 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await undo.click();
       await expect(tagRow.getByRole("button", { name: `${tag.name} is wrong` })).toBeFocused();
       expect((await unwrap(api.GET("/developments/{development_id}", devPath))).tag_feedback).toEqual([]);
+    });
+
+    await step(STEPS[12], async () => {
+      await page.goto(`/dashboards/${starter.id}`);
+      const profileButton = page.locator("button.profile");
+      await expect(page.getByRole("dialog", { name: "Tour" }), "a seen tour does not start").toHaveCount(0);
+
+      // ? opens Help: states, the materiality levels from the API with this run's counts, shortcuts.
+      await page.keyboard.press("?");
+      const help = page.getByRole("dialog", { name: "Help" });
+      const states = help.getByRole("region", { name: "States" });
+      await expect(states.locator(".help-row .badge")).toHaveText(["New", "Updated", "Watch", "Needs attention", "Stable"]);
+      const levels = await unwrap(api.GET("/materiality-levels"));
+      const attention = levels.filter((l) => l.needs_attention).map((l) => l.name).reverse().join(" or ");
+      await expect(states.locator(".help-row").nth(3)).toContainText(`Rated ${attention}.`);
+      const rows = help.getByRole("region", { name: "Materiality" }).locator(".help-row");
+      await expect(rows.locator("b")).toHaveText(levels.map((l) => l.name));
+      await expect(rows.first()).toContainText(`${levels[0].developments} this run`);
+      await expect(help.getByRole("region", { name: "Keyboard shortcuts" })).toContainText("Help");
+
+      // Replay tour: five coach marks over the dimmed dashboard, focus on each step's primary button.
+      await help.getByRole("button", { name: "Replay tour" }).click();
+      await expect(help).toBeHidden();
+      const tour = page.getByRole("dialog", { name: "Tour" });
+      const card = tour.getByRole("group");
+      const next = tour.getByRole("button", { name: "Next" });
+      const drawer = page.getByTestId("evidence-drawer");
+      // The ring follows the drawer to where its slide-in ends.
+      const ringOnDrawer = () =>
+        expect
+          .poll(async () => {
+            const [ring, box] = await Promise.all([tour.locator(".tour-ring").boundingBox(), drawer.boundingBox()]);
+            return ring && box ? Math.abs(ring.x - box.x) : null;
+          })
+          .toBeLessThan(2);
+      const titles = ["Dashboards and monitors", "Since your last review", "Evidence", "Mark reviewed", "Generate a dashboard"];
+      for (const [i, title] of titles.entries()) {
+        await expect(card).toHaveAccessibleName(title);
+        await expect(card).toContainText(`${i + 1} of 5`);
+        const primary = tour.getByRole("button", { name: i === 4 ? "Done" : "Next" });
+        await expect(primary).toBeFocused();
+        if (i === 1) {
+          // The ring sits on the Since widget.
+          const ring = await tour.locator(".tour-ring").boundingBox();
+          const since = await page.getByRole("main").getByRole("group", { name: "Since your last review" }).boundingBox();
+          expect(ring && since && Math.abs(ring.x - since.x) + Math.abs(ring.y - since.y) + Math.abs(ring.width - since.width)).toBeLessThan(2);
+        }
+        if (i === 2) {
+          await expect(page).toHaveURL(/[?&]evidence=/);
+          await ringOnDrawer();
+          // Back closes the drawer again.
+          await tour.getByRole("button", { name: "Back" }).click();
+          await expect(page).toHaveURL(`/dashboards/${starter.id}`);
+          await expect(card).toHaveAccessibleName(titles[1]);
+          await next.click();
+          await expect(page).toHaveURL(/[?&]evidence=/);
+        }
+        await primary.press("Enter");
+      }
+      await expect(tour).toHaveCount(0);
+      await expect(profileButton).toBeFocused();
+      expect((await unwrap(api.GET("/profile"))).tour_seen_at, "Replay records the tour as seen").toBeTruthy();
+
+      // From the profile menu's Help item: Esc at the evidence step ends the tour and closes the drawer.
+      await profileButton.click();
+      await page.getByRole("menuitem", { name: "Help" }).click();
+      await help.getByRole("button", { name: "Replay tour" }).click();
+      await next.click();
+      await next.click();
+      await expect(drawer).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(tour).toHaveCount(0);
+      await expect(page).toHaveURL(`/dashboards/${starter.id}`);
+      await expect(drawer).toHaveCount(0);
+      await expect(profileButton).toBeFocused();
+
+      // The step's screenshot shows the evidence step.
+      await page.keyboard.press("?");
+      await help.getByRole("button", { name: "Replay tour" }).click();
+      await next.click();
+      await next.click();
+      await expect(card).toHaveAccessibleName("Evidence");
+      await expect(drawer.locator(".source").first()).toBeVisible();
+      await ringOnDrawer();
     });
 
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);

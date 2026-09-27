@@ -14,6 +14,11 @@ from fastapi.routing import APIRoute
 
 from intelmonitor.agent.generate import encode_events
 from intelmonitor.pipeline import runlog
+from intelmonitor.pipeline.params import (
+    MATERIALITY_LEVELS,
+    MATERIALITY_RUBRIC,
+    NEEDS_ATTENTION_LEVEL,
+)
 from intelmonitor.pipeline.subjects import all_subjects
 from intelmonitor.server import alerts as alert_list
 from intelmonitor.server import custom_questions as cq
@@ -35,6 +40,7 @@ from intelmonitor.server.models import (
     DocumentDetail,
     Graph,
     LinkType,
+    MaterialityLevel,
     MonitorPage,
     NodeType,
     Note,
@@ -57,6 +63,7 @@ from intelmonitor.server.models import (
     WhatChanged,
 )
 from intelmonitor.server.queries import (
+    MATERIAL_LEVEL,
     NoRunError,
     NotFoundError,
     Queries,
@@ -532,7 +539,7 @@ def delete_custom_question(q: Q, question_id: str) -> None:
     dash.drop_question_widgets(q.conn, question_id)
 
 
-# ---- profile menu: settings, data sources, run history
+# ---- profile menu: settings, data sources, run history, help
 
 
 _DEFAULT_PROFILE = Profile(
@@ -556,6 +563,29 @@ def update_profile(q: Q, profile: Profile) -> Profile:
         dash.get_dashboard(q.conn, profile.default_dashboard_id)
     set_meta(q.conn, "profile", profile.model_dump_json())
     return profile
+
+
+@app.get("/materiality-levels")
+def materiality_levels(q: Q) -> list[MaterialityLevel]:
+    """Materiality levels for Help, most material first, with the latest run's count at each."""
+    counts = dict(
+        q.conn.execute(
+            "SELECT materiality_level, count(*) FROM developments WHERE run_id = ? "
+            "GROUP BY materiality_level",
+            (q.run.id,),
+        ).fetchall()
+    )
+    return [
+        MaterialityLevel(
+            level=level,
+            name=name,
+            description=MATERIALITY_RUBRIC[level],
+            material=level >= MATERIAL_LEVEL,
+            needs_attention=level >= NEEDS_ATTENTION_LEVEL,
+            developments=counts.get(level, 0),
+        )
+        for level, name in reversed(list(enumerate(MATERIALITY_LEVELS)))
+    ]
 
 
 # ---- top bar: run status chip, Runs popover, alerts

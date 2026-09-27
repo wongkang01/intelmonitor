@@ -84,7 +84,7 @@ export function EvidenceDrawer() {
   const failed = developmentId ? development.isError : answerEvidence.isError;
 
   return (
-    <aside className="drawer" aria-labelledby="evidence-title" data-testid="evidence-drawer">
+    <aside className="drawer" aria-labelledby="evidence-title" data-testid="evidence-drawer" data-tour="evidence">
       <div className="sheet-head">
         <h2 id="evidence-title" tabIndex={-1} ref={heading}>
           Evidence

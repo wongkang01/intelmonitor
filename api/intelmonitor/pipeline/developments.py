@@ -23,6 +23,7 @@ from intelmonitor.pipeline.inference import Inference, StepFailed, noul, score
 from intelmonitor.pipeline.params import (
     EMBEDDING_MODEL,
     MATERIALITY_LEVELS,
+    MATERIALITY_RUBRIC,
     MERGE_MAX_NEIGHBOURS,
     MERGE_MIN_SIMILARITY,
     MERGE_WINDOW_DAYS,
@@ -207,18 +208,7 @@ def cluster(
 
 
 MATERIALITY_CRITERIA = [
-    f"{name}: {desc}"
-    for name, desc in zip(
-        MATERIALITY_LEVELS,
-        [
-            "routine or without consequence for the subjects",
-            "small, expected or narrowly local impact",
-            "worth knowing; a moderate change for a tracked subject",
-            "an important change likely to need supervisory follow-up",
-            "severe, urgent or systemic; needs immediate attention",
-        ],
-        strict=True,
-    )
+    f"{name}: {desc}" for name, desc in zip(MATERIALITY_LEVELS, MATERIALITY_RUBRIC, strict=True)
 ]
 MATERIALITY = Score(
     instructions=(

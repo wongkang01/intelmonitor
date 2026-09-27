@@ -512,6 +512,20 @@ class Profile(BaseModel):
     display_name: str
     role: str
     default_dashboard_id: str | None
+    tour_seen_at: datetime | None = Field(
+        default=None, description="When the first-run tour last started; null shows it once"
+    )
+
+
+class MaterialityLevel(BaseModel):
+    """A materiality level for Help: what it means and how the app treats it."""
+
+    level: int = Field(ge=0, le=4)
+    name: str
+    description: str
+    material: bool = Field(description="Counted as material, as in the Direction widget")
+    needs_attention: bool
+    developments: int = Field(description="Developments at this level in the latest run")
 
 
 class ReviewRequest(BaseModel):

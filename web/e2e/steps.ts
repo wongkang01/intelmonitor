@@ -13,6 +13,7 @@ export const STEPS = [
   "Sidebar: drag and Move up reorder dashboards, colors stay",
   "⌘K full text: a development and a document open their evidence, snippets are body text",
   "Correct the AI: mark an answer wrong and Undo, remove a tag and Undo",
+  "Help: ? opens it, Replay tour walks the five coach marks, Esc skips and puts the page back",
 ] as const;
 
 /** Where each run writes its artifacts; playwright.config.ts sets it once per run. */

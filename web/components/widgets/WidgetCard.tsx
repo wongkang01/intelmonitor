@@ -75,6 +75,7 @@ export function WidgetCard({
       className={classes.filter(Boolean).join(" ")}
       style={style}
       data-widget-id={variant === "grid" ? widget.id : undefined}
+      data-widget-type={variant === "grid" ? widget.type : undefined}
       data-href={interactive && href ? href : undefined}
       role="group"
       aria-label={name}
