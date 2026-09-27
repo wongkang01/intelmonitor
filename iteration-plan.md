@@ -101,7 +101,9 @@ Mocks: `mocks/*.html`. Picks from the user on 2026-09-27 are noted per item.
 
 1. **Trend section on monitor pages.** Picked A (`mocks/trend.html`), but on hold.
    The mocks chart counts of developments; the user wants trends to show how the analysis of a topic, group or entity moves over time.
-   That may need backfilled runs or a new pipeline stage, and is being reconsidered before any UI is built.
+   Deferred until pilot feedback on the current POC and a larger ingest make trend analysis possible.
+   `mocks/trend-future.html` shows three directions for a trend widget and a Trend section or tab on the assumption that a year of weekly runs exists: A Ledger (question state history), B Brief (a written trajectory with turning points), C Drivers (themes by month and peer comparison).
+   The `GET /subjects/{id}/trend` endpoint from A7 stays as groundwork.
 2. **Onboarding and help.** Picked A (`mocks/onboarding.html`): coach marks.
    A first-run tour of 5 steps shown one at a time over the dimmed dashboard: sidebar (dashboards and monitors), the Since widget, the evidence drawer, Mark all reviewed, New dashboard and Generate. Back, Next and Skip.
    Help is a profile-menu dialog with a glossary of states (New, Updated, Watch, Needs attention, Stable) and materiality levels, the shortcuts, and Replay tour. It replaces the Keyboard shortcuts item, and `?` opens it.
@@ -151,7 +153,8 @@ Mocks: `mocks/*.html`. Picks from the user on 2026-09-27 are noted per item.
    Two bugs found while mocking are fixed with it.
    The monitor rail stuck at 80 px, so a rail taller than the window hid its foot (the note field) until the page end; one that tall now scrolls until its foot is 24 px above the window's bottom and sticks there, using a `--rail-h` that `trackRailHeight` keeps current.
    ⌘K document snippets came from FTS5 over the raw text, so they often restated the title or began with markdown; the API now builds them from the body: markdown stripped, lines restating the title, level-1 headings and a first line that is not a sentence skipped, then the line with the most typed words, starting at its sentence or two words before the first match.
-6. **Developments list.** Picked B (`mocks/developments.html`): filter bar and sortable table. Where it lives is an open question.
+6. **Developments list.** Picked B (`mocks/developments.html`): filter bar and sortable table.
+   It stays a drill-in for dashboards only: `/developments?dashboard=<id>`, reached from a dashboard widget's "Show all" and the Developments widget's "in scope" count. No sidebar entry, no monitor-page or ⌘K entry.
 7. **Document reader and source labels.** Dropped: the evidence drawer is enough.
 8. **Tablet layout.** Dropped: the app is desktop web only.
 
