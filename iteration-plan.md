@@ -111,6 +111,18 @@ Mocks: `mocks/*.html`. Picks from the user on 2026-09-27 are noted per item.
    Mark reviewed sets a watermark per subject; "new" counts developments changed in runs after the watermark and not individually read. It keeps flags and dismissals.
    Follows are an explicit list, seeded from the subjects on dashboards and extended when a dashboard is created; the page-head Follow button can unfollow any subject.
    Alerts cover followed subjects only, with per-item read, and opening an item marks it read. The bell counts every unread alert.
+   Built: a subject's watermark is the run its latest review covered, else the previous run; a development is new when a run after the watermark added or updated it.
+   Where a development shows under several subjects of one scope (a dashboard), the latest of their watermarks applies.
+   `WhatChanged` now carries `reviewed_at` and, per development, `unreviewed`, `read`, `flagged` and `dismissed`; it still lists the latest run's changes after a review, for the fold.
+   Its counts, the Since widget, the sidebar and watchlist counts all count unreviewed developments that are not read or dismissed, so Mark reviewed now clears them.
+   `development_triage` holds read (as the run it was read in, so a later change unreads it), flagged and dismissed; `PATCH /developments/{id}/triage` sets them, and the old per-run `alert_reads` were folded into it.
+   `POST /reviews` returns review ids and `DELETE /reviews/{id}` is the toast's Undo; Mark reviewed is disabled when nothing is new.
+   `follows` was seeded once from the subjects on dashboards, and creating a dashboard follows its subjects; `GET`, `PUT` and `DELETE /follows/{subject_id}` back the page-head button and the Manage dialog in the alerts foot.
+   Alerts leave out dismissed developments.
+   The dashboard's What changed page (`/developments?...&changed=1`) now reads `GET /what-changed` and uses the monitor page's section, so it matches the Since widget after a review too.
+   Row actions show on focus as well as hover; after an action takes a row out of its filter, focus moves to the same action on the next row.
+   On a touch screen the actions always show as 44 px squares.
+   The leftover test reviews of OCBC, DBS, UOB, Malaysia and Paxos now count, so those pages open on "Nothing new since your review".
 4. **Correct the AI.** Picked A (`mocks/feedback.html`): inline per claim.
    "Mark wrong" under an answer in the drawer and in question-row meta opens an inline form (what is wrong, what it should be, reason).
    Each subject tag has a "Wrong" link with a reason and Remove tag.

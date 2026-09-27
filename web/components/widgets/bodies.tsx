@@ -7,12 +7,13 @@ import { useState, type KeyboardEvent } from "react";
 
 import type { Schema, Widget, WidgetData } from "@/lib/api/client";
 import { useMarkReviewed, useSubjects, type DataOf } from "@/lib/api/queries";
-import { answerText, dateTime, daysBetween, inDays, plural, shortDate } from "@/lib/format";
+import { answerText, daysBetween, inDays, plural, runMeta, shortDate, whenAt } from "@/lib/format";
 import { useCoarsePointer } from "@/lib/dom";
 import { monitorHref, setEntities } from "@/lib/widgets";
 import { PlusIcon, XIcon } from "@/components/ui/icons";
 import { useEvidenceHref } from "@/components/shell/Evidence";
 import { SubjectLink } from "@/components/shell/SubjectLink";
+import { hasUnreviewed } from "@/components/monitor/WhatChanged";
 
 import { DevelopmentRow, Head, StateBadge, StateWords, stateText } from "./parts";
 import { SubjectIcon } from "@/components/ui/SubjectIcon";
@@ -46,12 +47,6 @@ export function WidgetBody({ data, ...props }: BodyProps & { data: WidgetData })
 const needs = (n: number) => `${n} ${n === 1 ? "needs" : "need"} attention`;
 const lower = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
 
-/** "Run of 24 Sep against 17 Sep"; run ids are their as-of dates. */
-const runMeta = (run: Schema<"RunRef">) =>
-  run.previous_run_id
-    ? `Run of ${shortDate(run.as_of)} against ${shortDate(run.previous_run_id)}`
-    : `Run of ${shortDate(run.as_of)}`;
-
 /**
  * Rows shown under the Needs attention label, then New fills up to `until` rows (Large only). The 44px
  * touch rows from `styles/touch.css` fit one row fewer.
@@ -61,6 +56,10 @@ const SINCE_ROWS = {
   touch: { M: 1, L: 5, until: 4 },
 } as const;
 
+/**
+ * Counts and rows since the review of the widget's subjects, as on their monitor pages: dismissed
+ * developments leave, and read ones leave New.
+ */
 function SinceBody({ data, widget, href }: BodyProps & { data: DataOf<"since"> }) {
   const wc = data.what_changed;
   const review = useMarkReviewed();
@@ -69,15 +68,21 @@ function SinceBody({ data, widget, href }: BodyProps & { data: DataOf<"since"> }
   const hero =
     [wc.new_count > 0 && `${wc.new_count} new`, wc.needs_attention_count > 0 && needs(wc.needs_attention_count)]
       .filter(Boolean)
-      .join(", ") || (wc.updated_count > 0 ? `${wc.updated_count} updated` : "No new developments");
-  const attention = wc.developments.filter((d) => d.needs_attention);
-  const fresh = wc.developments.filter((d) => !d.needs_attention && d.change === "new");
+      .join(", ") ||
+    (wc.updated_count > 0
+      ? `${wc.updated_count} updated`
+      : wc.reviewed_at && !hasUnreviewed(wc)
+        ? "Nothing new since your review"
+        : "No new developments");
+  const current = wc.developments.filter((d) => d.unreviewed && !d.dismissed);
+  const attention = current.filter((d) => d.needs_attention);
+  const fresh = current.filter((d) => !d.needs_attention && d.change === "new" && !d.read);
   const attentionShown = attention.slice(0, rows[size]);
   const room = size === "L" ? rows.until - attentionShown.length : attentionShown.length ? 0 : 1;
   const freshShown = fresh.slice(0, Math.max(0, room));
   const changes = [
     wc.updated_count ? `${wc.updated_count} updated` : null,
-    `${plural(wc.question_changes.length, "answer")} changed`,
+    `${plural(wc.question_changes.filter((c) => c.unreviewed).length, "answer")} changed`,
   ].filter(Boolean);
   // Previews and edit mode have no href but keep the layout.
   const showAll = href ? (
@@ -124,13 +129,13 @@ function SinceBody({ data, widget, href }: BodyProps & { data: DataOf<"since"> }
           <button
             type="button"
             className="link"
-            disabled={review.isPending}
+            disabled={review.isPending || !hasUnreviewed(wc)}
             onClick={() => review.mutate(data.scope.map((s) => s.id))}
           >
             Mark all reviewed
           </button>
           <span className="w-meta">
-            {data.reviewed_at ? `Reviewed ${dateTime(data.reviewed_at)}` : changes.join(" · ")}
+            {wc.reviewed_at && !hasUnreviewed(wc) ? `Reviewed ${whenAt(wc.reviewed_at)}` : changes.join(" · ")}
           </span>
         </div>
       )}

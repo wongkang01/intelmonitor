@@ -19,11 +19,14 @@ import type { Schema } from "@/lib/api/client";
 import {
   searchOptions,
   useAlerts,
+  useFollow,
+  useFollows,
   useMarkAlertsRead,
   useRunNow,
   useRunStatus,
   useRuns,
   useSearch,
+  useSetTriage,
 } from "@/lib/api/queries";
 import { duration, plural, relativeTime, shortDate, shortTime, TYPE_LABEL } from "@/lib/format";
 import { monitorHref } from "@/lib/widgets";
@@ -32,10 +35,13 @@ import {
   CheckIcon,
   ChevronDownIcon,
   ExclamationIcon,
+  ReadIcon,
   RunningIcon,
   SearchIcon,
+  UnreadIcon,
   XIcon,
 } from "@/components/ui/icons";
+import { CloseButton, Modal } from "@/components/ui/Modal";
 
 import { drawerHref, useEvidenceHref } from "./Evidence";
 import { SubjectIcon } from "@/components/ui/SubjectIcon";
@@ -502,6 +508,7 @@ const ALERT_GROUPS: { badge: Alert["badge"]; label: string; tone: "attn" | "watc
 function AlertsButton({ open, onToggle, onClose }: PopoverProps) {
   const { wrap, trigger } = useDismiss(open, onClose);
   const alerts = useAlerts();
+  const [managing, setManaging] = useState(false);
   const unread = alerts.data?.unread;
   const count = unread?.total ?? 0;
   const tone = unread && unread.needs_attention > 0 ? "attn" : "watch";
@@ -525,7 +532,25 @@ function AlertsButton({ open, onToggle, onClose }: PopoverProps) {
           </span>
         )}
       </button>
-      {open && <AlertsPopover data={alerts.data} failed={alerts.isError} onClose={onClose} />}
+      {open && (
+        <AlertsPopover
+          data={alerts.data}
+          failed={alerts.isError}
+          onClose={onClose}
+          onManage={() => {
+            onClose();
+            setManaging(true);
+          }}
+        />
+      )}
+      <FollowingDialog
+        open={managing}
+        onClose={() => {
+          setManaging(false);
+          // The dialog hands focus back to Manage, which went with the popover.
+          requestAnimationFrame(() => trigger.current?.focus());
+        }}
+      />
     </div>
   );
 }
@@ -534,12 +559,15 @@ function AlertsPopover({
   data,
   failed,
   onClose,
+  onManage,
 }: {
   data?: Schema<"Alerts">;
   failed: boolean;
   onClose: () => void;
+  onManage: () => void;
 }) {
   const markRead = useMarkAlertsRead();
+  const setTriage = useSetTriage();
   const evidence = useEvidenceHref();
   const count = data?.unread.total ?? 0;
   const groups = ALERT_GROUPS.map((g) => ({ ...g, alerts: data?.alerts.filter((a) => a.badge === g.badge) ?? [] }));
@@ -564,30 +592,108 @@ function AlertsPopover({
           </button>
         </>
       }
+      foot={
+        data && (
+          <>
+            <span className="cap grow">From {plural(data.followed, "followed subject")}</span>
+            <button type="button" className="btn btn-sm btn-ghost accent" onClick={onManage}>
+              Manage
+            </button>
+          </>
+        )
+      }
     >
-      {groups.map(
-        (g) =>
+      {groups.map((g) => {
+        const unread = g.alerts.filter((a) => !a.read).length;
+        return (
           g.alerts.length > 0 && (
             <section key={g.badge} aria-label={g.label}>
               <h3 className="pop-group">
-                {g.label} · {g.alerts.length}
+                {g.label} · {unread ? `${unread} unread` : g.alerts.length}
               </h3>
               {g.alerts.map((a) => (
-                <Link key={a.id} href={evidence.development(a.id)} scroll={false} className="row" onClick={onClose}>
+                <div key={a.id} className={`row alert-row${a.read ? " is-read" : ""}`}>
                   <span className="stat">
                     <span className={`badge b-${g.tone}`}>{g.label}</span>
                   </span>
-                  <span>
-                    <span className="row-title">{a.title}</span>
+                  <Link
+                    href={evidence.development(a.id)}
+                    scroll={false}
+                    className="alert-body"
+                    onClick={() => {
+                      if (!a.read) setTriage.mutate({ id: a.id, change: { read: true } });
+                      onClose();
+                    }}
+                  >
+                    <span className="row-title">
+                      {!a.read && <span className="new-dot" role="img" aria-label="Unread" />}
+                      {a.title}
+                    </span>
                     <span className="row-meta">{a.meta}</span>
-                  </span>
-                </Link>
+                  </Link>
+                  <button
+                    type="button"
+                    className="btn-icon alert-read"
+                    aria-label={a.read ? "Mark unread" : "Mark read"}
+                    title={a.read ? "Mark unread" : "Mark read"}
+                    onClick={() => setTriage.mutate({ id: a.id, change: { read: !a.read } })}
+                  >
+                    {a.read ? <UnreadIcon /> : <ReadIcon />}
+                  </button>
+                </div>
               ))}
             </section>
-          ),
+          )
+        );
+      })}
+      {data?.alerts.length === 0 && (
+        <p className="empty">
+          {data.followed ? "Nothing new on followed subjects needs attention or watching." : "Follow a subject from its page to get alerts."}
+        </p>
       )}
-      {data?.alerts.length === 0 && <p className="empty">Nothing in the latest run needs attention or watching.</p>}
       {failed && <p className="empty">Could not load alerts.</p>}
     </Popover>
+  );
+}
+
+/** The subjects alerts cover, each with Unfollow. Following one happens on its monitor page. */
+function FollowingDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const follows = useFollows();
+  const follow = useFollow();
+  return (
+    <Modal open={open} onClose={onClose} labelledBy="following-title" className="panel">
+      <div className="sheet-head">
+        <h2 id="following-title">Following</h2>
+        <CloseButton onClick={onClose} />
+      </div>
+      <div className="panel-body">
+        <p className="cap">Alerts cover these subjects. Follow others from their monitor pages.</p>
+        {follows.data?.length === 0 && <p className="cap">You follow no subjects.</p>}
+        <div className="rows following">
+          {follows.data?.map((s) => (
+            <div key={s.id} className="row no-stat">
+              <span className="following-name">
+                <span className="following-icon">
+                  <SubjectIcon subject={s} />
+                </span>
+                <Link href={monitorHref(s.id)} className="subject-link" onClick={onClose}>
+                  {s.name}
+                </Link>
+                <span className="meta">{TYPE_LABEL[s.type]}</span>
+              </span>
+              <button
+                type="button"
+                className="btn btn-sm"
+                aria-label={`Unfollow ${s.name}`}
+                onClick={() => follow.mutate({ subjectId: s.id, follow: false })}
+              >
+                Unfollow
+              </button>
+            </div>
+          ))}
+        </div>
+        {follows.isError && <p className="cap">Could not load followed subjects.</p>}
+      </div>
+    </Modal>
   );
 }

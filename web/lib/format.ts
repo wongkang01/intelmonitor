@@ -59,6 +59,12 @@ export function relativeTime(iso: string): string {
   return near ? `${near} ${clock(iso)}` : dateTime(iso);
 }
 
+/** "today at 04:01", "yesterday at 04:01" or "23 Sep at 04:01", to follow a verb: "Reviewed today at 04:01". */
+export function whenAt(iso: string): string {
+  const near = RELATIVE_DAY[dayOffset(new Date(iso))];
+  return near ? `${near.toLowerCase()} at ${clock(iso)}` : dateTime(iso);
+}
+
 /** The short past form: "04:01" today, then "yesterday", then "23 Sep". */
 export function shortTime(iso: string): string {
   const at = new Date(iso);
@@ -95,6 +101,12 @@ export const changeCounts = (c: Pick<Schema<"WhatChanged">, "new_count" | "updat
   ]
     .filter(Boolean)
     .join(", ");
+
+/** "Run of 24 Sep against 17 Sep"; run ids are their as-of dates. */
+export const runMeta = (run: Schema<"RunRef">) =>
+  run.previous_run_id
+    ? `Run of ${shortDate(run.as_of)} against ${shortDate(run.previous_run_id)}`
+    : `Run of ${shortDate(run.as_of)}`;
 
 /** First letters of up to three words: "Wong Kang" is "WK", "DBS" is "D". */
 export const initials = (name: string) =>

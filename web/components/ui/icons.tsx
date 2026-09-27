@@ -152,3 +152,53 @@ export const FitIcon = () => (
     />
   </svg>
 );
+
+/** Mark read: a ringed tick. */
+export const ReadIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <circle cx="8" cy="8" r="5.6" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M5.6 8.1 7.3 9.8l3.1-3.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+/** Mark unread: a ringed dot. */
+export const UnreadIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <circle cx="8" cy="8" r="5.6" stroke="currentColor" strokeWidth="1.5" />
+    <circle cx="8" cy="8" r="2.2" fill="currentColor" />
+  </svg>
+);
+
+/** A pennant: 16px for the Flag button, outlined until `filled`; 12px and filled beside a flagged row's date. */
+export const FlagIcon = ({ size = 16, filled = false }: { size?: 12 | 16; filled?: boolean }) =>
+  size === 12 ? (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path d="M3 11V2.2M3 2.5h6l-1.3 2.2L9 6.9H3Z" fill="currentColor" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+    </svg>
+  ) : (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M4 14V2.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M4 3.2h7.6l-1.7 2.9 1.7 2.9H4Z"
+        fill={filled ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+
+/** Dismiss: an archive box. */
+export const DismissIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <rect x="2.5" y="3" width="11" height="3" rx="1" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M3.5 6v6a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V6M6.5 9h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+/** The tick on a Following button. */
+export const TickIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M3.5 8.4 6.6 11.4 12.5 4.8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);

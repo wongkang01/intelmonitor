@@ -79,7 +79,8 @@ export function DevelopmentBadge({ development: d }: { development: Schema<"Deve
  * a meta line, and the date right-aligned. Subject names link to their pages; pass `subjects` to
  * name others (a group's members) than the development's first two. Widgets pass `meta={false}`
  * for the compact row, and `status={false}` when a group label above the rows carries the status.
- * `link={false}` renders a plain row, for dialogs that would cover the evidence drawer.
+ * `link={false}` renders a plain row, for dialogs that would cover the evidence drawer. `end` replaces
+ * the date column, and `className` adds to the row's classes (What changed's triage rows).
  */
 export function DevelopmentRow({
   development: d,
@@ -88,6 +89,8 @@ export function DevelopmentRow({
   status = true,
   link = true,
   lines = 2,
+  end,
+  className,
 }: {
   development: Schema<"DevelopmentSummary">;
   subjects?: Schema<"SubjectRef">[];
@@ -96,13 +99,15 @@ export function DevelopmentRow({
   link?: boolean;
   /** Title lines before it truncates. */
   lines?: 1 | 2;
+  end?: ReactNode;
+  className?: string;
 }) {
   const evidence = useEvidenceHref();
   // Unlinked rows sit in dialogs, where subject links would leave the dialog.
   const named = link ? (subjects ?? d.subjects.slice(0, 2)) : [];
   const more = link && !subjects ? d.subjects.length - named.length : 0;
   return (
-    <div className={`row dev${status ? "" : " no-stat"}`}>
+    <div className={["row dev", !status && "no-stat", className].filter(Boolean).join(" ")}>
       {status && (
         <span className="stat">
           <DevelopmentBadge development={d} />
@@ -135,7 +140,7 @@ export function DevelopmentRow({
           </span>
         )}
       </span>
-      <span className="row-end">{shortDate(d.last_published)}</span>
+      {end ?? <span className="row-end">{shortDate(d.last_published)}</span>}
     </div>
   );
 }

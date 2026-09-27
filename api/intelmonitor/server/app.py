@@ -3,7 +3,7 @@
 import sqlite3
 from collections.abc import AsyncGenerator, Iterator
 from contextlib import asynccontextmanager
-from datetime import date, datetime
+from datetime import date
 from typing import Annotated
 
 from ag_ui.core import RunAgentInput
@@ -19,6 +19,7 @@ from intelmonitor.server import alerts as alert_list
 from intelmonitor.server import custom_questions as cq
 from intelmonitor.server import dashboards as dash
 from intelmonitor.server import runs
+from intelmonitor.server import triage as tri
 from intelmonitor.server.evidence import development_sources, document_detail, new_documents
 from intelmonitor.server.graph import neighbourhood
 from intelmonitor.server.models import (
@@ -43,8 +44,12 @@ from intelmonitor.server.models import (
     SearchResults,
     SubjectConfidence,
     SubjectDetail,
+    SubjectRef,
     SubjectSummary,
     SubjectTrend,
+    Triage,
+    TriageChange,
+    WhatChanged,
 )
 from intelmonitor.server.queries import (
     NoRunError,
@@ -74,6 +79,7 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
     conn = connect()
     purge_deleted(conn)
     dash.seed_dashboards(conn)
+    tri.seed_follows(conn)
     runlog.interrupt_stale(conn)
     runlog.backfill(conn)
     runlog.migrate(conn)
@@ -165,7 +171,6 @@ def get_monitor_page(q: Q, subject_id: str) -> MonitorPage:
         upcoming=q.upcoming([subject_id]),
         stage_track=q.stage_track(subject_id) if s.type == "topic" else None,
         group=q.group_insights(subject_id) if s.type == "group" else None,
-        reviewed_at=q.reviewed_at([subject_id]),
         notes=q.notes(subject_id=subject_id),
     )
 
@@ -202,12 +207,35 @@ def list_developments(
 ) -> list[DevelopmentSummary]:
     """The latest run's developments in display order, optionally for some subjects (groups
     include their members), for a dashboard's subjects, or only those new or updated since the
-    previous run. A dashboard's changed developments are the ones its Since widget counts."""
+    previous run. What changed since the review, as a Since widget counts it, is /what-changed."""
     ids = list(subject_id or [])
     if dashboard_id is not None:
         ids += dash.get_dashboard(q.conn, dashboard_id).subject_ids
     devs = q.developments_in(ids) if ids else list(q.devs.by_id.values())
     return [d for d in devs if d.change or not changed][:limit]
+
+
+@app.get("/what-changed")
+def get_what_changed(
+    q: Q,
+    subject_id: Annotated[list[str] | None, Query()] = None,
+    dashboard_id: str | None = None,
+) -> WhatChanged:
+    """What changed since the last review of some subjects (groups include their members) or of
+    a dashboard's subjects: what a dashboard-wide Since widget counts."""
+    ids = [subject(i).id for i in subject_id or []]
+    if dashboard_id is not None:
+        ids += dash.get_dashboard(q.conn, dashboard_id).subject_ids
+    if not ids:
+        raise HTTPException(422, "what changed needs a subject_id or a dashboard_id")
+    return q.what_changed(ids)
+
+
+@app.patch("/developments/{development_id}/triage")
+def set_triage(q: Q, development_id: str, change: TriageChange) -> Triage:
+    """Marks a development read or unread, flagged or not, dismissed or not; states left out of
+    the body stay as they are."""
+    return tri.set_triage(q, development_id, change)
 
 
 @app.get("/developments/{development_id}")
@@ -306,7 +334,10 @@ def list_dashboards(q: Q) -> list[Dashboard]:
 
 @app.post("/dashboards", status_code=201)
 def create_dashboard(q: Q, spec: DashboardSpec) -> Dashboard:
-    return dash.create_dashboard(q.conn, spec)
+    """Creates a dashboard and follows its subjects."""
+    created = dash.create_dashboard(q.conn, spec)
+    tri.follow(q.conn, created.subject_ids)
+    return created
 
 
 # Declared before /dashboards/{dashboard_id} so "order" is not read as an id.
@@ -350,19 +381,33 @@ def get_dashboard_data(q: Q, dashboard_id: str) -> list[WidgetData]:
 
 @app.post("/reviews", status_code=201)
 def mark_reviewed(q: Q, request: ReviewRequest) -> list[Review]:
-    at = now()
-    ids = list(dict.fromkeys(request.subject_ids))
-    for sid in ids:
-        q.conn.execute(
-            "INSERT INTO analyst_actions (kind, subject_id, run_id, created_at) "
-            "VALUES ('review', ?, ?, ?)",
-            (sid, q.run.id, at),
-        )
-    q.conn.commit()
-    return [
-        Review(subject_id=sid, run_id=q.run.id, created_at=datetime.fromisoformat(at))
-        for sid in ids
-    ]
+    """Sets each subject's review watermark to the latest run: its What changed then counts from
+    later runs. Flags and dismissals stay."""
+    return tri.mark_reviewed(q, request.subject_ids)
+
+
+@app.delete("/reviews/{review_id}", status_code=204)
+def undo_review(q: Q, review_id: int) -> None:
+    """Undo Mark reviewed: the subject counts from its review before."""
+    tri.undo_review(q.conn, review_id)
+
+
+@app.get("/follows")
+def list_follows(q: Q) -> list[SubjectRef]:
+    """Followed subjects, oldest first. Alerts cover these."""
+    return tri.follows(q.conn)
+
+
+@app.put("/follows/{subject_id}")
+def follow_subject(q: Q, subject_id: str) -> list[SubjectRef]:
+    tri.follow(q.conn, [subject_id])
+    return tri.follows(q.conn)
+
+
+@app.delete("/follows/{subject_id}")
+def unfollow_subject(q: Q, subject_id: str) -> list[SubjectRef]:
+    tri.unfollow(q.conn, subject_id)
+    return tri.follows(q.conn)
 
 
 @app.get("/notes")
@@ -510,7 +555,7 @@ def list_alerts(q: Q) -> Alerts:
 
 @app.post("/alerts/read")
 def mark_alerts_read(q: Q) -> Alerts:
-    """Mark every current alert read; the alerts stay listed."""
+    """Mark every current alert's development read; the alerts stay listed."""
     return alert_list.mark_all_read(q)
 
 

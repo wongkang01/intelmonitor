@@ -25,6 +25,35 @@
   .swatches {
     grid-template-columns: repeat(4, 1fr);
   }
+  /* Triage and alert actions always show, since there is no hover; each is a 44px square. */
+  .row.dev.triage {
+    grid-template-columns: var(--stat) minmax(0, 1fr) auto;
+  }
+  .triage-date,
+  .row.triage:is(:hover, :focus-within) .triage-date {
+    display: none;
+  }
+  .triage-acts {
+    display: inline-flex;
+    gap: 0;
+    margin: -13px -8px -13px 0;
+  }
+  .triage-acts .btn-icon,
+  .alert-read {
+    width: 44px;
+    height: 44px;
+  }
+  .triage-acts .btn-icon::after,
+  .alert-read::after {
+    inset: 0;
+  }
+  .pop .row.alert-row {
+    grid-template-columns: var(--stat) minmax(0, 1fr) 44px;
+  }
+  .alert-read {
+    margin: calc(-1 * var(--s-2)) calc(-1 * var(--s-2)) 0 0;
+    opacity: 1;
+  }
   /* The sidebar options button: 44px wide and the row's full height. */
   .more-btn::after {
     inset: -10px -4px -10px -16px;

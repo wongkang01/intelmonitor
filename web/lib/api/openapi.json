@@ -317,6 +317,122 @@
         }
       }
     },
+    "/what-changed": {
+      "get": {
+        "summary": "Get What Changed",
+        "description": "What changed since the last review of some subjects (groups include their members) or of\na dashboard's subjects: what a dashboard-wide Since widget counts.",
+        "operationId": "get_what_changed",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "dashboard_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dashboard Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatChanged"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/developments/{development_id}/triage": {
+      "patch": {
+        "summary": "Set Triage",
+        "description": "Marks a development read or unread, flagged or not, dismissed or not; states left out of\nthe body stay as they are.",
+        "operationId": "set_triage",
+        "parameters": [
+          {
+            "name": "development_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Development Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriageChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Triage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/developments/{development_id}": {
       "get": {
         "summary": "Get Development",
@@ -682,6 +798,7 @@
       },
       "post": {
         "summary": "Create Dashboard",
+        "description": "Creates a dashboard and follows its subjects.",
         "operationId": "create_dashboard",
         "requestBody": {
           "content": {
@@ -1002,6 +1119,7 @@
     "/reviews": {
       "post": {
         "summary": "Mark Reviewed",
+        "description": "Sets each subject's review watermark to the latest run: its What changed then counts from\nlater runs. Flags and dismissals stay.",
         "operationId": "mark_reviewed",
         "requestBody": {
           "content": {
@@ -1024,6 +1142,146 @@
                   },
                   "type": "array",
                   "title": "Response Mark Reviewed"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reviews/{review_id}": {
+      "delete": {
+        "summary": "Undo Review",
+        "description": "Undo Mark reviewed: the subject counts from its review before.",
+        "operationId": "undo_review",
+        "parameters": [
+          {
+            "name": "review_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Review Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/follows": {
+      "get": {
+        "summary": "List Follows",
+        "description": "Followed subjects, oldest first. Alerts cover these.",
+        "operationId": "list_follows",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SubjectRef"
+                  },
+                  "type": "array",
+                  "title": "Response List Follows"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/follows/{subject_id}": {
+      "put": {
+        "summary": "Follow Subject",
+        "operationId": "follow_subject",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Subject Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SubjectRef"
+                  },
+                  "title": "Response Follow Subject"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Unfollow Subject",
+        "operationId": "unfollow_subject",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Subject Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SubjectRef"
+                  },
+                  "title": "Response Unfollow Subject"
                 }
               }
             }
@@ -1632,7 +1890,7 @@
     "/alerts/read": {
       "post": {
         "summary": "Mark Alerts Read",
-        "description": "Mark every current alert read; the alerts stay listed.",
+        "description": "Mark every current alert's development read; the alerts stay listed.",
         "operationId": "mark_alerts_read",
         "responses": {
           "200": {
@@ -1782,7 +2040,8 @@
           },
           "read": {
             "type": "boolean",
-            "title": "Read"
+            "title": "Read",
+            "description": "The development's triage read state"
           }
         },
         "type": "object",
@@ -1823,6 +2082,11 @@
           "run": {
             "$ref": "#/components/schemas/RunRef"
           },
+          "followed": {
+            "type": "integer",
+            "title": "Followed",
+            "description": "How many subjects are followed"
+          },
           "alerts": {
             "items": {
               "$ref": "#/components/schemas/Alert"
@@ -1837,11 +2101,12 @@
         "type": "object",
         "required": [
           "run",
+          "followed",
           "alerts",
           "unread"
         ],
         "title": "Alerts",
-        "description": "The latest run's new or updated developments needing attention, then those to watch."
+        "description": "The latest run's new or updated developments on followed subjects that need attention,\nthen those to watch. Dismissed developments are left out."
       },
       "AnswerChange": {
         "properties": {
@@ -2103,6 +2368,162 @@
           "counts"
         ],
         "title": "CategorySeries"
+      },
+      "ChangedDevelopment": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "signal",
+                  "consultation",
+                  "proposed",
+                  "enacted",
+                  "enforced"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "event_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Date"
+          },
+          "first_published": {
+            "type": "string",
+            "format": "date",
+            "title": "First Published"
+          },
+          "last_published": {
+            "type": "string",
+            "format": "date",
+            "title": "Last Published"
+          },
+          "materiality_level": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Materiality Level"
+          },
+          "materiality_label": {
+            "type": "string",
+            "title": "Materiality Label"
+          },
+          "needs_attention": {
+            "type": "boolean",
+            "title": "Needs Attention"
+          },
+          "adverse": {
+            "type": "boolean",
+            "title": "Adverse"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "negative",
+              "neutral"
+            ],
+            "title": "Direction"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Subjects"
+          },
+          "source_count": {
+            "type": "integer",
+            "title": "Source Count"
+          },
+          "change": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "new",
+                  "updated"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change",
+            "description": "Change since the previous run"
+          },
+          "new_source_count": {
+            "type": "integer",
+            "title": "New Source Count"
+          },
+          "unreviewed": {
+            "type": "boolean",
+            "title": "Unreviewed",
+            "description": "Changed in a run after the review of its subject"
+          },
+          "read": {
+            "type": "boolean",
+            "title": "Read"
+          },
+          "flagged": {
+            "type": "boolean",
+            "title": "Flagged"
+          },
+          "dismissed": {
+            "type": "boolean",
+            "title": "Dismissed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "category",
+          "stage",
+          "event_date",
+          "first_published",
+          "last_published",
+          "materiality_level",
+          "materiality_label",
+          "needs_attention",
+          "adverse",
+          "direction",
+          "subjects",
+          "source_count",
+          "change",
+          "new_source_count",
+          "unreviewed",
+          "read",
+          "flagged",
+          "dismissed"
+        ],
+        "title": "ChangedDevelopment",
+        "description": "A development in What changed, with its triage state. When unreviewed, `change` is its\nchange since the review: new if a run after it added the development, else updated. When\nreviewed, it is the change in the latest run."
       },
       "CommonIssue": {
         "properties": {
@@ -3969,18 +4390,6 @@
             ],
             "description": "Groups only"
           },
-          "reviewed_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reviewed At"
-          },
           "notes": {
             "items": {
               "$ref": "#/components/schemas/Note"
@@ -3999,7 +4408,6 @@
           "upcoming",
           "stage_track",
           "group",
-          "reviewed_at",
           "notes"
         ],
         "title": "MonitorPage"
@@ -4356,6 +4764,11 @@
             "type": "array",
             "title": "Development Ids",
             "description": "The developments the new answer relies on"
+          },
+          "unreviewed": {
+            "type": "boolean",
+            "title": "Unreviewed",
+            "description": "The latest run changed it after the subject's review"
           }
         },
         "type": "object",
@@ -4367,7 +4780,8 @@
           "from_state",
           "to_state",
           "summary",
-          "development_ids"
+          "development_ids",
+          "unreviewed"
         ],
         "title": "QuestionStateChange"
       },
@@ -4587,6 +5001,10 @@
       },
       "Review": {
         "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
           "subject_id": {
             "type": "string",
             "title": "Subject Id"
@@ -4610,6 +5028,7 @@
         },
         "type": "object",
         "required": [
+          "id",
           "subject_id",
           "run_id",
           "created_at"
@@ -5099,18 +5518,6 @@
           },
           "what_changed": {
             "$ref": "#/components/schemas/WhatChanged"
-          },
-          "reviewed_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reviewed At"
           }
         },
         "type": "object",
@@ -5119,8 +5526,7 @@
           "run",
           "type",
           "scope",
-          "what_changed",
-          "reviewed_at"
+          "what_changed"
         ],
         "title": "SinceData"
       },
@@ -5394,7 +5800,7 @@
           "new_developments": {
             "type": "integer",
             "title": "New Developments",
-            "description": "New or updated developments in the latest run"
+            "description": "Changed since the subject was last reviewed, and not read or dismissed"
           },
           "needs_attention": {
             "type": "integer",
@@ -5637,7 +6043,7 @@
           "new_developments": {
             "type": "integer",
             "title": "New Developments",
-            "description": "New or updated developments in the latest run"
+            "description": "Changed since the subject was last reviewed, and not read or dismissed"
           },
           "needs_attention": {
             "type": "integer",
@@ -6181,6 +6587,75 @@
           "material"
         ],
         "title": "TrendWeek"
+      },
+      "Triage": {
+        "properties": {
+          "development_id": {
+            "type": "string",
+            "title": "Development Id"
+          },
+          "read": {
+            "type": "boolean",
+            "title": "Read",
+            "description": "Read since the latest run that changed it"
+          },
+          "flagged": {
+            "type": "boolean",
+            "title": "Flagged"
+          },
+          "dismissed": {
+            "type": "boolean",
+            "title": "Dismissed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "development_id",
+          "read",
+          "flagged",
+          "dismissed"
+        ],
+        "title": "Triage"
+      },
+      "TriageChange": {
+        "properties": {
+          "read": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Read"
+          },
+          "flagged": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flagged"
+          },
+          "dismissed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dismissed"
+          }
+        },
+        "type": "object",
+        "title": "TriageChange",
+        "description": "Only the states given change."
       },
       "UpcomingData": {
         "properties": {
@@ -6730,25 +7205,41 @@
           "run": {
             "$ref": "#/components/schemas/RunRef"
           },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At",
+            "description": "When every subject in scope was last marked reviewed; null if one never was"
+          },
           "new_count": {
             "type": "integer",
-            "title": "New Count"
+            "title": "New Count",
+            "description": "Unreviewed new developments not read or dismissed"
           },
           "updated_count": {
             "type": "integer",
-            "title": "Updated Count"
+            "title": "Updated Count",
+            "description": "Unreviewed updated developments not read or dismissed"
           },
           "needs_attention_count": {
             "type": "integer",
-            "title": "Needs Attention Count"
+            "title": "Needs Attention Count",
+            "description": "Unreviewed developments needing attention, not dismissed"
           },
           "developments": {
             "items": {
-              "$ref": "#/components/schemas/DevelopmentSummary"
+              "$ref": "#/components/schemas/ChangedDevelopment"
             },
             "type": "array",
             "title": "Developments",
-            "description": "New and updated developments, needing attention first, then most material"
+            "description": "Needing attention first, then changed this run, most material, most recent"
           },
           "question_changes": {
             "items": {
@@ -6761,13 +7252,15 @@
         "type": "object",
         "required": [
           "run",
+          "reviewed_at",
           "new_count",
           "updated_count",
           "needs_attention_count",
           "developments",
           "question_changes"
         ],
-        "title": "WhatChanged"
+        "title": "WhatChanged",
+        "description": "What changed since the last review of each subject in scope: developments that runs after\nthe review added or updated, and answers whose state the latest run changed. A subject never\nreviewed counts from the previous run. The latest run's changes are listed too, marked\nreviewed, so a reviewed scope can still show its run."
       },
       "WidgetDataRequest": {
         "properties": {

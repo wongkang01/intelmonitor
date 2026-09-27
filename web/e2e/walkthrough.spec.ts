@@ -84,6 +84,14 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
   const starter = dashboards.find((d) => d.name === "Singapore banks");
   if (!starter) throw new Error("the Singapore banks starter dashboard is missing");
   const stamp = path.basename(dir);
+  // Creating a dashboard follows its subjects; the cleanup, which runs last, puts the follows back.
+  const followsAtStart = new Set((await unwrap(api.GET("/follows"))).map((f) => f.id));
+  cleanups.push(async () => {
+    for (const f of await unwrap(api.GET("/follows"))) {
+      if (!followsAtStart.has(f.id)) await unwrap(api.DELETE("/follows/{subject_id}", { params: { path: { subject_id: f.id } } }));
+    }
+    for (const id of followsAtStart) await unwrap(api.PUT("/follows/{subject_id}", { params: { path: { subject_id: id } } }));
+  });
 
   try {
     await step(STEPS[0], async () => {
@@ -107,14 +115,19 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(widget.locator(".hero")).toHaveText(new RegExp(`^${wc.new_count} new, ${wc.needs_attention_count} needs? attention$`));
       const meta = `Run of ${shortDate(latest.as_of)} against ${shortDate(latest.previous_run_id ?? "")}`;
       await expect(widget.locator(".wm")).toHaveText(meta);
-      await expect(widget.locator(".row.dev").first()).toContainText(wc.developments[0].title);
+      // Rows are what changed since the review and is not dismissed: needing attention, then unread new.
+      const current = wc.developments.filter((d) => d.unreviewed && !d.dismissed);
+      const first = current.find((d) => d.needs_attention) ?? current.find((d) => d.change === "new" && !d.read);
+      if (!first) throw new Error("the Since widget has no rows");
+      await expect(widget.locator(".row.dev").first()).toContainText(first.title);
 
-      // Show all opens the dashboard's changed developments, with the widget's counts.
+      // Show all opens the dashboard's What changed, with the widget's counts.
       await widget.getByRole("link", { name: "Show all" }).click();
       await expect(page).toHaveURL(`/developments?dashboard=${starter.id}&changed=1`);
       const changes = page.getByRole("region", { name: "What changed since last review" });
       await expect(changes.locator(".mon-lead")).toHaveText(changeCounts(wc));
-      await expect(changes.locator(".row.dev")).toHaveCount(wc.developments.length);
+      await expect(changes.getByRole("button", { name: /^All / })).toHaveAccessibleName(`All ${current.length}`);
+      await expect(changes.locator(".row.dev")).toHaveCount(Math.min(6, current.length));
       await page.goBack();
       await expect(page).toHaveURL(`/dashboards/${starter.id}`);
     });
@@ -299,12 +312,29 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(page).toHaveURL(`/monitors/${entity.id}`);
       await expect(page.getByRole("heading", { level: 1, name: entity.name, exact: true })).toBeVisible();
 
+      // Mark reviewed moves the review watermark: What changed folds away until Undo.
+      const before = await unwrap(api.GET("/subjects/{subject_id}/page", { params: { path: { subject_id: entity.id } } }));
+      const wc = before.what_changed;
+      const changes = page.getByRole("region", { name: "What changed since last review" });
+      await expect(changes.locator(".mon-lead")).toHaveText(changeCounts(wc));
       const actions = page.getByRole("region", { name: "Actions" });
       const reviewed = page.waitForResponse((r) => r.url().endsWith("/reviews") && r.request().method() === "POST");
       await actions.getByRole("button", { name: "Mark reviewed" }).click();
       expect((await reviewed).ok()).toBe(true);
-      await expect(page.getByText(`${entity.name} marked reviewed`)).toBeVisible();
-      await expect(actions.getByText(/^Reviewed /)).toBeVisible();
+      const cleared = wc.new_count + wc.updated_count;
+      const reviewToast = page.locator(".toast", { hasText: `${entity.name} marked reviewed.` });
+      await expect(reviewToast).toHaveText(new RegExp(`^${entity.name} marked reviewed\\.${cleared ? ` ${cleared} new cleared\\.` : ""}Undo$`));
+      await expect(changes.locator(".mon-lead")).toHaveText("Nothing new since your review");
+      await expect(changes.getByRole("button", { name: new RegExp(`^Run of ${shortDate(latest.as_of)} · `) })).toHaveAttribute("aria-expanded", "false");
+      await expect(actions.getByText(/^Reviewed today at /)).toBeVisible();
+      await expect(actions.getByRole("button", { name: "Mark reviewed" })).toBeDisabled();
+      // The sidebar's count of new developments goes with the review, and comes back with Undo.
+      const sidebarCount = page.locator(`nav a.navitem[href="/monitors/${entity.id}"] .count`);
+      await expect(sidebarCount).toHaveCount(0);
+      await reviewToast.getByRole("button", { name: "Undo" }).click();
+      await expect(changes.locator(".mon-lead")).toHaveText(changeCounts(wc));
+      await expect(actions.getByRole("button", { name: "Mark reviewed" })).toBeEnabled();
+      await expect(sidebarCount).toHaveText(String(entity.new_developments));
 
       const text = `E2E note ${stamp}`;
       cleanups.push(async () => {
@@ -355,6 +385,142 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
     });
 
     await step(STEPS[6], async () => {
+      const devPath = (id: string) => ({ params: { path: { development_id: id } } });
+      const whatChanged = () => unwrap(api.GET("/what-changed", { params: { query: { subject_id: [entity.id] } } }));
+      const start = await whatChanged();
+      const listed = start.developments.filter((d) => d.unreviewed);
+      // Put back every development this step touches as it was.
+      const touched = new Map<string, Schema<"TriageChange">>();
+      const remember = (id: string, state: Schema<"TriageChange">) => {
+        if (!touched.has(id)) touched.set(id, state);
+      };
+      const stateOf = (x: Schema<"ChangedDevelopment">) => ({ read: x.read, flagged: x.flagged, dismissed: x.dismissed });
+      cleanups.push(async () => {
+        for (const [id, change] of touched) {
+          await unwrap(api.PATCH("/developments/{development_id}/triage", { ...devPath(id), body: change }));
+        }
+      });
+      const count = (filter: (d: (typeof listed)[number]) => boolean) => listed.filter(filter).length;
+      const changes = page.getByRole("region", { name: "What changed since last review" });
+      const filters = changes.getByRole("group", { name: "Filter developments" });
+      const filterButton = (label: string) => filters.getByRole("button", { name: new RegExp(`^${label} \\d+$`) });
+      await expect(filterButton("All")).toHaveAccessibleName(`All ${count((d) => !d.dismissed)}`);
+      await expect(filterButton("Unread")).toHaveAccessibleName(`Unread ${count((d) => !d.read && !d.dismissed)}`);
+      const rows = changes.locator(".row.triage");
+      expect(await rows.count(), "What changed lists developments to triage").toBeGreaterThan(1);
+
+      // Keyboard: Tab from a row's title reaches its actions, which replace the date while focus is in the row.
+      const row = rows.first();
+      const title = (await row.locator(".row-title").textContent()) ?? "";
+      const d = listed.find((x) => x.title === title);
+      if (!d) throw new Error(`no listed development is titled ${title}`);
+      expect(d.flagged, "the first row starts unflagged").toBe(false);
+      remember(d.id, stateOf(d));
+      await expect(row.locator(".triage-date")).toBeVisible();
+      await expect(row.locator(".triage-acts")).toBeHidden();
+      await row.locator("a.stretch").focus();
+      const readLabel = d.read ? "Mark unread" : "Mark read";
+      for (let i = 0; i < 8 && (await page.evaluate(() => document.activeElement?.getAttribute("aria-label"))) !== readLabel; i++) {
+        await page.keyboard.press("Tab");
+      }
+      await expect(row.getByRole("button", { name: readLabel })).toBeFocused();
+      await expect(row.locator(".triage-date")).toBeHidden();
+
+      // Flag by keyboard: the row stays, Flagged counts it.
+      await page.keyboard.press("Tab");
+      const flag = row.getByRole("button", { name: "Flag" });
+      await expect(flag).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(flag).toHaveAttribute("aria-pressed", "true");
+      await expect(filterButton("Flagged")).toHaveAccessibleName(`Flagged ${count((x) => x.flagged && !x.dismissed) + 1}`);
+      await expect.poll(async () => (await whatChanged()).developments.find((x) => x.id === d.id)?.flagged).toBe(true);
+
+      // Dismiss by keyboard: the row leaves All and focus moves to Dismiss on the row after it.
+      const next = (await rows.nth(1).locator(".row-title").textContent()) ?? "";
+      await page.keyboard.press("Tab");
+      await expect(row.getByRole("button", { name: "Dismiss" })).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(rows.first().locator(".row-title")).toHaveText(next);
+      await expect(rows.first().getByRole("button", { name: "Dismiss" })).toBeFocused();
+      await expect(filterButton("Dismissed")).toHaveAccessibleName(`Dismissed ${count((x) => x.dismissed) + 1}`);
+
+      // The Dismissed filter lists it, and Dismiss again brings it back to All.
+      await filterButton("Dismissed").click();
+      const dismissed = rows.filter({ hasText: title });
+      await expect(dismissed).toHaveCount(1);
+      await dismissed.hover();
+      await expect(dismissed.getByRole("button", { name: "Dismiss" })).toHaveAttribute("aria-pressed", "true");
+      await dismissed.getByRole("button", { name: "Dismiss" }).click();
+      await expect(dismissed).toHaveCount(0);
+      await filterButton("All").click();
+      await expect(rows.filter({ hasText: title })).toHaveCount(1);
+
+      // Unread: Mark read takes the row out of the list and one off the subject's count in the sidebar.
+      await filterButton("Unread").click();
+      const unread = count((x) => !x.read && !x.dismissed);
+      if (unread > 0) {
+        const target = rows.first();
+        const targetTitle = (await target.locator(".row-title").textContent()) ?? "";
+        const t = listed.find((x) => x.title === targetTitle);
+        if (!t) throw new Error(`no listed development is titled ${targetTitle}`);
+        remember(t.id, stateOf(t));
+        await target.hover();
+        await target.getByRole("button", { name: "Mark read" }).click();
+        await expect(rows.filter({ hasText: targetTitle })).toHaveCount(0);
+        await expect(filterButton("Unread")).toHaveAccessibleName(`Unread ${unread - 1}`);
+        const sidebarCount = page.locator(`nav a.navitem[href="/monitors/${entity.id}"] .count`);
+        if (entity.new_developments > 1) await expect(sidebarCount).toHaveText(String(entity.new_developments - 1));
+        else await expect(sidebarCount).toHaveCount(0);
+      }
+      await filterButton("All").click();
+
+      // Follow: the page head toggles it and the alerts popover counts followed subjects.
+      const follows = await unwrap(api.GET("/follows"));
+      const following = follows.some((f) => f.id === entity.id);
+      cleanups.push(async () => {
+        const params = { params: { path: { subject_id: entity.id } } };
+        await unwrap(following ? api.PUT("/follows/{subject_id}", params) : api.DELETE("/follows/{subject_id}", params));
+      });
+      const followButton = page.getByRole("button", { name: following ? "Following" : "Follow", exact: true });
+      await expect(followButton).toHaveAttribute("aria-pressed", String(following));
+      await followButton.click();
+      const toggled = page.getByRole("button", { name: following ? "Follow" : "Following", exact: true });
+      await expect(toggled).toHaveAttribute("aria-pressed", String(!following));
+      const followedNow = follows.length + (following ? -1 : 1);
+      await expect.poll(async () => (await unwrap(api.GET("/follows"))).length).toBe(followedNow);
+      const bell = page.getByRole("button", { name: /^Alerts/ });
+      await bell.click();
+      const popover = page.getByRole("dialog", { name: "Alerts" });
+      await expect(popover.locator(".pop-foot")).toContainText(`From ${followedNow} followed subject`);
+
+      // Alerts: per-item Mark unread counts on the bell, and opening the alert reads it again.
+      const alerts = await unwrap(api.GET("/alerts"));
+      const alert = alerts.alerts[0];
+      if (alert) {
+        remember(alert.id, { read: alert.read });
+        const alertRow = popover.locator(".alert-row").filter({ hasText: alert.title }).first();
+        if (alert.read) {
+          await alertRow.hover();
+          await alertRow.getByRole("button", { name: "Mark unread" }).click();
+          await expect(alertRow.getByRole("img", { name: "Unread" })).toBeVisible();
+          await expect(bell).toHaveAccessibleName(`Alerts, ${alerts.unread.total + 1} unread`);
+        }
+        await alertRow.locator(".alert-body").click();
+        await expect(page).toHaveURL(new RegExp(`[?&]evidence=${encodeURIComponent(alert.id)}$`));
+        await expect(page.getByTestId("evidence-drawer").getByRole("heading", { level: 3 })).toHaveText(alert.title);
+        await expect.poll(async () => (await unwrap(api.GET("/alerts"))).alerts.find((a) => a.id === alert.id)?.read).toBe(true);
+        await expect(bell).toHaveAccessibleName(
+          alerts.unread.total - (alert.read ? 0 : 1) ? `Alerts, ${alerts.unread.total - (alert.read ? 0 : 1)} unread` : "Alerts",
+        );
+        await page.getByRole("button", { name: "Close evidence" }).click();
+      } else {
+        await page.keyboard.press("Escape");
+      }
+      await followButton.or(toggled).first().click();
+      await expect(page.getByRole("button", { name: following ? "Following" : "Follow", exact: true })).toBeVisible();
+    });
+
+    await step(STEPS[7], async () => {
       const slots = await unwrap(api.GET("/custom-questions/slots"));
       expect(slots.left, "a custom question slot is free").toBeGreaterThan(0);
       const questions = page.getByRole("region", { name: "Standing questions" });
@@ -400,7 +566,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(drawer).toBeHidden();
     });
 
-    await step(STEPS[7], async () => {
+    await step(STEPS[8], async () => {
       await page.getByRole("region", { name: "Links" }).getByRole("link", { name: "Open graph view" }).click();
       await expect(page).toHaveURL(`/monitors/${entity.id}/graph`);
       const stage = page.getByTestId("graph-canvas");
@@ -437,7 +603,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(page.getByRole("heading", { name: "What changed since last review" })).toBeVisible();
     });
 
-    await step(STEPS[8], async () => {
+    await step(STEPS[9], async () => {
       const before = await unwrap(api.GET("/dashboards"));
       expect(before.length, "at least three dashboards to reorder").toBeGreaterThanOrEqual(3);
       const colors = new Map(before.map((d) => [d.id, d.color]));
@@ -486,7 +652,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       expect(dots).toEqual(afterMove.map((id) => `var(--dash-${colors.get(id)})`));
     });
 
-    await step(STEPS[9], async () => {
+    await step(STEPS[10], async () => {
       // A word from a latest-run development title that finds developments and documents.
       const all = await unwrap(api.GET("/developments", { params: { query: { limit: 20 } } }));
       const words = [...new Set(all.flatMap((d) => d.title.match(/\b[A-Za-z]{6,}\b/g) ?? []))];

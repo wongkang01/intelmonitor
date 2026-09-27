@@ -3,24 +3,25 @@
 // A monitor page for a topic, group or entity. Every scope has the same order: What changed,
 // Standing questions, Links, Actions. Topics add the stage track and upcoming dates; groups add
 // common issues and outliers. The main panel holds the first two and the scope extras; a sticky
-// rail panel holds Links and Actions.
+// rail panel holds Links and Actions. The head's Follow button decides whether the subject alerts.
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
-import { useMarkReviewed, useMonitorPage } from "@/lib/api/queries";
+import { useFollow, useFollows, useMarkReviewed, useMonitorPage, useUndoReview } from "@/lib/api/queries";
 import { trackRailHeight } from "@/lib/dom";
-import { answerText, capitalize, changeCounts, dateTime, daysBetween, inDays, plural, shortDate, TYPE_PLURAL } from "@/lib/format";
+import { answerText, capitalize, daysBetween, inDays, plural, shortDate, TYPE_PLURAL, whenAt } from "@/lib/format";
 import { monitorHref, type SubjectType } from "@/lib/widgets";
 import { CustomQuestionComposer, CustomQuestionEditor } from "@/components/custom/CustomQuestion";
 import { useEvidenceHref } from "@/components/shell/Evidence";
 import { Notes } from "@/components/shell/Notes";
 import { SubjectLink, SubjectLinks } from "@/components/shell/SubjectLink";
-import { PlusIcon } from "@/components/ui/icons";
+import { PlusIcon, TickIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
 import { DevelopmentRow, StateBadge } from "@/components/widgets/parts";
 
 import { StageTrack } from "./StageTrack";
+import { hasUnreviewed, WhatChanged } from "./WhatChanged";
 import { Dotted, Section, StateChange } from "./parts";
 import { SubjectIcon } from "@/components/ui/SubjectIcon";
 
@@ -34,26 +35,29 @@ export function MonitorView({ id }: { id: string }) {
   return (
     <>
       <div className="mon-head">
-        {p.subject.logo_full && (
-          // Local logo files need no image optimization; the name below carries the meaning.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            className={`mon-logo${p.subject.kind === "country" ? " flag" : ""}`}
-            src={p.subject.logo_full}
-            alt=""
-          />
-        )}
-        <h1>
-          {!p.subject.logo_full && <SubjectIcon subject={p.subject} size={28} />}
-          {p.subject.name}
-        </h1>
-        <p>
-          <Summary subject={p.subject} />
-        </p>
+        <div className="mon-head-main">
+          {p.subject.logo_full && (
+            // Local logo files need no image optimization; the name below carries the meaning.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              className={`mon-logo${p.subject.kind === "country" ? " flag" : ""}`}
+              src={p.subject.logo_full}
+              alt=""
+            />
+          )}
+          <h1>
+            {!p.subject.logo_full && <SubjectIcon subject={p.subject} size={28} />}
+            {p.subject.name}
+          </h1>
+          <p>
+            <Summary subject={p.subject} />
+          </p>
+        </div>
+        <FollowButton subjectId={p.subject.id} />
       </div>
       <div className="monitor">
         <div className="panel mon-main">
-          <WhatChanged page={p} />
+          <WhatChanged wc={p.what_changed} subjectId={p.subject.id} />
           <Questions page={p} />
           {p.group && <GroupInsights group={p.group} />}
           {p.stage_track && <StageTrack track={p.stage_track} />}
@@ -65,6 +69,27 @@ export function MonitorView({ id }: { id: string }) {
         </aside>
       </div>
     </>
+  );
+}
+
+/** Follow or unfollow the subject; alerts cover followed subjects only. */
+function FollowButton({ subjectId }: { subjectId: string }) {
+  const follows = useFollows();
+  const follow = useFollow();
+  if (!follows.data) return null;
+  const following = follows.data.some((s) => s.id === subjectId);
+  return (
+    <button
+      type="button"
+      className="btn follow"
+      aria-pressed={following}
+      onClick={() => {
+        if (!follow.isPending) follow.mutate({ subjectId, follow: !following });
+      }}
+    >
+      {following ? <TickIcon /> : <PlusIcon />}
+      {following ? "Following" : "Follow"}
+    </button>
   );
 }
 
@@ -82,80 +107,6 @@ function Summary({ subject: s }: { subject: Schema<"SubjectDetail"> }) {
     );
   }
   return s.description;
-}
-
-const FIRST_ROWS = 6;
-
-function WhatChanged({ page }: { page: Page }) {
-  const wc = page.what_changed;
-  const [all, setAll] = useState(false);
-  const evidence = useEvidenceHref();
-  const shown = all ? wc.developments : wc.developments.slice(0, FIRST_ROWS);
-  const base = wc.run.previous_run_id;
-  return (
-    <Section
-      id="what-changed"
-      title="What changed since last review"
-      meta={base ? `Run of ${shortDate(wc.run.as_of)} against ${shortDate(base)}` : `Run of ${shortDate(wc.run.as_of)}`}
-    >
-      <p className="mon-lead">{changeCounts(wc) || "Nothing new or updated"}</p>
-      {wc.developments.length > 0 && (
-        <div className="rows">
-          {shown.map((d) => (
-            <DevelopmentRow key={d.id} development={d} />
-          ))}
-        </div>
-      )}
-      {wc.developments.length > FIRST_ROWS && (
-        <p className="mon-more">
-          <button type="button" className="link" aria-expanded={all} onClick={() => setAll((a) => !a)}>
-            {all ? "Show fewer" : `Show all ${wc.developments.length}`}
-          </button>
-        </p>
-      )}
-      {wc.question_changes.length > 0 && (
-        <>
-          <h3 className="mon-sub">{plural(wc.question_changes.length, "answer")} changed</h3>
-          <div className="rows">
-            {wc.question_changes.map((c) => (
-              <div key={`${c.subject.id}-${c.question_id}`} className="row qrow">
-                <span className="stat">
-                  <StateBadge state={c.to_state} />
-                </span>
-                <div className="qbody">
-                  <div className="qlabel">
-                    <b>{c.label}</b>
-                    {c.subject.id !== page.subject.id && (
-                      <span className="meta">
-                        <SubjectLink subject={c.subject} />
-                      </span>
-                    )}
-                  </div>
-                  <div className="qanswer">
-                    <p>{answerText(c.summary)}</p>
-                  </div>
-                  <p className="meta qmeta">
-                    <Dotted
-                      parts={[
-                        <StateChange key="s" state={c.to_state} from={c.from_state} />,
-                        c.development_ids.length > 0 ? (
-                          <Link key="e" href={evidence.answer(c.subject.id, c.question_id)} scroll={false} className="link">
-                            See evidence
-                          </Link>
-                        ) : (
-                          "No sources"
-                        ),
-                      ]}
-                    />
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-    </Section>
-  );
 }
 
 function Questions({ page }: { page: Page }) {
@@ -347,7 +298,10 @@ function Links({ subject }: { subject: Schema<"SubjectDetail"> }) {
 
 function Actions({ page }: { page: Page }) {
   const review = useMarkReviewed();
+  const undo = useUndoReview();
   const toast = useToast();
+  const wc = page.what_changed;
+  const cleared = wc.new_count + wc.updated_count;
   return (
     <Section id="actions" title="Actions">
       <div className="mon-actions">
@@ -355,17 +309,21 @@ function Actions({ page }: { page: Page }) {
           <button
             type="button"
             className="btn btn-primary"
-            disabled={review.isPending}
+            disabled={review.isPending || !hasUnreviewed(wc)}
             onClick={() =>
               review.mutate([page.subject.id], {
-                onSuccess: () => toast({ message: `${page.subject.name} marked reviewed` }),
+                onSuccess: (reviews) =>
+                  toast({
+                    message: `${page.subject.name} marked reviewed.${cleared > 0 ? ` ${cleared} new cleared.` : ""}`,
+                    action: { label: "Undo", run: () => undo.mutate(reviews.map((r) => r.id)) },
+                  }),
                 onError: () => toast({ message: "Could not mark reviewed" }),
               })
             }
           >
             Mark reviewed
           </button>
-          <span className="meta">{page.reviewed_at ? `Reviewed ${dateTime(page.reviewed_at)}` : "Not reviewed yet"}</span>
+          <span className="meta">{wc.reviewed_at ? `Reviewed ${whenAt(wc.reviewed_at)}` : "Not reviewed yet"}</span>
         </div>
         <Notes target={{ subject_id: page.subject.id }} notes={page.notes} />
       </div>

@@ -42,6 +42,8 @@ export const keys = {
   runs: ["runs"],
   runStatus: ["run-status"],
   alerts: ["alerts"],
+  follows: ["follows"],
+  whatChanged: (query: WhatChangedQuery) => ["what-changed", query],
   dataSources: ["data-sources"],
   development: (id: string) => ["development", id],
   developments: (query: DevelopmentsQuery) => ["developments", query],
@@ -56,6 +58,9 @@ export const keys = {
 
 /** Query parameters of GET /developments: a scope (subjects or a dashboard) and filters. */
 export type DevelopmentsQuery = NonNullable<operations["list_developments"]["parameters"]["query"]>;
+
+/** Query parameters of GET /what-changed: subjects or a dashboard. */
+export type WhatChangedQuery = NonNullable<operations["get_what_changed"]["parameters"]["query"]>;
 
 /** Query parameters of GET /graph: center subject, hops (1 or 2) and optional filters. */
 export type GraphQuery = NonNullable<operations["get_graph"]["parameters"]["query"]>;
@@ -128,16 +133,94 @@ export function useRunNow() {
   });
 }
 
-/** The latest run's Needs attention then Watch developments, with unread counts by badge. */
+/**
+ * The latest run's Needs attention then Watch developments on followed subjects, with unread counts
+ * by badge.
+ */
 export const useAlerts = () =>
   useQuery({ queryKey: keys.alerts, queryFn: () => unwrap(api.GET("/alerts")) });
 
-/** Marks every current alert read; the alerts stay listed. */
+/** Marks every current alert's development read; the alerts stay listed. */
 export function useMarkAlertsRead() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: () => unwrap(api.POST("/alerts/read")),
-    onSuccess: (alerts) => client.setQueryData(keys.alerts, alerts),
+    onSuccess: (alerts) => {
+      client.setQueryData(keys.alerts, alerts);
+      return invalidateNew(client);
+    },
+  });
+}
+
+/** Followed subjects, oldest first. Alerts cover these. */
+export const useFollows = () =>
+  useQuery({ queryKey: keys.follows, queryFn: () => unwrap(api.GET("/follows")) });
+
+/** Follows or unfollows a subject; alerts refetch for the new set. */
+export function useFollow() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ subjectId, follow }: { subjectId: string; follow: boolean }) => {
+      const params = { params: { path: { subject_id: subjectId } } };
+      return unwrap(follow ? api.PUT("/follows/{subject_id}", params) : api.DELETE("/follows/{subject_id}", params));
+    },
+    onSuccess: (follows) => {
+      client.setQueryData(keys.follows, follows);
+      return client.invalidateQueries({ queryKey: keys.alerts });
+    },
+  });
+}
+
+/** What changed since the last review of some subjects or of a dashboard's subjects. */
+export const useWhatChanged = (query: WhatChangedQuery) =>
+  useQuery({
+    queryKey: keys.whatChanged(query),
+    queryFn: () => unwrap(api.GET("/what-changed", { params: { query } })),
+  });
+
+/** Everything that counts or lists what is new: reviews, reads and dismissals change it. */
+function invalidateNew(client: QueryClient) {
+  return Promise.all(
+    [["monitor-page"], keys.widgetData, ["what-changed"], keys.subjects, ["subject"], keys.alerts].map((queryKey) =>
+      client.invalidateQueries({ queryKey }),
+    ),
+  );
+}
+
+export type TriageChange = Schema<"TriageChange">;
+type WhatChanged = Schema<"WhatChanged">;
+
+/** `wc` with the change applied to one development's triage state. */
+function patchWhatChanged(wc: WhatChanged, id: string, change: TriageChange): WhatChanged {
+  const set = Object.fromEntries(Object.entries(change).filter(([, v]) => typeof v === "boolean"));
+  return { ...wc, developments: wc.developments.map((d) => (d.id === id ? { ...d, ...set } : d)) };
+}
+
+/**
+ * Marks a development read or unread, flagged or not, dismissed or not. Cached What changed lists
+ * and alerts update at once, so a row leaves its filter without waiting; counts follow the refetch.
+ */
+export function useSetTriage() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, change }: { id: string; change: TriageChange }) =>
+      unwrap(api.PATCH("/developments/{development_id}/triage", { params: { path: { development_id: id } }, body: change })),
+    onMutate: ({ id, change }) => {
+      client.setQueriesData<Schema<"MonitorPage">>({ queryKey: ["monitor-page"] }, (page) =>
+        page ? { ...page, what_changed: patchWhatChanged(page.what_changed, id, change) } : page,
+      );
+      client.setQueriesData<WhatChanged>({ queryKey: ["what-changed"] }, (wc) => (wc ? patchWhatChanged(wc, id, change) : wc));
+      client.setQueriesData<WidgetData>({ queryKey: keys.widgetData }, (data) =>
+        data?.type === "since" ? { ...data, what_changed: patchWhatChanged(data.what_changed, id, change) } : data,
+      );
+      const read = change.read;
+      if (typeof read === "boolean") {
+        client.setQueryData<Schema<"Alerts">>(keys.alerts, (alerts) =>
+          alerts ? { ...alerts, alerts: alerts.alerts.map((a) => (a.id === id ? { ...a, read } : a)) } : alerts,
+        );
+      }
+    },
+    onSettled: () => invalidateNew(client),
   });
 }
 
@@ -330,7 +413,7 @@ export function useReorderDashboards() {
   );
 }
 
-/** Creates a dashboard from a spec; the sidebar list refetches to show it. */
+/** Creates a dashboard from a spec and follows its subjects; the sidebar list refetches to show it. */
 export function useCreateDashboard() {
   const client = useQueryClient();
   return useMutation({
@@ -338,7 +421,11 @@ export function useCreateDashboard() {
     onSuccess: (created) => {
       client.setQueryData(keys.dashboard(created.id), created);
       // Creating keeps any draft custom questions its widgets show (from Generate).
-      return invalidateCustom(client);
+      return Promise.all([
+        invalidateCustom(client),
+        client.invalidateQueries({ queryKey: keys.follows }),
+        client.invalidateQueries({ queryKey: keys.alerts }),
+      ]);
     },
   });
 }
@@ -351,16 +438,27 @@ export function useSaveProfile() {
   });
 }
 
+/** Sets each subject's review watermark to the latest run; returns the reviews for useUndoReview. */
 export function useMarkReviewed() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (subjectIds: string[]) =>
       unwrap(api.POST("/reviews", { body: { subject_ids: subjectIds } })),
-    onSuccess: () =>
-      Promise.all([
-        client.invalidateQueries({ queryKey: keys.widgetData }),
-        client.invalidateQueries({ queryKey: ["monitor-page"] }),
-      ]),
+    onSuccess: () => invalidateNew(client),
+  });
+}
+
+/** Removes reviews, so each subject counts from its review before. */
+export function useUndoReview() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (reviewIds: number[]) => {
+      for (const id of reviewIds) {
+        const { error, response } = await api.DELETE("/reviews/{review_id}", { params: { path: { review_id: id } } });
+        if (error !== undefined || !response.ok) throw new ApiError(response.status, error);
+      }
+    },
+    onSuccess: () => invalidateNew(client),
   });
 }
 

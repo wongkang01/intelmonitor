@@ -486,6 +486,71 @@ main.main {
   background: var(--hover);
 }
 
+/* An alert: badge, title and meta that open its evidence, and Mark read or unread, which shows
+   while the pointer is over the row or the button has focus. Unread titles carry a dot. */
+.pop .row.alert-row {
+  position: relative;
+  grid-template-columns: var(--stat) minmax(0, 1fr) 28px;
+}
+.alert-body {
+  min-width: 0;
+  color: inherit;
+}
+.alert-body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.alert-body:focus-visible {
+  outline: none;
+}
+.alert-row:has(.alert-body:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  background: var(--hover);
+}
+.alert-row .new-dot {
+  margin: 0 6px 2px 0;
+}
+.alert-row.is-read .row-title {
+  font-weight: 400;
+  color: var(--ink2);
+}
+.alert-read {
+  z-index: 1;
+  margin-top: -5px;
+  opacity: 0;
+}
+.alert-row:hover .alert-read,
+.alert-read:focus-visible {
+  opacity: 1;
+}
+.alert-read::after {
+  inset: -8px;
+}
+
+/* Following: one row per followed subject, Unfollow on the right. */
+.rows.following {
+  margin-top: var(--s-3);
+}
+.following .row {
+  align-items: center;
+}
+.following-name {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.following-icon {
+  display: inline-flex;
+  flex: none;
+  width: 16px;
+}
+.following-name .meta {
+  margin-left: var(--s-1);
+}
+
 /* A run: status glyph, "Run of 24 Sep" with its result on the right, then when, how, time, sources. */
 /* The title keeps one line; a long result wraps under itself, right-aligned. */
 .run-row {

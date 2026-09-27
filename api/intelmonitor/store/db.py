@@ -236,12 +236,20 @@ CREATE TABLE IF NOT EXISTS analyst_actions (
 );
 CREATE INDEX IF NOT EXISTS analyst_actions_subject ON analyst_actions (subject_id, kind);
 
--- Alerts the analyst has read, per run: a development alerts again when a later run flags it.
-CREATE TABLE IF NOT EXISTS alert_reads (
-    run_id TEXT NOT NULL,
-    development_id TEXT NOT NULL,
-    read_at TEXT NOT NULL,
-    PRIMARY KEY (run_id, development_id)
+-- Triage per development, kept across runs. Read holds the latest run when it was read, so a
+-- development that a later run changes is unread again. Flags and dismissals stay until cleared.
+CREATE TABLE IF NOT EXISTS development_triage (
+    development_id TEXT PRIMARY KEY,
+    read_run_id TEXT,                  -- null when unread
+    flagged_at TEXT,                   -- null when not flagged
+    dismissed_at TEXT                  -- null when not dismissed
+);
+
+-- The subjects the analyst follows; alerts cover these only. Seeded once from the subjects on
+-- dashboards, and extended when a dashboard is created.
+CREATE TABLE IF NOT EXISTS follows (
+    subject_id TEXT PRIMARY KEY,
+    created_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS custom_questions (
@@ -310,6 +318,26 @@ def _add_columns(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
+def _fold_alert_reads(conn: sqlite3.Connection) -> None:
+    """Stores made before triage kept alert reads per run in alert_reads. Each development's
+    latest read becomes its triage read, and the table goes."""
+    exists = "SELECT 1 FROM sqlite_master WHERE name = 'alert_reads'"
+    if conn.execute(exists).fetchone() is None:
+        return
+    conn.execute("BEGIN IMMEDIATE")  # another connection may be folding it too
+    if conn.execute(exists).fetchone() is None:
+        conn.rollback()
+        return
+    conn.execute(
+        "INSERT INTO development_triage (development_id, read_run_id) "
+        "SELECT development_id, max(run_id) FROM alert_reads WHERE true GROUP BY development_id "
+        "ON CONFLICT (development_id) DO UPDATE SET read_run_id = "
+        "max(coalesce(read_run_id, ''), excluded.read_run_id)"
+    )
+    conn.execute("DROP TABLE alert_reads")
+    conn.commit()
+
+
 def connect(path: Path = DB_PATH) -> sqlite3.Connection:
     """Open the store and make sure the schema exists."""
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -320,6 +348,7 @@ def connect(path: Path = DB_PATH) -> sqlite3.Connection:
     indexed = conn.execute("SELECT 1 FROM sqlite_master WHERE name = 'developments_fts'").fetchone()
     conn.executescript(SCHEMA)
     _add_columns(conn)
+    _fold_alert_reads(conn)
     if indexed is None:
         search.rebuild(conn)  # the search tables are new: index what is already stored
     return conn

@@ -1,10 +1,10 @@
-"""Alerts: the latest run's new or updated developments that need attention, then those to
-watch. Read state is kept per run, so a development flagged again by a later run alerts again."""
-
-from datetime import UTC, datetime
+"""Alerts: the latest run's new or updated developments on followed subjects that need attention,
+then those to watch. Read is the development's triage read, which holds the run it was read in,
+so a development that a later run changes alerts again. Dismissed developments do not alert."""
 
 from intelmonitor.server.models import Alert, AlertBadge, AlertCounts, Alerts, DevelopmentSummary
 from intelmonitor.server.queries import MATERIAL_LEVEL, Queries
+from intelmonitor.server.triage import followed_ids, mark_read
 
 
 def _watched(q: Queries) -> set[str]:
@@ -30,16 +30,11 @@ def _meta(d: DevelopmentSummary) -> str:
 
 
 def alerts(q: Queries) -> Alerts:
+    followed = followed_ids(q.conn)
     watched = _watched(q)
-    read = {
-        str(r["development_id"])
-        for r in q.conn.execute(
-            "SELECT development_id FROM alert_reads WHERE run_id = ?", (q.run.id,)
-        )
-    }
     flagged: list[tuple[AlertBadge, DevelopmentSummary]] = []
-    for d in q.devs.by_id.values():
-        if d.change is None:
+    for d in q.developments_in(followed) if followed else []:
+        if d.change is None or q.is_dismissed(d.id):
             continue
         if d.needs_attention:
             flagged.append(("needs_attention", d))
@@ -48,23 +43,19 @@ def alerts(q: Queries) -> Alerts:
     # Stable sort keeps display order (most material, most recent) within each badge.
     flagged.sort(key=lambda t: t[0] != "needs_attention")
     items = [
-        Alert(id=d.id, title=d.title, badge=badge, meta=_meta(d), read=d.id in read)
+        Alert(id=d.id, title=d.title, badge=badge, meta=_meta(d), read=q.is_read(d.id))
         for badge, d in flagged
     ]
     attention = sum(a.badge == "needs_attention" and not a.read for a in items)
     watch = sum(a.badge == "watch" and not a.read for a in items)
     return Alerts(
         run=q.run,
+        followed=len(followed),
         alerts=items,
         unread=AlertCounts(needs_attention=attention, watch=watch, total=attention + watch),
     )
 
 
 def mark_all_read(q: Queries) -> Alerts:
-    at = datetime.now(UTC).isoformat()
-    q.conn.executemany(
-        "INSERT OR IGNORE INTO alert_reads (run_id, development_id, read_at) VALUES (?, ?, ?)",
-        [(q.run.id, a.id, at) for a in alerts(q).alerts],
-    )
-    q.conn.commit()
-    return alerts(q)
+    mark_read(q, [a.id for a in alerts(q).alerts if not a.read])
+    return alerts(Queries(q.conn))

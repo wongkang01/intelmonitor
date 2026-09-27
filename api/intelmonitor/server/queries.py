@@ -21,7 +21,9 @@ from intelmonitor.server.models import (
     STAGE_ORDER,
     AnswerChange,
     CategorySeries,
+    ChangedDevelopment,
     CommonIssue,
+    DevelopmentChangeKind,
     DevelopmentSummary,
     GroupInsights,
     MemberSeries,
@@ -272,12 +274,84 @@ class Queries:
         return [d for d in self.devs.by_id.values() if self.devs.subject_ids[d.id] & ids]
 
     def subject_summary(self, subject_id: str) -> SubjectSummary:
-        devs = self.developments_in([subject_id])
         return SubjectSummary(
             **subject_ref(subject_id).model_dump(),
             aliases=aliases(subject_id),
-            new_developments=sum(d.change is not None for d in devs),
-            needs_attention=sum(d.needs_attention for d in devs),
+            new_developments=self.unread_count(subject_id),
+            needs_attention=sum(d.needs_attention for d in self.developments_in([subject_id])),
+        )
+
+    # ---- review and triage
+
+    @cached_property
+    def _changes(self) -> dict[str, list[tuple[str, DevelopmentChangeKind]]]:
+        """Each development's changes by the runs up to the latest: (run id, new or updated)."""
+        out: dict[str, list[tuple[str, DevelopmentChangeKind]]] = {}
+        for r in self.conn.execute(
+            "SELECT c.run_id, c.kind, c.ref_id FROM run_changes c JOIN runs r ON r.id = c.run_id "
+            "WHERE r.status = 'complete' AND r.as_of <= ? AND c.kind != 'question_state'",
+            (self.run.as_of.isoformat(),),
+        ):
+            kind: DevelopmentChangeKind = "new" if r["kind"] == "new_development" else "updated"
+            out.setdefault(r["ref_id"], []).append((r["run_id"], kind))
+        return out
+
+    @cached_property
+    def _triage(self) -> dict[str, sqlite3.Row]:
+        return {
+            r["development_id"]: r for r in self.conn.execute("SELECT * FROM development_triage")
+        }
+
+    @cached_property
+    def _reviews(self) -> dict[str, sqlite3.Row]:
+        """Each reviewed subject's latest review: its time and the run it covered."""
+        return {
+            r["subject_id"]: r
+            for r in self.conn.execute(
+                "SELECT subject_id, run_id, max(created_at) AS created_at FROM analyst_actions "
+                "WHERE kind = 'review' GROUP BY subject_id"
+            )
+        }
+
+    def baseline(self, subject_id: str) -> str:
+        """The run a subject's What changed counts from: the run its last review covered, else the
+        previous run. Run ids are their as-of dates, so they compare as strings."""
+        review = self._reviews.get(subject_id)
+        if review is not None and review["run_id"]:
+            return str(review["run_id"])
+        return self.run.previous_run_id or ""
+
+    def change_since(self, development_id: str, baseline: str) -> DevelopmentChangeKind | None:
+        """New if a run after `baseline` added the development, updated if one only updated it."""
+        kinds = {k for run, k in self._changes.get(development_id, []) if run > baseline}
+        return "new" if "new" in kinds else "updated" if kinds else None
+
+    def is_read(self, development_id: str, read_run_id: str | None = None) -> bool:
+        """Read in or after the latest run that changed it. Pass `read_run_id` to test a state
+        not yet in `_triage`."""
+        if read_run_id is None:
+            row = self._triage.get(development_id)
+            read_run_id = row["read_run_id"] if row else None
+        if read_run_id is None:
+            return False
+        return all(run <= read_run_id for run, _ in self._changes.get(development_id, []))
+
+    def is_dismissed(self, development_id: str) -> bool:
+        row = self._triage.get(development_id)
+        return row is not None and row["dismissed_at"] is not None
+
+    def is_flagged(self, development_id: str) -> bool:
+        row = self._triage.get(development_id)
+        return row is not None and row["flagged_at"] is not None
+
+    def unread_count(self, subject_id: str) -> int:
+        """A subject's "new": developments changed since its review, not read or dismissed."""
+        base = self.baseline(subject_id)
+        return sum(
+            self.change_since(d.id, base) is not None
+            and not self.is_read(d.id)
+            and not self.is_dismissed(d.id)
+            for d in self.developments_in([subject_id])
         )
 
     def subject_detail(self, subject_id: str) -> SubjectDetail:
@@ -380,9 +454,36 @@ class Queries:
     # ---- what changed, upcoming, stages, group insights
 
     def what_changed(self, subject_ids: Iterable[str]) -> WhatChanged:
-        ids = expand(subject_ids)
-        devs = [d for d in self.developments_in(ids) if d.change is not None]
+        """What changed for the subjects since each was reviewed. A development tagged to several
+        of them counts from the latest of their reviews: reviewing any subject it is shown under
+        clears it here."""
+        requested = list(dict.fromkeys(subject_ids))
+        reach = {s: expand([s]) for s in requested}
+
+        def baseline(tags: Iterable[str]) -> str:
+            tagged = set(tags)
+            return max(
+                (self.baseline(s) for s in requested if reach[s] & tagged),
+                default=self.run.previous_run_id or "",
+            )
+
+        devs: list[ChangedDevelopment] = []
+        for d in self.developments_in(requested):
+            since = self.change_since(d.id, baseline(self.devs.subject_ids[d.id]))
+            if since is None and d.change is None:
+                continue
+            devs.append(
+                ChangedDevelopment(
+                    **d.model_dump(exclude={"change"}),
+                    change=since or d.change,
+                    unreviewed=since is not None,
+                    read=self.is_read(d.id),
+                    flagged=self.is_flagged(d.id),
+                    dismissed=self.is_dismissed(d.id),
+                )
+            )
         question_changes: list[QuestionStateChange] = []
+        ids = expand(requested)
         for sid in sorted(ids, key=lambda i: list(all_subjects()).index(i)):
             for a in self.answers(sid):
                 if a.change.kind == "state_changed" and a.change.previous_state is not None:
@@ -396,14 +497,17 @@ class Queries:
                             to_state=a.state,
                             summary=a.summary,
                             development_ids=a.development_ids,
+                            unreviewed=self.run.id > baseline([sid]),
                         )
                     )
         question_changes.sort(key=lambda c: STATE_RANK[c.to_state])
+        counted = [d for d in devs if d.unreviewed and not d.dismissed]
         return WhatChanged(
             run=self.run,
-            new_count=sum(d.change == "new" for d in devs),
-            updated_count=sum(d.change == "updated" for d in devs),
-            needs_attention_count=sum(d.needs_attention for d in devs),
+            reviewed_at=self.reviewed_at(requested),
+            new_count=sum(d.change == "new" and not d.read for d in counted),
+            updated_count=sum(d.change == "updated" and not d.read for d in counted),
+            needs_attention_count=sum(d.needs_attention for d in counted),
             developments=devs,
             question_changes=question_changes,
         )
@@ -550,14 +654,10 @@ class Queries:
         """When every one of the subjects was last marked reviewed, or None if one never was."""
         latest: list[datetime] = []
         for sid in set(subject_ids):
-            row = self.conn.execute(
-                "SELECT max(created_at) AS at FROM analyst_actions "
-                "WHERE kind = 'review' AND subject_id = ?",
-                (sid,),
-            ).fetchone()
-            if row["at"] is None:
+            review = self._reviews.get(sid)
+            if review is None:
                 return None
-            latest.append(datetime.fromisoformat(row["at"]))
+            latest.append(datetime.fromisoformat(review["created_at"]))
         return min(latest, default=None)
 
     def notes(self, subject_id: str | None = None, development_id: str | None = None) -> list[Note]:

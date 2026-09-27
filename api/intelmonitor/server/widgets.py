@@ -241,7 +241,6 @@ class SinceData(_Data):
     type: Literal["since"]
     scope: list[SubjectRef]
     what_changed: WhatChanged
-    reviewed_at: datetime | None
 
 
 class QuestionData(_Data):
@@ -336,7 +335,6 @@ def widget_data(q: Queries, widget: Widget, dashboard_subject_ids: list[str]) ->
                 type="since",
                 scope=[subject_ref(i) for i in ids],
                 what_changed=q.what_changed(ids),
-                reviewed_at=q.reviewed_at(ids),
             )
         case QuestionWidget(settings=s):
             return QuestionData(
@@ -427,7 +425,7 @@ def watch(q: Queries, entity_id: str) -> WatchlistEntry:
         entity=subject_ref(entity_id),
         groups=subject_links(entity_id).groups,
         state=worst_state(a.state for a in answers),
-        new_developments=sum(d.change is not None for d in devs),
+        new_developments=q.unread_count(entity_id),
         needs_attention=sum(d.needs_attention for d in devs),
         headline=flagged[0] if flagged else None,
         latest=max(devs, key=lambda d: d.last_published, default=None),

@@ -51,7 +51,9 @@ class SubjectRef(BaseModel):
 
 class SubjectSummary(SubjectRef):
     aliases: list[str]
-    new_developments: int = Field(description="New or updated developments in the latest run")
+    new_developments: int = Field(
+        description="Changed since the subject was last reviewed, and not read or dismissed"
+    )
     needs_attention: int = Field(description="Developments needing attention in the latest run")
 
 
@@ -159,15 +161,37 @@ class QuestionStateChange(BaseModel):
     to_state: State
     summary: str
     development_ids: list[str] = Field(description="The developments the new answer relies on")
+    unreviewed: bool = Field(description="The latest run changed it after the subject's review")
+
+
+class ChangedDevelopment(DevelopmentSummary):
+    """A development in What changed, with its triage state. When unreviewed, `change` is its
+    change since the review: new if a run after it added the development, else updated. When
+    reviewed, it is the change in the latest run."""
+
+    unreviewed: bool = Field(description="Changed in a run after the review of its subject")
+    read: bool
+    flagged: bool
+    dismissed: bool
 
 
 class WhatChanged(BaseModel):
+    """What changed since the last review of each subject in scope: developments that runs after
+    the review added or updated, and answers whose state the latest run changed. A subject never
+    reviewed counts from the previous run. The latest run's changes are listed too, marked
+    reviewed, so a reviewed scope can still show its run."""
+
     run: RunRef
-    new_count: int
-    updated_count: int
-    needs_attention_count: int
-    developments: list[DevelopmentSummary] = Field(
-        description="New and updated developments, needing attention first, then most material"
+    reviewed_at: datetime | None = Field(
+        description="When every subject in scope was last marked reviewed; null if one never was"
+    )
+    new_count: int = Field(description="Unreviewed new developments not read or dismissed")
+    updated_count: int = Field(description="Unreviewed updated developments not read or dismissed")
+    needs_attention_count: int = Field(
+        description="Unreviewed developments needing attention, not dismissed"
+    )
+    developments: list[ChangedDevelopment] = Field(
+        description="Needing attention first, then changed this run, most material, most recent"
     )
     question_changes: list[QuestionStateChange]
 
@@ -275,6 +299,7 @@ class Note(BaseModel):
 
 
 class Review(BaseModel):
+    id: int
     subject_id: str
     run_id: str | None
     created_at: datetime
@@ -289,7 +314,6 @@ class MonitorPage(BaseModel):
     upcoming: list[UpcomingItem]
     stage_track: StageTrack | None = Field(description="Topics only")
     group: GroupInsights | None = Field(description="Groups only")
-    reviewed_at: datetime | None
     notes: list[Note]
 
 
@@ -474,7 +498,7 @@ class Alert(BaseModel):
     title: str
     badge: AlertBadge
     meta: str = Field(description='"OCBC, financial, 3 sources"')
-    read: bool
+    read: bool = Field(description="The development's triage read state")
 
 
 class AlertCounts(BaseModel):
@@ -484,8 +508,25 @@ class AlertCounts(BaseModel):
 
 
 class Alerts(BaseModel):
-    """The latest run's new or updated developments needing attention, then those to watch."""
+    """The latest run's new or updated developments on followed subjects that need attention,
+    then those to watch. Dismissed developments are left out."""
 
     run: RunRef
+    followed: int = Field(description="How many subjects are followed")
     alerts: list[Alert]
     unread: AlertCounts
+
+
+class Triage(BaseModel):
+    development_id: str
+    read: bool = Field(description="Read since the latest run that changed it")
+    flagged: bool
+    dismissed: bool
+
+
+class TriageChange(BaseModel):
+    """Only the states given change."""
+
+    read: bool | None = None
+    flagged: bool | None = None
+    dismissed: bool | None = None

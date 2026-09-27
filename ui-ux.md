@@ -64,7 +64,9 @@ There is no scheduler in the POC, so the popover promises no next run.
 While a run is in progress the chip reads "**Running now** · 22 sources" with a static half-filled mark, and the list shows a Running now row.
 Words and static marks carry the run state: no spinner, pulse or halo.
 The chip has a fixed minimum width, so switching states does not move the bell.
-The alerts button is a bell with an unread count badge inside it and opens an Alerts popover listing Needs attention and Watch developments, with Mark all read.
+The alerts button is a bell with an unread count badge inside it and opens an Alerts popover listing Needs attention and Watch developments on followed subjects, with Mark all read.
+An unread alert has a dot before its title; Mark read or Mark unread shows on the row under the pointer or with focus, and opening an alert marks it read.
+The foot counts the followed subjects, and Manage lists them with Unfollow.
 Popovers are 400 px wide at the 10 px radius, with a 1 px border and the pop shadow.
 One popover is open at a time; Esc or a click outside closes it.
 
@@ -81,9 +83,16 @@ Title, the subjects it covers, then a 4-column widget grid. The last run time li
 Same order on every scope, so users learn it once:
 
 1. **What changed** since last review, with badges (New, Updated, Needs attention).
+   Mark read, Flag and Dismiss replace a row's date while the pointer is over it or focus is in it; on a touch screen they always show, as 44 px targets.
+   All, Unread, Flagged and Dismissed filter the rows, and All leaves out dismissed ones.
+   A read row drops its New or Updated badge.
 2. **Standing questions**, one row each: answer, state, change badge. Custom questions sit in the same list with a "Custom" label, followed by "Add a question".
 3. **Links**: linked subjects by type, plus "Open graph view".
 4. **Actions**: Mark reviewed, Add note.
+   Mark reviewed moves the subject's review mark to the latest run, so What changed and the sidebar count only later runs' changes; flags and dismissals stay.
+   The run's changes then fold behind one line, and the toast offers Undo.
+
+The page head has Follow or Following; alerts cover followed subjects only.
 
 Links and Actions share a rail that sticks under the top bar. A rail taller than the window scrolls with the page until its foot shows, then sticks, so every part of it can be reached.
 Deleting a note or a dashboard shows Undo for 8 s, paused while the pointer is over it or focus is in it; that is the only restore.

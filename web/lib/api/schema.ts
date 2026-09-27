@@ -137,6 +137,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/what-changed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get What Changed
+         * @description What changed since the last review of some subjects (groups include their members) or of
+         *     a dashboard's subjects: what a dashboard-wide Since widget counts.
+         */
+        get: operations["get_what_changed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/developments/{development_id}/triage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Set Triage
+         * @description Marks a development read or unread, flagged or not, dismissed or not; states left out of
+         *     the body stay as they are.
+         */
+        patch: operations["set_triage"];
+        trace?: never;
+    };
     "/developments/{development_id}": {
         parameters: {
             query?: never;
@@ -259,7 +301,10 @@ export interface paths {
         /** List Dashboards */
         get: operations["list_dashboards"];
         put?: never;
-        /** Create Dashboard */
+        /**
+         * Create Dashboard
+         * @description Creates a dashboard and follows its subjects.
+         */
         post: operations["create_dashboard"];
         delete?: never;
         options?: never;
@@ -358,9 +403,71 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Mark Reviewed */
+        /**
+         * Mark Reviewed
+         * @description Sets each subject's review watermark to the latest run: its What changed then counts from
+         *     later runs. Flags and dismissals stay.
+         */
         post: operations["mark_reviewed"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reviews/{review_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Undo Review
+         * @description Undo Mark reviewed: the subject counts from its review before.
+         */
+        delete: operations["undo_review"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/follows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Follows
+         * @description Followed subjects, oldest first. Alerts cover these.
+         */
+        get: operations["list_follows"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/follows/{subject_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Follow Subject */
+        put: operations["follow_subject"];
+        post?: never;
+        /** Unfollow Subject */
+        delete: operations["unfollow_subject"];
         options?: never;
         head?: never;
         patch?: never;
@@ -605,7 +712,7 @@ export interface paths {
         put?: never;
         /**
          * Mark Alerts Read
-         * @description Mark every current alert read; the alerts stay listed.
+         * @description Mark every current alert's development read; the alerts stay listed.
          */
         post: operations["mark_alerts_read"];
         delete?: never;
@@ -705,7 +812,10 @@ export interface components {
              * @description "OCBC, financial, 3 sources"
              */
             meta: string;
-            /** Read */
+            /**
+             * Read
+             * @description The development's triage read state
+             */
             read: boolean;
         };
         /** AlertCounts */
@@ -719,10 +829,16 @@ export interface components {
         };
         /**
          * Alerts
-         * @description The latest run's new or updated developments needing attention, then those to watch.
+         * @description The latest run's new or updated developments on followed subjects that need attention,
+         *     then those to watch. Dismissed developments are left out.
          */
         Alerts: {
             run: components["schemas"]["RunRef"];
+            /**
+             * Followed
+             * @description How many subjects are followed
+             */
+            followed: number;
             /** Alerts */
             alerts: components["schemas"]["Alert"][];
             unread: components["schemas"]["AlertCounts"];
@@ -815,6 +931,69 @@ export interface components {
              * @description Material developments per week, aligned with weeks
              */
             counts: number[];
+        };
+        /**
+         * ChangedDevelopment
+         * @description A development in What changed, with its triage state. When unreviewed, `change` is its
+         *     change since the review: new if a run after it added the development, else updated. When
+         *     reviewed, it is the change in the latest run.
+         */
+        ChangedDevelopment: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Category */
+            category: string;
+            /** Stage */
+            stage: ("signal" | "consultation" | "proposed" | "enacted" | "enforced") | null;
+            /** Event Date */
+            event_date: string | null;
+            /**
+             * First Published
+             * Format: date
+             */
+            first_published: string;
+            /**
+             * Last Published
+             * Format: date
+             */
+            last_published: string;
+            /** Materiality Level */
+            materiality_level: number;
+            /** Materiality Label */
+            materiality_label: string;
+            /** Needs Attention */
+            needs_attention: boolean;
+            /** Adverse */
+            adverse: boolean;
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "positive" | "negative" | "neutral";
+            /** Subjects */
+            subjects: components["schemas"]["SubjectRef"][];
+            /** Source Count */
+            source_count: number;
+            /**
+             * Change
+             * @description Change since the previous run
+             */
+            change: ("new" | "updated") | null;
+            /** New Source Count */
+            new_source_count: number;
+            /**
+             * Unreviewed
+             * @description Changed in a run after the review of its subject
+             */
+            unreviewed: boolean;
+            /** Read */
+            read: boolean;
+            /** Flagged */
+            flagged: boolean;
+            /** Dismissed */
+            dismissed: boolean;
         };
         /** CommonIssue */
         CommonIssue: {
@@ -1556,8 +1735,6 @@ export interface components {
             stage_track: components["schemas"]["StageTrack"] | null;
             /** @description Groups only */
             group: components["schemas"]["GroupInsights"] | null;
-            /** Reviewed At */
-            reviewed_at: string | null;
             /** Notes */
             notes: components["schemas"]["Note"][];
         };
@@ -1701,6 +1878,11 @@ export interface components {
              * @description The developments the new answer relies on
              */
             development_ids: string[];
+            /**
+             * Unreviewed
+             * @description The latest run changed it after the subject's review
+             */
+            unreviewed: boolean;
         };
         /** QuestionTrend */
         QuestionTrend: {
@@ -1795,6 +1977,8 @@ export interface components {
         };
         /** Review */
         Review: {
+            /** Id */
+            id: number;
             /** Subject Id */
             subject_id: string;
             /** Run Id */
@@ -1980,8 +2164,6 @@ export interface components {
             /** Scope */
             scope: components["schemas"]["SubjectRef"][];
             what_changed: components["schemas"]["WhatChanged"];
-            /** Reviewed At */
-            reviewed_at: string | null;
         };
         /** SinceSettings */
         SinceSettings: {
@@ -2094,7 +2276,7 @@ export interface components {
             aliases: string[];
             /**
              * New Developments
-             * @description New or updated developments in the latest run
+             * @description Changed since the subject was last reviewed, and not read or dismissed
              */
             new_developments: number;
             /**
@@ -2178,7 +2360,7 @@ export interface components {
             aliases: string[];
             /**
              * New Developments
-             * @description New or updated developments in the latest run
+             * @description Changed since the subject was last reviewed, and not read or dismissed
              */
             new_developments: number;
             /**
@@ -2411,6 +2593,32 @@ export interface components {
              */
             material: number;
         };
+        /** Triage */
+        Triage: {
+            /** Development Id */
+            development_id: string;
+            /**
+             * Read
+             * @description Read since the latest run that changed it
+             */
+            read: boolean;
+            /** Flagged */
+            flagged: boolean;
+            /** Dismissed */
+            dismissed: boolean;
+        };
+        /**
+         * TriageChange
+         * @description Only the states given change.
+         */
+        TriageChange: {
+            /** Read */
+            read?: boolean | null;
+            /** Flagged */
+            flagged?: boolean | null;
+            /** Dismissed */
+            dismissed?: boolean | null;
+        };
         /** UpcomingData */
         UpcomingData: {
             /** Widget Id */
@@ -2619,20 +2827,40 @@ export interface components {
             /** Count */
             count: number;
         };
-        /** WhatChanged */
+        /**
+         * WhatChanged
+         * @description What changed since the last review of each subject in scope: developments that runs after
+         *     the review added or updated, and answers whose state the latest run changed. A subject never
+         *     reviewed counts from the previous run. The latest run's changes are listed too, marked
+         *     reviewed, so a reviewed scope can still show its run.
+         */
         WhatChanged: {
             run: components["schemas"]["RunRef"];
-            /** New Count */
+            /**
+             * Reviewed At
+             * @description When every subject in scope was last marked reviewed; null if one never was
+             */
+            reviewed_at: string | null;
+            /**
+             * New Count
+             * @description Unreviewed new developments not read or dismissed
+             */
             new_count: number;
-            /** Updated Count */
+            /**
+             * Updated Count
+             * @description Unreviewed updated developments not read or dismissed
+             */
             updated_count: number;
-            /** Needs Attention Count */
+            /**
+             * Needs Attention Count
+             * @description Unreviewed developments needing attention, not dismissed
+             */
             needs_attention_count: number;
             /**
              * Developments
-             * @description New and updated developments, needing attention first, then most material
+             * @description Needing attention first, then changed this run, most material, most recent
              */
-            developments: components["schemas"]["DevelopmentSummary"][];
+            developments: components["schemas"]["ChangedDevelopment"][];
             /** Question Changes */
             question_changes: components["schemas"]["QuestionStateChange"][];
         };
@@ -2866,6 +3094,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DevelopmentSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_what_changed: {
+        parameters: {
+            query?: {
+                subject_id?: string[] | null;
+                dashboard_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhatChanged"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_triage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                development_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TriageChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Triage"];
                 };
             };
             /** @description Validation Error */
@@ -3324,6 +3619,117 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Review"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    undo_review: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_follows: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectRef"][];
+                };
+            };
+        };
+    };
+    follow_subject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectRef"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unfollow_subject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectRef"][];
                 };
             };
             /** @description Validation Error */

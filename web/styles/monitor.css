@@ -35,10 +35,23 @@
   min-width: 0;
 }
 
-/* Monitor page head: 28px title over one quiet line. */
+/* Monitor page head: 28px title over one quiet line, and the Follow button bottom right. */
 .mon-head {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-2);
   padding: var(--s-5) var(--s-6) 0;
   margin-bottom: var(--s-5);
+}
+.mon-head-main {
+  flex: 1;
+  min-width: 0;
+}
+.mon-head .follow {
+  margin-bottom: 2px;
+}
+.mon-head .follow svg {
+  color: var(--ink2);
 }
 .mon-head h1 {
   margin: 0;
@@ -101,6 +114,90 @@
   margin: 0;
   padding: var(--s-3) 0 var(--s-2);
   font-weight: 600;
+}
+/* What changed: the counts line with the triage filter on the right. */
+.lead-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 40px;
+  padding: var(--s-2) 0 var(--s-1);
+}
+.lead-row .mon-lead {
+  flex: 1;
+  padding: 0;
+}
+.seg-n {
+  color: var(--ink3);
+  font-variant-numeric: tabular-nums;
+}
+.seg button[aria-pressed="true"] .seg-n {
+  color: var(--ink2);
+}
+/* Triage rows: Mark read, Flag and Dismiss replace the date while the pointer is over the row or
+   focus is in it. They sit above the title link that covers the row. */
+.row.dev.triage {
+  grid-template-columns: var(--stat) minmax(0, 1fr) 96px;
+}
+.triage-end {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 18px;
+}
+.triage-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.flag-mark {
+  display: inline-flex;
+  color: var(--ink2);
+}
+.triage-acts {
+  position: relative;
+  z-index: 1;
+  display: none;
+  gap: 2px;
+  margin: -5px -4px -5px 0;
+}
+.row.triage:is(:hover, :focus-within) .triage-acts {
+  display: inline-flex;
+}
+.row.triage:is(:hover, :focus-within) .triage-date {
+  display: none;
+}
+/* Neighbouring actions share the 2px gap instead of overlapping hit areas. */
+.triage-acts .btn-icon::after {
+  inset: -8px -1px;
+}
+.triage-acts .btn-icon[aria-pressed="true"] {
+  color: var(--ink);
+}
+/* After Mark reviewed: the run's changes fold behind one line. */
+.earlier {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  color: var(--ink2);
+  font: 500 var(--fs-body) / var(--lh-body) var(--font);
+  text-align: left;
+}
+.earlier:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+.earlier .chev {
+  flex: none;
+  color: var(--ink3);
+}
+.earlier[aria-expanded="true"] .chev {
+  transform: rotate(90deg);
 }
 .mon-sub {
   margin: 0;
