@@ -10,7 +10,7 @@ import { Fragment, useEffect, useEffectEvent, useRef, type ReactNode } from "rea
 
 import type { Schema } from "@/lib/api/client";
 import { useAnswerEvidence, useDevelopment } from "@/lib/api/queries";
-import { answerText, longDate, percent, plural, tagger } from "@/lib/format";
+import { answerText, COLLECTION_LABEL, longDate, percent, plural, tagger } from "@/lib/format";
 import { typingIn } from "@/lib/dom";
 import { CloseButton } from "@/components/ui/Modal";
 import { Dotted, StateChange } from "@/components/monitor/parts";
@@ -225,12 +225,6 @@ function MaterialityConfidence({ development: d }: { development: Schema<"Develo
     </span>
   );
 }
-
-const COLLECTION_LABEL: Record<Schema<"EvidenceSource">["collection"], string> = {
-  dms: "DMS",
-  official: "Official",
-  news: "News",
-};
 
 function Source({ source: s, title }: { source: Schema<"EvidenceSource">; title: string }) {
   const kind = s.doc_type.toLowerCase() === s.collection ? COLLECTION_LABEL[s.collection] : `${COLLECTION_LABEL[s.collection]}, ${s.doc_type}`;

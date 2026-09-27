@@ -131,10 +131,13 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       // Show all opens the dashboard's What changed, with the widget's counts.
       await widget.getByRole("link", { name: "Show all" }).click();
       await expect(page).toHaveURL(`/developments?dashboard=${starter.id}&changed=1`);
-      const changes = page.getByRole("region", { name: "What changed since last review" });
+      const changes = page.locator(".dv-table");
       await expect(changes.locator(".mon-lead")).toHaveText(changeCounts(wc));
-      await expect(changes.getByRole("button", { name: /^All / })).toHaveAccessibleName(`All ${current.length}`);
-      await expect(changes.locator(".row.dev")).toHaveCount(Math.min(6, current.length));
+      await expect(page.getByRole("button", { name: /^New since review / })).toHaveAccessibleName(`New since review ${current.length}`);
+      await expect(changes.getByRole("group", { name: "Filter developments" }).getByRole("button", { name: /^All / })).toHaveAccessibleName(
+        `All ${current.length}`,
+      );
+      await expect(changes.locator("tbody tr")).toHaveCount(current.length);
       await page.goBack();
       await expect(page).toHaveURL(`/dashboards/${starter.id}`);
     });
@@ -661,7 +664,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
 
     await step(STEPS[10], async () => {
       // A word from a latest-run development title that finds developments and documents.
-      const all = await unwrap(api.GET("/developments", { params: { query: { limit: 20 } } }));
+      const all = (await unwrap(api.GET("/developments", { params: { query: { limit: 20 } } }))).developments;
       const words = [...new Set(all.flatMap((d) => d.title.match(/\b[A-Za-z]{6,}\b/g) ?? []))];
       let found: { word: string; results: Schema<"SearchResults"> } | null = null;
       for (const word of words) {
@@ -853,6 +856,120 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(card).toHaveAccessibleName("Evidence");
       await expect(drawer.locator(".source").first()).toBeVisible();
       await ringOnDrawer();
+    });
+
+    await step(STEPS[13], async () => {
+      // The Developments widget's in-scope count opens the dashboard's developments list.
+      await page.goto(`/dashboards/${starter.id}`);
+      const query = { dashboard_id: starter.id };
+      const all = await unwrap(api.GET("/developments", { params: { query } }));
+      const widget = page.getByRole("group", { name: "Developments", exact: true });
+      await widget.getByRole("link", { name: `${all.in_scope} in scope` }).click();
+      await expect(page).toHaveURL(`/developments?dashboard=${starter.id}`);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Developments");
+      await expect(page.locator(".pagehead p")).toContainText(plural(all.in_scope, "development"));
+      const nav = page.getByRole("navigation", { name: "Main" });
+      await expect(nav.getByRole("link", { name: starter.name, exact: true })).toHaveAttribute("aria-current", "page");
+      const table = page.locator(".dv-table");
+      const rows = table.locator("tbody tr");
+      await expect(page.getByRole("button", { name: /^All \d+$/ })).toHaveAccessibleName(`All ${all.in_scope}`);
+      await expect(rows).toHaveCount(all.in_scope);
+
+      // Facets: each popover lists values with counts; picking one narrows the list to what it counted.
+      const bar = page.getByRole("group", { name: "Filters" });
+      const facet = (label: string) => bar.getByRole("button", { name: new RegExp(`^${label}`) });
+      const level = all.facets.materiality[0];
+      await facet("Materiality").click();
+      const materiality = page.getByRole("dialog", { name: "Materiality" });
+      // The URL holds the selection, so a box shows checked once the URL has it.
+      const levelBox = materiality.getByRole("checkbox", { name: `${level.label} ${level.count}` });
+      await levelBox.click();
+      await expect(levelBox).toBeChecked();
+      await expect(page).toHaveURL(new RegExp(`[?&]materiality=${level.value}(&|$)`));
+      await expect(rows).toHaveCount(level.count);
+      await page.keyboard.press("Escape");
+      await expect(materiality).toHaveCount(0);
+      await expect(facet("Materiality")).toHaveAccessibleName(`Materiality: ${level.label}`);
+
+      const byLevel = await unwrap(api.GET("/developments", { params: { query: { ...query, materiality: [Number(level.value)] } } }));
+      const place = byLevel.facets.jurisdiction[0];
+      await facet("Jurisdiction").click();
+      const jurisdiction = page.getByRole("dialog", { name: "Jurisdiction" });
+      await expect(jurisdiction.getByRole("searchbox", { name: "Find a jurisdiction" })).toBeFocused();
+      await page.keyboard.type(place.label.slice(0, 4));
+      const placeBox = jurisdiction.getByRole("checkbox", { name: `${place.label} ${place.count}` });
+      await placeBox.click();
+      await expect(placeBox).toBeChecked();
+      await expect(rows).toHaveCount(place.count);
+      await page.keyboard.press("Escape");
+      const filters = { ...query, materiality: [Number(level.value)], jurisdiction: [place.value] };
+      const narrowed = await unwrap(api.GET("/developments", { params: { query: filters } }));
+      expect(narrowed.developments.every((d) => d.materiality_label === level.label && d.jurisdictions.includes(place.label))).toBe(true);
+
+      // Sorting by Date: newest first, then oldest first on a second click.
+      const dates = [...narrowed.developments.map((d) => d.last_published)].sort();
+      const dateHead = table.getByRole("columnheader", { name: "Date" });
+      await dateHead.getByRole("button").click();
+      await expect(dateHead).toHaveAttribute("aria-sort", "descending");
+      await expect(rows.first().locator("td").last()).toHaveText(shortDate(dates.at(-1) ?? ""));
+      await dateHead.getByRole("button").click();
+      await expect(dateHead).toHaveAttribute("aria-sort", "ascending");
+      await expect(rows.first().locator("td").last()).toHaveText(shortDate(dates[0]));
+      const url = page.url();
+      expect(url).toContain("sort=date");
+
+      // A reload keeps the filters and the sort, and so does the evidence drawer.
+      await page.reload();
+      await expect(facet("Jurisdiction")).toHaveAccessibleName(`Jurisdiction: ${place.label}`);
+      await expect(rows).toHaveCount(place.count);
+      await expect(dateHead).toHaveAttribute("aria-sort", "ascending");
+      const first = rows.first().locator(".tt a");
+      const firstTitle = (await first.textContent()) ?? "";
+      await first.click();
+      await expect(page).toHaveURL((u) => u.href.startsWith(`${url}&evidence=`));
+      const drawer = page.getByTestId("evidence-drawer");
+      await expect(drawer.getByRole("heading", { level: 3 })).toHaveText(firstTitle);
+      await page.getByRole("button", { name: "Close evidence" }).click();
+      await expect(page).toHaveURL(url);
+      await expect(rows).toHaveCount(place.count);
+
+      // Words narrow the list too; Clear filters puts every development back.
+      const word = firstTitle.match(/\b[A-Za-z]{5,}\b/)?.[0] ?? firstTitle.split(" ")[0];
+      const worded = await unwrap(api.GET("/developments", { params: { query: { ...filters, q: word } } }));
+      await bar.getByRole("searchbox", { name: "Filter by words" }).fill(word);
+      await expect(page).toHaveURL(new RegExp(`[?&]q=${encodeURIComponent(word)}`));
+      await expect(rows).toHaveCount(worded.developments.length);
+      await bar.getByRole("searchbox", { name: "Filter by words" }).fill("zzzqqq");
+      await table.getByRole("button", { name: "Clear filters" }).click();
+      await expect(rows).toHaveCount(all.in_scope);
+      await expect(bar.getByRole("searchbox", { name: "Filter by words" })).toHaveValue("");
+
+      // New since review: What changed with the Since widget's counts, and triage in the table.
+      const wc = await unwrap(api.GET("/what-changed", { params: { query } }));
+      const current = wc.developments.filter((d) => d.unreviewed && !d.dismissed);
+      await page.getByRole("button", { name: /^New since review/ }).click();
+      await expect(page).toHaveURL(/[?&]changed=1/);
+      await expect(table.locator(".mon-lead")).toHaveText(changeCounts(wc));
+      const unreadButton = table.getByRole("group", { name: "Filter developments" }).getByRole("button", { name: /^Unread / });
+      const unread = current.filter((d) => !d.read);
+      await expect(unreadButton).toHaveAccessibleName(`Unread ${unread.length}`);
+      if (unread.length > 0) {
+        await unreadButton.click();
+        const row = rows.first();
+        const title = (await row.locator(".tt a").textContent()) ?? "";
+        const d = unread.find((x) => x.title === title);
+        if (!d) throw new Error(`no unread development is titled ${title}`);
+        cleanups.push(async () => {
+          await unwrap(api.PATCH("/developments/{development_id}/triage", { params: { path: { development_id: d.id } }, body: { read: false } }));
+        });
+        await row.hover();
+        await row.getByRole("button", { name: "Mark read" }).click();
+        await expect(rows.filter({ hasText: title })).toHaveCount(0);
+        await expect(unreadButton).toHaveAccessibleName(`Unread ${unread.length - 1}`);
+        const whatChanged = () => unwrap(api.GET("/what-changed", { params: { query } }));
+        await expect.poll(async () => (await whatChanged()).developments.find((x) => x.id === d.id)?.read).toBe(true);
+        await expect(table.locator(".mon-lead")).toHaveText(changeCounts(await whatChanged()));
+      }
     });
 
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);

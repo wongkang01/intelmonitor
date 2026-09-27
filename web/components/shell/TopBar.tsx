@@ -6,14 +6,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  useEffect,
-  useEffectEvent,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import {
@@ -28,6 +21,7 @@ import {
   useSearch,
   useSetTriage,
 } from "@/lib/api/queries";
+import { useDismiss } from "@/lib/dom";
 import { duration, plural, relativeTime, shortDate, shortTime, TYPE_LABEL } from "@/lib/format";
 import { monitorHref } from "@/lib/widgets";
 import {
@@ -270,41 +264,6 @@ interface PopoverProps {
   open: boolean;
   onToggle: () => void;
   onClose: () => void;
-}
-
-/** Closes an open popover on Esc or a click outside `wrap`, returning focus to `trigger`. Esc is
- *  caught before the evidence drawer's handler, so it closes only the popover. */
-function useDismiss(open: boolean, onClose: () => void) {
-  const wrap = useRef<HTMLDivElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
-  const close = useEffectEvent(onClose);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (e.target instanceof Node && wrap.current?.contains(e.target)) return;
-      close();
-      // A click on something focusable keeps that focus; otherwise focus goes back to the trigger.
-      requestAnimationFrame(() => {
-        if (document.activeElement === document.body) trigger.current?.focus();
-      });
-    };
-    const onKey = (e: globalThis.KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      e.preventDefault();
-      e.stopPropagation();
-      close();
-      trigger.current?.focus();
-    };
-    document.addEventListener("mousedown", onDown);
-    window.addEventListener("keydown", onKey, true);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      window.removeEventListener("keydown", onKey, true);
-    };
-  }, [open]);
-
-  return { wrap, trigger };
 }
 
 /** A top bar popover: 400px, right-aligned under its trigger, fixed head and foot, scrolling body. */

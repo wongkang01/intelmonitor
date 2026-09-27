@@ -12,7 +12,7 @@ import {
   useRuns,
   useSaveProfile,
 } from "@/lib/api/queries";
-import { capitalize, dateTime, longDate, onDay, shortDate } from "@/lib/format";
+import { capitalize, COLLECTION_LABEL, dateTime, longDate, onDay, shortDate } from "@/lib/format";
 import { PlayIcon } from "@/components/ui/icons";
 import { CloseButton, Modal } from "@/components/ui/Modal";
 import { StateBadge } from "@/components/widgets/parts";
@@ -129,7 +129,7 @@ export function DataSourcesDialog(props: DialogProps) {
                 {data.sources.map((s) => (
                   <tr key={`${s.source}-${s.collection}`}>
                     <td>{s.source.toUpperCase()}</td>
-                    <td>{s.collection === "dms" ? "DMS" : s.collection === "news" ? "News" : "Official"}</td>
+                    <td>{COLLECTION_LABEL[s.collection]}</td>
                     <td className="num">{s.documents}</td>
                     <td className="num">{s.relevant_documents}</td>
                     <td>

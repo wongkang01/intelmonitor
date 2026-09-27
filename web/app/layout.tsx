@@ -9,6 +9,7 @@ import "@/styles/monitor.css";
 import "@/styles/graph.css";
 import "@/styles/custom.css";
 import "@/styles/help.css";
+import "@/styles/developments.css";
 import "@/styles/touch.css";
 
 import { Providers } from "./providers";

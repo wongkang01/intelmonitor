@@ -5,7 +5,7 @@ run version and shared across requests, since the API reads far more often than 
 
 import json
 import sqlite3
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from functools import cached_property
@@ -14,7 +14,7 @@ from typing import get_args
 
 from intelmonitor.pipeline.answers import scope
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS
-from intelmonitor.pipeline.screen import Category
+from intelmonitor.pipeline.screen import JURISDICTION_NAMES, Category
 from intelmonitor.pipeline.subjects import Subject, all_subjects, questions_for
 from intelmonitor.seed import load_subjects
 from intelmonitor.server.models import (
@@ -22,7 +22,9 @@ from intelmonitor.server.models import (
     AnswerChange,
     AnswerFeedback,
     CategorySeries,
+    ChangeCounts,
     ChangedDevelopment,
+    Collection,
     CommonIssue,
     DevelopmentChangeKind,
     DevelopmentSummary,
@@ -54,6 +56,9 @@ GROUP_LOOKBACK_DAYS = 14
 TREND_WEEKS = 12
 # Developments at or above this materiality level (Notable) count as material.
 MATERIAL_LEVEL = 2
+# A source reports on a jurisdiction when Jev scores it at least this likely.
+JURISDICTION_THRESHOLD = 0.5
+COLLECTION_ORDER: list[Collection] = ["official", "dms", "news"]
 # Worst first: the state a subject shows when its answers disagree.
 STATE_RANK: dict[State, int] = {"needs_attention": 0, "watch": 1, "new": 2, "stable": 3}
 
@@ -146,14 +151,24 @@ def _load_developments(conn: sqlite3.Connection, run: RunRef) -> RunDevelopments
         (run.id,),
     ):
         tags.setdefault(r["development_id"], []).append(r["subject_id"])
-    sources = {
-        r["development_id"]: r["n"]
-        for r in conn.execute(
-            "SELECT development_id, count(DISTINCT document_id) AS n FROM development_sources "
-            "WHERE run_id = ? GROUP BY development_id",
-            (run.id,),
+    documents: dict[str, set[str]] = {}
+    collections: dict[str, set[Collection]] = {}
+    jurisdictions: dict[str, set[str]] = {}
+    for r in conn.execute(
+        "SELECT s.development_id, s.document_id, d.collection, t.jurisdictions "
+        "FROM development_sources s JOIN source_documents d ON d.id = s.document_id "
+        "LEFT JOIN document_tags t ON t.document_id = s.document_id WHERE s.run_id = ?",
+        (run.id,),
+    ):
+        dev = r["development_id"]
+        documents.setdefault(dev, set()).add(r["document_id"])
+        collections.setdefault(dev, set()).add(r["collection"])
+        scores: dict[str, float] = json.loads(r["jurisdictions"] or "{}")
+        jurisdictions.setdefault(dev, set()).update(
+            JURISDICTION_NAMES[c]
+            for c, p in scores.items()
+            if p >= JURISDICTION_THRESHOLD and c in JURISDICTION_NAMES
         )
-    }
     changes: dict[str, tuple[str, int]] = {}
     for r in conn.execute(
         "SELECT kind, ref_id, detail FROM run_changes "
@@ -180,7 +195,9 @@ def _load_developments(conn: sqlite3.Connection, run: RunRef) -> RunDevelopments
             adverse=r["adverse"] >= 0.5,
             direction=r["direction"],
             subjects=[subject_ref(s) for s in tags.get(r["id"], []) if s in names],
-            source_count=sources.get(r["id"], 0),
+            source_count=len(documents.get(r["id"], ())),
+            collections=[c for c in COLLECTION_ORDER if c in collections.get(r["id"], ())],
+            jurisdictions=sorted(jurisdictions.get(r["id"], ())),
             change="new" if change and change[0] == "new" else "updated" if change else None,
             new_source_count=change[1] if change else 0,
         )
@@ -465,11 +482,9 @@ class Queries:
 
     # ---- what changed, upcoming, stages, group insights
 
-    def what_changed(self, subject_ids: Iterable[str]) -> WhatChanged:
-        """What changed for the subjects since each was reviewed. A development tagged to several
-        of them counts from the latest of their reviews: reviewing any subject it is shown under
-        clears it here."""
-        requested = list(dict.fromkeys(subject_ids))
+    def _scope_baseline(self, requested: list[str]) -> Callable[[Iterable[str]], str]:
+        """The run a development's What changed counts from, given its subject tags: the latest
+        review among the requested subjects it is shown under."""
         reach = {s: expand([s]) for s in requested}
 
         def baseline(tags: Iterable[str]) -> str:
@@ -479,12 +494,22 @@ class Queries:
                 default=self.run.previous_run_id or "",
             )
 
-        devs: list[ChangedDevelopment] = []
-        for d in self.developments_in(requested):
+        return baseline
+
+    def scope_developments(self, subject_ids: Iterable[str] | None) -> list[ChangedDevelopment]:
+        """Every development of the subjects (all developments when None), in display order, with
+        its change since the review and its triage state. A development tagged to several of the
+        subjects counts from the latest of their reviews."""
+        if subject_ids is None:
+            requested, devs = list(all_subjects()), list(self.devs.by_id.values())
+        else:
+            requested = list(dict.fromkeys(subject_ids))
+            devs = self.developments_in(requested)
+        baseline = self._scope_baseline(requested)
+        out: list[ChangedDevelopment] = []
+        for d in devs:
             since = self.change_since(d.id, baseline(self.devs.subject_ids[d.id]))
-            if since is None and d.change is None:
-                continue
-            devs.append(
+            out.append(
                 ChangedDevelopment(
                     **d.model_dump(exclude={"change"}),
                     change=since or d.change,
@@ -494,6 +519,14 @@ class Queries:
                     dismissed=self.is_dismissed(d.id),
                 )
             )
+        return out
+
+    def what_changed(self, subject_ids: Iterable[str]) -> WhatChanged:
+        """What changed for the subjects since each was reviewed: reviewing any subject a
+        development is shown under clears it here."""
+        requested = list(dict.fromkeys(subject_ids))
+        baseline = self._scope_baseline(requested)
+        devs = [d for d in self.scope_developments(requested) if d.change is not None]
         question_changes: list[QuestionStateChange] = []
         ids = expand(requested)
         for sid in sorted(ids, key=lambda i: list(all_subjects()).index(i)):
@@ -513,13 +546,10 @@ class Queries:
                         )
                     )
         question_changes.sort(key=lambda c: STATE_RANK[c.to_state])
-        counted = [d for d in devs if d.unreviewed and not d.dismissed]
         return WhatChanged(
             run=self.run,
             reviewed_at=self.reviewed_at(requested),
-            new_count=sum(d.change == "new" and not d.read for d in counted),
-            updated_count=sum(d.change == "updated" and not d.read for d in counted),
-            needs_attention_count=sum(d.needs_attention for d in counted),
+            **change_counts(devs).model_dump(),
             developments=devs,
             question_changes=question_changes,
         )
@@ -716,6 +746,16 @@ def _note(r: sqlite3.Row) -> Note:
         text=r["text"],
         run_id=r["run_id"],
         created_at=r["created_at"],
+    )
+
+
+def change_counts(devs: Iterable[ChangedDevelopment]) -> ChangeCounts:
+    """What a Since widget counts: developments changed since the review and not dismissed."""
+    counted = [d for d in devs if d.unreviewed and not d.dismissed]
+    return ChangeCounts(
+        new_count=sum(d.change == "new" and not d.read for d in counted),
+        updated_count=sum(d.change == "updated" and not d.read for d in counted),
+        needs_attention_count=sum(d.needs_attention for d in counted),
     )
 
 

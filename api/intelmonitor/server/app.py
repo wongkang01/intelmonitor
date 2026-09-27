@@ -26,6 +26,7 @@ from intelmonitor.server import dashboards as dash
 from intelmonitor.server import feedback as fb
 from intelmonitor.server import runs
 from intelmonitor.server import triage as tri
+from intelmonitor.server.developments import DevelopmentQuery, development_list
 from intelmonitor.server.evidence import development_sources, document_detail, new_documents
 from intelmonitor.server.graph import neighbourhood
 from intelmonitor.server.models import (
@@ -36,7 +37,7 @@ from intelmonitor.server.models import (
     DataSources,
     DataSourceStats,
     DevelopmentDetail,
-    DevelopmentSummary,
+    DevelopmentList,
     DocumentDetail,
     Graph,
     LinkType,
@@ -215,21 +216,13 @@ def search(
 
 
 @app.get("/developments")
-def list_developments(
-    q: Q,
-    subject_id: Annotated[list[str] | None, Query()] = None,
-    dashboard_id: str | None = None,
-    changed: bool = False,
-    limit: Annotated[int | None, Query(ge=1)] = None,
-) -> list[DevelopmentSummary]:
-    """The latest run's developments in display order, optionally for some subjects (groups
-    include their members), for a dashboard's subjects, or only those new or updated since the
-    previous run. What changed since the review, as a Since widget counts it, is /what-changed."""
-    ids = list(subject_id or [])
-    if dashboard_id is not None:
-        ids += dash.get_dashboard(q.conn, dashboard_id).subject_ids
-    devs = q.developments_in(ids) if ids else list(q.devs.by_id.values())
-    return [d for d in devs if d.change or not changed][:limit]
+def list_developments(q: Q, query: Annotated[DevelopmentQuery, Query()]) -> DevelopmentList:
+    """The latest run's developments in display order, for some subjects, for a dashboard's
+    subjects, or all of them, narrowed by facet filters, with each facet's counts."""
+    ids = list(query.subject_id)
+    if query.dashboard_id is not None:
+        ids += dash.get_dashboard(q.conn, query.dashboard_id).subject_ids
+    return development_list(q, ids or None, query)
 
 
 @app.get("/what-changed")

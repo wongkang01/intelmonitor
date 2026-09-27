@@ -2,11 +2,12 @@
 
 // Sidebar: brand, Dashboards (New dashboard first), Monitors by type with counts, profile menu.
 // The Monitors section holding the current subject opens itself, so the current page is always marked.
+// A dashboard's developments list marks its dashboard.
 // Dashboards reorder by dragging a row with a mouse or pen, or with Move up and Move down in the
 // row's options popover.
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useRef, useState, type MouseEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useRef, useState, type MouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 
 import { useDashboards, useReorderDashboards, useSubjects, type Dashboard } from "@/lib/api/queries";
 import { TYPE_PLURAL } from "@/lib/format";
@@ -65,7 +66,11 @@ export function Sidebar() {
           <PlusIcon />
           <span>New dashboard</span>
         </button>
-        {dashboards.data && <DashboardList dashboards={dashboards.data} pathname={pathname} />}
+        {dashboards.data && (
+          <Suspense>
+            <DashboardList dashboards={dashboards.data} pathname={pathname} />
+          </Suspense>
+        )}
         <div className="navhead">Monitors</div>
         {TYPES.map((type) => {
           const list = subjects.data?.filter((s) => s.type === type) ?? [];
@@ -120,6 +125,9 @@ export function Sidebar() {
  */
 function DashboardList({ dashboards, pathname }: { dashboards: Dashboard[]; pathname: string }) {
   const reorder = useReorderDashboards();
+  // The dashboard page, or the dashboard whose developments list is open.
+  const params = useSearchParams();
+  const currentId = pathname === "/developments" ? params.get("dashboard") : pathname.match(/^\/dashboards\/([^/]+)$/)?.[1];
   const list = useRef<HTMLDivElement>(null);
   const suppressClick = useRef(false);
   const [drag, setDrag] = useState<{ id: string; from: number; to: number; dy: number; pitch: number } | null>(
@@ -214,7 +222,7 @@ function DashboardList({ dashboards, pathname }: { dashboards: Dashboard[]; path
         <DashboardRow
           key={d.id}
           dashboard={d}
-          current={pathname === `/dashboards/${d.id}`}
+          current={currentId === d.id}
           index={i}
           count={shown.length}
           lifted={drag?.id === d.id}

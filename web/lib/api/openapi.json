@@ -223,7 +223,7 @@
     "/developments": {
       "get": {
         "summary": "List Developments",
-        "description": "The latest run's developments in display order, optionally for some subjects (groups\ninclude their members), for a dashboard's subjects, or only those new or updated since the\nprevious run. What changed since the review, as a Since widget counts it, is /what-changed.",
+        "description": "The latest run's developments in display order, for some subjects, for a dashboard's\nsubjects, or all of them, narrowed by facet filters, with each facet's counts.",
         "operationId": "list_developments",
         "parameters": [
           {
@@ -231,19 +231,14 @@
             "in": "query",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                {
-                  "type": "null"
-                }
-              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Subjects in scope; groups include their members",
               "title": "Subject Id"
-            }
+            },
+            "description": "Subjects in scope; groups include their members"
           },
           {
             "name": "dashboard_id",
@@ -258,18 +253,32 @@
                   "type": "null"
                 }
               ],
+              "description": "Adds a dashboard's subjects",
               "title": "Dashboard Id"
-            }
+            },
+            "description": "Adds a dashboard's subjects"
           },
           {
             "name": "changed",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "boolean",
-              "default": false,
+              "anyOf": [
+                {
+                  "enum": [
+                    "review",
+                    "run"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "review: only What changed since the review; run: only those the latest run added or updated",
               "title": "Changed"
-            }
+            },
+            "description": "review: only What changed since the review; run: only those the latest run added or updated"
           },
           {
             "name": "limit",
@@ -287,6 +296,113 @@
               ],
               "title": "Limit"
             }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "incident",
+                  "regulatory",
+                  "financial",
+                  "management",
+                  "strategy",
+                  "policy",
+                  "security",
+                  "market",
+                  "other"
+                ],
+                "type": "string"
+              },
+              "title": "Category"
+            }
+          },
+          {
+            "name": "materiality",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "maximum": 4,
+                "minimum": 0
+              },
+              "description": "Materiality levels, 0 Trivial to 4 Critical",
+              "title": "Materiality"
+            },
+            "description": "Materiality levels, 0 Trivial to 4 Critical"
+          },
+          {
+            "name": "jurisdiction",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Jurisdiction codes, such as sg or intl",
+              "title": "Jurisdiction"
+            },
+            "description": "Jurisdiction codes, such as sg or intl"
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Last published in the last this many days of the run",
+              "title": "Days"
+            },
+            "description": "Last published in the last this many days of the run"
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "dms",
+                  "official",
+                  "news"
+                ],
+                "type": "string"
+              },
+              "title": "Source"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Words that must all appear in the title",
+              "title": "Q"
+            },
+            "description": "Words that must all appear in the title"
           }
         ],
         "responses": {
@@ -295,11 +411,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DevelopmentSummary"
-                  },
-                  "title": "Response List Developments"
+                  "$ref": "#/components/schemas/DevelopmentList"
                 }
               }
             }
@@ -2742,6 +2854,27 @@
             "type": "integer",
             "title": "Source Count"
           },
+          "collections": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "dms",
+                "official",
+                "news"
+              ]
+            },
+            "type": "array",
+            "title": "Collections",
+            "description": "Where its sources come from"
+          },
+          "jurisdictions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Jurisdictions",
+            "description": "Names of the jurisdictions its sources report on, alphabetical"
+          },
           "change": {
             "anyOf": [
               {
@@ -2796,6 +2929,8 @@
           "direction",
           "subjects",
           "source_count",
+          "collections",
+          "jurisdictions",
           "change",
           "new_source_count",
           "unreviewed",
@@ -2804,7 +2939,7 @@
           "dismissed"
         ],
         "title": "ChangedDevelopment",
-        "description": "A development in What changed, with its triage state. When unreviewed, `change` is its\nchange since the review: new if a run after it added the development, else updated. When\nreviewed, it is the change in the latest run."
+        "description": "A development with its What changed and triage state. When unreviewed, `change` is its\nchange since the review: new if a run after it added the development, else updated. When\nreviewed, it is the change in the latest run."
       },
       "CommonIssue": {
         "properties": {
@@ -3535,6 +3670,27 @@
             "type": "integer",
             "title": "Source Count"
           },
+          "collections": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "dms",
+                "official",
+                "news"
+              ]
+            },
+            "type": "array",
+            "title": "Collections",
+            "description": "Where its sources come from"
+          },
+          "jurisdictions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Jurisdictions",
+            "description": "Names of the jurisdictions its sources report on, alphabetical"
+          },
           "change": {
             "anyOf": [
               {
@@ -3609,6 +3765,8 @@
           "direction",
           "subjects",
           "source_count",
+          "collections",
+          "jurisdictions",
           "change",
           "new_source_count",
           "run",
@@ -3619,6 +3777,118 @@
           "notes"
         ],
         "title": "DevelopmentDetail"
+      },
+      "DevelopmentFacets": {
+        "properties": {
+          "category": {
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "type": "array",
+            "title": "Category",
+            "description": "Most matches first"
+          },
+          "materiality": {
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "type": "array",
+            "title": "Materiality",
+            "description": "Most material first; values are levels"
+          },
+          "jurisdiction": {
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "type": "array",
+            "title": "Jurisdiction",
+            "description": "Most matches first; values are codes"
+          },
+          "date": {
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "type": "array",
+            "title": "Date",
+            "description": "Last 7, 30 and 90 days before the run date as day counts, then 'any'"
+          },
+          "source": {
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "type": "array",
+            "title": "Source",
+            "description": "Collections: official, DMS, news"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "materiality",
+          "jurisdiction",
+          "date",
+          "source"
+        ],
+        "title": "DevelopmentFacets",
+        "description": "Each facet's values with counts. A value shows when something matches it or it is\nselected."
+      },
+      "DevelopmentList": {
+        "properties": {
+          "new_count": {
+            "type": "integer",
+            "title": "New Count",
+            "description": "Unreviewed new developments not read or dismissed"
+          },
+          "updated_count": {
+            "type": "integer",
+            "title": "Updated Count",
+            "description": "Unreviewed updated developments not read or dismissed"
+          },
+          "needs_attention_count": {
+            "type": "integer",
+            "title": "Needs Attention Count",
+            "description": "Unreviewed developments needing attention, not dismissed"
+          },
+          "in_scope": {
+            "type": "integer",
+            "title": "In Scope",
+            "description": "Every development in scope: what a Developments widget counts"
+          },
+          "matching": {
+            "type": "integer",
+            "title": "Matching",
+            "description": "Developments in scope matching the filters"
+          },
+          "unreviewed": {
+            "type": "integer",
+            "title": "Unreviewed",
+            "description": "Of those, changed since the review and not dismissed: What changed's All"
+          },
+          "developments": {
+            "items": {
+              "$ref": "#/components/schemas/ChangedDevelopment"
+            },
+            "type": "array",
+            "title": "Developments",
+            "description": "Needing attention first, then changed this run, most material, most recent"
+          },
+          "facets": {
+            "$ref": "#/components/schemas/DevelopmentFacets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "new_count",
+          "updated_count",
+          "needs_attention_count",
+          "in_scope",
+          "matching",
+          "unreviewed",
+          "developments",
+          "facets"
+        ],
+        "title": "DevelopmentList",
+        "description": "A scope's developments in the latest run that match the filters, with facet counts over\nthe listed ones. The change counts and `unreviewed` count every development matching the\nfilters, whatever `changed` lists."
       },
       "DevelopmentSummary": {
         "properties": {
@@ -3712,6 +3982,27 @@
             "type": "integer",
             "title": "Source Count"
           },
+          "collections": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "dms",
+                "official",
+                "news"
+              ]
+            },
+            "type": "array",
+            "title": "Collections",
+            "description": "Where its sources come from"
+          },
+          "jurisdictions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Jurisdictions",
+            "description": "Names of the jurisdictions its sources report on, alphabetical"
+          },
           "change": {
             "anyOf": [
               {
@@ -3749,6 +4040,8 @@
           "direction",
           "subjects",
           "source_count",
+          "collections",
+          "jurisdictions",
           "change",
           "new_source_count"
         ],
@@ -4268,6 +4561,31 @@
           "findings"
         ],
         "title": "EvidenceSource"
+      },
+      "FacetValue": {
+        "properties": {
+          "value": {
+            "type": "string",
+            "title": "Value",
+            "description": "What the filter parameter takes"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "description": "Matches with this value and every other facet's filter"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value",
+          "label",
+          "count"
+        ],
+        "title": "FacetValue"
       },
       "FileSource": {
         "properties": {
@@ -7631,6 +7949,21 @@
       },
       "WhatChanged": {
         "properties": {
+          "new_count": {
+            "type": "integer",
+            "title": "New Count",
+            "description": "Unreviewed new developments not read or dismissed"
+          },
+          "updated_count": {
+            "type": "integer",
+            "title": "Updated Count",
+            "description": "Unreviewed updated developments not read or dismissed"
+          },
+          "needs_attention_count": {
+            "type": "integer",
+            "title": "Needs Attention Count",
+            "description": "Unreviewed developments needing attention, not dismissed"
+          },
           "run": {
             "$ref": "#/components/schemas/RunRef"
           },
@@ -7646,21 +7979,6 @@
             ],
             "title": "Reviewed At",
             "description": "When every subject in scope was last marked reviewed; null if one never was"
-          },
-          "new_count": {
-            "type": "integer",
-            "title": "New Count",
-            "description": "Unreviewed new developments not read or dismissed"
-          },
-          "updated_count": {
-            "type": "integer",
-            "title": "Updated Count",
-            "description": "Unreviewed updated developments not read or dismissed"
-          },
-          "needs_attention_count": {
-            "type": "integer",
-            "title": "Needs Attention Count",
-            "description": "Unreviewed developments needing attention, not dismissed"
           },
           "developments": {
             "items": {
@@ -7680,11 +7998,11 @@
         },
         "type": "object",
         "required": [
-          "run",
-          "reviewed_at",
           "new_count",
           "updated_count",
           "needs_attention_count",
+          "run",
+          "reviewed_at",
           "developments",
           "question_changes"
         ],

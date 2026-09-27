@@ -155,7 +155,11 @@ a.wt,
   padding-block: var(--s-3) var(--s-4);
   margin-block: calc(-1 * var(--s-3)) calc(-1 * var(--s-4));
 }
-a.wt:hover {
+.wm .scope-count {
+  color: inherit;
+}
+a.wt:hover,
+.wm .scope-count:hover {
   color: var(--ink);
   text-decoration: underline;
 }

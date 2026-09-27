@@ -151,3 +151,9 @@ export const TYPE_PLURAL: Record<SubjectType, string> = {
   group: "Groups",
   entity: "Entities",
 };
+
+export const COLLECTION_LABEL: Record<Schema<"EvidenceSource">["collection"], string> = {
+  dms: "DMS",
+  official: "Official",
+  news: "News",
+};

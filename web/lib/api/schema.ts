@@ -124,9 +124,8 @@ export interface paths {
         };
         /**
          * List Developments
-         * @description The latest run's developments in display order, optionally for some subjects (groups
-         *     include their members), for a dashboard's subjects, or only those new or updated since the
-         *     previous run. What changed since the review, as a Since widget counts it, is /what-changed.
+         * @description The latest run's developments in display order, for some subjects, for a dashboard's
+         *     subjects, or all of them, narrowed by facet filters, with each facet's counts.
          */
         get: operations["list_developments"];
         put?: never;
@@ -1091,7 +1090,7 @@ export interface components {
         };
         /**
          * ChangedDevelopment
-         * @description A development in What changed, with its triage state. When unreviewed, `change` is its
+         * @description A development with its What changed and triage state. When unreviewed, `change` is its
          *     change since the review: new if a run after it added the development, else updated. When
          *     reviewed, it is the change in the latest run.
          */
@@ -1133,6 +1132,16 @@ export interface components {
             subjects: components["schemas"]["SubjectRef"][];
             /** Source Count */
             source_count: number;
+            /**
+             * Collections
+             * @description Where its sources come from
+             */
+            collections: ("dms" | "official" | "news")[];
+            /**
+             * Jurisdictions
+             * @description Names of the jurisdictions its sources report on, alphabetical
+             */
+            jurisdictions: string[];
             /**
              * Change
              * @description Change since the previous run
@@ -1427,6 +1436,16 @@ export interface components {
             /** Source Count */
             source_count: number;
             /**
+             * Collections
+             * @description Where its sources come from
+             */
+            collections: ("dms" | "official" | "news")[];
+            /**
+             * Jurisdictions
+             * @description Names of the jurisdictions its sources report on, alphabetical
+             */
+            jurisdictions: string[];
+            /**
              * Change
              * @description Change since the previous run
              */
@@ -1450,6 +1469,82 @@ export interface components {
             sources: components["schemas"]["EvidenceSource"][];
             /** Notes */
             notes: components["schemas"]["Note"][];
+        };
+        /**
+         * DevelopmentFacets
+         * @description Each facet's values with counts. A value shows when something matches it or it is
+         *     selected.
+         */
+        DevelopmentFacets: {
+            /**
+             * Category
+             * @description Most matches first
+             */
+            category: components["schemas"]["FacetValue"][];
+            /**
+             * Materiality
+             * @description Most material first; values are levels
+             */
+            materiality: components["schemas"]["FacetValue"][];
+            /**
+             * Jurisdiction
+             * @description Most matches first; values are codes
+             */
+            jurisdiction: components["schemas"]["FacetValue"][];
+            /**
+             * Date
+             * @description Last 7, 30 and 90 days before the run date as day counts, then 'any'
+             */
+            date: components["schemas"]["FacetValue"][];
+            /**
+             * Source
+             * @description Collections: official, DMS, news
+             */
+            source: components["schemas"]["FacetValue"][];
+        };
+        /**
+         * DevelopmentList
+         * @description A scope's developments in the latest run that match the filters, with facet counts over
+         *     the listed ones. The change counts and `unreviewed` count every development matching the
+         *     filters, whatever `changed` lists.
+         */
+        DevelopmentList: {
+            /**
+             * New Count
+             * @description Unreviewed new developments not read or dismissed
+             */
+            new_count: number;
+            /**
+             * Updated Count
+             * @description Unreviewed updated developments not read or dismissed
+             */
+            updated_count: number;
+            /**
+             * Needs Attention Count
+             * @description Unreviewed developments needing attention, not dismissed
+             */
+            needs_attention_count: number;
+            /**
+             * In Scope
+             * @description Every development in scope: what a Developments widget counts
+             */
+            in_scope: number;
+            /**
+             * Matching
+             * @description Developments in scope matching the filters
+             */
+            matching: number;
+            /**
+             * Unreviewed
+             * @description Of those, changed since the review and not dismissed: What changed's All
+             */
+            unreviewed: number;
+            /**
+             * Developments
+             * @description Needing attention first, then changed this run, most material, most recent
+             */
+            developments: components["schemas"]["ChangedDevelopment"][];
+            facets: components["schemas"]["DevelopmentFacets"];
         };
         /** DevelopmentSummary */
         DevelopmentSummary: {
@@ -1490,6 +1585,16 @@ export interface components {
             subjects: components["schemas"]["SubjectRef"][];
             /** Source Count */
             source_count: number;
+            /**
+             * Collections
+             * @description Where its sources come from
+             */
+            collections: ("dms" | "official" | "news")[];
+            /**
+             * Jurisdictions
+             * @description Names of the jurisdictions its sources report on, alphabetical
+             */
+            jurisdictions: string[];
             /**
              * Change
              * @description Change since the previous run
@@ -1731,6 +1836,21 @@ export interface components {
             new_in_run: boolean;
             /** Findings */
             findings: components["schemas"]["EvidenceFinding"][];
+        };
+        /** FacetValue */
+        FacetValue: {
+            /**
+             * Value
+             * @description What the filter parameter takes
+             */
+            value: string;
+            /** Label */
+            label: string;
+            /**
+             * Count
+             * @description Matches with this value and every other facet's filter
+             */
+            count: number;
         };
         /**
          * FileSource
@@ -3071,12 +3191,6 @@ export interface components {
          *     reviewed, so a reviewed scope can still show its run.
          */
         WhatChanged: {
-            run: components["schemas"]["RunRef"];
-            /**
-             * Reviewed At
-             * @description When every subject in scope was last marked reviewed; null if one never was
-             */
-            reviewed_at: string | null;
             /**
              * New Count
              * @description Unreviewed new developments not read or dismissed
@@ -3092,6 +3206,12 @@ export interface components {
              * @description Unreviewed developments needing attention, not dismissed
              */
             needs_attention_count: number;
+            run: components["schemas"]["RunRef"];
+            /**
+             * Reviewed At
+             * @description When every subject in scope was last marked reviewed; null if one never was
+             */
+            reviewed_at: string | null;
             /**
              * Developments
              * @description Needing attention first, then changed this run, most material, most recent
@@ -3312,10 +3432,23 @@ export interface operations {
     list_developments: {
         parameters: {
             query?: {
-                subject_id?: string[] | null;
+                /** @description Subjects in scope; groups include their members */
+                subject_id?: string[];
+                /** @description Adds a dashboard's subjects */
                 dashboard_id?: string | null;
-                changed?: boolean;
+                /** @description review: only What changed since the review; run: only those the latest run added or updated */
+                changed?: ("review" | "run") | null;
                 limit?: number | null;
+                category?: ("incident" | "regulatory" | "financial" | "management" | "strategy" | "policy" | "security" | "market" | "other")[];
+                /** @description Materiality levels, 0 Trivial to 4 Critical */
+                materiality?: number[];
+                /** @description Jurisdiction codes, such as sg or intl */
+                jurisdiction?: string[];
+                /** @description Last published in the last this many days of the run */
+                days?: number | null;
+                source?: ("dms" | "official" | "news")[];
+                /** @description Words that must all appear in the title */
+                q?: string | null;
             };
             header?: never;
             path?: never;
@@ -3329,7 +3462,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DevelopmentSummary"][];
+                    "application/json": components["schemas"]["DevelopmentList"];
                 };
             };
             /** @description Validation Error */

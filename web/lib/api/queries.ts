@@ -182,7 +182,7 @@ export const useWhatChanged = (query: WhatChangedQuery) =>
 /** Everything that counts or lists what is new: reviews, reads and dismissals change it. */
 function invalidateNew(client: QueryClient) {
   return Promise.all(
-    [["monitor-page"], keys.widgetData, ["what-changed"], keys.subjects, ["subject"], keys.alerts].map((queryKey) =>
+    [["monitor-page"], keys.widgetData, ["what-changed"], ["developments"], keys.subjects, ["subject"], keys.alerts].map((queryKey) =>
       client.invalidateQueries({ queryKey }),
     ),
   );
@@ -191,15 +191,15 @@ function invalidateNew(client: QueryClient) {
 export type TriageChange = Schema<"TriageChange">;
 type WhatChanged = Schema<"WhatChanged">;
 
-/** `wc` with the change applied to one development's triage state. */
-function patchWhatChanged(wc: WhatChanged, id: string, change: TriageChange): WhatChanged {
+/** `list` (What changed or a developments list) with the change applied to one development's triage state. */
+function patchTriage<L extends { developments: Schema<"ChangedDevelopment">[] }>(list: L, id: string, change: TriageChange): L {
   const set = Object.fromEntries(Object.entries(change).filter(([, v]) => typeof v === "boolean"));
-  return { ...wc, developments: wc.developments.map((d) => (d.id === id ? { ...d, ...set } : d)) };
+  return { ...list, developments: list.developments.map((d) => (d.id === id ? { ...d, ...set } : d)) };
 }
 
 /**
- * Marks a development read or unread, flagged or not, dismissed or not. Cached What changed lists
- * and alerts update at once, so a row leaves its filter without waiting; counts follow the refetch.
+ * Marks a development read or unread, flagged or not, dismissed or not. Cached What changed and
+ * developments lists and alerts update at once, so a row leaves its filter without waiting; counts follow the refetch.
  */
 export function useSetTriage() {
   const client = useQueryClient();
@@ -208,11 +208,14 @@ export function useSetTriage() {
       unwrap(api.PATCH("/developments/{development_id}/triage", { params: { path: { development_id: id } }, body: change })),
     onMutate: ({ id, change }) => {
       client.setQueriesData<Schema<"MonitorPage">>({ queryKey: ["monitor-page"] }, (page) =>
-        page ? { ...page, what_changed: patchWhatChanged(page.what_changed, id, change) } : page,
+        page ? { ...page, what_changed: patchTriage(page.what_changed, id, change) } : page,
       );
-      client.setQueriesData<WhatChanged>({ queryKey: ["what-changed"] }, (wc) => (wc ? patchWhatChanged(wc, id, change) : wc));
+      client.setQueriesData<WhatChanged>({ queryKey: ["what-changed"] }, (wc) => (wc ? patchTriage(wc, id, change) : wc));
+      client.setQueriesData<Schema<"DevelopmentList">>({ queryKey: ["developments"] }, (list) =>
+        list ? patchTriage(list, id, change) : list,
+      );
       client.setQueriesData<WidgetData>({ queryKey: keys.widgetData }, (data) =>
-        data?.type === "since" ? { ...data, what_changed: patchWhatChanged(data.what_changed, id, change) } : data,
+        data?.type === "since" ? { ...data, what_changed: patchTriage(data.what_changed, id, change) } : data,
       );
       const read = change.read;
       if (typeof read === "boolean") {
@@ -244,11 +247,16 @@ export const useDevelopment = (id: string | null) =>
     enabled: id !== null,
   });
 
-/** The latest run's developments in display order, for a scope. */
-export const useDevelopments = (query: DevelopmentsQuery) =>
+/**
+ * The latest run's developments in display order for a scope, narrowed by facet filters, with each
+ * facet's counts. Keeps the previous list while a changed filter refetches.
+ */
+export const useDevelopments = (query: DevelopmentsQuery, enabled = true) =>
   useQuery({
     queryKey: keys.developments(query),
     queryFn: () => unwrap(api.GET("/developments", { params: { query } })),
+    placeholderData: keepPreviousData,
+    enabled,
   });
 
 /** The answer behind a standing question and the developments it relies on. */

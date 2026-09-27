@@ -1,11 +1,11 @@
 "use client";
 
-// What changed since the last review, on monitor pages and a dashboard's developments page. Rows
-// carry read, flag and dismiss actions that replace the date while the pointer is over the row or
-// focus is in it; a segmented control filters them. After Mark reviewed the list folds away behind
-// a disclosure of the run's changes, which keeps the triage controls.
+// What changed since the last review, on monitor pages. Rows carry read, flag and dismiss actions
+// that replace the date while the pointer is over the row or focus is in it; a segmented control
+// filters them. After Mark reviewed the list folds away behind a disclosure of the run's changes,
+// which keeps the triage controls. A dashboard's developments list reuses the triage pieces.
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Ref } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useSetTriage } from "@/lib/api/queries";
@@ -20,19 +20,20 @@ import { Dotted, Section, StateChange } from "./parts";
 type WhatChangedData = Schema<"WhatChanged">;
 type Changed = Schema<"ChangedDevelopment">;
 /** One triage action: the states it sets. */
-type Triage = Partial<Pick<Changed, "read" | "flagged" | "dismissed">>;
+export type Triage = Partial<Pick<Changed, "read" | "flagged" | "dismissed">>;
 
-type FilterId = "all" | "unread" | "flagged" | "dismissed";
+export type TriageFilterId = "all" | "unread" | "flagged" | "dismissed";
+export type TriageFilter = { id: TriageFilterId; label: string; test: (d: Changed) => boolean };
 
 /** All hides dismissed developments; Dismissed lists only them. */
-const FILTERS: { id: FilterId; label: string; test: (d: Changed) => boolean }[] = [
+export const TRIAGE_FILTERS: TriageFilter[] = [
   { id: "all", label: "All", test: (d) => !d.dismissed },
   { id: "unread", label: "Unread", test: (d) => !d.read && !d.dismissed },
   { id: "flagged", label: "Flagged", test: (d) => d.flagged && !d.dismissed },
   { id: "dismissed", label: "Dismissed", test: (d) => d.dismissed },
 ];
 
-const EMPTY: Record<FilterId, string> = {
+export const TRIAGE_EMPTY: Record<TriageFilterId, string> = {
   all: "Every development here is dismissed.",
   unread: "Nothing unread.",
   flagged: "Nothing flagged.",
@@ -45,57 +46,92 @@ const FIRST_ROWS = 6;
 export const hasUnreviewed = (wc: WhatChangedData) =>
   wc.developments.some((d) => d.unreviewed) || wc.question_changes.some((c) => c.unreviewed);
 
-/**
- * The What changed section. `subjectId` is the page's own subject, whose name answer changes leave
- * out.
- */
-export function WhatChanged({ wc, subjectId }: { wc: WhatChangedData; subjectId?: string }) {
-  const [filter, setFilter] = useState<FilterId>("all");
-  const [all, setAll] = useState(false);
-  const [earlier, setEarlier] = useState(false);
-  const evidence = useEvidenceHref();
-  const setTriage = useSetTriage();
-  const list = useRef<HTMLDivElement>(null);
-  const seg = useRef<HTMLDivElement>(null);
-  // A row that an action took out of the filter: focus moves to the same action on the row after.
-  const refocus = useRef<{ id: string; index: number; action: number } | null>(null);
+/** Whether the scope was reviewed with nothing changed since: its run's changes fold away. */
+export const isFolded = (wc: WhatChangedData) => !hasUnreviewed(wc) && wc.reviewed_at !== null;
 
-  const unreviewed = hasUnreviewed(wc);
-  // Once reviewed, the run's changes stay behind the disclosure.
-  const folded = !unreviewed && wc.reviewed_at !== null;
-  const developments = folded ? wc.developments : wc.developments.filter((d) => d.unreviewed);
-  const questions = folded ? wc.question_changes : wc.question_changes.filter((c) => c.unreviewed);
-  const open = !folded || earlier;
-  const active = FILTERS.find((f) => f.id === filter) ?? FILTERS[0];
-  const filtered = developments.filter(active.test);
-  const shown = all ? filtered : filtered.slice(0, FIRST_ROWS);
+/** "Nothing new since your review" once folded, else the counts. `listed` is how many rows show. */
+export const whatChangedLead = (counts: Parameters<typeof changeCounts>[0], folded: boolean, listed: number) =>
+  folded ? "Nothing new since your review" : changeCounts(counts) || (listed > 0 ? "Nothing unread" : "Nothing new or updated");
+
+/**
+ * Triage for rows in `list` (elements with the `triage` class): `act` applies an action, and when it
+ * takes a row out of `filter`, focus moves to the same action on the row after, or to the filter's
+ * pressed button in `seg` when none is left. `filtered` is what the rows show.
+ */
+export function useTriage<List extends HTMLElement>(filter: TriageFilter, filtered: Changed[]) {
+  const setTriage = useSetTriage();
+  const list = useRef<List>(null);
+  const seg = useRef<HTMLDivElement>(null);
+  const refocus = useRef<{ id: string; index: number; action: number } | null>(null);
 
   useEffect(() => {
     const target = refocus.current;
     // The cache updates a moment after the click; wait until the row has left.
     if (!target || filtered.some((d) => d.id === target.id)) return;
     refocus.current = null;
-    const rows = list.current?.querySelectorAll<HTMLElement>(".row.triage");
+    const rows = list.current?.querySelectorAll<HTMLElement>(".triage");
     const row = rows?.[Math.min(target.index, rows.length - 1)];
     if (!row) {
       seg.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus();
       return;
     }
     // The actions show once focus is in the row, so focus its title first.
-    row.querySelector<HTMLElement>("a.stretch")?.focus();
+    row.querySelector<HTMLElement>("a")?.focus();
     row.querySelectorAll<HTMLButtonElement>(".triage-acts button")[target.action]?.focus();
   });
 
   const act = (d: Changed, index: number, action: number, change: Triage) => {
-    if (!active.test({ ...d, ...change })) refocus.current = { id: d.id, index, action };
+    if (!filter.test({ ...d, ...change })) refocus.current = { id: d.id, index, action };
     setTriage.mutate({ id: d.id, change });
   };
+  return { list, seg, act };
+}
 
-  const lead = folded
-    ? "Nothing new since your review"
-    : changeCounts(wc) || (developments.length > 0 ? "Nothing unread" : "Nothing new or updated");
+/** The triage filter, each option with its count among `developments`. */
+export function TriageFilters({
+  developments,
+  filter,
+  onChange,
+  segRef,
+}: {
+  developments: Changed[];
+  filter: TriageFilterId;
+  onChange: (id: TriageFilterId) => void;
+  segRef: Ref<HTMLDivElement>;
+}) {
+  return (
+    <div className="seg" role="group" aria-label="Filter developments" ref={segRef}>
+      {TRIAGE_FILTERS.map((f) => (
+        <button key={f.id} type="button" aria-pressed={f.id === filter} onClick={() => onChange(f.id)}>
+          {f.label}
+          <span className="seg-n">{developments.filter(f.test).length}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The What changed section. `subjectId` is the page's own subject, whose name answer changes leave
+ * out.
+ */
+export function WhatChanged({ wc, subjectId }: { wc: WhatChangedData; subjectId?: string }) {
+  const [filter, setFilter] = useState<TriageFilterId>("all");
+  const [all, setAll] = useState(false);
+  const [earlier, setEarlier] = useState(false);
+
+  // Once reviewed, the run's changes stay behind the disclosure.
+  const folded = isFolded(wc);
+  const developments = folded ? wc.developments : wc.developments.filter((d) => d.unreviewed);
+  const questions = folded ? wc.question_changes : wc.question_changes.filter((c) => c.unreviewed);
+  const open = !folded || earlier;
+  const active = TRIAGE_FILTERS.find((f) => f.id === filter) ?? TRIAGE_FILTERS[0];
+  const filtered = developments.filter(active.test);
+  const shown = all ? filtered : filtered.slice(0, FIRST_ROWS);
+  const { list, seg, act } = useTriage<HTMLDivElement>(active, filtered);
+
   const runParts = [
-    plural(developments.filter(FILTERS[0].test).length, "development"),
+    plural(developments.filter(TRIAGE_FILTERS[0].test).length, "development"),
     questions.length > 0 && `${plural(questions.length, "answer")} changed`,
   ];
 
@@ -106,24 +142,17 @@ export function WhatChanged({ wc, subjectId }: { wc: WhatChangedData; subjectId?
       meta={folded && wc.reviewed_at ? `Reviewed ${whenAt(wc.reviewed_at)}` : runMeta(wc.run)}
     >
       <div className="lead-row">
-        <p className="mon-lead">{lead}</p>
+        <p className="mon-lead">{whatChangedLead(wc, folded, developments.length)}</p>
         {open && developments.length > 0 && (
-          <div className="seg" role="group" aria-label="Filter developments" ref={seg}>
-            {FILTERS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                aria-pressed={f.id === filter}
-                onClick={() => {
-                  setFilter(f.id);
-                  setAll(false);
-                }}
-              >
-                {f.label}
-                <span className="seg-n">{developments.filter(f.test).length}</span>
-              </button>
-            ))}
-          </div>
+          <TriageFilters
+            developments={developments}
+            filter={filter}
+            segRef={seg}
+            onChange={(id) => {
+              setFilter(id);
+              setAll(false);
+            }}
+          />
         )}
       </div>
       {folded && (developments.length > 0 || questions.length > 0) && (
@@ -141,7 +170,7 @@ export function WhatChanged({ wc, subjectId }: { wc: WhatChangedData; subjectId?
               ))}
             </div>
           ) : (
-            <p className="mon-empty">{EMPTY[filter]}</p>
+            <p className="mon-empty">{TRIAGE_EMPTY[filter]}</p>
           )}
           {filtered.length > FIRST_ROWS && (
             <p className="mon-more">
@@ -152,48 +181,55 @@ export function WhatChanged({ wc, subjectId }: { wc: WhatChangedData; subjectId?
           )}
         </>
       )}
-      {open && filter === "all" && questions.length > 0 && (
-        <>
-          <h3 className="mon-sub">{plural(questions.length, "answer")} changed</h3>
-          <div className="rows">
-            {questions.map((c) => (
-              <div key={`${c.subject.id}-${c.question_id}`} className="row qrow">
-                <span className="stat">
-                  <StateBadge state={c.to_state} />
-                </span>
-                <div className="qbody">
-                  <div className="qlabel">
-                    <b>{c.label}</b>
-                    {c.subject.id !== subjectId && (
-                      <span className="meta">
-                        <SubjectLink subject={c.subject} />
-                      </span>
-                    )}
-                  </div>
-                  <div className="qanswer">
-                    <p>{answerText(c.summary)}</p>
-                  </div>
-                  <p className="meta qmeta">
-                    <Dotted
-                      parts={[
-                        <StateChange key="s" state={c.to_state} from={c.from_state} />,
-                        c.development_ids.length > 0 ? (
-                          <Link key="e" href={evidence.answer(c.subject.id, c.question_id)} scroll={false} className="link">
-                            See evidence
-                          </Link>
-                        ) : (
-                          "No sources"
-                        ),
-                      ]}
-                    />
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+      {open && filter === "all" && <AnswerChanges changes={questions} subjectId={subjectId} />}
     </Section>
+  );
+}
+
+/** Answers whose state changed, under a count; nothing when there are none. */
+export function AnswerChanges({ changes, subjectId }: { changes: Schema<"QuestionStateChange">[]; subjectId?: string }) {
+  const evidence = useEvidenceHref();
+  if (changes.length === 0) return null;
+  return (
+    <>
+      <h3 className="mon-sub">{plural(changes.length, "answer")} changed</h3>
+      <div className="rows">
+        {changes.map((c) => (
+          <div key={`${c.subject.id}-${c.question_id}`} className="row qrow">
+            <span className="stat">
+              <StateBadge state={c.to_state} />
+            </span>
+            <div className="qbody">
+              <div className="qlabel">
+                <b>{c.label}</b>
+                {c.subject.id !== subjectId && (
+                  <span className="meta">
+                    <SubjectLink subject={c.subject} />
+                  </span>
+                )}
+              </div>
+              <div className="qanswer">
+                <p>{answerText(c.summary)}</p>
+              </div>
+              <p className="meta qmeta">
+                <Dotted
+                  parts={[
+                    <StateChange key="s" state={c.to_state} from={c.from_state} />,
+                    c.development_ids.length > 0 ? (
+                      <Link key="e" href={evidence.answer(c.subject.id, c.question_id)} scroll={false} className="link">
+                        See evidence
+                      </Link>
+                    ) : (
+                      "No sources"
+                    ),
+                  ]}
+                />
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -207,42 +243,58 @@ function TriageRow({ development: d, onChange }: { development: Changed; onChang
     <DevelopmentRow
       development={d.read ? { ...d, change: null } : d}
       className="triage"
-      end={
-        <span className="row-end triage-end">
-          <span className="triage-date">
-            {d.flagged && (
-              <span className="flag-mark" role="img" aria-label="Flagged">
-                <FlagIcon size={12} />
-              </span>
-            )}
-            {shortDate(d.last_published)}
-          </span>
-          <span className="triage-acts">
-            <button
-              type="button"
-              className="btn-icon"
-              aria-label={d.read ? "Mark unread" : "Mark read"}
-              title={d.read ? "Mark unread" : "Mark read"}
-              onClick={() => onChange(0, { read: !d.read })}
-            >
-              {d.read ? <UnreadIcon /> : <ReadIcon />}
-            </button>
-            <button type="button" className="btn-icon" aria-pressed={d.flagged} aria-label="Flag" title="Flag" onClick={() => onChange(1, { flagged: !d.flagged })}>
-              <FlagIcon filled={d.flagged} />
-            </button>
-            <button
-              type="button"
-              className="btn-icon"
-              aria-pressed={d.dismissed}
-              aria-label="Dismiss"
-              title="Dismiss"
-              onClick={() => onChange(2, { dismissed: !d.dismissed })}
-            >
-              <DismissIcon />
-            </button>
-          </span>
-        </span>
-      }
+      end={<TriageEnd development={d} onChange={onChange} className="row-end" />}
     />
+  );
+}
+
+/**
+ * A triage row's end: the date, with a flag mark when flagged, which gives way to Mark read, Flag
+ * and Dismiss while the pointer is over the row (`.triage`) or focus is in it.
+ */
+export function TriageEnd({
+  development: d,
+  onChange,
+  className,
+}: {
+  development: Changed;
+  onChange: (action: number, change: Triage) => void;
+  className?: string;
+}) {
+  return (
+    <span className={[className, "triage-end"].filter(Boolean).join(" ")}>
+      <span className="triage-date">
+        {d.flagged && (
+          <span className="flag-mark" role="img" aria-label="Flagged">
+            <FlagIcon size={12} />
+          </span>
+        )}
+        {shortDate(d.last_published)}
+      </span>
+      <span className="triage-acts">
+        <button
+          type="button"
+          className="btn-icon"
+          aria-label={d.read ? "Mark unread" : "Mark read"}
+          title={d.read ? "Mark unread" : "Mark read"}
+          onClick={() => onChange(0, { read: !d.read })}
+        >
+          {d.read ? <UnreadIcon /> : <ReadIcon />}
+        </button>
+        <button type="button" className="btn-icon" aria-pressed={d.flagged} aria-label="Flag" title="Flag" onClick={() => onChange(1, { flagged: !d.flagged })}>
+          <FlagIcon filled={d.flagged} />
+        </button>
+        <button
+          type="button"
+          className="btn-icon"
+          aria-pressed={d.dismissed}
+          aria-label="Dismiss"
+          title="Dismiss"
+          onClick={() => onChange(2, { dismissed: !d.dismissed })}
+        >
+          <DismissIcon />
+        </button>
+      </span>
+    </span>
   );
 }

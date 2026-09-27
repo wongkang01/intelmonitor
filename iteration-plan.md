@@ -155,6 +155,16 @@ Mocks: `mocks/*.html`. Picks from the user on 2026-09-27 are noted per item.
    ⌘K document snippets came from FTS5 over the raw text, so they often restated the title or began with markdown; the API now builds them from the body: markdown stripped, lines restating the title, level-1 headings and a first line that is not a sentence skipped, then the line with the most typed words, starting at its sentence or two words before the first match.
 6. **Developments list.** Picked B (`mocks/developments.html`): filter bar and sortable table.
    It stays a drill-in for dashboards only: `/developments?dashboard=<id>`, reached from a dashboard widget's "Show all" and the Developments widget's "in scope" count. No sidebar entry, no monitor-page or ⌘K entry.
+   Built: `GET /developments` returns a `DevelopmentList`: the developments matching `category`, `materiality` (levels), `jurisdiction` (codes), `days`, `source` (collections) and `q` (title words), each facet's values with counts, and counts for the view switch.
+   A facet's counts apply every other filter, over the developments listed.
+   Developments now carry `jurisdictions` (the names of those their sources score at least 0.5 in `document_tags.jurisdictions`) and `collections`, and every row carries its What changed and triage state.
+   `changed=review` lists What changed since the review with the Since widget's counts (the counting is shared with `/what-changed`); `changed=run` lists the latest run's changes, for the fold after Mark reviewed.
+   The page has the mock's filter bar: Filter by words, then Category, Materiality, Jurisdiction (with a find field), Date (last 7, 30 or 90 days of the run, or any time) and Source, each a popover of values with counts, and All or New since review on the right.
+   The table sorts by Status (the display order), Subjects, Category, Materiality, Jurisdiction, Sources and Date; filters and the sort are URL parameters, so a reload and the evidence drawer keep them.
+   New since review (`changed=1`, which Show all opens) keeps B3: the counts line, All, Unread, Flagged and Dismissed, row actions in place of the date, and the fold behind "Run of 24 Sep" once reviewed.
+   Its answer changes list under the table while nothing is filtered, since facets do not apply to answers.
+   The filter bar and the column heads stick under the top bar; the page has no rail.
+   The "in scope" count on a dashboard-wide Developments widget links to the page, and the sidebar marks the dashboard while it is open.
 7. **Document reader and source labels.** Dropped: the evidence drawer is enough.
 8. **Tablet layout.** Dropped: the app is desktop web only.
 

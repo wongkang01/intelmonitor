@@ -129,6 +129,10 @@ class DevelopmentSummary(BaseModel):
     direction: Literal["positive", "negative", "neutral"]
     subjects: list[SubjectRef]
     source_count: int
+    collections: list[Collection] = Field(description="Where its sources come from")
+    jurisdictions: list[str] = Field(
+        description="Names of the jurisdictions its sources report on, alphabetical"
+    )
     change: DevelopmentChangeKind | None = Field(description="Change since the previous run")
     new_source_count: int
 
@@ -186,7 +190,7 @@ class QuestionStateChange(BaseModel):
 
 
 class ChangedDevelopment(DevelopmentSummary):
-    """A development in What changed, with its triage state. When unreviewed, `change` is its
+    """A development with its What changed and triage state. When unreviewed, `change` is its
     change since the review: new if a run after it added the development, else updated. When
     reviewed, it is the change in the latest run."""
 
@@ -196,7 +200,17 @@ class ChangedDevelopment(DevelopmentSummary):
     dismissed: bool
 
 
-class WhatChanged(BaseModel):
+class ChangeCounts(BaseModel):
+    """What a Since widget counts among the developments changed since the review."""
+
+    new_count: int = Field(description="Unreviewed new developments not read or dismissed")
+    updated_count: int = Field(description="Unreviewed updated developments not read or dismissed")
+    needs_attention_count: int = Field(
+        description="Unreviewed developments needing attention, not dismissed"
+    )
+
+
+class WhatChanged(ChangeCounts):
     """What changed since the last review of each subject in scope: developments that runs after
     the review added or updated, and answers whose state the latest run changed. A subject never
     reviewed counts from the previous run. The latest run's changes are listed too, marked
@@ -206,15 +220,47 @@ class WhatChanged(BaseModel):
     reviewed_at: datetime | None = Field(
         description="When every subject in scope was last marked reviewed; null if one never was"
     )
-    new_count: int = Field(description="Unreviewed new developments not read or dismissed")
-    updated_count: int = Field(description="Unreviewed updated developments not read or dismissed")
-    needs_attention_count: int = Field(
-        description="Unreviewed developments needing attention, not dismissed"
-    )
     developments: list[ChangedDevelopment] = Field(
         description="Needing attention first, then changed this run, most material, most recent"
     )
     question_changes: list[QuestionStateChange]
+
+
+class FacetValue(BaseModel):
+    value: str = Field(description="What the filter parameter takes")
+    label: str
+    count: int = Field(description="Matches with this value and every other facet's filter")
+
+
+class DevelopmentFacets(BaseModel):
+    """Each facet's values with counts. A value shows when something matches it or it is
+    selected."""
+
+    category: list[FacetValue] = Field(description="Most matches first")
+    materiality: list[FacetValue] = Field(description="Most material first; values are levels")
+    jurisdiction: list[FacetValue] = Field(description="Most matches first; values are codes")
+    date: list[FacetValue] = Field(
+        description="Last 7, 30 and 90 days before the run date as day counts, then 'any'"
+    )
+    source: list[FacetValue] = Field(description="Collections: official, DMS, news")
+
+
+class DevelopmentList(ChangeCounts):
+    """A scope's developments in the latest run that match the filters, with facet counts over
+    the listed ones. The change counts and `unreviewed` count every development matching the
+    filters, whatever `changed` lists."""
+
+    in_scope: int = Field(
+        description="Every development in scope: what a Developments widget counts"
+    )
+    matching: int = Field(description="Developments in scope matching the filters")
+    unreviewed: int = Field(
+        description="Of those, changed since the review and not dismissed: What changed's All"
+    )
+    developments: list[ChangedDevelopment] = Field(
+        description="Needing attention first, then changed this run, most material, most recent"
+    )
+    facets: DevelopmentFacets
 
 
 class UpcomingItem(BaseModel):

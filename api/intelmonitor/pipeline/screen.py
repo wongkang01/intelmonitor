@@ -71,6 +71,23 @@ JURISDICTIONS: dict[str, str] = {
     "intl": "international bodies such as the BIS, FSB, Basel Committee, IMF or FATF",
 }
 
+# Display names for JURISDICTIONS, which are phrased for the screening prompt.
+JURISDICTION_NAMES: dict[str, str] = {
+    "sg": "Singapore",
+    "my": "Malaysia",
+    "id": "Indonesia",
+    "th": "Thailand",
+    "vn": "Vietnam",
+    "ph": "Philippines",
+    "hk": "Hong Kong",
+    "cn": "China",
+    "us": "United States",
+    "eu": "European Union",
+    "uk": "United Kingdom",
+    "jp": "Japan",
+    "intl": "International",
+}
+
 DIRECTIONS: dict[str, str] = {
     "positive": "Good news for the subject: easing, strengthening, resolution or growth",
     "negative": "Bad news for the subject: losses, penalties, stress, escalation or tightening",

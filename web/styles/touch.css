@@ -10,7 +10,8 @@
     height: 44px;
   }
   .gmenu-item,
-  .pick {
+  .pick,
+  .fopt {
     min-height: 44px;
   }
   .row,
@@ -30,13 +31,24 @@
     grid-template-columns: var(--stat) minmax(0, 1fr) auto;
   }
   .triage-date,
-  .row.triage:is(:hover, :focus-within) .triage-date {
+  .row.triage:is(:hover, :focus-within) .triage-date,
+  .dtable tr.triage:is(:hover, :focus-within) .triage-date {
     display: none;
   }
   .triage-acts {
     display: inline-flex;
     gap: 0;
     margin: -13px -8px -13px 0;
+  }
+  .dtable td {
+    height: 44px;
+    padding-block: 13px;
+  }
+  .dtable.triaged .c-date {
+    width: 136px;
+  }
+  .dtable .triage-acts {
+    margin: -13px 0;
   }
   .triage-acts .btn-icon,
   .alert-read {

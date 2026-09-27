@@ -225,7 +225,18 @@ function DevelopmentsBody({ data, widget, href }: BodyProps & { data: DataOf<"de
   // Medium fits three one-line rows; Large shows five with two-line titles.
   const large = widget.size === "L";
   const count = large ? 5 : 3;
-  const meta = data.scope.length === 1 ? <SubjectLink subject={data.scope[0]} /> : `${data.total} in scope`;
+  // A dashboard-wide widget's count opens the dashboard's developments list.
+  const inScope = `${data.total} in scope`;
+  const meta =
+    data.scope.length === 1 ? (
+      <SubjectLink subject={data.scope[0]} />
+    ) : href ? (
+      <Link href={href} className="scope-count">
+        {inScope}
+      </Link>
+    ) : (
+      inScope
+    );
   return (
     <>
       <Head title="Developments" href={href} meta={meta} />

@@ -1,0 +1,253 @@
+/* A dashboard's developments list (components/developments), direction B of mocks/developments.html:
+   a filter bar that sticks under the top bar, facet popovers, and a sortable table in one panel. */
+.fbar {
+  position: sticky;
+  top: 56px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0 var(--s-6) var(--s-4);
+  background: var(--canvas);
+}
+.fsearch {
+  width: 180px;
+  flex: none;
+}
+.fwrap {
+  position: relative;
+  display: inline-flex;
+}
+.fbtn {
+  gap: 4px;
+  color: var(--ink2);
+}
+.fbtn b {
+  font-weight: 500;
+  color: var(--ink);
+}
+.fbtn .chev {
+  margin-left: 2px;
+  color: var(--ink3);
+}
+.fbtn[aria-expanded="true"] {
+  background: var(--hover);
+}
+
+/* Facet popover: 288px under its button, a find field for long facets, values with counts. */
+.fpop {
+  position: absolute;
+  top: calc(100% + var(--s-2));
+  left: 0;
+  z-index: 40;
+  width: 288px;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-widget);
+  box-shadow: var(--shadow-pop);
+  animation: pop-fade 0.12s ease-out;
+}
+.fpop-head {
+  padding: var(--s-2);
+}
+.fpop-body {
+  max-height: 420px;
+  overflow: auto;
+  padding: var(--s-1);
+}
+.fpop-head + .fpop-body {
+  padding-top: 0;
+}
+.fpop-foot {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0 var(--s-3);
+  border-top: 1px solid var(--line);
+}
+.fopt {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0 var(--s-2);
+  border-radius: var(--r-ctl);
+  cursor: pointer;
+}
+.fopt:hover {
+  background: var(--hover);
+}
+.fopt input {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.fopt.on {
+  font-weight: 500;
+}
+.fopt .n {
+  font-size: var(--fs-meta);
+  color: var(--ink2);
+  font-variant-numeric: tabular-nums;
+}
+.fpop-empty {
+  margin: 0;
+  padding: var(--s-2);
+  color: var(--ink2);
+}
+
+/* The table panel. What changed puts its counts line and triage filter above the table. */
+.panel.dv-table {
+  display: block;
+  margin: 0 var(--s-6) var(--s-7);
+  padding: var(--s-2) var(--s-4) var(--s-3);
+}
+.dv-table > .lead-row {
+  padding-top: var(--s-1);
+}
+.dtable {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+/* Column heads stick under the filter bar (56px top bar, then a 32px field and 16px below it). */
+.dtable th {
+  position: sticky;
+  top: 104px;
+  z-index: 1;
+  background: var(--surface);
+  height: 36px;
+  padding: 0 var(--s-3) 0 0;
+  /* A collapsed border would not move with a sticky cell. */
+  box-shadow: inset 0 -1px 0 var(--line-strong);
+  text-align: left;
+  font: 500 var(--fs-meta) / var(--lh-meta) var(--font);
+  color: var(--ink2);
+  white-space: nowrap;
+}
+.dtable th:nth-child(2) {
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+.th-sort {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+.th-sort::after {
+  content: "";
+  position: absolute;
+  inset: -10px -4px;
+}
+.th-sort:hover,
+.dtable th.sorted {
+  color: var(--ink);
+}
+.dtable td {
+  height: 34px;
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+  border-top: 1px solid var(--line);
+  vertical-align: top;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dtable tr:first-child td {
+  border-top: 0;
+}
+.dtable tbody tr:hover td {
+  background: var(--canvas);
+}
+.dtable .tt a {
+  color: var(--ink);
+  font-weight: 500;
+  text-decoration: none;
+}
+.dtable .tt a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.dtable td:nth-child(n + 3) {
+  font-size: var(--fs-meta);
+  color: var(--ink2);
+}
+.dtable td .subject-link {
+  color: var(--ink2);
+}
+.dtable td .subject-link:hover {
+  color: var(--ink);
+}
+/* Column widths from the mock at 1440px, narrower below 1400px so titles keep room. Triage actions
+   need a wider date column. */
+.c-status {
+  width: 124px;
+}
+.c-subjects {
+  width: 104px;
+}
+.c-category {
+  width: 100px;
+}
+.c-materiality {
+  width: 88px;
+}
+.c-jurisdiction {
+  width: 132px;
+}
+.c-sources {
+  width: 112px;
+}
+.c-date {
+  width: 64px;
+}
+.triaged .c-date {
+  width: 104px;
+}
+@media (max-width: 1400px) {
+  .c-subjects,
+  .c-category {
+    width: 92px;
+  }
+  .c-materiality {
+    width: 84px;
+  }
+  .c-jurisdiction,
+  .c-sources {
+    width: 104px;
+  }
+}
+.dtable .num {
+  padding-right: 0;
+  padding-left: var(--s-2);
+  text-align: right;
+}
+
+/* Triage rows: Mark read, Flag and Dismiss replace the date while the pointer is over the row or
+   focus is in it (WhatChanged's .triage-* pieces). */
+.dtable .triage-end {
+  display: flex;
+  justify-content: flex-end;
+}
+.dtable tr.triage:is(:hover, :focus-within) .triage-acts {
+  display: inline-flex;
+}
+.dtable tr.triage:is(:hover, :focus-within) .triage-date {
+  display: none;
+}
+.dtable .triage-acts {
+  margin: -6px 0;
+}

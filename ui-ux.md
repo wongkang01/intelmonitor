@@ -18,7 +18,7 @@ The bar to beat is AlphaSense. Its dashboards work, but they feel dated, start f
 2. **Changes first.** Every page opens with what's new since the analyst last looked.
 3. **Evidence one tap away.** Every claim links to its sources. No dead-end summaries.
 4. **No blank canvas.** Creating a monitor builds a starter dashboard. Users edit from there.
-5. **One search bar.** Search and ask live in the same box. No second box, no rows of filter buttons.
+5. **One search bar.** Search and ask live in the same box. No second box, no rows of filter buttons, except on a dashboard's developments list.
 6. **Calm by default.** Neutral surfaces. Color only means status: new, watch, needs attention.
 7. **Everything links.** Any topic, group or entity name opens its page or its graph view.
 8. **Two ways to build, one result.** Chat and manual editing change the same dashboard. Users can switch any time.
@@ -83,6 +83,13 @@ One popover is open at a time; Esc or a click outside closes it.
 ### Dashboard
 
 Title, the subjects it covers, then a 4-column widget grid. The last run time lives in the top bar chip. The "Since your last review" widget sits top-left and is the largest thing on screen. **Edit** turns on edit mode; **Add widget** opens the gallery.
+
+### Developments list
+
+A dashboard's developments across its subjects, opened from a dashboard-wide widget's Show all or the Developments widget's "in scope" count; it has no sidebar or ⌘K entry, and the sidebar keeps the dashboard marked.
+A filter bar sticks under the top bar: Filter by words, then Category, Materiality, Jurisdiction, Date and Source, each a button whose popover lists values with counts, and All or New since review on the right.
+The table sorts by any column but the title; filters and the sort live in the URL.
+New since review is What changed for the dashboard, with the monitor page's counts line, triage filter and row actions.
 
 ### Monitor page (topic, group or entity)
 
