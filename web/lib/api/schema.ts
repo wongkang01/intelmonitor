@@ -116,6 +116,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/subjects/{subject_id}/facts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Subject Facts
+         * @description The facts a run as of `as_of` (default today) gives the subject's standing answers: one per
+         *     series its questions link, written by code from what was available by the end of that day,
+         *     and the states rules fix.
+         */
+        get: operations["get_subject_facts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/series/{series_id}": {
         parameters: {
             query?: never;
@@ -980,8 +1002,8 @@ export interface components {
         };
         /**
          * AnswerEvidence
-         * @description Everything behind one standing question answer: the answer and the developments it
-         *     relies on, each with its sources.
+         * @description Everything behind one standing question answer: the answer, the developments it relies
+         *     on, each with its sources, and the series it cites with the facts the run gave it.
          */
         AnswerEvidence: {
             subject: components["schemas"]["SubjectRef"];
@@ -992,6 +1014,11 @@ export interface components {
              * @description In the order the answer cites them
              */
             developments: components["schemas"]["DevelopmentDetail"][];
+            /**
+             * Series
+             * @description In the order the answer cites them
+             */
+            series: components["schemas"]["SeriesFactView"][];
         };
         /**
          * AnswerFeedback
@@ -1914,6 +1941,37 @@ export interface components {
             [key: string]: unknown;
         };
         /**
+         * FixedState
+         * @description A rule fired: the question's state is at least `state`, whatever the model says.
+         */
+        FixedState: {
+            /** Question Id */
+            question_id: string;
+            /** Series Id */
+            series_id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "watch" | "needs_attention";
+            /**
+             * Start
+             * Format: date
+             * @description First period of the longest spell beyond the threshold
+             */
+            start: string;
+            /**
+             * End
+             * Format: date
+             * @description Last period of that spell
+             */
+            end: string;
+            /** Hours */
+            hours: number;
+            /** Text */
+            text: string;
+        };
+        /**
          * FunctionCall
          * @description The name and arguments of a tool call.
          */
@@ -2222,6 +2280,16 @@ export interface components {
             new_count: number;
             /** Development Ids */
             development_ids: string[];
+            /**
+             * Series Ids
+             * @description Series whose facts the answer cites
+             */
+            series_ids: string[];
+            /**
+             * State Rules
+             * @description Why rules fixed the state, one sentence per rule that fired; empty when the state is the model's
+             */
+            state_rules: string[];
             change: components["schemas"]["AnswerChange"];
             /** @description The latest correction given since the latest run finished, which the next run takes in */
             feedback: components["schemas"]["AnswerFeedback"] | null;
@@ -2584,6 +2652,47 @@ export interface components {
              */
             revisions: components["schemas"]["Revision"][];
         };
+        /** SeriesFact */
+        SeriesFact: {
+            /** Series Id */
+            series_id: string;
+            /**
+             * Question Ids
+             * @description The subject's questions that use the series
+             */
+            question_ids: string[];
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "no_data" | "stale" | "revised" | "preliminary" | "current";
+            /**
+             * Window Start
+             * @description Daily series: low and high are over the periods after this, to the date
+             */
+            window_start: string | null;
+            latest: components["schemas"]["Observation"] | null;
+            low: components["schemas"]["Observation"] | null;
+            high: components["schemas"]["Observation"] | null;
+            /**
+             * Changes
+             * @description The changes the text states
+             */
+            changes: components["schemas"]["IndicatorChange"][];
+            /**
+             * Text
+             * @description The sentence the answer prompt gets
+             */
+            text: string;
+        };
+        /**
+         * SeriesFactView
+         * @description A series and what code stated about it for an answer.
+         */
+        SeriesFactView: {
+            series: components["schemas"]["SeriesInfo"];
+            fact: components["schemas"]["SeriesFact"];
+        };
         /** SeriesInfo */
         SeriesInfo: {
             /** Id */
@@ -2763,6 +2872,28 @@ export interface components {
             /** Domains */
             domains: string[];
             links: components["schemas"]["SubjectLinks"];
+        };
+        /**
+         * SubjectFacts
+         * @description What the subject's standing answers are told about their series as of a date.
+         */
+        SubjectFacts: {
+            subject: components["schemas"]["SubjectRef"];
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /**
+             * Facts
+             * @description In catalogue order
+             */
+            facts: components["schemas"]["SeriesFactView"][];
+            /**
+             * Fixed States
+             * @description Rules that fire, per question
+             */
+            fixed_states: components["schemas"]["FixedState"][];
         };
         /** SubjectIndicator */
         SubjectIndicator: {
@@ -3628,6 +3759,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SubjectIndicators"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_subject_facts: {
+        parameters: {
+            query?: {
+                as_of?: string | null;
+            };
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectFacts"];
                 };
             };
             /** @description Validation Error */

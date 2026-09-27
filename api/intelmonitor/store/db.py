@@ -150,6 +150,8 @@ CREATE TABLE IF NOT EXISTS question_answers (
     state TEXT NOT NULL,               -- stable, watch, needs_attention or new
     new_count INTEGER NOT NULL,        -- items behind a "new" state
     development_ids TEXT NOT NULL,     -- JSON [development_id]
+    series_ids TEXT NOT NULL DEFAULT '[]', -- JSON [series_id], cited facts
+    state_rules TEXT NOT NULL DEFAULT '[]', -- JSON [sentence], rules that fixed the state
     PRIMARY KEY (run_id, subject_id, question_id)
 );
 
@@ -351,6 +353,16 @@ CREATE TABLE IF NOT EXISTS run_indicators (
     PRIMARY KEY (run_id, series_id)
 );
 
+-- The facts each run gave a subject's answers (pipeline/facts.py), so a cited series shows what the
+-- answer saw.
+CREATE TABLE IF NOT EXISTS run_facts (
+    run_id TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    series_id TEXT NOT NULL,
+    fact TEXT NOT NULL,                -- JSON SeriesFact
+    PRIMARY KEY (run_id, subject_id, series_id)
+);
+
 -- Full-text search (store/search.py). Both tables keep their own copy of the text, so they do not
 -- depend on rowids staying put. Triggers index documents on every write; the pipeline indexes a
 -- run's developments when it stores them, with the statements of all their findings as summary.
@@ -379,6 +391,8 @@ CREATE VIRTUAL TABLE IF NOT EXISTS developments_fts USING fts5(
 ADDED_COLUMNS = [
     ("dashboards", "deleted_at", "TEXT"),
     ("analyst_actions", "deleted_at", "TEXT"),
+    ("question_answers", "series_ids", "TEXT NOT NULL DEFAULT '[]'"),
+    ("question_answers", "state_rules", "TEXT NOT NULL DEFAULT '[]'"),
 ]
 
 

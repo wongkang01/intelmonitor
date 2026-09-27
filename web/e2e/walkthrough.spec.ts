@@ -1087,6 +1087,88 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await page.goto(new URL(`subjects/circle/indicators?as_of=${asOf}`, apiBase).href);
     });
 
+    await step(STEPS[16], async () => {
+      // The latest run's answers to questions linked to series cite them, and each cited series
+      // carries the fact the run gave the answer, from what was available by the run date.
+      const linked: [string, string][] = [
+        ["circle", "issuer.peg"],
+        ["tether", "issuer.peg"],
+        ["paxos", "issuer.peg"],
+        ["straitsx", "issuer.peg"],
+        ["stablecoins", "stablecoins.reserves-peg"],
+        ["dbs", "bank.financial"],
+        ["singapore", "country.economic-policy"],
+        ["fed", "central-bank.policy-stance"],
+      ];
+      let citing = 0;
+      const cited: Schema<"AnswerEvidence">[] = [];
+      for (const [subjectId, questionId] of linked) {
+        const ev = await unwrap(
+          api.GET("/subjects/{subject_id}/answers/{question_id}/evidence", {
+            params: { path: { subject_id: subjectId, question_id: questionId } },
+          }),
+        );
+        expect(ev.series.map((s) => s.series.id), `${subjectId} ${questionId} cites what it lists`).toEqual(ev.answer.series_ids);
+        if (ev.series.length) citing++;
+        cited.push(ev);
+        for (const { series, fact } of ev.series) {
+          expect(fact.question_ids, `${series.id} is linked to ${questionId}`).toContain(questionId);
+          expect(fact.text.startsWith(series.name), `${series.id} states its name`).toBe(true);
+          for (const o of [fact.latest, fact.low, fact.high]) {
+            if (o) expect(o.available_at.slice(0, 10) <= ev.run.as_of, `${series.id} was known by the run date`).toBe(true);
+          }
+        }
+        if (ev.answer.state_rules.length) expect(ev.answer.state).toBe("needs_attention");
+      }
+      expect(citing, "answers cite their series").toBeGreaterThanOrEqual(linked.length / 2);
+
+      // Facts as of a past date read only what was available by the end of that day; today's see
+      // later periods. A date before the history states no data and fixes nothing.
+      const past = "2026-08-15";
+      const sampled = ["circle", "paxos", "dbs", "malaysia", "fed", "stablecoins", "geopolitics"];
+      const snapshot: Record<string, Schema<"SubjectFacts">> = {};
+      let later = 0;
+      for (const subjectId of sampled) {
+        const subject = { subject_id: subjectId };
+        const then = await unwrap(api.GET("/subjects/{subject_id}/facts", { params: { path: subject, query: { as_of: past } } }));
+        const now = await unwrap(api.GET("/subjects/{subject_id}/facts", { params: { path: subject } }));
+        snapshot[subjectId] = then;
+        expect(then.facts.length, `${subjectId} has facts`).toBeGreaterThan(0);
+        for (const [i, { series, fact }] of then.facts.entries()) {
+          const name = `${series.id} as of ${past}`;
+          if (!fact.latest) throw new Error(`${name} has no data`);
+          for (const o of [fact.latest, fact.low, fact.high]) {
+            if (o) expect(o.available_at.slice(0, 10) <= past, `${name} states only what was known then`).toBe(true);
+          }
+          if (fact.window_start) expect(fact.low && fact.low.period > fact.window_start, `${name} low is in its window`).toBe(true);
+          for (const c of fact.changes) expect(c.since !== null && c.since < fact.latest.period, `${name} ${c.window} compares with an earlier period`).toBe(true);
+          const today = now.facts[i].fact.latest;
+          if (today && today.period > fact.latest.period) later++;
+        }
+      }
+      expect(later, "today's facts state periods the past date could not see").toBeGreaterThan(0);
+      const before = await unwrap(
+        api.GET("/subjects/{subject_id}/facts", { params: { path: { subject_id: "circle" }, query: { as_of: "2020-01-01" } } }),
+      );
+      expect(new Set(before.facts.map((f) => f.fact.state))).toEqual(new Set(["no_data"]));
+      expect(before.fixed_states).toEqual([]);
+
+      // XSGD held more than 0.5% off its peg from 2 to 4 May 2026, so Peg is fixed at Needs
+      // attention; USDP's single day 0.57% off on 11 Sep 2026 is not 24 hours, so nothing fires.
+      const held = await unwrap(
+        api.GET("/subjects/{subject_id}/facts", { params: { path: { subject_id: "straitsx" }, query: { as_of: "2026-05-10" } } }),
+      );
+      const peg = held.fixed_states.find((f) => f.question_id === "issuer.peg");
+      expect(peg, "a held XSGD depeg fixes Peg").toMatchObject({ series_id: "derived.xsgd.peg", state: "needs_attention", start: "2026-05-02", end: "2026-05-04", hours: 48 });
+      const single = await unwrap(
+        api.GET("/subjects/{subject_id}/facts", { params: { path: { subject_id: "paxos" }, query: { as_of: "2026-09-24" } } }),
+      );
+      expect(single.fixed_states).toEqual([]);
+
+      writeFileSync(path.join(dir, "facts.json"), JSON.stringify({ as_of: past, subjects: snapshot, held, answers: cited }, null, 2));
+      await page.goto(new URL(`subjects/straitsx/facts?as_of=2026-05-10`, apiBase).href);
+    });
+
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);
   } finally {
     const failures: string[] = [];

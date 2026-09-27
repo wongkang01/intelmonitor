@@ -212,6 +212,16 @@ def get_subject_indicators(
     return series_views.subject_indicators(q.conn, subject_id, as_of or date.today())
 
 
+@app.get("/subjects/{subject_id}/facts")
+def get_subject_facts(
+    q: Q, subject_id: str, as_of: date | None = None
+) -> series_views.SubjectFacts:
+    """The facts a run as of `as_of` (default today) gives the subject's standing answers: one per
+    series its questions link, written by code from what was available by the end of that day,
+    and the states rules fix."""
+    return series_views.facts_as_of(q.conn, subject_id, as_of or date.today())
+
+
 @app.get("/series/{series_id}")
 def get_series(
     q: Q,
@@ -285,6 +295,7 @@ def get_answer_evidence(q: Q, subject_id: str, question_id: str) -> AnswerEviden
         run=q.run,
         answer=answer,
         developments=[_development_detail(q, i) for i in answer.development_ids],
+        series=series_views.cited_series(q.conn, q.run.id, subject_id, answer.series_ids),
     )
 
 

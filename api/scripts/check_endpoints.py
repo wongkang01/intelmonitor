@@ -171,6 +171,15 @@ def check_subject(c: Check, sid: str) -> dict[str, int]:
         first = indicators[0]["series"]["id"]
         need(c.get(f"/series/{first}")["observations"], f"{sid}: {first} has no observations")
 
+    facts = c.get(f"/subjects/{sid}/facts")["facts"]
+    need(all(f["fact"]["text"] for f in facts), f"{sid}: a fact has no text")
+    if citing := next((q for q in page["questions"] if q["series_ids"]), None):
+        ev = c.get(f"/subjects/{sid}/answers/{citing['question_id']}/evidence")
+        need(
+            [s["series"]["id"] for s in ev["series"]] == citing["series_ids"],
+            f"{sid}: answer evidence series",
+        )
+
     for w in widgets_for(sid, kind, page):
         data = c.call("POST", "/widgets/data", json={"widget": w, "dashboard_subject_ids": [sid]})
         check_widget(data)

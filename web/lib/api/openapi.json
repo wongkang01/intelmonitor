@@ -224,6 +224,63 @@
         }
       }
     },
+    "/subjects/{subject_id}/facts": {
+      "get": {
+        "summary": "Get Subject Facts",
+        "description": "The facts a run as of `as_of` (default today) gives the subject's standing answers: one per\nseries its questions link, written by code from what was available by the end of that day,\nand the states rules fix.",
+        "operationId": "get_subject_facts",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "as_of",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubjectFacts"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/series/{series_id}": {
       "get": {
         "summary": "Get Series",
@@ -2564,6 +2621,14 @@
             "type": "array",
             "title": "Developments",
             "description": "In the order the answer cites them"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesFactView"
+            },
+            "type": "array",
+            "title": "Series",
+            "description": "In the order the answer cites them"
           }
         },
         "type": "object",
@@ -2571,10 +2636,11 @@
           "subject",
           "run",
           "answer",
-          "developments"
+          "developments",
+          "series"
         ],
         "title": "AnswerEvidence",
-        "description": "Everything behind one standing question answer: the answer and the developments it\nrelies on, each with its sources."
+        "description": "Everything behind one standing question answer: the answer, the developments it relies\non, each with its sources, and the series it cites with the facts the run gave it."
       },
       "AnswerFeedback": {
         "properties": {
@@ -4768,6 +4834,58 @@
         "title": "FileSource",
         "description": "Bytes already at the provider, named by a handle the provider issued: an\nOpenAI or Anthropic file id, a Gemini file URI, a storage URL only that\nprovider can read. No bytes travel and nothing is fetched. Only the\nprovider that minted the handle can resolve it; a peer that cannot drops\nthe part as it drops any part it cannot use."
       },
+      "FixedState": {
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "series_id": {
+            "type": "string",
+            "title": "Series Id"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "watch",
+              "needs_attention"
+            ],
+            "title": "State"
+          },
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start",
+            "description": "First period of the longest spell beyond the threshold"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End",
+            "description": "Last period of that spell"
+          },
+          "hours": {
+            "type": "integer",
+            "title": "Hours"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id",
+          "series_id",
+          "state",
+          "start",
+          "end",
+          "hours",
+          "text"
+        ],
+        "title": "FixedState",
+        "description": "A rule fired: the question's state is at least `state`, whatever the model says."
+      },
       "FunctionCall": {
         "properties": {
           "name": {
@@ -5539,6 +5657,22 @@
             "type": "array",
             "title": "Development Ids"
           },
+          "series_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Series Ids",
+            "description": "Series whose facts the answer cites"
+          },
+          "state_rules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "State Rules",
+            "description": "Why rules fixed the state, one sentence per rule that fired; empty when the state is the model's"
+          },
           "change": {
             "$ref": "#/components/schemas/AnswerChange"
           },
@@ -5565,6 +5699,8 @@
           "state",
           "new_count",
           "development_ids",
+          "series_ids",
+          "state_rules",
           "change",
           "feedback"
         ],
@@ -6468,6 +6604,119 @@
         ],
         "title": "SeriesDetail"
       },
+      "SeriesFact": {
+        "properties": {
+          "series_id": {
+            "type": "string",
+            "title": "Series Id"
+          },
+          "question_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Question Ids",
+            "description": "The subject's questions that use the series"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "no_data",
+              "stale",
+              "revised",
+              "preliminary",
+              "current"
+            ],
+            "title": "State"
+          },
+          "window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Start",
+            "description": "Daily series: low and high are over the periods after this, to the date"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Observation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "low": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Observation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "high": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Observation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/IndicatorChange"
+            },
+            "type": "array",
+            "title": "Changes",
+            "description": "The changes the text states"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "The sentence the answer prompt gets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "series_id",
+          "question_ids",
+          "state",
+          "window_start",
+          "latest",
+          "low",
+          "high",
+          "changes",
+          "text"
+        ],
+        "title": "SeriesFact"
+      },
+      "SeriesFactView": {
+        "properties": {
+          "series": {
+            "$ref": "#/components/schemas/SeriesInfo"
+          },
+          "fact": {
+            "$ref": "#/components/schemas/SeriesFact"
+          }
+        },
+        "type": "object",
+        "required": [
+          "series",
+          "fact"
+        ],
+        "title": "SeriesFactView",
+        "description": "A series and what code stated about it for an answer."
+      },
       "SeriesInfo": {
         "properties": {
           "id": {
@@ -6897,6 +7146,43 @@
           "links"
         ],
         "title": "SubjectDetail"
+      },
+      "SubjectFacts": {
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesFactView"
+            },
+            "type": "array",
+            "title": "Facts",
+            "description": "In catalogue order"
+          },
+          "fixed_states": {
+            "items": {
+              "$ref": "#/components/schemas/FixedState"
+            },
+            "type": "array",
+            "title": "Fixed States",
+            "description": "Rules that fire, per question"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "as_of",
+          "facts",
+          "fixed_states"
+        ],
+        "title": "SubjectFacts",
+        "description": "What the subject's standing answers are told about their series as of a date."
       },
       "SubjectIndicator": {
         "properties": {

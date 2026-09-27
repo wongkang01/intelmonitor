@@ -12,6 +12,7 @@ from pathlib import Path
 from intelmonitor.config import ARTIFACTS_DIR
 from intelmonitor.ingest.series.collect import FetchSummary
 from intelmonitor.pipeline.extract import Extraction, locate_quote
+from intelmonitor.pipeline.facts import SeriesFact
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS, ROUTE_HIGH, ROUTE_LOW
 from intelmonitor.pipeline.subjects import all_subjects, questions_for
 from intelmonitor.store.db import connect, get_meta
@@ -504,7 +505,7 @@ def _series(conn: sqlite3.Connection) -> list[str]:
     if last.stale:
         stale = ", ".join(f"{k} ({v})" for k, v in last.stale.items())
         out += ["", f"Stale (latest point more than a day old): {stale}."]
-    return out + ["", *_run_indicators(conn, total)]
+    return out + ["", *_run_indicators(conn, total), "", *_run_facts(conn)]
 
 
 def _run_indicators(conn: sqlite3.Connection, total: int) -> list[str]:
@@ -539,6 +540,48 @@ def _run_indicators(conn: sqlite3.Connection, total: int) -> list[str]:
         "Run indicators, every series as of the run date:",
         "",
         _table(["Run", "States", "No look-ahead"], rows),
+    ]
+
+
+def _run_facts(conn: sqlite3.Connection) -> list[str]:
+    """What each run's answers were told and cited, and the look-ahead check: no fact may state
+    an observation that became available after the run date."""
+    rows: list[list[object]] = []
+    for run in conn.execute("SELECT id, as_of FROM runs ORDER BY as_of").fetchall():
+        facts = [
+            SeriesFact.model_validate_json(r["fact"])
+            for r in conn.execute("SELECT fact FROM run_facts WHERE run_id = ?", (run["id"],))
+        ]
+        if not facts:
+            rows.append([run["id"], "none written", "", "", ""])
+            continue
+        answers = conn.execute(
+            "SELECT sum(series_ids != '[]') AS citing, sum(state_rules != '[]') AS fixed "
+            "FROM question_answers WHERE run_id = ?",
+            (run["id"],),
+        ).fetchone()
+        late = sum(
+            o.available_at.date().isoformat() > run["as_of"]
+            for f in facts
+            for o in (f.latest, f.low, f.high)
+            if o is not None
+        )
+        rows.append(
+            [
+                run["id"],
+                len(facts),
+                answers["citing"] or 0,
+                answers["fixed"] or 0,
+                "pass" if not late else f"FAIL: {late} available after the run date",
+            ]
+        )
+    return [
+        "Run facts, per subject and series its questions link (F2):",
+        "",
+        _table(
+            ["Run", "Facts", "Answers citing series", "States fixed by rules", "No look-ahead"],
+            rows,
+        ),
     ]
 
 

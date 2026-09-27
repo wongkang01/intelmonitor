@@ -1,10 +1,13 @@
 """Step 7: one Claude call per subject per run answers all of the subject's standing questions
 from the developments tagged to it (for groups, also to its members) inside each question's
-lookback. Code keeps only development ids that were eligible for the question. The analyst's
-corrections to this run's or the previous run's answers go into the prompt."""
+lookback, and from the facts code computed from the series each question links
+(pipeline/facts.py). Code keeps only development ids eligible for the question and series ids
+linked to it, and fixes the state where a rule fired. The analyst's corrections to this run's or
+the previous run's answers go into the prompt."""
 
 import asyncio
 import json
+import re
 import sqlite3
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -13,6 +16,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 from intelmonitor.pipeline.diff import DevelopmentChange
+from intelmonitor.pipeline.facts import SubjectFacts, subject_facts
 from intelmonitor.pipeline.feedback import AnswerCorrection, answer_corrections
 from intelmonitor.pipeline.inference import Inference, StepFailed
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS
@@ -24,6 +28,8 @@ MAX_PROMPT_DEVELOPMENTS = 120
 UPCOMING_HORIZON_DAYS = 90
 
 State = Literal["stable", "watch", "needs_attention", "new"]
+# Calm to severe: a rule that fired raises the state to at least its own.
+_SEVERITY: list[State] = ["stable", "new", "watch", "needs_attention"]
 
 
 class QuestionAnswer(BaseModel):
@@ -31,6 +37,7 @@ class QuestionAnswer(BaseModel):
     summary: str
     state: State
     development_ids: list[str]
+    series_ids: list[str]
 
 
 class SubjectAnswers(BaseModel):
@@ -82,8 +89,20 @@ def scope(subject: Subject) -> set[str]:
 
 ANSWER_SYSTEM = (
     "You answer standing questions for a financial supervisor's monitoring dashboard. Answers "
-    "are short, specific and based only on the developments provided."
+    "are short, specific and based only on the developments and facts provided."
 )
+
+# Numbers an answer could invent: decimals and percentages. Whole numbers ("30 days") pass.
+_NUMBER = re.compile(r"\d[\d,]*\.\d+%?|\d[\d,]*%")
+_PER_CENT = re.compile(r"\s*(?:per ?cent|percent)\b", re.IGNORECASE)
+
+
+def unsupported_numbers(summary: str, allowed: str) -> list[str]:
+    """Decimals and percentages in `summary` that appear nowhere in `allowed` (the facts and
+    development text the prompt gave), ignoring thousands separators and reading "per cent" as
+    "%"."""
+    plain = _PER_CENT.sub("%", allowed.replace(",", ""))
+    return [n for n in dict.fromkeys(_NUMBER.findall(summary)) if n.replace(",", "") not in plain]
 
 
 def _eligible(q: QuestionDef, devs: list[RunDevelopment], as_of: date) -> list[RunDevelopment]:
@@ -101,6 +120,8 @@ def answer_prompt(
     previous: dict[str, tuple[str, str]],
     base_as_of: str | None,
     corrections: list[AnswerCorrection],
+    facts: SubjectFacts,
+    unsupported: dict[str, list[str]],
 ) -> str:
     names = all_subjects()
 
@@ -128,10 +149,17 @@ def answer_prompt(
     if upcoming:
         parts += ["", "Upcoming dates:"]
         parts += [f"- {when}: {label} (D:{dev_id})" for when, label, dev_id in upcoming]
+    asked = {q.id for q in questions}
+    if stated := [f for f in facts.facts if asked & set(f.question_ids)]:
+        parts += [
+            "",
+            "Facts computed by code from official statistics and market data available by the "
+            "run date:",
+        ]
+        parts += [f"- S:{f.series_id} | {f.text}" for f in stated]
     if previous:
         parts += ["", f"Answers at the previous run ({base_as_of}):"]
         parts += [f"- {qid}: {state}: {summary}" for qid, (state, summary) in previous.items()]
-    asked = {q.id for q in questions}
     if wanted := [c for c in corrections if c.question_id in asked]:
         parts += [
             "",
@@ -139,13 +167,30 @@ def answer_prompt(
             "the developments still bear them out:",
         ]
         parts += [c.prompt_line() for c in wanted]
-    parts += ["", "Questions. Answer each one using only the developments eligible for it."]
+    if unsupported:
+        parts += [
+            "",
+            "Your last answers quoted numbers that are in neither the facts nor the developments. "
+            "Answer again, quoting numbers only as the facts and developments give them:",
+        ]
+        parts += [f"- {qid}: {', '.join(nums)}" for qid, nums in unsupported.items()]
+    parts += [
+        "",
+        "Questions. Answer each one using only the developments eligible for it and the facts of "
+        "its series.",
+    ]
     for q in questions:
         eligible = ", ".join(f"D:{d.id}" for d in _eligible(q, devs, as_of)) or "none"
-        parts.append(
+        entry = (
             f"- question_id: {q.id}\n  question: {q.question}\n"
             f"  lookback: {q.lookback_days} days\n  eligible: {eligible}"
         )
+        if q.series:
+            linked = ", ".join(f"S:{f.series_id}" for f in facts.for_question(q.id)) or "none"
+            entry += f"\n  series: {linked}"
+        for fixed in facts.fixed(q.id):
+            entry += f"\n  fixed state: {fixed.state}, because {fixed.text}"
+        parts.append(entry)
     parts += [
         "",
         """For each question return:
@@ -153,7 +198,10 @@ def answer_prompt(
 - summary: one line of at most 25 words, plain and specific (name the bodies, entities and
   actions). If nothing eligible bears on the question, say so briefly, for example "No new
   enforcement actions in the last 30 days."
-- state, calm by default:
+- Numbers: quote only numbers the facts or developments give, as they give them; never compute,
+  convert or estimate new ones. Where a question has series, say what their facts show.
+- state, calm by default. A question with a fixed state takes that state, and its summary says
+  why:
   - needs_attention: something could hurt a tracked subject or needs supervisory follow-up now,
     such as enforcement, an incident, stress, a depeg or escalation, and it is Significant or
     Critical.
@@ -161,7 +209,9 @@ def answer_prompt(
   - new: relevant new items that are routine, neutral or positive, however significant.
   - stable: nothing relevant happened in the lookback.
 - development_ids: the eligible ids the answer relies on, without the "D:" prefix, most
-  important first. Empty if none.""",
+  important first. Empty if none.
+- series_ids: the question's series whose facts the answer relies on, without the "S:" prefix.
+  Empty if none.""",
     ]
     return "\n".join(parts)
 
@@ -175,7 +225,9 @@ async def answer_subject(
     all_devs: list[RunDevelopment],
     changes: dict[str, DevelopmentChange],
     base_id: str | None,
-) -> None:
+) -> int:
+    """Answers the subject's questions and stores them with the facts they were given. Returns
+    how many answers still quote a number found in neither the facts nor the developments."""
     questions = questions_for(subject)
     ids = scope(subject)
     longest = max(q.lookback_days for q in questions)
@@ -206,45 +258,86 @@ async def answer_subject(
     }
     base_as_of = base_id  # run ids are their as-of dates
     corrections = answer_corrections(conn, subject.id, [run_id, *([base_id] if base_id else [])])
+    revised_since = date.fromisoformat(base_id) if base_id else None
+    facts = subject_facts(conn, subject.id, questions, as_of, revised_since)
+    # What answers may quote numbers from: the facts, and the developments and dates listed.
+    allowed = "\n".join(
+        [f.text for f in facts.facts]
+        + [d.title for d in devs]
+        + [f"{when} {label}" for when, label, _ in upcoming]
+    )
 
     answered: dict[str, QuestionAnswer] = {}
+    unsupported: dict[str, list[str]] = {}
     pending = questions
     for attempt in range(2):
         prompt = answer_prompt(
-            subject, as_of, pending, devs, changes, upcoming, previous, base_as_of, corrections
+            subject,
+            as_of,
+            pending,
+            devs,
+            changes,
+            upcoming,
+            previous,
+            base_as_of,
+            corrections,
+            facts,
+            unsupported,
         )
         ref = f"subject:{subject.id}" + (f":retry{attempt}" if attempt else "")
         result = await inf.claude("answer", ref, prompt, SubjectAnswers, ANSWER_SYSTEM)
         wanted = {q.id for q in pending}
-        answered |= {a.question_id: a for a in result.answers if a.question_id in wanted}
-        pending = [q for q in questions if q.id not in answered]
+        got = {a.question_id: a for a in result.answers if a.question_id in wanted}
+        answered |= got
+        unsupported = {
+            qid: nums for qid, a in got.items() if (nums := unsupported_numbers(a.summary, allowed))
+        }
+        pending = [q for q in questions if q.id not in answered or q.id in unsupported]
         if not pending:
             break
-    if pending:
-        raise RuntimeError(f"no answer for {[q.id for q in pending]}")
+    if missing := [q.id for q in questions if q.id not in answered]:
+        raise RuntimeError(f"no answer for {missing}")
 
-    conn.execute(
-        "DELETE FROM question_answers WHERE run_id = ? AND subject_id = ?", (run_id, subject.id)
-    )
-    for q in questions:
-        a = answered[q.id]
-        eligible = {d.id for d in _eligible(q, devs, as_of)}
-        cited = [i.removeprefix("D:") for i in a.development_ids]
-        cited = [i for i in dict.fromkeys(cited) if i in eligible]
+    with conn:
         conn.execute(
-            "INSERT INTO question_answers (run_id, subject_id, question_id, summary, state, "
-            "new_count, development_ids) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (
-                run_id,
-                subject.id,
-                q.id,
-                a.summary.strip(),
-                a.state,
-                len(cited) if a.state == "new" else 0,
-                json.dumps(cited),
-            ),
+            "DELETE FROM question_answers WHERE run_id = ? AND subject_id = ?",
+            (run_id, subject.id),
         )
-    conn.commit()
+        conn.execute(
+            "DELETE FROM run_facts WHERE run_id = ? AND subject_id = ?", (run_id, subject.id)
+        )
+        conn.executemany(
+            "INSERT INTO run_facts (run_id, subject_id, series_id, fact) VALUES (?, ?, ?, ?)",
+            [(run_id, subject.id, f.series_id, f.model_dump_json()) for f in facts.facts],
+        )
+        for q in questions:
+            a = answered[q.id]
+            eligible = {d.id for d in _eligible(q, devs, as_of)}
+            cited = [i.removeprefix("D:") for i in a.development_ids]
+            cited = [i for i in dict.fromkeys(cited) if i in eligible]
+            linked = {f.series_id for f in facts.for_question(q.id)}
+            series = [i.removeprefix("S:") for i in a.series_ids]
+            series = [i for i in dict.fromkeys(series) if i in linked]
+            fixed = facts.fixed(q.id)
+            states: list[State] = [a.state, *(f.state for f in fixed)]
+            state = max(states, key=_SEVERITY.index)
+            conn.execute(
+                "INSERT INTO question_answers (run_id, subject_id, question_id, summary, state, "
+                "new_count, development_ids, series_ids, state_rules) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    run_id,
+                    subject.id,
+                    q.id,
+                    a.summary.strip(),
+                    state,
+                    len(cited) if state == "new" else 0,
+                    json.dumps(cited),
+                    json.dumps(series),
+                    json.dumps([f.text for f in fixed]),
+                ),
+            )
+    return len(unsupported)
 
 
 async def answer_subjects(
@@ -254,16 +347,23 @@ async def answer_subjects(
     as_of: date,
     changes: dict[str, DevelopmentChange],
     base_id: str | None,
-) -> None:
+) -> int:
+    """Answers every subject's questions. Returns how many answers quote a number found in
+    neither their facts nor their developments."""
     devs = load_run_developments(conn, run_id)
     failures: list[str] = []
+    unsupported = 0
 
     async def one(subject: Subject) -> None:
+        nonlocal unsupported
         try:
-            await answer_subject(inf, conn, run_id, as_of, subject, devs, changes, base_id)
+            unsupported += await answer_subject(
+                inf, conn, run_id, as_of, subject, devs, changes, base_id
+            )
         except Exception as error:
             failures.append(f"{subject.id}: {type(error).__name__}: {error}")
 
     await asyncio.gather(*(one(s) for s in all_subjects().values()))
     if failures:
         raise StepFailed("answer", failures)
+    return unsupported

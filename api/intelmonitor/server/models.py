@@ -6,9 +6,17 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, Field
 
+from intelmonitor.pipeline.facts import SeriesFact
 from intelmonitor.pipeline.screen import Category
 from intelmonitor.pipeline.subjects import all_subjects
-from intelmonitor.seed import EntityKind, SubjectType, TopicIcon
+from intelmonitor.seed import (
+    BadDirection,
+    EntityKind,
+    Frequency,
+    SourceName,
+    SubjectType,
+    TopicIcon,
+)
 
 State = Literal["stable", "watch", "needs_attention", "new"]
 Stage = Literal["signal", "consultation", "proposed", "enacted", "enforced"]
@@ -170,6 +178,11 @@ class QuestionAnswerView(BaseModel):
     state: State
     new_count: int
     development_ids: list[str]
+    series_ids: list[str] = Field(description="Series whose facts the answer cites")
+    state_rules: list[str] = Field(
+        description="Why rules fixed the state, one sentence per rule that fired; empty when the "
+        "state is the model's"
+    )
     change: AnswerChange
     feedback: AnswerFeedback | None = Field(
         description="The latest correction given since the latest run finished, which the next "
@@ -448,14 +461,33 @@ class DevelopmentDetail(DevelopmentSummary):
     notes: list[Note]
 
 
+class SeriesInfo(BaseModel):
+    id: str
+    name: str
+    unit: str = Field(description='"%" for ratios and rates, else e.g. "USD" or "SGD per MYR"')
+    frequency: Frequency
+    decimals: int
+    bad_direction: BadDirection = Field(description="Which way is worse, if either")
+    source: SourceName
+    source_url: str
+
+
+class SeriesFactView(BaseModel):
+    """A series and what code stated about it for an answer."""
+
+    series: SeriesInfo
+    fact: SeriesFact
+
+
 class AnswerEvidence(BaseModel):
-    """Everything behind one standing question answer: the answer and the developments it
-    relies on, each with its sources."""
+    """Everything behind one standing question answer: the answer, the developments it relies
+    on, each with its sources, and the series it cites with the facts the run gave it."""
 
     subject: SubjectRef
     run: RunRef
     answer: QuestionAnswerView
     developments: list[DevelopmentDetail] = Field(description="In the order the answer cites them")
+    series: list[SeriesFactView] = Field(description="In the order the answer cites them")
 
 
 class DocumentDetail(BaseModel):

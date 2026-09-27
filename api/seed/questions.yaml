@@ -2,6 +2,11 @@
 # topic (subject) or one entity kind (kind). Labels are shown in widgets.
 # lookback_days: how far back an answer reads developments, counted from the run date.
 # Runs are weekly, so news-flow questions look back 7 days and state questions 30.
+# series: patterns over series ids (`*` spans dots) choosing, among the series mapped to the subject
+#   in series.yaml, those whose facts the answer gets and may cite. A daily series' facts cover the
+#   longest lookback of the subject's questions that use it.
+# rules: states fixed by code instead of model judgement. deviation: the series is more than
+#   `beyond` from zero, either way, for at least `for_hours` within the lookback.
 
 sets:
   - applies_to: {type: topic}
@@ -22,12 +27,12 @@ sets:
     questions:
       - {id: geopolitics.escalation, label: Escalation, lookback_days: 14, question: "Which flashpoints are escalating, and which are cooling?"}
       - {id: geopolitics.sanctions-trade, label: Sanctions and trade, lookback_days: 14, question: "Were new sanctions, tariffs or export controls announced that touch tracked entities or countries?"}
-      - {id: geopolitics.financial-channels, label: Financial channels, lookback_days: 14, question: "Are there effects on capital flows, FX, payments or trade finance?"}
+      - {id: geopolitics.financial-channels, label: Financial channels, lookback_days: 14, question: "Are there effects on capital flows, FX, payments or trade finance?", series: ["fx.sgd.*", fred.us10y, fred.us_hy_spread, fred.vix]}
 
   - applies_to: {type: topic, subject: stablecoins}
     questions:
       - {id: stablecoins.stage, label: Stage, lookback_days: 30, question: "Where is stablecoin regulation in each jurisdiction: signal, consultation, proposed, enacted or enforced?"}
-      - {id: stablecoins.reserves-peg, label: Reserves and peg, lookback_days: 30, question: "Were there depegs, reserve concerns or attestation findings?"}
+      - {id: stablecoins.reserves-peg, label: Reserves and peg, lookback_days: 30, question: "Were there depegs, reserve concerns or attestation findings?", series: ["derived.*.peg", llama.total.supply], rules: [&depeg {kind: deviation, series: "derived.*.peg", beyond: 0.5, for_hours: 24, state: needs_attention}]}
       - {id: stablecoins.bank-involvement, label: Bank involvement, lookback_days: 30, question: "Are banks issuing, custodying, settling or partnering on stablecoins or tokenised deposits?"}
 
   - applies_to: {type: group}
@@ -44,7 +49,7 @@ sets:
       - {id: bank.incidents, label: Incidents, lookback_days: 7, question: "Have any material operational or technology incidents occurred?"}
       - {id: bank.adverse, label: Adverse, lookback_days: 7, question: "Is there anything that could hurt this bank?"}
       - {id: bank.regulatory, label: Regulatory, lookback_days: 30, question: "Any regulatory actions, findings or new obligations?"}
-      - {id: bank.financial, label: Financial, lookback_days: 30, question: "Any material changes in earnings, capital, liquidity or asset quality?"}
+      - {id: bank.financial, label: Financial, lookback_days: 30, question: "Any material changes in earnings, capital, liquidity or asset quality?", series: ["mas.ltd.*", "mas.npl.*"]}
       - {id: bank.management, label: Management, lookback_days: 30, question: "Any senior management or board changes?"}
       - {id: bank.strategy, label: Strategy, lookback_days: 30, question: "Any significant M&A, product or technology moves?"}
       - {id: bank.digital-assets, label: Digital assets, lookback_days: 30, question: "Any stablecoin, tokenisation or crypto activity or exposure?"}
@@ -52,7 +57,7 @@ sets:
 
   - applies_to: {type: entity, kind: central_bank}
     questions:
-      - {id: central-bank.policy-stance, label: Policy stance, lookback_days: 30, question: "Did the policy stance on rates, liquidity or FX change?"}
+      - {id: central-bank.policy-stance, label: Policy stance, lookback_days: 30, question: "Did the policy stance on rates, liquidity or FX change?", series: [fred.fed_funds, fred.ecb_deposit, "fx.sgd.*"]}
       - {id: central-bank.regulation, label: Regulation, lookback_days: 30, question: "Any new rules, consultations or guidance for banks?"}
       - {id: central-bank.enforcement, label: Enforcement, lookback_days: 30, question: "Any supervisory or enforcement actions?"}
       - {id: central-bank.digital-money, label: Digital money, lookback_days: 30, question: "Any moves on CBDCs, stablecoins or tokenisation?"}
@@ -62,17 +67,17 @@ sets:
   - applies_to: {type: entity, kind: stablecoin_issuer}
     questions:
       - {id: issuer.reserves, label: Reserves, lookback_days: 30, question: "What do the latest attestations or disclosures say about reserves?"}
-      - {id: issuer.peg, label: Peg, lookback_days: 14, question: "Has the peg held, and were there redemption pressures?"}
+      - {id: issuer.peg, label: Peg, lookback_days: 14, question: "Has the peg held, and were there redemption pressures?", series: ["derived.*.peg", "llama.*.supply"], rules: [*depeg]}
       - {id: issuer.licensing, label: Licensing, lookback_days: 30, question: "Did the issuer gain, lose or apply for any licence?"}
       - {id: issuer.banking-partners, label: Banking partners, lookback_days: 30, question: "Any changes to banking, custody or settlement partners?"}
       - {id: issuer.incidents, label: Incidents, lookback_days: 7, question: "Any hacks, freezes, outages or legal actions?"}
-      - {id: issuer.strategy, label: Strategy, lookback_days: 30, question: "Any new chains, markets, products or partnerships?"}
+      - {id: issuer.strategy, label: Strategy, lookback_days: 30, question: "Any new chains, markets, products or partnerships?", series: ["derived.*.share.*"]}
 
   - applies_to: {type: entity, kind: country}
     questions:
       - {id: country.political-stability, label: Political stability, lookback_days: 14, question: "Any political events that change policy direction or stability?"}
-      - {id: country.economic-policy, label: Economic policy, lookback_days: 30, question: "Any material fiscal, monetary or FX policy moves?"}
+      - {id: country.economic-policy, label: Economic policy, lookback_days: 30, question: "Any material fiscal, monetary or FX policy moves?", series: ["fx.sgd.*"]}
       - {id: country.trade-sanctions, label: Trade and sanctions, lookback_days: 14, question: "Is the country affected by new tariffs, sanctions or export controls?"}
       - {id: country.security, label: Security, lookback_days: 14, question: "Any security or territorial incidents with financial implications?"}
-      - {id: country.financial-sector, label: Financial sector, lookback_days: 30, question: "Any stress or major regulatory change in the banking system?"}
+      - {id: country.financial-sector, label: Financial sector, lookback_days: 30, question: "Any stress or major regulatory change in the banking system?", series: ["mas.ltd.*", "mas.npl.*"]}
       - {id: country.digital-assets, label: Digital assets, lookback_days: 30, question: "Any change in stablecoin or crypto policy?"}

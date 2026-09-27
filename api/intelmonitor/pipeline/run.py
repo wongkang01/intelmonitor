@@ -91,7 +91,8 @@ async def compute_run(
         states = store_run_indicators(conn, run_id, as_of, previous_as_of)
         step(f"{upcoming} upcoming dates; indicators {dict(states)}")
         step(f"answer questions (base run {base_id})")
-        await answer_subjects(inf, conn, run_id, as_of, changes, base_id)
+        unsupported = await answer_subjects(inf, conn, run_id, as_of, changes, base_id)
+        step(f"answers quoting numbers outside their facts and developments: {unsupported}")
         if base_id:
             step(f"{store_changes(conn, run_id, base_id, changes)} changes vs {base_id}")
         conn.execute("UPDATE runs SET previous_run_id = ? WHERE id = ?", (base_id, run_id))

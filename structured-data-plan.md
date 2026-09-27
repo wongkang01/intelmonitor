@@ -153,7 +153,7 @@ Built, endpoints and run indicators:
   A series with no data by then gets no row, since `period` and `value` are required.
 - `im ingest` and Run now already fetched series first (above); `im report`'s Series section now says how many series the latest fetch got, and lists each run's indicator states with a look-ahead check: no run indicator may use an observation available after its run date.
 - Web: `useIndicators(id, asOf?)` and `useSeries(id, range)` in `web/lib/api/queries.ts`; no UI yet.
-- The walkthrough's last step checks the per-100 units, that indicators as of Run 1 see nothing later while today's do, that changes never start from zero or from the latest period, and that a date before the history gives "No data"; it writes `indicators.json` to the run's artifacts.
+- The walkthrough's series step checks the per-100 units, that indicators as of Run 1 see nothing later while today's do, that changes never start from zero or from the latest period, and that a date before the history gives "No data"; it writes `indicators.json` to the run's artifacts.
 - Checked against the store on 28 Sep: the loan-to-deposit ratio, all currencies, is 70.3 for Jul 2026 (preliminary), up 0.3, 2.7 and 4.5 points on 70.0, 67.6 and 65.8, at the 55th percentile of 61 months; Fed funds is 3.88 on 24 Sep, unchanged on the week, up 0.25 on the month and three months (3.63) and down 0.21 on the year (4.09); USDC is 0.99988 on 27 Sep, 0.0118% below its peg, up 0.0182 points on the week from 0.030% below.
 
 ### F2. Facts in standing answers
@@ -163,6 +163,47 @@ The answer prompt receives the block and may only quote numbers from it or from 
 Question-to-series links are declared in `questions.yaml` (for example `issuer.peg` uses the peg series, `bank.financial` the loan-to-deposit and NPL series, `country.economic-policy` the FX series).
 Some states follow fixed rules instead of model judgement, declared per question: a coin more than 0.5% off its peg for over 24 hours makes Peg "Needs attention".
 Answers can cite a series; the evidence drawer shows it as a data source with a small chart, the latest value, and a link to the source table.
+
+Failure modes, written before the code:
+
+1. A linked series has no data by the run date (a skipped source, a date before its history): its fact says so and carries no numbers, and no rule fires on it.
+2. A stale market price: the fact says the latest point's date and that it is stale, and no rule fires on it.
+3. Look-ahead: a run as of D states only observations available by the end of D, at their value before any later revision.
+4. Gaps: the window's low and high come from the points that exist; a window with no points states the latest value and its date.
+5. Monthly and quarterly series: no low or high over a window shorter than their frequency; the fact states the latest release, its changes and whether it is preliminary or revised.
+6. A question pattern that matches none of the subject's series (a bank with no system data): the question gets no facts and the prompt says so.
+7. The model quotes a number that is in neither the facts nor the developments: the question is asked again once with the numbers named; an answer that still quotes one is kept, and the run log counts it.
+8. The model cites a series not linked to the question, or an unknown id: the citation is dropped, like an ineligible development.
+9. A rule on a single breaching point: a spell runs from its first to its last point in a row beyond the threshold, so one daily point is never 24 hours.
+10. Several rules fire for one question: the worst state wins, and the answer keeps each rule's sentence.
+
+Built:
+
+- Links: a question in `api/seed/questions.yaml` lists `series`, patterns over series ids (`*` spans dots) matched against the series mapped to the subject in `series.yaml`, primary or context.
+  `issuer.peg` uses `derived.*.peg` and `llama.*.supply`; `stablecoins.reserves-peg` the peg series and total supply; `issuer.strategy` the chain shares; `bank.financial` and `country.financial-sector` `mas.ltd.*` and `mas.npl.*`; `country.economic-policy` `fx.sgd.*`; `central-bank.policy-stance` Fed funds, the ECB deposit rate and `fx.sgd.*`; `geopolitics.financial-channels` `fx.sgd.*`, the US 10-year yield, the high-yield spread and VIX.
+  A bank outside Singapore (Maybank, CIMB, Bangkok Bank) matches nothing, so its answers get no facts.
+  The seed loader rejects a pattern that matches no series and a rule on a series the question does not link.
+- Rules: `rules` on a question, of one kind, `deviation`: the series more than `beyond` from zero, either way, for at least `for_hours`, with a spell reaching into the lookback.
+  `issuer.peg` and `stablecoins.reserves-peg` declare 0.5% for 24 hours, state `needs_attention`.
+  With daily prices, 24 hours means two days in a row beyond 0.5% ("over 24 hours" in the brief is read as at least 24).
+  Rules only escalate: the stored state is the worse of the model's and the rules'.
+  In the stored history the rule fires for XSGD from 2 to 4 May 2026 (1.0069 SGD at its furthest) and 25 to 26 Jan 2026; USDP's single day 0.57% off on 11 Sep 2026 does not fire.
+- `pipeline/facts.py`: `subject_facts(conn, subject_id, questions, as_of, revised_since)` returns one `SeriesFact` per linked series and the `FixedState`s of rules that fire.
+  It reads observations and indicators as of the date (F1's `read_observations` and `compute_indicators`), so look-ahead is ruled out the same way.
+  The sentence is written by code: for a peg, how far it strayed in the window with the lowest and highest price and the latest; for other daily series, the latest value, its 1w, 1m, 3m and 1y changes with the values they start from, the window's range, and its rank in the stored history as counts ("above 523 of the 1,904 values since 1 Jul 2021"); for monthly and quarterly series, the latest release with its preliminary flag and availability date, its changes and rank; revisions since the previous run; "no data available by" or "stale".
+  Each FX change says which way the SGD went ("up 0.23% on the week (SGD weaker against the USD; from 1.2733 SGD per USD on 16 Sep 2026)"): without it, answers read a fall in SGD per USD as the SGD weakening.
+  A daily series' window is the longest lookback of the subject's questions that use it.
+- Answer step: the prompt lists the facts as `S:<series id> | <sentence>`, and under each question its `series` and any `fixed state` with the rule's sentence.
+  Answers may quote numbers only from the facts and developments; the model returns `series_ids` next to `development_ids`.
+  Code keeps only linked series ids, fixes the state, and re-asks once the questions whose summaries quote a decimal or percentage found in neither the facts nor the listed developments and upcoming dates; the run log prints how many answers still do.
+- Store: `question_answers` gained `series_ids` and `state_rules` (JSON), and `run_facts` keeps each run's facts per subject and series, so a cited series shows what the answer saw.
+- API: `QuestionAnswerView` has `series_ids` and `state_rules`; `AnswerEvidence.series` lists the cited series in citation order, each a `SeriesFactView` (the series' catalogue entry and the run's `SeriesFact`).
+  `GET /subjects/{id}/facts?as_of=` returns `SubjectFacts`: what a run as of that date would give the subject's answers, with the rules that fire.
+  The evidence drawer's data source item is not built; it waits for its mock.
+- `im report`'s Series section lists each run's facts, answers citing series and states fixed by rules, with a look-ahead check on every stated observation.
+- Runs: 17 Sep, 15 Aug (new, the past-date check) and 24 Sep were recomputed with facts; 25 or 26 of the 200 answers in each cite series, quoting their numbers ("USDC stayed near peg, 0.9996-0.9999 USD over 14 days; supply rose 2.98% weekly to $75.87bn"), and no rule fires on those dates.
+  The 15 Aug run's latest stated observation was available on 15 Aug: its NPL facts stop at Q1 2026 and its loan-to-deposit facts at May 2026, while later runs state Q2 and July.
+- The walkthrough's last step checks that linked answers cite series whose facts were known by the run date, that facts as of 15 Aug 2026 state nothing available later while today's do, that a date before the history states no data, and that the XSGD spell fixes Peg while USDP's single day does not; it writes `facts.json`.
 
 ### F3. Detectors: developments from data
 

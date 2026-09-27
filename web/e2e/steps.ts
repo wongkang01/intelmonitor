@@ -17,6 +17,7 @@ export const STEPS = [
   "Developments list: facets, sort and words survive reload and the drawer, What changed triage in the table",
   "Developments list: popovers follow the keyboard, bad parameters are ignored, at 1024 px the bar wraps and titles keep room",
   "Series: per-100 quotes stored per unit, indicators as of Run 1 see nothing later, gaps never compare with zero",
+  "Facts in answers: answers cite their series' facts, a past date's facts see nothing later, a held depeg fixes Peg",
 ] as const;
 
 /** Where each run writes its artifacts; playwright.config.ts sets it once per run. */

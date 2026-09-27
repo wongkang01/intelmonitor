@@ -420,10 +420,11 @@ class Queries:
         if run_id is None:
             return {}
         rows = self.conn.execute(
-            "SELECT question_id, summary, state, new_count, development_ids "
-            "FROM question_answers WHERE run_id = ? AND subject_id = ? "
-            "UNION ALL SELECT a.question_id, a.summary, a.state, a.new_count, a.development_ids "
-            "FROM custom_question_answers a JOIN custom_questions q ON q.id = a.question_id "
+            "SELECT question_id, summary, state, new_count, development_ids, series_ids, "
+            "state_rules FROM question_answers WHERE run_id = ? AND subject_id = ? "
+            "UNION ALL SELECT a.question_id, a.summary, a.state, a.new_count, a.development_ids, "
+            "'[]', '[]' FROM custom_question_answers a "
+            "JOIN custom_questions q ON q.id = a.question_id "
             "WHERE a.run_id = ? AND q.subject_id = ?",
             (run_id, subject_id, run_id, subject_id),
         ).fetchall()
@@ -465,6 +466,8 @@ class Queries:
                     state=a["state"],
                     new_count=a["new_count"],
                     development_ids=ids,
+                    series_ids=json.loads(a["series_ids"]),
+                    state_rules=json.loads(a["state_rules"]),
                     change=change,
                     feedback=feedback.get(q.id),
                 )

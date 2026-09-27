@@ -1,6 +1,7 @@
 """Typed loaders for api/seed/subjects.yaml, questions.yaml and series.yaml."""
 
 import re
+from fnmatch import fnmatchcase
 from functools import lru_cache
 from typing import Annotated, Literal, Self
 
@@ -70,11 +71,34 @@ class AppliesTo(BaseModel):
     kind: EntityKind | None = None
 
 
+# States a rule can fix: rules only escalate, so a calm answer stays the model's call.
+RuleState = Literal["watch", "needs_attention"]
+
+
+class DeviationRule(BaseModel):
+    """Fixes the answer's state when a series is more than `beyond` away from zero, either way, for
+    at least `for_hours` within the question's lookback: a peg series more than 0.5% off for 24
+    hours. A spell runs from its first to its last observation in a row beyond the threshold."""
+
+    kind: Literal["deviation"]
+    series: str  # one of the question's series patterns
+    beyond: float
+    for_hours: int
+    state: RuleState
+
+    def applies_to(self, series_id: str) -> bool:
+        return fnmatchcase(series_id, self.series)
+
+
 class QuestionDef(BaseModel):
     id: str
     label: str
     question: str
     lookback_days: int
+    # Patterns over series ids (fnmatch, `*` spans dots) choosing, among the series mapped to the
+    # subject in series.yaml, those whose facts the answer gets and may cite.
+    series: list[str] = []
+    rules: list[DeviationRule] = []
 
 
 class QuestionSet(BaseModel):
@@ -85,6 +109,18 @@ class QuestionSet(BaseModel):
 class QuestionsSeed(BaseModel):
     sets: list[QuestionSet]
 
+    @model_validator(mode="after")
+    def _check(self) -> Self:
+        ids = [s.id for s in load_series().series]
+        for q in (q for qs in self.sets for q in qs.questions):
+            for pattern in q.series:
+                if not any(fnmatchcase(i, pattern) for i in ids):
+                    raise ValueError(f"question {q.id}: {pattern} matches no series")
+            for rule in q.rules:
+                if rule.series not in q.series:
+                    raise ValueError(f"question {q.id}: rule series {rule.series} is not linked")
+        return self
+
 
 @lru_cache
 def load_subjects() -> SubjectsSeed:
@@ -94,6 +130,12 @@ def load_subjects() -> SubjectsSeed:
 @lru_cache
 def load_questions() -> QuestionsSeed:
     return QuestionsSeed.model_validate(yaml.safe_load((SEED_DIR / "questions.yaml").read_text()))
+
+
+def linked_series(q: QuestionDef, mapped: list[str]) -> list[str]:
+    """The series among `mapped` (a subject's series) that match one of the question's patterns,
+    in the order of `mapped`."""
+    return [i for i in mapped if any(fnmatchcase(i, p) for p in q.series)]
 
 
 # Series (api/seed/series.yaml). Each series has one source: a fetch from an external API, or an
