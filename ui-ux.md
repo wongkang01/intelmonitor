@@ -282,7 +282,7 @@ Example config the LLM produces:
 | Source | Example charts | How to show |
 | --- | --- | --- |
 | Jev tags in the store (category, stage, jurisdiction, adverse, materiality) | Adverse items per bank per week; regulatory stage over time; developments by jurisdiction | Lines and bars. Available from MVP data, so start here |
-| Structured data (price feed, MAS datasets) | Chipmaker price trend | Lines. Only once a source exists |
+| Structured data (MAS statistics, FRED, CoinGecko, DefiLlama) | Stablecoin peg deviation; SG banks loan-to-deposit ratio; SGD/MYR | Lines, with developments marked on the dates they happened |
 | Figures the LLM extracts from text ("TSMC raised prices 10%") | Timeline of reported data points | Dots with a source link on each, never a smooth line |
 
 The Trend chart also delivers the multi-month trend charts listed as P1 in the main spec.
@@ -402,5 +402,5 @@ All motion is off under reduced-motion settings.
 - [ ] Are the AG-UI packages (and, if used, json-render) approved for the internal npm mirror? (POC uses bare AG-UI, no CopilotKit.)
 - [ ] Is tablet use real for analysts, or is desktop enough for the MVP?
 - [x] How many custom questions per user, and does anyone review them before they run? POC: 10 per user, no review.
-- [ ] Is there a structured price or market data source for trend charts, or are custom questions narrative-only? POC: narrative-only.
+- [x] Is there a structured price or market data source for trend charts, or are custom questions narrative-only? MAS statistics, FRED, CoinGecko and DefiLlama are in scope; see `structured-data-plan.md`.
  

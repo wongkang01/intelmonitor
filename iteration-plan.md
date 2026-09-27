@@ -104,6 +104,7 @@ Mocks: `mocks/*.html`. Picks from the user on 2026-09-27 are noted per item.
    Deferred until pilot feedback on the current POC and a larger ingest make trend analysis possible.
    `mocks/trend-future.html` shows three directions for a trend widget and a Trend section or tab on the assumption that a year of weekly runs exists: A Ledger (question state history), B Brief (a written trajectory with turning points), C Drivers (themes by month and peer comparison).
    The `GET /subjects/{id}/trend` endpoint from A7 stays as groundwork.
+   Structured data is now in scope, and `structured-data-plan.md` (F6) replaces this item with a trend view on real series.
 2. **Onboarding and help.** Picked A (`mocks/onboarding.html`): coach marks.
    A first-run tour of 5 steps shown one at a time over the dimmed dashboard: sidebar (dashboards and monitors), the Since widget, the evidence drawer, Mark all reviewed, New dashboard and Generate. Back, Next and Skip.
    Help is a profile-menu dialog with a glossary of states (New, Updated, Watch, Needs attention, Stable) and materiality levels, the shortcuts, and Replay tour. It replaces the Keyboard shortcuts item, and `?` opens it.

@@ -40,14 +40,15 @@ Jev does the high-volume decisions, Claude writes the findings and answers, and 
 - Built-in standing questions per subject type, plus user-written custom standing questions.
 - Mark reviewed and notes.
 - Sidebar with New dashboard at the top of the Dashboards list, and a profile menu at the bottom.
+- Structured data: MAS statistics APIs (exchange rates; bank asset quality, liquidity and exposure), FRED, CoinGecko and DefiLlama, as indicator series with facts in answers, data-driven developments and trend charts. See `structured-data-plan.md`.
 
 **Out of scope for the POC**
 
 - LLM-only baseline, labelled set and the experiment metrics.
 - Event scope, jurisdiction filter UI, personal watchlists as a separate object.
 - The "ask" half of ⌘K (question answering from the search box).
-- Structured market data in charts (MAS statistics APIs for exchange rates and bank assets, liquidity and exposure; FRED, CoinGecko, DefiLlama). Keys are kept in `.env` for later.
-- Analysis card and trend chart widget displays, exposure map widget.
+- Real-time or intraday market data.
+- Analysis card display and exposure map widget.
 - Dark mode, phone layout, multiple users, scheduled runs.
 
 ## Subjects
@@ -194,7 +195,7 @@ They carry `classification: public` so the classification-based engine routing f
 - Target 300 to 600 documents after dedup.
 - Search queries are generated from `subjects.yaml` (name, aliases, topic keywords), not written by hand per subject.
 
-**MAS statistics APIs (after the POC).** Subscribed and tested, but out of POC scope (see Scope).
+**MAS statistics APIs.** Subscribed and tested; in scope as indicator series (see `structured-data-plan.md`).
 Base URL is `MAS_API_BASE_URL` (`https://eservices.mas.gov.sg/apimg-gw`); each key goes in a `keyid` header.
 Paths are fixed per API and belong in code, not `.env`.
 All figures are system-wide aggregates for commercial banks in Singapore, not per bank.
