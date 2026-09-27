@@ -187,12 +187,18 @@ function FacetPopover({
 }) {
   const [find, setFind] = useState("");
   const pop = useRef<HTMLDivElement>(null);
+  const focused = useRef(false);
   const shown = values?.filter((v) => v.label.toLowerCase().includes(find.trim().toLowerCase())) ?? [];
 
+  // Once, as soon as there is something to focus: a popover opened while its values load gets
+  // focus when they arrive.
   useEffect(() => {
     const box = pop.current;
-    (box?.querySelector<HTMLInputElement>("input[type=search], input[type=radio]:checked") ?? box?.querySelector("input"))?.focus();
-  }, []);
+    const target = box?.querySelector<HTMLInputElement>("input[type=search], input[type=radio]:checked") ?? box?.querySelector("input");
+    if (focused.current || !target) return;
+    focused.current = true;
+    target.focus();
+  }, [values]);
 
   return (
     <div className="fpop" id={id} role="dialog" aria-label={facet.label} ref={pop}>
