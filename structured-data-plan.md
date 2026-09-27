@@ -220,6 +220,49 @@ Same-event merging links a detected depeg with news about it, so one development
 Materiality for detector findings is set by the rule, not scored by Jev, so a threshold agreed with analysts maps to a known level.
 Default thresholds are placeholders to agree with the pilot analysts.
 
+Failure modes, written before the code:
+
+1. No data, or a stale market series, as of the run date: no detector fires on it.
+2. Gaps (weekends, holidays, a missing month): a move compares with the last observation on or before the window's start, a spell's hours run from its first to its last point, and a missing day never counts as zero.
+3. A condition that holds for several observations in a row (a level staying above a threshold, a weekly move beyond 2% on three days running) is one event, keyed by its first observation, not one per day.
+4. Reruns: the same event gives the same document id, so a rerun adds nothing and a later run finds the same document.
+5. Look-ahead: a run as of D evaluates only observations available by the end of D, at their value then, and a detection's document is published when its last observation became known (a revised value when it was revised), so a run as of an earlier date never sees it.
+6. Revisions: a preliminary value that fired and is later revised away keeps its document, as a news report stays after a correction; a revision that newly fires is known from the revision.
+7. History: only events known inside the corpus window (T0 minus 60 days to the run date) become documents, so five years of history do not flood the developments.
+8. A threshold needs a crossing: a series whose history starts beyond the level fires only when it comes back and crosses again.
+9. A move in standard deviations needs history: fewer than 30 earlier changes, or none that differ, fires nothing.
+10. A rule the data cannot answer (a weekly move on a monthly series, a release rule on a daily series, a deviation rule on a series that is not a distance from a target, a series with no primary subject to tag) is rejected when the seed loads.
+11. A detector removed from the seed: its documents stay, but no longer become developments.
+12. Materiality: a development made only of detections takes its rule's level without a Jev call; merged with news, it takes the higher of the rule's level and Jev's.
+
+Built:
+
+- `api/seed/detectors.yaml` holds 11 detectors over 35 series, typed by `load_detectors()` in `seed.py`: each has an id, a name, a `series` pattern (`*` spans dots), `category` (market or financial) and `materiality` (trivial to critical).
+  `threshold` takes `above` or `below`; `deviation` takes `beyond` and `for_hours`; `move` takes `window` (previous, 1w, 1m, 3m or 1y), `beyond` or `sigmas`, and `direction` (up, down or either); `release` takes `beyond` and `direction`.
+  Sizes are in points for series in % and in percent otherwise, as for indicator changes.
+  The loader rejects the rules in failure mode 10.
+- The rules: Fed funds and ECB deposit rate changes of more than 0.1 points from the previous value; loan-to-deposit ratio above 90%; VIX above 30; US high-yield spread above 5 points; any peg more than 0.5% off for 24 hours; SGD against any tracked currency moving more than 2% in a week; the US 10-year yield moving more than 3 standard deviations in a week; stablecoin supply moving more than 10% in a week; a sector NPL ratio up more than 0.5 points on the quarter; a loan-to-deposit ratio moving more than 2 points on the month.
+  The depeg rule and the loan-to-deposit threshold are Significant (needs attention), the rest Notable.
+- Differs from the plan: "Fed funds changes" is a `move` from the previous value, not a `threshold`, since a policy change is a step rather than a level crossed; `deviation` applies only to peg series (distances from a target), whose sentences state the price and side of the peg.
+- `pipeline/detectors.py`: `detect(conn, as_of, since)` evaluates every rule over each matched series' observations known by the end of `as_of` (F1's `read_observations`), each value known from its availability or from its latest revision by then, and returns the events known from `since`.
+  An event is a run of observations meeting the condition, keyed by its first; it fires at the first (a threshold's crossing needs a point before it inside the level), at the point completing a deviation's hours, or at each release.
+  `store_detections(conn, as_of)` writes each event known from the corpus start (T0 minus 60 days) as a source document: source `detector`, collection `data`, doc type "Move detector" and so on, the series' source URL, classification public, published when its last value became known, and canonical URL `detector://<detector>/<series>/<first period>`, whose hash is the document id, so a rerun finds it already stored.
+  The document text is the sentence, the rule in words, its materiality, and the series; its one finding is the sentence, quoted whole, tagged to the series' primary subjects, with the detector's category and the event date (the value's own date for daily series, the release date for monthly and quarterly ones).
+  A `detections` table keeps the detector, series, first period, value, and the adverse flag and direction from the series' bad direction (pegs are always adverse).
+- `compute_run` runs the detectors first, then screens and extracts only the other documents; `load_findings` takes detections without Jev tags and with their rule's level, from the seed as it is now (failure mode 11).
+  Data sources rank after official and DMS documents and before news, in a development's lead and in the evidence drawer.
+  `Collection` has `data` (label "Data") in the API and the web app, so the Source facet, the evidence drawer and Data sources list it.
+- `im report`'s Series section lists each run's detections with their development, materiality and sources, and checks no detection is published before its value was available; the inference record check leaves out detections, which make no model calls.
+- Formatting shared with facts moved to `pipeline/wording.py`; the facts text is unchanged, checked against the previous code for every subject.
+- Real data, runs of 17 and 24 Sep recomputed (8 and 14 new Jev pair calls, 38 and 44 calls with the answers): in the corpus window only the two rate detectors fire.
+  The ECB deposit rate rose 0.25 points to 2.50% on 16 Sep (known 17 Sep): a Notable development of its own, new in Run 1, tagged to the ECB.
+  The Fed funds rate rose 0.25 points to 3.88% on 17 Sep (known 18 Sep): same-event merging joined it to the FOMC decision's development (19 sources, with the FOMC statement), which Run 2 updates with it; it is Significant by Jev, needs attention, and alerts through the followed Central banks group.
+  Over the whole history since 2021 the rules fire 221 times (84 of them stablecoin supply moves, mostly XSGD and PYUSD, and 54 SGD weekly moves), a sign the supply rule's 10% is too tight for small coins; the depeg rule fires on XSGD on 26 Jan and 3 May 2026, as F2's rule does.
+  The loan-to-deposit and high-yield thresholds never fire in the stored history.
+- The walkthrough's last step finds the Fed funds detection through search, checks its data document (source table URL, doc type, published after Run 1 and by Run 2, event date), that it changed its development in Run 2, tagged to the Fed, at least Notable, and that the development alerts for the followed subject; in the app, the alert opens the evidence drawer on the data source with the sentence highlighted.
+  It writes `detections.json`.
+  The real seed fires on cached data in Run 2, so the step needs no test seed.
+
 ### F4. Indicators on monitor pages
 
 An Indicators section on every monitor page with mapped series: one row per series with the latest value, change, a small line over 12 months, the state as a word, and "system-wide" or "market-wide" where it applies.

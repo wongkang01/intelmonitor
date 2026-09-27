@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS meta (
 
 CREATE TABLE IF NOT EXISTS source_documents (
     id TEXT PRIMARY KEY,               -- sha256(canonical_url)[:16], stable across reruns
-    source TEXT NOT NULL,              -- adapter: mas, fed, ecb, hkma, bis, fsb, exa, tavily
-    collection TEXT NOT NULL,          -- dms, official or news
+    source TEXT NOT NULL,              -- mas, fed, ecb, hkma, bis, fsb, exa, tavily or detector
+    collection TEXT NOT NULL,          -- dms, official, news, or data (detections)
     doc_type TEXT NOT NULL,            -- e.g. Media Releases, Speeches, News
     classification TEXT NOT NULL,      -- public for every POC document
     url TEXT NOT NULL,
@@ -361,6 +361,20 @@ CREATE TABLE IF NOT EXISTS run_facts (
     series_id TEXT NOT NULL,
     fact TEXT NOT NULL,                -- JSON SeriesFact
     PRIMARY KEY (run_id, subject_id, series_id)
+);
+
+-- Detector firings (pipeline/detectors.py): each one is a source document in the data collection
+-- with one finding. Written once per event: the document id comes from the detector, the series and
+-- the event's first period, so reruns find the row already there.
+CREATE TABLE IF NOT EXISTS detections (
+    document_id TEXT PRIMARY KEY REFERENCES source_documents (id),
+    detector_id TEXT NOT NULL,         -- api/seed/detectors.yaml; its materiality applies
+    series_id TEXT NOT NULL,
+    start TEXT NOT NULL,               -- first period of the event, YYYY-MM-DD
+    period TEXT NOT NULL,              -- the period whose value fired it
+    value REAL NOT NULL,
+    adverse REAL NOT NULL,             -- 1.0 when the move is in the series' bad direction
+    direction TEXT NOT NULL            -- positive, negative or neutral
 );
 
 -- Full-text search (store/search.py). Both tables keep their own copy of the text, so they do not

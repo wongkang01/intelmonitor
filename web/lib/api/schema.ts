@@ -1206,7 +1206,7 @@ export interface components {
              * Collections
              * @description Where its sources come from
              */
-            collections: ("dms" | "official" | "news")[];
+            collections: ("dms" | "official" | "news" | "data")[];
             /**
              * Jurisdictions
              * @description Names of the jurisdictions its sources report on, alphabetical
@@ -1414,7 +1414,7 @@ export interface components {
              * Collection
              * @enum {string}
              */
-            collection: "dms" | "official" | "news";
+            collection: "dms" | "official" | "news" | "data";
             /** Documents */
             documents: number;
             /** Relevant Documents */
@@ -1509,7 +1509,7 @@ export interface components {
              * Collections
              * @description Where its sources come from
              */
-            collections: ("dms" | "official" | "news")[];
+            collections: ("dms" | "official" | "news" | "data")[];
             /**
              * Jurisdictions
              * @description Names of the jurisdictions its sources report on, alphabetical
@@ -1568,7 +1568,7 @@ export interface components {
             date: components["schemas"]["FacetValue"][];
             /**
              * Source
-             * @description Collections: official, DMS, news
+             * @description Collections: official, DMS, data, news
              */
             source: components["schemas"]["FacetValue"][];
         };
@@ -1654,7 +1654,7 @@ export interface components {
              * Collections
              * @description Where its sources come from
              */
-            collections: ("dms" | "official" | "news")[];
+            collections: ("dms" | "official" | "news" | "data")[];
             /**
              * Jurisdictions
              * @description Names of the jurisdictions its sources report on, alphabetical
@@ -1792,7 +1792,7 @@ export interface components {
              * Collection
              * @enum {string}
              */
-            collection: "dms" | "official" | "news";
+            collection: "dms" | "official" | "news" | "data";
             /** Doc Type */
             doc_type: string;
             /** Classification */
@@ -1884,7 +1884,7 @@ export interface components {
              * Collection
              * @enum {string}
              */
-            collection: "dms" | "official" | "news";
+            collection: "dms" | "official" | "news" | "data";
             /** Doc Type */
             doc_type: string;
             /** Classification */
@@ -3887,7 +3887,7 @@ export interface operations {
                 jurisdiction?: ("sg" | "my" | "id" | "th" | "vn" | "ph" | "hk" | "cn" | "us" | "eu" | "uk" | "jp" | "intl")[];
                 /** @description Last published in the last this many days of the run */
                 days?: number | null;
-                source?: ("dms" | "official" | "news")[];
+                source?: ("dms" | "official" | "news" | "data")[];
                 /** @description Words that must all appear in the title */
                 q?: string | null;
             };

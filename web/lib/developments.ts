@@ -49,7 +49,7 @@ const JURISDICTION: Record<Jurisdiction, true> = {
   jp: true,
   intl: true,
 };
-const COLLECTION: Record<Collection, true> = { dms: true, official: true, news: true };
+const COLLECTION: Record<Collection, true> = { dms: true, official: true, data: true, news: true };
 
 const isCategory = (v: string): v is Category => Object.hasOwn(CATEGORY, v);
 const isJurisdiction = (v: string): v is Jurisdiction => Object.hasOwn(JURISDICTION, v);

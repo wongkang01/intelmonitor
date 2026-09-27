@@ -1,4 +1,5 @@
-"""SourceDocument rows: one piece of evidence (an official publication or a news article)."""
+"""SourceDocument rows: one piece of evidence (an official publication, a news article, or a
+detector firing written by pipeline/detectors.py)."""
 
 import sqlite3
 from datetime import datetime
@@ -6,7 +7,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-Collection = Literal["dms", "official", "news"]
+Collection = Literal["dms", "official", "news", "data"]
 
 
 class SourceDocument(BaseModel):

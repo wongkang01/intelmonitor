@@ -21,7 +21,7 @@ from intelmonitor.seed import (
 State = Literal["stable", "watch", "needs_attention", "new"]
 Stage = Literal["signal", "consultation", "proposed", "enacted", "enforced"]
 STAGE_ORDER: list[Stage] = ["signal", "consultation", "proposed", "enacted", "enforced"]
-Collection = Literal["dms", "official", "news"]
+Collection = Literal["dms", "official", "news", "data"]
 
 
 def _known_subject(value: str) -> str:
@@ -255,7 +255,7 @@ class DevelopmentFacets(BaseModel):
     date: list[FacetValue] = Field(
         description="Last 7, 30 and 90 days before the run date as day counts, then 'any'"
     )
-    source: list[FacetValue] = Field(description="Collections: official, DMS, news")
+    source: list[FacetValue] = Field(description="Collections: official, DMS, data, news")
 
 
 class DevelopmentList(ChangeCounts):

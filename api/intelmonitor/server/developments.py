@@ -24,7 +24,12 @@ from intelmonitor.server.models import (
 from intelmonitor.server.queries import COLLECTION_ORDER, Queries, change_counts
 
 DATE_PRESETS = [7, 30, 90]
-COLLECTION_LABELS: dict[Collection, str] = {"official": "Official", "dms": "DMS", "news": "News"}
+COLLECTION_LABELS: dict[Collection, str] = {
+    "official": "Official",
+    "dms": "DMS",
+    "data": "Data",
+    "news": "News",
+}
 JURISDICTION_CODES: dict[str, Jurisdiction] = {
     name: code for code, name in JURISDICTION_NAMES.items()
 }

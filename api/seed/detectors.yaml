@@ -1,0 +1,107 @@
+# Detectors (structured-data-plan.md, F3): rules over series whose firings become developments.
+# Each firing is written as a source document in the "data" collection with a sentence written by
+# code, and one finding tagged to the series' primary subjects; clustering, answers, triage, alerts
+# and search then treat it like any other development.
+#
+# Every detector applies to each series its `series` pattern matches (`*` spans dots), and gives its
+# developments the `materiality` level (trivial, minor, notable, significant or critical) instead
+# of a Jev score; merged with news, a development keeps the higher of the two.
+# A condition that holds for several observations in a row is one event, dated by its first.
+#
+# kind:
+#   threshold  above or below: the level crosses it (from at or below `above`, or at or above `below`)
+#   deviation  beyond and for_hours: a peg series more than `beyond` % off, either way, for at least
+#              `for_hours` from the spell's first point
+#   move       window (previous, 1w, 1m, 3m or 1y) and beyond, or sigmas: the change over the window
+#              beyond a size (points for series in %, else percent) or beyond k standard deviations
+#              of the series' earlier changes over that window; direction up, down or either
+#   release    beyond and direction: a monthly or quarterly release that changes by more than
+#              `beyond` from the previous period
+#
+# The thresholds are placeholders to agree with the pilot analysts.
+
+detectors:
+  - id: fed-funds-change
+    name: Fed funds rate change
+    kind: move
+    series: fred.fed_funds
+    window: previous
+    beyond: 0.1
+    category: market
+    materiality: notable
+  - id: ecb-deposit-change
+    name: ECB deposit rate change
+    kind: move
+    series: fred.ecb_deposit
+    window: previous
+    beyond: 0.1
+    category: market
+    materiality: notable
+  - id: ltd-above-90
+    name: Loan-to-deposit ratio above 90%
+    kind: threshold
+    series: "mas.ltd.*"
+    above: 90
+    category: financial
+    materiality: significant
+  - id: vix-above-30
+    name: VIX above 30
+    kind: threshold
+    series: fred.vix
+    above: 30
+    category: market
+    materiality: notable
+  - id: hy-spread-above-5
+    name: US high-yield spread above 5 points
+    kind: threshold
+    series: fred.us_hy_spread
+    above: 5
+    category: market
+    materiality: notable
+  - id: depeg
+    name: Stablecoin off its peg by more than 0.5% for 24 hours
+    kind: deviation
+    series: "derived.*.peg"
+    beyond: 0.5
+    for_hours: 24
+    category: market
+    materiality: significant
+  - id: fx-weekly-2pct
+    name: SGD exchange rate moves more than 2% in a week
+    kind: move
+    series: "fx.sgd.*"
+    window: 1w
+    beyond: 2
+    category: market
+    materiality: notable
+  - id: us10y-weekly-3sd
+    name: US 10-year yield moves more than 3 standard deviations in a week
+    kind: move
+    series: fred.us10y
+    window: 1w
+    sigmas: 3
+    category: market
+    materiality: notable
+  - id: stablecoin-supply-weekly-10pct
+    name: Stablecoin supply moves more than 10% in a week
+    kind: move
+    series: "llama.*.supply"
+    window: 1w
+    beyond: 10
+    category: market
+    materiality: notable
+  - id: npl-sector-up
+    name: NPL ratio up more than 0.5 points on the quarter
+    kind: release
+    series: "mas.npl.*"
+    beyond: 0.5
+    direction: up
+    category: financial
+    materiality: notable
+  - id: ltd-release-move
+    name: Loan-to-deposit ratio moves more than 2 points on the month
+    kind: release
+    series: "mas.ltd.*"
+    beyond: 2
+    category: financial
+    materiality: notable

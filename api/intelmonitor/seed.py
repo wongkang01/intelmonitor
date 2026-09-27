@@ -1,4 +1,4 @@
-"""Typed loaders for api/seed/subjects.yaml, questions.yaml and series.yaml."""
+"""Typed loaders for api/seed/subjects.yaml, questions.yaml, series.yaml and detectors.yaml."""
 
 import re
 from fnmatch import fnmatchcase
@@ -267,3 +267,119 @@ class SeriesSeed(BaseModel):
 @lru_cache
 def load_series() -> SeriesSeed:
     return SeriesSeed.model_validate(yaml.safe_load((SEED_DIR / "series.yaml").read_text()))
+
+
+# Detectors (api/seed/detectors.yaml): rules over series whose firings become developments
+# (pipeline/detectors.py). Each detector applies to every series its pattern matches.
+
+MaterialityName = Literal["trivial", "minor", "notable", "significant", "critical"]
+DetectorCategory = Literal["market", "financial"]
+MoveWindow = Literal["previous", "1w", "1m", "3m", "1y"]
+MoveDirection = Literal["up", "down", "either"]
+# Windows a series' frequency can answer: a weekly move on a monthly series says nothing.
+_MOVE_WINDOWS: dict[Frequency, set[MoveWindow]] = {
+    "daily": {"previous", "1w", "1m", "3m", "1y"},
+    "monthly": {"previous", "1m", "3m", "1y"},
+    "quarterly": {"previous", "3m", "1y"},
+}
+
+
+class _Detector(BaseModel):
+    id: str
+    name: str  # what the rule watches for, as the evidence drawer shows it
+    series: str  # pattern over series ids (fnmatch, `*` spans dots)
+    category: DetectorCategory
+    materiality: MaterialityName  # the level its developments get, instead of Jev's score
+
+    def applies_to(self, series_id: str) -> bool:
+        return fnmatchcase(series_id, self.series)
+
+
+class ThresholdDetector(_Detector):
+    """The level crosses `above` from at or below it, or `below` from at or above it."""
+
+    kind: Literal["threshold"]
+    above: float | None = None
+    below: float | None = None
+
+    @model_validator(mode="after")
+    def _one_level(self) -> Self:
+        if (self.above is None) == (self.below is None):
+            raise ValueError(f"detector {self.id}: give one of above or below")
+        return self
+
+
+class DeviationDetector(_Detector):
+    """A distance-from-target series more than `beyond` either way for at least `for_hours`, from
+    the spell's first point to the point that completes it."""
+
+    kind: Literal["deviation"]
+    beyond: float
+    for_hours: int
+
+
+class MoveDetector(_Detector):
+    """The change over `window` (from the previous observation, or the last one on or before the
+    window's start) beyond `beyond`, in points for series in % and percent otherwise, or beyond
+    `sigmas` standard deviations of the series' earlier changes over the same window."""
+
+    kind: Literal["move"]
+    window: MoveWindow
+    beyond: float | None = None
+    sigmas: float | None = None
+    direction: MoveDirection = "either"
+
+    @model_validator(mode="after")
+    def _one_size(self) -> Self:
+        if (self.beyond is None) == (self.sigmas is None):
+            raise ValueError(f"detector {self.id}: give one of beyond or sigmas")
+        return self
+
+
+class ReleaseDetector(_Detector):
+    """A monthly or quarterly release whose change from the previous period is beyond `beyond`,
+    in points for series in % and percent otherwise."""
+
+    kind: Literal["release"]
+    beyond: float
+    direction: MoveDirection = "either"
+
+
+DetectorDef = Annotated[
+    ThresholdDetector | DeviationDetector | MoveDetector | ReleaseDetector,
+    Field(discriminator="kind"),
+]
+
+
+class DetectorsSeed(BaseModel):
+    detectors: list[DetectorDef]
+
+    @model_validator(mode="after")
+    def _check(self) -> Self:
+        catalogue = load_series().series
+        ids = [d.id for d in self.detectors]
+        if len(ids) != len(set(ids)):
+            raise ValueError("detector ids must be unique")
+        for d in self.detectors:
+            matched = [s for s in catalogue if d.applies_to(s.id)]
+            if not matched:
+                raise ValueError(f"detector {d.id}: {d.series} matches no series")
+            for s in matched:
+                if not s.subjects.primary:
+                    raise ValueError(f"detector {d.id}: {s.id} has no primary subject to tag")
+                if isinstance(d, DeviationDetector) and not isinstance(s.source, Deviation):
+                    raise ValueError(f"detector {d.id}: {s.id} is not a deviation series")
+                if isinstance(d, ReleaseDetector) and s.frequency == "daily":
+                    raise ValueError(f"detector {d.id}: {s.id} is daily, not a release")
+                if isinstance(d, MoveDetector) and d.window not in _MOVE_WINDOWS[s.frequency]:
+                    raise ValueError(f"detector {d.id}: {d.window} is too short for {s.id}")
+        return self
+
+    def matching(self, series_ids: list[str]) -> list[tuple[DetectorDef, str]]:
+        """Each detector with each series it applies to, in seed then catalogue order."""
+        return [(d, i) for d in self.detectors for i in series_ids if d.applies_to(i)]
+
+
+@lru_cache
+def load_detectors() -> DetectorsSeed:
+    return DetectorsSeed.model_validate(yaml.safe_load((SEED_DIR / "detectors.yaml").read_text()))

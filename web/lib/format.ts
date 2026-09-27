@@ -155,5 +155,6 @@ export const TYPE_PLURAL: Record<SubjectType, string> = {
 export const COLLECTION_LABEL: Record<Schema<"EvidenceSource">["collection"], string> = {
   dms: "DMS",
   official: "Official",
+  data: "Data",
   news: "News",
 };

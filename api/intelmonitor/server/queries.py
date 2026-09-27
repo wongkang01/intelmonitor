@@ -58,7 +58,7 @@ TREND_WEEKS = 12
 MATERIAL_LEVEL = 2
 # A source reports on a jurisdiction when Jev scores it at least this likely.
 JURISDICTION_THRESHOLD = 0.5
-COLLECTION_ORDER: list[Collection] = ["official", "dms", "news"]
+COLLECTION_ORDER: list[Collection] = ["official", "dms", "data", "news"]
 # Worst first: the state a subject shows when its answers disagree.
 STATE_RANK: dict[State, int] = {"needs_attention": 0, "watch": 1, "new": 2, "stable": 3}
 

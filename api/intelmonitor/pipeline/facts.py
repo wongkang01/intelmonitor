@@ -8,7 +8,6 @@ Everything is read from what was available by the end of the date, so a run back
 date never states a later value.
 """
 
-import re
 import sqlite3
 from datetime import date, timedelta
 
@@ -21,10 +20,10 @@ from intelmonitor.pipeline.indicators import (
     IndicatorState,
     compute_indicators,
 )
+from intelmonitor.pipeline.wording import day, fx_side, peg_side, period, value
 from intelmonitor.seed import (
     Deviation,
     DeviationRule,
-    Frequency,
     QuestionDef,
     RuleState,
     SeriesDef,
@@ -158,13 +157,13 @@ def apply_rule(
     source = s.source
     if isinstance(source, Deviation):
         beyond = f"more than {rule.beyond:.{s.decimals}f}% off the peg"
-        furthest = _peg_side(s, source, by_id, worst.value)
+        furthest = peg_side(s, source, by_id, worst.value)
     else:
-        beyond = f"beyond ±{_value(s, rule.beyond)}"
-        furthest = _value(s, worst.value)
+        beyond = f"beyond ±{value(s, rule.beyond)}"
+        furthest = value(s, worst.value)
     text = (
-        f"{s.name}: {beyond} for {hours(spell)} hours, {_day(spell[0].period)} to "
-        f"{_day(spell[-1].period)}; furthest {furthest} on {_day(worst.period)}."
+        f"{s.name}: {beyond} for {hours(spell)} hours, {day(spell[0].period)} to "
+        f"{day(spell[-1].period)}; furthest {furthest} on {day(worst.period)}."
     )
     return FixedState(
         question_id=q.id,
@@ -180,51 +179,12 @@ def apply_rule(
 # ---- sentences
 
 
-_FX_UNIT = re.compile(r"SGD per ([A-Z]{3})")
-
 _WINDOW_PHRASE: dict[ChangeWindow, str] = {
     "1w": "on the week",
     "1m": "on the month",
     "3m": "over 3 months",
     "1y": "on the year",
 }
-
-
-def _num(v: float, decimals: int) -> str:
-    return f"{v:,.{decimals}f}"
-
-
-def _value(s: SeriesDef, v: float) -> str:
-    """A value in the series' unit: 70.3%, USD 73.21bn, SGD 1,234m, 0.3128 SGD per MYR."""
-    match s.unit:
-        case "%":
-            return f"{v:.{s.decimals}f}%"
-        case "index":
-            return _num(v, s.decimals)
-        case "SGD m":
-            return f"SGD {v:,.0f}m"
-        case "USD" | "SGD" if abs(v) >= 1e9:
-            return f"{s.unit} {v / 1e9:,.2f}bn"
-        case "USD" | "SGD" if abs(v) >= 1e6:
-            return f"{s.unit} {v / 1e6:,.1f}m"
-        case "USD" | "SGD":
-            return f"{s.unit} {_num(v, s.decimals)}"
-        case _:
-            return f"{_num(v, s.decimals)} {s.unit}"
-
-
-def _day(d: date) -> str:
-    return f"{d.day} {d:%b %Y}"
-
-
-def _period(d: date, frequency: Frequency) -> str:
-    match frequency:
-        case "daily":
-            return _day(d)
-        case "monthly":
-            return f"{d:%b %Y}"
-        case "quarterly":
-            return f"Q{(d.month - 1) // 3 + 1} {d.year}"
 
 
 def _change(s: SeriesDef, ind: Indicator, c: IndicatorChange) -> str | None:
@@ -237,38 +197,23 @@ def _change(s: SeriesDef, ind: Indicator, c: IndicatorChange) -> str | None:
         size = f"{abs(c.change):.2f}%"
         flat = round(c.change, 2) == 0
     move = "unchanged" if flat else f"{'up' if c.change > 0 else 'down'} {size}"
-    note = ""
-    if not flat and (quoted := _FX_UNIT.fullmatch(s.unit)):
-        # Which way is which is easy to get backwards in prose, so each change says it.
-        note = f"SGD {'weaker' if c.change > 0 else 'stronger'} against the {quoted.group(1)}; "
-    since = _period(c.since, s.frequency)
+    side = None if flat else fx_side(s, c.change)
+    note = f"{side}; " if side else ""
+    since = period(c.since, s.frequency)
     at = "on" if s.frequency == "daily" else "for"
-    return f"{move} {_WINDOW_PHRASE[c.window]} ({note}from {_value(s, c.from_value)} {at} {since})"
+    return f"{move} {_WINDOW_PHRASE[c.window]} ({note}from {value(s, c.from_value)} {at} {since})"
 
 
 def _rank(s: SeriesDef, history: list[Observation], latest: Observation, start: date) -> str:
     """Where the latest value sits in the history, as counts rather than a rounded percentile."""
     lower = sum(o.value < latest.value for o in history)
     higher = sum(o.value > latest.value for o in history)
-    since = f"the {len(history):,} values since {_period(start, s.frequency)}"
+    since = f"the {len(history):,} values since {period(start, s.frequency)}"
     if lower == 0:
         return f"the lowest of {since}"
     if higher == 0:
         return f"the highest of {since}"
     return f"above {lower:,} of {since}"
-
-
-def _peg_side(s: SeriesDef, source: Deviation, by_id: dict[str, SeriesDef], v: float) -> str:
-    """A deviation value as the price and its side of the target: 0.9987 USD (0.13% below)."""
-    target = by_id[source.input]
-    price = source.target * (1 + v / 100)
-    rounded = round(abs(v), s.decimals)
-    side = (
-        "at the peg"
-        if rounded == 0
-        else f"{rounded:.{s.decimals}f}% {'below' if v < 0 else 'above'}"
-    )
-    return f"{_num(price, target.decimals)} {target.unit} ({side})"
 
 
 def series_fact(
@@ -292,7 +237,7 @@ def series_fact(
             low=None,
             high=None,
             changes=[],
-            text=f"{s.name}: no data available by {_day(as_of)}.",
+            text=f"{s.name}: no data available by {day(as_of)}.",
         )
     latest = ind.latest
     daily = s.frequency == "daily"
@@ -302,7 +247,7 @@ def series_fact(
     high = max(window, key=lambda o: o.value) if window else None
     parts: list[str] = []
     if ind.state == "stale":
-        parts.append(f"stale: no point since {_day(latest.period)}")
+        parts.append(f"stale: no point since {day(latest.period)}")
     source = s.source
     changes = [c for c in ind.changes if c.change is not None]
     if isinstance(source, Deviation):
@@ -311,11 +256,11 @@ def series_fact(
             furthest = max(abs(o.value) for o in window)
             parts.append(
                 f"within {furthest:.{s.decimals}f}% of the peg in the {window_days} days to "
-                f"{_day(as_of)}; lowest {_peg_side(s, source, by_id, low.value)} on "
-                f"{_day(low.period)}, highest {_peg_side(s, source, by_id, high.value)} on "
-                f"{_day(high.period)}"
+                f"{day(as_of)}; lowest {peg_side(s, source, by_id, low.value)} on "
+                f"{day(low.period)}, highest {peg_side(s, source, by_id, high.value)} on "
+                f"{day(high.period)}"
             )
-        parts.append(f"latest {_peg_side(s, source, by_id, latest.value)} on {_day(latest.period)}")
+        parts.append(f"latest {peg_side(s, source, by_id, latest.value)} on {day(latest.period)}")
         changes = []
     else:
         at = "on" if daily else "for"
@@ -323,29 +268,27 @@ def series_fact(
         if latest.preliminary:
             flags.append("preliminary")
         if not daily:
-            flags.append(f"available from {_day(latest.available_at.date())}")
+            flags.append(f"available from {day(latest.available_at.date())}")
         flagged = f" ({', '.join(flags)})" if flags else ""
-        parts.append(
-            f"{_value(s, latest.value)} {at} {_period(latest.period, s.frequency)}{flagged}"
-        )
+        parts.append(f"{value(s, latest.value)} {at} {period(latest.period, s.frequency)}{flagged}")
         stated = [text for c in changes if (text := _change(s, ind, c))]
         if stated:
             parts.append(", ".join(stated))
         if window and low and high and len(window) > 1:
-            span = f"in the {window_days} days to {_day(as_of)}"
-            if _value(s, low.value) == _value(s, high.value):
-                parts.append(f"{span} it held at {_value(s, low.value)}")
+            span = f"in the {window_days} days to {day(as_of)}"
+            if value(s, low.value) == value(s, high.value):
+                parts.append(f"{span} it held at {value(s, low.value)}")
             else:
                 parts.append(
-                    f"{span} it ranged from {_value(s, low.value)} ({_day(low.period)}) to "
-                    f"{_value(s, high.value)} ({_day(high.period)})"
+                    f"{span} it ranged from {value(s, low.value)} ({day(low.period)}) to "
+                    f"{value(s, high.value)} ({day(high.period)})"
                 )
         if ind.history_start is not None:
             parts.append(_rank(s, history, latest, ind.history_start))
     for r in ind.revisions:
         parts.append(
-            f"revised: {_period(r.period, s.frequency)} from {_value(s, r.old_value)} to "
-            f"{_value(s, r.new_value)} on {_day(r.revised_at.date())}"
+            f"revised: {period(r.period, s.frequency)} from {value(s, r.old_value)} to "
+            f"{value(s, r.new_value)} on {day(r.revised_at.date())}"
         )
     return SeriesFact(
         series_id=s.id,

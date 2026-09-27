@@ -15,7 +15,7 @@ from intelmonitor.server.models import (
 
 # Characters of context kept on each side of a finding's quotes in its passage.
 PASSAGE_CONTEXT = 280
-_COLLECTION_RANK = {"dms": 0, "official": 1, "news": 2}
+_COLLECTION_RANK = {"dms": 0, "official": 1, "data": 2, "news": 3}
 
 
 def _quotes(raw: str) -> list[Quote]:
@@ -76,7 +76,7 @@ def development_sources(
             )
         )
     return sorted(
-        sources.values(), key=lambda s: (_COLLECTION_RANK.get(s.collection, 3), s.published_at)
+        sources.values(), key=lambda s: (_COLLECTION_RANK.get(s.collection, 4), s.published_at)
     )
 
 

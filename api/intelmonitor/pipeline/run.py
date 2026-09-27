@@ -14,6 +14,7 @@ from datetime import UTC, date, datetime, timedelta
 
 from intelmonitor.pipeline import runlog
 from intelmonitor.pipeline.answers import answer_subjects
+from intelmonitor.pipeline.detectors import store_detections
 from intelmonitor.pipeline.developments import build_developments
 from intelmonitor.pipeline.diff import development_changes, previous_run, store_changes
 from intelmonitor.pipeline.extract import extract_documents
@@ -44,7 +45,11 @@ async def compute_run(
 ) -> None:
     conn = connect()
     run_id = as_of.isoformat()
+    # Detectors write their events as data documents first, so the run takes them like the rest.
+    detected = store_detections(conn, as_of)
     docs = [d for d in list_documents(conn) if d.published_at.date() <= as_of]
+    # Data documents come with their findings; only the others are screened and extracted.
+    texts = [d for d in docs if d.collection != "data"]
     started = time.monotonic()
     started_at = datetime.now(UTC).isoformat()
     existing = conn.execute("SELECT status FROM runs WHERE id = ?", (run_id,)).fetchone()
@@ -70,11 +75,15 @@ async def compute_run(
         )
 
     try:
-        step(f"screen {len(docs)} documents")
-        screens = await screen_documents(inf, conn, docs)
+        step(
+            f"detectors: {detected.events} events in the corpus window "
+            f"{dict(detected.by_detector)}, {detected.added} new documents"
+        )
+        step(f"screen {len(texts)} documents")
+        screens = await screen_documents(inf, conn, texts)
         relevant = sum(s.relevant for s in screens.values())
         step(f"extract from {relevant} relevant documents")
-        _, ex = await extract_documents(inf, conn, docs, screens)
+        _, ex = await extract_documents(inf, conn, texts, screens)
         step(
             f"extracted {ex.kept}/{ex.proposed} findings, "
             f"{ex.quotes_verified}/{ex.quotes_proposed} quotes verified; merge"

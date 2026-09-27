@@ -1,5 +1,6 @@
 """Steps 5 and 6: findings that report the same event are merged into Developments, and Jev scores
-each development's materiality. Developments are rebuilt per run from the findings in documents
+each development's materiality, except where a detector's rule sets it (pipeline/detectors.py).
+Developments are rebuilt per run from the findings in documents
 published on or before the run date; a development's id is its earliest finding's id, so the same
 event keeps its id from one run to the next. A development's subjects are its findings' subjects,
 less the tags the analyst removed from it."""
@@ -18,6 +19,7 @@ from numpy.typing import NDArray
 from typesafe_sdk import Noul, Score
 
 from intelmonitor.config import DATA_DIR
+from intelmonitor.pipeline.detectors import materiality_level
 from intelmonitor.pipeline.feedback import removed_tags
 from intelmonitor.pipeline.inference import Inference, StepFailed, noul, score
 from intelmonitor.pipeline.params import (
@@ -31,9 +33,11 @@ from intelmonitor.pipeline.params import (
     SAME_EVENT_THRESHOLD,
 )
 from intelmonitor.pipeline.subjects import all_subjects
+from intelmonitor.seed import load_detectors
 from intelmonitor.store import search
 
-_COLLECTION_RANK = {"dms": 0, "official": 1, "news": 2}
+# Primary sources first: a measured value ranks after official text and before news reporting it.
+_COLLECTION_RANK = {"dms": 0, "official": 1, "data": 2, "news": 3}
 
 
 @dataclass(frozen=True)
@@ -54,6 +58,7 @@ class RunFinding:
     stage: str | None
     adverse: float
     direction: str
+    rule_level: int | None  # a detection's materiality, set by its detector
 
     @property
     def when(self) -> date:
@@ -62,15 +67,24 @@ class RunFinding:
     @property
     def rank(self) -> tuple[int, date, str]:
         """Primary sources first, then earliest."""
-        return (_COLLECTION_RANK.get(self.collection, 3), self.published, self.id)
+        return (_COLLECTION_RANK.get(self.collection, 4), self.published, self.id)
 
 
 def load_findings(conn: sqlite3.Connection, as_of: date) -> list[RunFinding]:
+    """Findings in documents published by the date: screened documents' findings with their tags,
+    and detections with their rule's materiality. A detection whose detector has left the seed is
+    left out."""
+    detectors = {d.id: d for d in load_detectors().detectors}
     rows = conn.execute(
-        "SELECT f.*, d.published_at, d.collection, d.domain, d.title, t.stage, t.adverse, "
-        "t.direction FROM findings f JOIN source_documents d ON d.id = f.document_id "
-        "JOIN document_tags t ON t.document_id = f.document_id "
-        "WHERE substr(d.published_at, 1, 10) <= ? ORDER BY d.published_at, f.id",
+        "SELECT f.*, d.published_at, d.collection, d.domain, d.title, t.stage, "
+        "coalesce(t.adverse, k.adverse) AS adverse, coalesce(t.direction, k.direction) "
+        "AS direction, k.detector_id FROM findings f "
+        "JOIN source_documents d ON d.id = f.document_id "
+        "LEFT JOIN document_tags t ON t.document_id = f.document_id "
+        "LEFT JOIN detections k ON k.document_id = f.document_id "
+        "WHERE substr(d.published_at, 1, 10) <= ? "
+        "AND (t.document_id IS NOT NULL OR k.document_id IS NOT NULL) "
+        "ORDER BY d.published_at, f.id",
         (as_of.isoformat(),),
     ).fetchall()
     return [
@@ -89,8 +103,10 @@ def load_findings(conn: sqlite3.Connection, as_of: date) -> list[RunFinding]:
             stage=r["stage"],
             adverse=r["adverse"],
             direction=r["direction"],
+            rule_level=materiality_level(detectors[r["detector_id"]]) if r["detector_id"] else None,
         )
         for r in rows
+        if r["detector_id"] is None or r["detector_id"] in detectors
     ]
 
 
@@ -298,10 +314,20 @@ async def build_developments(
                     dev.subjects[sid] = (conf, source)
 
     async def rate(dev: Development) -> None:
+        rules = [f.rule_level for f in dev.findings if f.rule_level is not None]
+        if len(rules) == len(dev.findings):  # detections only: the rule decides
+            dev.materiality_level = max(rules)
+            dev.materiality_score = float(dev.materiality_level)
+            dev.materiality_confidence = 1.0
+            return
         try:
             await score_materiality(inf, dev)
         except Exception as error:
             failures.append(f"{dev.id}: {type(error).__name__}: {error}")
+            return
+        if rules and max(rules) > dev.materiality_level:  # news merged with a detection
+            dev.materiality_level = max(rules)
+            dev.materiality_score = max(dev.materiality_score, float(dev.materiality_level))
 
     await asyncio.gather(*(rate(d) for d in devs))
     if failures:

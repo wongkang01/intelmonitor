@@ -1169,6 +1169,62 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await page.goto(new URL(`subjects/straitsx/facts?as_of=2026-05-10`, apiBase).href);
     });
 
+    await step(STEPS[17], async () => {
+      // The effective Fed funds rate rose from 3.63% to 3.88% on 17 Sep 2026, published by FRED
+      // on 18 Sep: after Run 1's date and by Run 2's. The fed-funds-change detector
+      // (api/seed/detectors.yaml) writes it as a data document, which search finds; the run takes
+      // it like any source, and same-event merging joins it to the FOMC decision's development,
+      // tagged to the Fed, which the followed Central banks group covers.
+      const statement = "Fed funds effective rate up 0.25 points to 3.88% on 17 Sep 2026, from 3.63% on 16 Sep 2026.";
+      const run1 = runs.find((r) => r.id === latest.previous_run_id);
+      if (!run1) throw new Error("Run 1 is not in the run history");
+      const found = await unwrap(api.GET("/search", { params: { query: { q: "Fed funds effective rate" } } }));
+      const doc = found.documents.find((d) => d.title === "Fed funds rate change: Fed funds effective rate");
+      if (!doc?.development_id) throw new Error("search does not find the Fed funds detection in a development");
+      expect(doc.snippet).toBe(statement);
+      const dev = await unwrap(api.GET("/developments/{development_id}", { params: { path: { development_id: doc.development_id } } }));
+      const source = dev.sources.find((s) => s.document_id === doc.id);
+      if (!source) throw new Error("the development does not list the detection as a source");
+
+      // The detection: a data document from the source table, known after Run 1 and by Run 2.
+      expect(source).toMatchObject({ url: "https://fred.stlouisfed.org/series/DFF", domain: "fred.stlouisfed.org", source: "detector", collection: "data", doc_type: "Move detector", classification: "public", new_in_run: true });
+      const published = source.published_at.slice(0, 10);
+      expect(published > run1.as_of && published <= latest.as_of, "known after Run 1 and by Run 2").toBe(true);
+      expect(source.findings.map((f) => [f.statement, f.event_date])).toEqual([[statement, "2026-09-17"]]);
+
+      // The development: changed in Run 2 by the detection, tagged to the Fed, and at least the
+      // rule's Notable. Made of the detection alone, the rule would set its level outright.
+      expect(dev.run.id).toBe(latest.id);
+      expect(dev.change === "new" || dev.change === "updated", "the detection changed it in Run 2").toBe(true);
+      expect(dev.collections).toContain("data");
+      expect(dev.subjects.map((s) => s.id)).toContain("fed");
+      expect(dev.materiality_level).toBeGreaterThanOrEqual(2);
+      if (dev.sources.length === 1) expect(dev).toMatchObject({ title: statement, materiality_label: "Notable", materiality_confidence: 1 });
+      const followed = new Set((await unwrap(api.GET("/follows"))).map((f) => f.id));
+      expect(followed.has("fed") || followed.has("central-banks"), "the Fed is followed, itself or through Central banks").toBe(true);
+      const alert = (await unwrap(api.GET("/alerts"))).alerts.find((a) => a.id === dev.id);
+      if (!alert) throw new Error("the development does not alert");
+      expect(alert.badge).toBe(dev.needs_attention ? "needs_attention" : "watch");
+
+      // In the app: the alert opens the evidence drawer on the data source, the statement marked.
+      const devPath = { params: { path: { development_id: alert.id } } };
+      cleanups.push(async () => void (await unwrap(api.PATCH("/developments/{development_id}/triage", { ...devPath, body: { read: alert.read } }))));
+      await page.goto("/");
+      await page.getByRole("button", { name: /^Alerts/ }).click();
+      const popover = page.getByRole("dialog", { name: "Alerts" });
+      await popover.locator(".alert-row").filter({ hasText: alert.title }).first().locator(".alert-body").click();
+      await expect(page).toHaveURL(new RegExp(`[?&]evidence=${encodeURIComponent(alert.id)}$`));
+      const drawer = page.getByTestId("evidence-drawer");
+      await expect(drawer.getByRole("heading", { level: 3 })).toHaveText(dev.title);
+      const article = drawer.locator("article.source").filter({ has: page.locator(`a[href="${source.url}"]`) });
+      await expect(article.locator(".meta")).toContainText("Data, Move detector");
+      await expect(article.locator("mark")).toHaveText(statement);
+      await article.scrollIntoViewIfNeeded();
+      await expect.poll(async () => (await unwrap(api.GET("/alerts"))).alerts.find((a) => a.id === alert.id)?.read).toBe(true);
+
+      writeFileSync(path.join(dir, "detections.json"), JSON.stringify({ run: latest, alert, development: dev }, null, 2));
+    });
+
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);
   } finally {
     const failures: string[] = [];

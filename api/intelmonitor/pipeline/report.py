@@ -92,15 +92,20 @@ def _checks(conn: sqlite3.Connection, runs: list[sqlite3.Row]) -> list[str]:
     ]
     needed += [
         ("extract", f"doc:{r['document_id']}")
-        for r in conn.execute("SELECT DISTINCT document_id FROM findings")
+        for r in conn.execute(
+            "SELECT DISTINCT document_id FROM findings "
+            "WHERE document_id NOT IN (SELECT document_id FROM detections)"
+        )
     ]
     needed += [
         ("answer", f"subject:{r['subject_id']}")
         for r in conn.execute("SELECT DISTINCT subject_id FROM question_answers")
     ]
+    # Developments made only of detections take their rule's materiality without a Jev call.
     for r in conn.execute(
         "SELECT d.id, count(s.finding_id) AS n FROM developments d JOIN development_sources s "
-        "ON s.run_id = d.run_id AND s.development_id = d.id GROUP BY d.run_id, d.id"
+        "ON s.run_id = d.run_id AND s.development_id = d.id GROUP BY d.run_id, d.id "
+        "HAVING sum(s.document_id NOT IN (SELECT document_id FROM detections)) > 0"
     ):
         needed.append(("materiality", f"dev:{r['id']}:{r['n']}"))
     missing_records = [n for n in needed if n not in refs]
@@ -505,7 +510,14 @@ def _series(conn: sqlite3.Connection) -> list[str]:
     if last.stale:
         stale = ", ".join(f"{k} ({v})" for k, v in last.stale.items())
         out += ["", f"Stale (latest point more than a day old): {stale}."]
-    return out + ["", *_run_indicators(conn, total), "", *_run_facts(conn)]
+    return out + [
+        "",
+        *_run_indicators(conn, total),
+        "",
+        *_run_facts(conn),
+        "",
+        *_run_detections(conn),
+    ]
 
 
 def _run_indicators(conn: sqlite3.Connection, total: int) -> list[str]:
@@ -580,6 +592,58 @@ def _run_facts(conn: sqlite3.Connection) -> list[str]:
         "",
         _table(
             ["Run", "Facts", "Answers citing series", "States fixed by rules", "No look-ahead"],
+            rows,
+        ),
+    ]
+
+
+def _run_detections(conn: sqlite3.Connection) -> list[str]:
+    """Each run's developments from detectors (F3), with the look-ahead check: a detection's
+    document is published no earlier than its firing value became available."""
+    rows: list[list[object]] = []
+    for r in conn.execute(
+        "SELECT s.run_id, s.development_id, k.detector_id, k.series_id, k.period, "
+        "d.published_at, v.materiality_level, "
+        "(SELECT count(DISTINCT x.document_id) FROM development_sources x "
+        "WHERE x.run_id = s.run_id AND x.development_id = s.development_id) AS sources, "
+        "(SELECT o.available_at FROM observations o "
+        "WHERE o.series_id = k.series_id AND o.period = k.period) AS available_at "
+        "FROM development_sources s JOIN detections k ON k.document_id = s.document_id "
+        "JOIN source_documents d ON d.id = s.document_id "
+        "JOIN developments v ON v.run_id = s.run_id AND v.id = s.development_id "
+        "ORDER BY s.run_id, d.published_at"
+    ):
+        early = r["available_at"] is not None and r["available_at"] > r["published_at"]
+        rows.append(
+            [
+                r["run_id"],
+                r["detector_id"],
+                r["series_id"],
+                r["period"],
+                r["published_at"][:10],
+                MATERIALITY_LEVELS[r["materiality_level"]],
+                r["sources"],
+                r["development_id"],
+                "FAIL: published before its value" if early else "pass",
+            ]
+        )
+    if not rows:
+        return ["Detections (F3): none in any run."]
+    return [
+        "Detections in each run's developments (F3):",
+        "",
+        _table(
+            [
+                "Run",
+                "Detector",
+                "Series",
+                "Period",
+                "Published",
+                "Materiality",
+                "Sources",
+                "Development",
+                "No look-ahead",
+            ],
             rows,
         ),
     ]

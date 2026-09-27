@@ -580,7 +580,8 @@
                 "enum": [
                   "dms",
                   "official",
-                  "news"
+                  "news",
+                  "data"
                 ],
                 "type": "string"
               },
@@ -3070,7 +3071,8 @@
               "enum": [
                 "dms",
                 "official",
-                "news"
+                "news",
+                "data"
               ]
             },
             "type": "array",
@@ -3649,7 +3651,8 @@
             "enum": [
               "dms",
               "official",
-              "news"
+              "news",
+              "data"
             ],
             "title": "Collection"
           },
@@ -3886,7 +3889,8 @@
               "enum": [
                 "dms",
                 "official",
-                "news"
+                "news",
+                "data"
               ]
             },
             "type": "array",
@@ -4028,7 +4032,7 @@
             },
             "type": "array",
             "title": "Source",
-            "description": "Collections: official, DMS, news"
+            "description": "Collections: official, DMS, data, news"
           }
         },
         "type": "object",
@@ -4192,7 +4196,8 @@
               "enum": [
                 "dms",
                 "official",
-                "news"
+                "news",
+                "data"
               ]
             },
             "type": "array",
@@ -4503,7 +4508,8 @@
             "enum": [
               "dms",
               "official",
-              "news"
+              "news",
+              "data"
             ],
             "title": "Collection"
           },
@@ -4720,7 +4726,8 @@
             "enum": [
               "dms",
               "official",
-              "news"
+              "news",
+              "data"
             ],
             "title": "Collection"
           },
