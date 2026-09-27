@@ -2,11 +2,13 @@
 
 // The developments list's filter bar: a words filter, a button per facet whose popover lists the
 // facet's values with counts, and the switch between every development and What changed. One
-// popover is open at a time; Esc or a click outside closes it.
+// popover is open at a time; Esc, a click outside or tabbing out of it closes it. The bar wraps when
+// it does not fit on one line and keeps its height on its parent as `--fbar-h`, for the table's
+// sticky column heads.
 import { useEffect, useRef, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
-import { useDismiss } from "@/lib/dom";
+import { trackHeight, useDismiss } from "@/lib/dom";
 import { ANY_TIME, FACETS, selected, withFacet, type FacetId } from "@/lib/developments";
 import { ChevronDownIcon, SearchIcon } from "@/components/ui/icons";
 
@@ -14,6 +16,9 @@ type FacetValue = Schema<"FacetValue">;
 type FacetDef = (typeof FACETS)[number];
 
 const WORDS_DELAY_MS = 250;
+
+const trackBarHeight = (bar: HTMLDivElement | null) =>
+  bar?.parentElement ? trackHeight(bar, "--fbar-h", bar.parentElement) : undefined;
 
 export function FilterBar({
   params,
@@ -25,14 +30,14 @@ export function FilterBar({
   params: URLSearchParams;
   /** The facets' values and counts; absent until the first list loads. */
   facets: Schema<"DevelopmentFacets"> | undefined;
-  /** Developments matching the filters, and those of them changed since the review. */
+  /** Developments matching the filters, and those of them new or updated since the review and unread. */
   counts: { all: number; changed: number } | undefined;
   changed: boolean;
   onParams: (next: URLSearchParams) => void;
 }) {
   const [open, setOpen] = useState<FacetId | null>(null);
   return (
-    <div className="fbar" role="group" aria-label="Filters">
+    <div className="fbar" role="group" aria-label="Filters" ref={trackBarHeight}>
       <Words params={params} onParams={onParams} />
       {FACETS.map((f) => (
         <Facet
@@ -46,8 +51,7 @@ export function FilterBar({
           onChange={(values) => onParams(withFacet(params, f.id, values))}
         />
       ))}
-      <span className="push" />
-      <div className="seg" role="group" aria-label="Developments to list">
+      <div className="seg push" role="group" aria-label="Developments to list">
         {[
           { label: "All", value: false, n: counts?.all },
           { label: "New since review", value: true, n: counts?.changed },
@@ -132,7 +136,13 @@ function Facet({
   const id = `facet-${facet.id}`;
 
   return (
-    <div className="fwrap" ref={wrap}>
+    <div
+      className="fwrap"
+      ref={wrap}
+      onBlur={(e) => {
+        if (open && e.relatedTarget instanceof Node && !e.currentTarget.contains(e.relatedTarget)) onClose();
+      }}
+    >
       <button
         type="button"
         className={`btn btn-sm fbtn${set.length ? " set" : ""}`}
@@ -159,7 +169,7 @@ function Facet({
   );
 }
 
-/** The open popover; focus moves into it, to its find field or its first value. */
+/** The open popover; focus moves into it, to its find field, its checked radio or its first value. */
 function FacetPopover({
   id,
   facet,
@@ -180,7 +190,8 @@ function FacetPopover({
   const shown = values?.filter((v) => v.label.toLowerCase().includes(find.trim().toLowerCase())) ?? [];
 
   useEffect(() => {
-    pop.current?.querySelector("input")?.focus();
+    const box = pop.current;
+    (box?.querySelector<HTMLInputElement>("input[type=search], input[type=radio]:checked") ?? box?.querySelector("input"))?.focus();
   }, []);
 
   return (

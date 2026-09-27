@@ -88,8 +88,9 @@ Title, the subjects it covers, then a 4-column widget grid. The last run time li
 
 A dashboard's developments across its subjects, opened from a dashboard-wide widget's Show all or the Developments widget's "in scope" count; it has no sidebar or ⌘K entry, and the sidebar keeps the dashboard marked.
 A filter bar sticks under the top bar: Filter by words, then Category, Materiality, Jurisdiction, Date and Source, each a button whose popover lists values with counts, and All or New since review on the right.
+The bar wraps on a narrow window, and a narrow table drops Sources, Jurisdiction and Category, in that order, so titles keep room.
 The table sorts by any column but the title; filters and the sort live in the URL.
-New since review is What changed for the dashboard, with the monitor page's counts line, triage filter and row actions.
+New since review is What changed for the dashboard, with the monitor page's counts line, triage filter and row actions; its count is the unread ones, like the counts line.
 
 ### Monitor page (topic, group or entity)
 

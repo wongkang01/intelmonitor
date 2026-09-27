@@ -11,7 +11,7 @@ import { useCallback, useState, type ReactNode, type Ref } from "react";
 import type { Schema } from "@/lib/api/client";
 import { useDashboard, useDevelopments, useSubjects, useWhatChanged } from "@/lib/api/queries";
 import { filtered as isFiltered, listQuery, sortList, sortOf, withoutFilters, withSort, type SortKey } from "@/lib/developments";
-import { capitalize, COLLECTION_LABEL, plural, shortDate } from "@/lib/format";
+import { capitalize, changeCounts, COLLECTION_LABEL, plural, shortDate } from "@/lib/format";
 import { Dotted } from "@/components/monitor/parts";
 import {
   AnswerChanges,
@@ -55,7 +55,7 @@ export function DevelopmentsView({ dashboardId }: { dashboardId: string }) {
   if (!d) return null;
   const scope = d.subject_ids.flatMap((id) => subjects.data?.find((s) => s.id === id) ?? []);
   const data = list.data;
-  const newCount = wc.data?.new_count ?? 0;
+  const counts = wc.data && changeCounts({ ...wc.data, needs_attention_count: 0 });
 
   return (
     <>
@@ -67,27 +67,30 @@ export function DevelopmentsView({ dashboardId }: { dashboardId: string }) {
               {d.name}
             </Link>{" "}
             dashboard: <SubjectLinks subjects={scope} />
-            {data && ` · ${plural(data.in_scope, "development")}${newCount > 0 ? `, ${newCount} new` : ""}`}
+            {data && ` · ${[plural(data.in_scope, "development"), counts].filter(Boolean).join(", ")}`}
           </p>
         </div>
       </div>
-      <FilterBar
-        params={params}
-        facets={data?.facets}
-        counts={data && { all: data.matching, changed: data.unreviewed }}
-        changed={changed}
-        onParams={onParams}
-      />
-      <div className="panel dv-table">
-        {list.isError ? (
-          <p className="mon-empty">
-            These developments could not be loaded. <ClearFilters params={params} onParams={onParams} />
-          </p>
-        ) : !data ? null : changed && wc.data ? (
-          <Changed key={String(folded)} data={data} wc={wc.data} folded={folded} params={params} onParams={onParams} />
-        ) : (
-          <Table developments={data.developments} params={params} onParams={onParams} />
-        )}
+      {/* The filter bar keeps its height here as --fbar-h, where the table's sticky heads read it. */}
+      <div>
+        <FilterBar
+          params={params}
+          facets={data?.facets}
+          counts={data && { all: data.matching, changed: data.new_count + data.updated_count }}
+          changed={changed}
+          onParams={onParams}
+        />
+        <div className="panel dv-table">
+          {list.isError ? (
+            <p className="mon-empty">
+              These developments could not be loaded. <ClearFilters params={params} onParams={onParams} />
+            </p>
+          ) : !data ? null : changed && wc.data ? (
+            <Changed key={String(folded)} data={data} wc={wc.data} folded={folded} params={params} onParams={onParams} />
+          ) : (
+            <Table developments={data.developments} params={params} onParams={onParams} />
+          )}
+        </div>
       </div>
     </>
   );
@@ -175,7 +178,8 @@ function ClearFilters({ params, onParams }: ParamsProps) {
   );
 }
 
-// Column widths are in styles/developments.css (`.c-<key>`); the title takes the rest.
+// Column widths are in styles/developments.css (`.c-<key>` on the heads); the title takes the rest,
+// and a narrow table drops Sources, Jurisdiction and Category, which the filter bar still covers.
 const COLUMNS: { key: SortKey | null; label: string; num?: boolean }[] = [
   { key: "status", label: "Status" },
   { key: null, label: "" },
@@ -211,11 +215,6 @@ function Table({
   if (rows.length === 0) return <NoMatch params={params} onParams={onParams} />;
   return (
     <table className={`dtable${onTriage ? " triaged" : ""}`}>
-      <colgroup>
-        {COLUMNS.map((c, i) => (
-          <col key={i} className={c.key ? `c-${c.key}` : undefined} />
-        ))}
-      </colgroup>
       <thead>
         <tr>
           {COLUMNS.map((c, i) => {
@@ -224,7 +223,7 @@ function Table({
               <th
                 key={i}
                 scope="col"
-                className={[c.num && "num", on && "sorted"].filter(Boolean).join(" ") || undefined}
+                className={[c.key && `c-${c.key}`, c.num && "num", on && "sorted"].filter(Boolean).join(" ") || undefined}
                 aria-sort={on ? (sort.order === "asc" ? "ascending" : "descending") : undefined}
               >
                 {c.key === null ? (

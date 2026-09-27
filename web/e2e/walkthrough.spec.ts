@@ -6,6 +6,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 
 import { api, API_URL, type Schema } from "../lib/api/client";
+import { listQuery } from "../lib/developments";
 import { answerText, changeCounts, plural, shortDate, STATE_LABEL } from "../lib/format";
 
 import { runDir, screenshotName, STEPS } from "./steps";
@@ -133,7 +134,10 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(page).toHaveURL(`/developments?dashboard=${starter.id}&changed=1`);
       const changes = page.locator(".dv-table");
       await expect(changes.locator(".mon-lead")).toHaveText(changeCounts(wc));
-      await expect(page.getByRole("button", { name: /^New since review / })).toHaveAccessibleName(`New since review ${current.length}`);
+      // The switch counts what is still new: the counts line's developments, not the read ones listed.
+      const unreadCount = current.filter((d) => !d.read).length;
+      expect(unreadCount).toBe(wc.new_count + wc.updated_count);
+      await expect(page.getByRole("button", { name: /^New since review / })).toHaveAccessibleName(`New since review ${unreadCount}`);
       await expect(changes.getByRole("group", { name: "Filter developments" }).getByRole("button", { name: /^All / })).toHaveAccessibleName(
         `All ${current.length}`,
       );
@@ -902,7 +906,8 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(placeBox).toBeChecked();
       await expect(rows).toHaveCount(place.count);
       await page.keyboard.press("Escape");
-      const filters = { ...query, materiality: [Number(level.value)], jurisdiction: [place.value] };
+      // The query the page sent for its URL.
+      const filters = listQuery(starter.id, new URL(page.url()).searchParams);
       const narrowed = await unwrap(api.GET("/developments", { params: { query: filters } }));
       expect(narrowed.developments.every((d) => d.materiality_label === level.label && d.jurisdictions.includes(place.label))).toBe(true);
 
@@ -970,6 +975,60 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
         await expect.poll(async () => (await whatChanged()).developments.find((x) => x.id === d.id)?.read).toBe(true);
         await expect(table.locator(".mon-lead")).toHaveText(changeCounts(await whatChanged()));
       }
+    });
+
+    await step(STEPS[14], async () => {
+      const query = { dashboard_id: starter.id };
+      const all = await unwrap(api.GET("/developments", { params: { query } }));
+      const bar = page.getByRole("group", { name: "Filters" });
+      const facet = (label: string) => bar.getByRole("button", { name: new RegExp(`^${label}`) });
+
+      // The Date popover focuses its checked radio; tabbing out of a popover closes it.
+      await page.goto(`/developments?dashboard=${starter.id}`);
+      await facet("Date").focus();
+      await page.keyboard.press("Enter");
+      await expect(page.getByRole("radio", { name: /^Any time / })).toBeFocused();
+      await page.keyboard.press("Escape");
+      await facet("Category").focus();
+      await page.keyboard.press("Enter");
+      const category = page.getByRole("dialog", { name: "Category" });
+      await expect(category.getByRole("checkbox").first()).toBeFocused();
+      // Through each value; Clear is disabled while nothing is picked, so the last Tab leaves.
+      for (let i = 0; i < all.facets.category.length; i++) await page.keyboard.press("Tab");
+      await expect(facet("Materiality")).toBeFocused();
+      await expect(category).toHaveCount(0);
+
+      // Hand-edited values the list cannot apply are ignored, and the buttons do not name them.
+      await page.goto(`/developments?dashboard=${starter.id}&category=bogus&materiality=9&jurisdiction=xx&days=abc&source=foo`);
+      const rows = page.locator(".dv-table tbody tr");
+      await expect(rows).toHaveCount(all.in_scope);
+      for (const label of ["Category", "Materiality", "Jurisdiction", "Date", "Source"]) await expect(facet(label)).toHaveAccessibleName(label);
+
+      // At the app's narrowest width with every facet set, the bar wraps rather than push the
+      // switch off screen, and nothing scrolls sideways.
+      await page.setViewportSize({ width: 1024, height: 800 });
+      const every = new URLSearchParams({ dashboard: starter.id, days: "30" });
+      for (const id of ["category", "materiality", "jurisdiction", "source"] as const) every.append(id, all.facets[id][0].value);
+      await page.goto(`/developments?${every}`);
+      await expect(facet("Source")).toHaveAccessibleName(`Source: ${all.facets.source[0].label}`);
+      const main = page.locator("main");
+      const sideways = () => main.evaluate((m) => m.scrollWidth - m.clientWidth);
+      const view = page.getByRole("group", { name: "Developments to list" });
+      expect(await sideways()).toBe(0);
+      expect(await view.evaluate((v) => v.getBoundingClientRect().right)).toBeLessThanOrEqual(1024);
+
+      // What changed, whose triage actions take the widest date column: titles keep room, and
+      // the column heads stick under the wrapped bar.
+      await page.goto(`/developments?dashboard=${starter.id}&changed=1`);
+      const title = page.locator(".dtable th").nth(1);
+      await expect(title).toBeVisible();
+      expect((await title.boundingBox())?.width).toBeGreaterThanOrEqual(200);
+      expect(await sideways()).toBe(0);
+      await main.evaluate((m) => m.scrollBy(0, 1200));
+      await expect
+        .poll(async () => (await title.boundingBox())?.y)
+        .toBe(await bar.evaluate((b) => b.getBoundingClientRect().bottom));
+      // The step's screenshot shows this narrow layout; the viewport stays at 1024 px.
     });
 
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);

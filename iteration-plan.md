@@ -165,6 +165,11 @@ Mocks: `mocks/*.html`. Picks from the user on 2026-09-27 are noted per item.
    Its answer changes list under the table while nothing is filtered, since facets do not apply to answers.
    The filter bar and the column heads stick under the top bar; the page has no rail.
    The "in scope" count on a dashboard-wide Developments widget links to the page, and the sidebar marks the dashboard while it is open.
+   Built after verification: the filter bar wraps when it does not fit, and the column heads stick under its height (`--fbar-h`).
+   A narrower table drops Sources (from about 1280 px), then Jurisdiction, then Category, so titles keep about 260 px down to the 1024 px minimum.
+   New since review counts developments new or updated since the review and unread, as the counts line and the Since widget do; `DevelopmentList.unreviewed` is gone.
+   Values a hand-edited URL gets wrong are ignored and the buttons do not name them; `jurisdiction` is now an enum of codes in the API.
+   The Date popover focuses its checked option, and tabbing out of a popover closes it.
 7. **Document reader and source labels.** Dropped: the evidence drawer is enough.
 8. **Tablet layout.** Dropped: the app is desktop web only.
 

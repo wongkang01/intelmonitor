@@ -5,6 +5,7 @@
   top: 56px;
   z-index: 20;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--s-2);
   padding: 0 var(--s-6) var(--s-4);
@@ -103,6 +104,7 @@
 
 /* The table panel. What changed puts its counts line and triage filter above the table. */
 .panel.dv-table {
+  container-type: inline-size;
   display: block;
   margin: 0 var(--s-6) var(--s-7);
   padding: var(--s-2) var(--s-4) var(--s-3);
@@ -116,10 +118,10 @@
   border-collapse: collapse;
   font-variant-numeric: tabular-nums;
 }
-/* Column heads stick under the filter bar (56px top bar, then a 32px field and 16px below it). */
+/* Column heads stick under the top bar and the filter bar, whose height FilterBar keeps current. */
 .dtable th {
   position: sticky;
-  top: 104px;
+  top: calc(56px + var(--fbar-h, 48px));
   z-index: 1;
   background: var(--surface);
   height: 36px;
@@ -191,7 +193,8 @@
 .dtable td .subject-link:hover {
   color: var(--ink);
 }
-/* Column widths from the mock at 1440px, narrower below 1400px so titles keep room. Triage actions
+/* Column widths from the mock at 1440px, set on the heads. A narrower table narrows them, then drops
+   Sources (7th), Jurisdiction (6th) and Category (4th) so titles keep about 260px. Triage actions
    need a wider date column. */
 .c-status {
   width: 124px;
@@ -217,7 +220,7 @@
 .triaged .c-date {
   width: 104px;
 }
-@media (max-width: 1400px) {
+@container (width < 1100px) {
   .c-subjects,
   .c-category {
     width: 92px;
@@ -228,6 +231,21 @@
   .c-jurisdiction,
   .c-sources {
     width: 104px;
+  }
+}
+@container (width < 960px) {
+  .dtable :is(th, td):nth-child(7) {
+    display: none;
+  }
+}
+@container (width < 860px) {
+  .dtable :is(th, td):nth-child(6) {
+    display: none;
+  }
+}
+@container (width < 760px) {
+  .dtable :is(th, td):nth-child(4) {
+    display: none;
   }
 }
 .dtable .num {

@@ -1505,8 +1505,8 @@ export interface components {
         /**
          * DevelopmentList
          * @description A scope's developments in the latest run that match the filters, with facet counts over
-         *     the listed ones. The change counts and `unreviewed` count every development matching the
-         *     filters, whatever `changed` lists.
+         *     the listed ones. The change counts count every development matching the filters, whatever
+         *     `changed` lists; new plus updated is what New since review counts.
          */
         DevelopmentList: {
             /**
@@ -1534,11 +1534,6 @@ export interface components {
              * @description Developments in scope matching the filters
              */
             matching: number;
-            /**
-             * Unreviewed
-             * @description Of those, changed since the review and not dismissed: What changed's All
-             */
-            unreviewed: number;
             /**
              * Developments
              * @description Needing attention first, then changed this run, most material, most recent
@@ -3442,8 +3437,7 @@ export interface operations {
                 category?: ("incident" | "regulatory" | "financial" | "management" | "strategy" | "policy" | "security" | "market" | "other")[];
                 /** @description Materiality levels, 0 Trivial to 4 Critical */
                 materiality?: number[];
-                /** @description Jurisdiction codes, such as sg or intl */
-                jurisdiction?: string[];
+                jurisdiction?: ("sg" | "my" | "id" | "th" | "vn" | "ph" | "hk" | "cn" | "us" | "eu" | "uk" | "jp" | "intl")[];
                 /** @description Last published in the last this many days of the run */
                 days?: number | null;
                 source?: ("dms" | "official" | "news")[];

@@ -9,10 +9,10 @@ from collections.abc import Callable, Iterable
 from datetime import date, timedelta
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, BaseModel, Field
+from pydantic import BaseModel, Field
 
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS
-from intelmonitor.pipeline.screen import JURISDICTION_NAMES, Category
+from intelmonitor.pipeline.screen import JURISDICTION_NAMES, Category, Jurisdiction
 from intelmonitor.server.models import (
     ChangedDevelopment,
     Collection,
@@ -25,16 +25,10 @@ from intelmonitor.server.queries import COLLECTION_ORDER, Queries, change_counts
 
 DATE_PRESETS = [7, 30, 90]
 COLLECTION_LABELS: dict[Collection, str] = {"official": "Official", "dms": "DMS", "news": "News"}
-JURISDICTION_CODES = {name: code for code, name in JURISDICTION_NAMES.items()}
+JURISDICTION_CODES: dict[str, Jurisdiction] = {
+    name: code for code, name in JURISDICTION_NAMES.items()
+}
 
-
-def _known_jurisdiction(value: str) -> str:
-    if value not in JURISDICTION_NAMES:
-        raise ValueError(f"unknown jurisdiction {value!r}")
-    return value
-
-
-JurisdictionCode = Annotated[str, AfterValidator(_known_jurisdiction)]
 Facet = Literal["category", "materiality", "jurisdiction", "date", "source"]
 ChangedFilter = Literal["review", "run"]
 
@@ -56,9 +50,7 @@ class DevelopmentQuery(BaseModel):
     materiality: list[Annotated[int, Field(ge=0, le=4)]] = Field(
         default_factory=list[int], description="Materiality levels, 0 Trivial to 4 Critical"
     )
-    jurisdiction: list[JurisdictionCode] = Field(
-        default_factory=list[str], description="Jurisdiction codes, such as sg or intl"
-    )
+    jurisdiction: list[Jurisdiction] = Field(default_factory=list[Jurisdiction])
     days: int | None = Field(
         default=None, ge=1, description="Last published in the last this many days of the run"
     )
@@ -87,8 +79,8 @@ def _words(text: str | None) -> Test:
     return lambda d: all(w in d.title.lower() for w in words)
 
 
-def _values(
-    counts: Counter[str], selected: Iterable[str], label: Callable[[str], str]
+def _values[K: str](
+    counts: Counter[K], selected: Iterable[K], label: Callable[[K], str]
 ) -> list[FacetValue]:
     """Values with matches, most first, plus selected ones without."""
     keys = [*counts, *(s for s in selected if s not in counts)]
@@ -115,7 +107,9 @@ def _facets(
             if levels[str(lvl)] or lvl in f.materiality
         ],
         jurisdiction=_values(
-            Counter(JURISDICTION_CODES[j] for d in base("jurisdiction") for j in d.jurisdictions),
+            Counter[Jurisdiction](
+                JURISDICTION_CODES[j] for d in base("jurisdiction") for j in d.jurisdictions
+            ),
             f.jurisdiction,
             JURISDICTION_NAMES.__getitem__,
         ),
@@ -159,7 +153,6 @@ def development_list(
     return DevelopmentList(
         in_scope=len(scope),
         matching=len(matching),
-        unreviewed=sum(d.unreviewed and not d.dismissed for d in matching),
         **change_counts(matching).model_dump(),
         developments=[d for d in matching if shown(d)][: f.limit],
         facets=_facets([d for d in worded if shown(d)], f, tests, q.run.as_of),

@@ -21,12 +21,14 @@ export const useCoarsePointer = () =>
  * taller than the window scroll until its bottom shows before it sticks (`.mon-rail` in
  * styles/monitor.css).
  */
-export const trackRailHeight = (rail: HTMLElement | null) => {
-  if (!rail) return;
-  const observer = new ResizeObserver(() => rail.style.setProperty("--rail-h", `${rail.offsetHeight}px`));
-  observer.observe(rail);
+export const trackRailHeight = (rail: HTMLElement | null) => (rail ? trackHeight(rail, "--rail-h") : undefined);
+
+/** Keeps the CSS variable `name` on `host` set to `el`'s height; returns the cleanup. */
+export function trackHeight(el: HTMLElement, name: string, host = el) {
+  const observer = new ResizeObserver(() => host.style.setProperty(name, `${el.offsetHeight}px`));
+  observer.observe(el);
   return () => observer.disconnect();
-};
+}
 
 /**
  * Closes an open popover on Esc or a click outside `wrap`, returning focus to `trigger`. Esc is

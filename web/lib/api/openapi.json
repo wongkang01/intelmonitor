@@ -343,12 +343,25 @@
             "schema": {
               "type": "array",
               "items": {
+                "enum": [
+                  "sg",
+                  "my",
+                  "id",
+                  "th",
+                  "vn",
+                  "ph",
+                  "hk",
+                  "cn",
+                  "us",
+                  "eu",
+                  "uk",
+                  "jp",
+                  "intl"
+                ],
                 "type": "string"
               },
-              "description": "Jurisdiction codes, such as sg or intl",
               "title": "Jurisdiction"
-            },
-            "description": "Jurisdiction codes, such as sg or intl"
+            }
           },
           {
             "name": "days",
@@ -3859,11 +3872,6 @@
             "title": "Matching",
             "description": "Developments in scope matching the filters"
           },
-          "unreviewed": {
-            "type": "integer",
-            "title": "Unreviewed",
-            "description": "Of those, changed since the review and not dismissed: What changed's All"
-          },
           "developments": {
             "items": {
               "$ref": "#/components/schemas/ChangedDevelopment"
@@ -3883,12 +3891,11 @@
           "needs_attention_count",
           "in_scope",
           "matching",
-          "unreviewed",
           "developments",
           "facets"
         ],
         "title": "DevelopmentList",
-        "description": "A scope's developments in the latest run that match the filters, with facet counts over\nthe listed ones. The change counts and `unreviewed` count every development matching the\nfilters, whatever `changed` lists."
+        "description": "A scope's developments in the latest run that match the filters, with facet counts over\nthe listed ones. The change counts count every development matching the filters, whatever\n`changed` lists; new plus updated is what New since review counts."
       },
       "DevelopmentSummary": {
         "properties": {

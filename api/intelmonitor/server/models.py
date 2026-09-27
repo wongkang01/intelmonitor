@@ -247,16 +247,13 @@ class DevelopmentFacets(BaseModel):
 
 class DevelopmentList(ChangeCounts):
     """A scope's developments in the latest run that match the filters, with facet counts over
-    the listed ones. The change counts and `unreviewed` count every development matching the
-    filters, whatever `changed` lists."""
+    the listed ones. The change counts count every development matching the filters, whatever
+    `changed` lists; new plus updated is what New since review counts."""
 
     in_scope: int = Field(
         description="Every development in scope: what a Developments widget counts"
     )
     matching: int = Field(description="Developments in scope matching the filters")
-    unreviewed: int = Field(
-        description="Of those, changed since the review and not dismissed: What changed's All"
-    )
     developments: list[ChangedDevelopment] = Field(
         description="Needing attention first, then changed this run, most material, most recent"
     )

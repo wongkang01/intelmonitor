@@ -71,8 +71,12 @@ JURISDICTIONS: dict[str, str] = {
     "intl": "international bodies such as the BIS, FSB, Basel Committee, IMF or FATF",
 }
 
+Jurisdiction = Literal[
+    "sg", "my", "id", "th", "vn", "ph", "hk", "cn", "us", "eu", "uk", "jp", "intl"
+]
+
 # Display names for JURISDICTIONS, which are phrased for the screening prompt.
-JURISDICTION_NAMES: dict[str, str] = {
+JURISDICTION_NAMES: dict[Jurisdiction, str] = {
     "sg": "Singapore",
     "my": "Malaysia",
     "id": "Indonesia",

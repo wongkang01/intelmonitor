@@ -6,6 +6,7 @@ import type { DevelopmentsQuery } from "./api/queries";
 
 type Listed = Schema<"ChangedDevelopment">;
 type Category = NonNullable<DevelopmentsQuery["category"]>[number];
+type Jurisdiction = NonNullable<DevelopmentsQuery["jurisdiction"]>[number];
 type Collection = Listed["collections"][number];
 
 /** A facet of the list; `date` is the `days` parameter. */
@@ -33,21 +34,52 @@ const CATEGORY: Record<Category, true> = {
   market: true,
   other: true,
 };
+const JURISDICTION: Record<Jurisdiction, true> = {
+  sg: true,
+  my: true,
+  id: true,
+  th: true,
+  vn: true,
+  ph: true,
+  hk: true,
+  cn: true,
+  us: true,
+  eu: true,
+  uk: true,
+  jp: true,
+  intl: true,
+};
 const COLLECTION: Record<Collection, true> = { dms: true, official: true, news: true };
 
 const isCategory = (v: string): v is Category => Object.hasOwn(CATEGORY, v);
+const isJurisdiction = (v: string): v is Jurisdiction => Object.hasOwn(JURISDICTION, v);
 const isCollection = (v: string): v is Collection => Object.hasOwn(COLLECTION, v);
+const isLevel = (v: string) => /^[0-4]$/.test(v);
 const days = (v: string | null) => (v && /^\d+$/.test(v) && Number(v) > 0 ? Number(v) : null);
 
-/** The facet's selected values as its popover lists them: the date facet always has one. */
+/**
+ * The facet's selected values as its popover lists them: the date facet always has one. Values a
+ * hand-edited URL gets wrong are left out, as the API query leaves them out.
+ */
 export function selected(params: URLSearchParams, facet: FacetId): string[] {
-  if (facet === "date") return [String(days(params.get("days")) ?? ANY_TIME)];
-  return params.getAll(facet);
+  const values = params.getAll(facet);
+  switch (facet) {
+    case "category":
+      return values.filter(isCategory);
+    case "materiality":
+      return values.filter(isLevel);
+    case "jurisdiction":
+      return values.filter(isJurisdiction);
+    case "date":
+      return [String(days(params.get("days")) ?? ANY_TIME)];
+    case "source":
+      return values.filter(isCollection);
+  }
 }
 
 /** Whether any facet or the words filter narrows the list. */
 export const filtered = (params: URLSearchParams) =>
-  FACETS.some((f) => params.has(f.param)) || Boolean(params.get("q")?.trim());
+  FACETS.some((f) => selected(params, f.id).some((v) => v !== ANY_TIME)) || Boolean(params.get("q")?.trim());
 
 /** The API query for the page's parameters: the dashboard's developments, narrowed as the URL says. */
 export function listQuery(dashboardId: string, params: URLSearchParams, changed?: DevelopmentsQuery["changed"]): DevelopmentsQuery {
@@ -56,8 +88,8 @@ export function listQuery(dashboardId: string, params: URLSearchParams, changed?
     changed,
     q: params.get("q")?.trim() || undefined,
     category: params.getAll("category").filter(isCategory),
-    materiality: params.getAll("materiality").map(Number).filter((n) => Number.isInteger(n) && n >= 0 && n <= 4),
-    jurisdiction: params.getAll("jurisdiction"),
+    materiality: params.getAll("materiality").filter(isLevel).map(Number),
+    jurisdiction: params.getAll("jurisdiction").filter(isJurisdiction),
     days: days(params.get("days")),
     source: params.getAll("source").filter(isCollection),
   };
