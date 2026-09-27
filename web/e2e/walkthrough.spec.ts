@@ -6,7 +6,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 
 import { api, API_URL, type Schema } from "../lib/api/client";
-import { answerText, changeCounts, shortDate } from "../lib/format";
+import { answerText, changeCounts, plural, shortDate, STATE_LABEL } from "../lib/format";
 
 import { runDir, screenshotName, STEPS } from "./steps";
 
@@ -693,6 +693,75 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await docOption.click();
       await expect(page).toHaveURL(new RegExp(`[?&]evidence=${encodeURIComponent(document.development_id)}$`));
       await expect(drawer.locator(".source a").filter({ hasText: document.title }).first()).toBeVisible();
+    });
+
+    await step(STEPS[11], async () => {
+      // Mark wrong under a built-in answer that cites developments: the form opens in the row.
+      const monitor = await unwrap(api.GET("/subjects/{subject_id}/page", { params: { path: { subject_id: entity.id } } }));
+      const answer = monitor.questions.find((a) => !a.custom && a.development_ids.length > 0 && !a.feedback);
+      if (!answer) throw new Error(`${entity.name} has no built-in answer citing developments`);
+      const answerPath = { params: { path: { subject_id: entity.id, question_id: answer.question_id } } };
+      const devPath = { params: { path: { development_id: answer.development_ids[0] } } };
+      // Corrections are rows in the feedback table; the cleanup deletes any this run left.
+      cleanups.push(async () => {
+        const { feedback } = (await unwrap(api.GET("/subjects/{subject_id}/answers/{question_id}/evidence", answerPath))).answer;
+        const tags = (await unwrap(api.GET("/developments/{development_id}", devPath))).tag_feedback;
+        for (const f of [...(feedback ? [feedback] : []), ...tags].filter((f) => f.reason.includes(stamp))) {
+          await deleted(api.DELETE("/feedback/{feedback_id}", { params: { path: { feedback_id: f.id } } }));
+        }
+      });
+      const target = answer.state === "stable" ? "watch" : "stable";
+      await page.goto(`/monitors/${entity.id}`);
+      const row = page.locator(`[data-question-id="${answer.question_id}"]`);
+      await row.getByRole("button", { name: "Mark wrong" }).click();
+      const form = row.getByRole("form", { name: "Mark answer wrong" });
+      await expect(form.getByRole("checkbox", { name: "State" })).toBeFocused();
+      await expect(form.getByRole("button", { name: "Send" })).toBeDisabled();
+      await form.getByRole("checkbox", { name: "State" }).check();
+      await form.getByRole("combobox", { name: "What the state should be" }).selectOption(target);
+      await form.getByRole("checkbox", { name: /^Cited developments/ }).check();
+      await form.getByRole("textbox", { name: "Reason" }).fill(`E2E ${stamp}: not what the sources say`);
+      await form.getByRole("button", { name: "Send" }).click();
+      await expect(page.locator(".toast", { hasText: "Feedback saved. The next run takes it into account." })).toBeVisible();
+      const cited = plural(answer.development_ids.length, "cited development");
+      const line = row.locator(".fb-line");
+      await expect(line).toHaveText(`You marked this wrong today: state should be ${STATE_LABEL[target]}, ${cited}. Undo`);
+      const { feedback } = (await unwrap(api.GET("/subjects/{subject_id}/answers/{question_id}/evidence", answerPath))).answer;
+      expect(feedback).toMatchObject({ state: target, development_ids: answer.development_ids, answer_state: answer.state });
+      await expect(line.getByRole("button", { name: "Undo" })).toBeFocused();
+      await expect(row.getByRole("button", { name: "Mark wrong" })).toHaveCount(0);
+      await line.getByRole("button", { name: "Undo" }).click();
+      await expect(line).toHaveCount(0);
+      await expect(row.getByRole("button", { name: "Mark wrong" })).toBeFocused();
+
+      // In the evidence drawer, Escape closes the form but not the drawer.
+      await row.getByRole("link", { name: "See evidence" }).click();
+      const drawer = page.getByTestId("evidence-drawer");
+      await drawer.getByRole("button", { name: "Mark wrong" }).click();
+      await expect(drawer.getByRole("form", { name: "Mark answer wrong" })).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(drawer.getByRole("form", { name: "Mark answer wrong" })).toHaveCount(0);
+      await expect(drawer.getByRole("button", { name: "Mark wrong" })).toBeFocused();
+
+      // A cited development's drawer lists its tags, each with Wrong: Remove tag, then Undo.
+      await drawer.locator(".ev-title a").first().click();
+      await expect(page).toHaveURL(new RegExp(`[?&]evidence=${encodeURIComponent(answer.development_ids[0])}$`));
+      const dev = await unwrap(api.GET("/developments/{development_id}", devPath));
+      const tag = dev.subject_confidence[0].subject;
+      const tagRow = drawer.locator(`[data-tag="${tag.id}"]`);
+      await tagRow.getByRole("button", { name: `${tag.name} is wrong` }).click();
+      const tagForm = drawer.getByRole("form", { name: `Remove the ${tag.name} tag` });
+      await expect(tagForm.getByRole("textbox", { name: "Reason" })).toBeFocused();
+      await tagForm.getByRole("textbox", { name: "Reason" }).fill(`E2E ${stamp}: not about ${tag.name}`);
+      await tagForm.getByRole("button", { name: "Remove tag" }).click();
+      await expect(tagRow).toContainText("You marked this wrong today. Removed from the next run.");
+      const removed = (await unwrap(api.GET("/developments/{development_id}", devPath))).tag_feedback;
+      expect(removed).toMatchObject([{ subject: { id: tag.id }, applied: false }]);
+      const undo = tagRow.getByRole("button", { name: `Undo removing ${tag.name}` });
+      await expect(undo).toBeFocused();
+      await undo.click();
+      await expect(tagRow.getByRole("button", { name: `${tag.name} is wrong` })).toBeFocused();
+      expect((await unwrap(api.GET("/developments/{development_id}", devPath))).tag_feedback).toEqual([]);
     });
 
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);

@@ -417,6 +417,129 @@
   margin-top: var(--s-1);
 }
 
+/* Corrections (components/shell/Feedback.tsx): Mark wrong and Wrong are quiet links; their forms
+   open inline, ruled above and below, under the answer or the tag. */
+.link.quiet {
+  color: var(--ink2);
+}
+.link.quiet:hover {
+  color: var(--ink);
+}
+.fb-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.drawer-body .fb-wrong {
+  margin-top: var(--s-3);
+  color: var(--ink2);
+}
+.fb-line {
+  display: block;
+  margin-top: var(--s-1);
+}
+.fb-wrong .fb-line {
+  margin-top: 0;
+}
+.fb-form {
+  max-width: 560px;
+  margin-top: var(--s-2);
+  padding: var(--s-3) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.qbody .fb-form {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.fb-title,
+.drawer-body .fb-title {
+  margin: 0 0 var(--s-1);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  font-weight: 500;
+  color: var(--ink2);
+}
+.fb-opt {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.fb-opt + .fb-opt {
+  border-top: 1px solid var(--line);
+}
+.fb-opt label {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: var(--s-1) 0;
+  cursor: pointer;
+}
+.fb-opt input {
+  flex: none;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.fb-optl {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+}
+.fb-optl .meta,
+.fb-optl.plain {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 400;
+}
+.fb-optl.plain {
+  display: block;
+}
+select.input.fb-sel {
+  height: 28px;
+  font-weight: 500;
+}
+.fb-sub {
+  padding-left: 26px;
+  border-top: 1px solid var(--line);
+}
+.fb-form textarea.input {
+  min-height: 56px;
+  margin-top: var(--s-2);
+}
+.fb-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+.fb-tags {
+  margin-top: var(--s-3);
+}
+.fb-tag {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  border-top: 1px solid var(--line);
+}
+.fb-tag .subject-link {
+  font-weight: 500;
+}
+.fb-tag + .fb-form-tag {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.fb-form-tag textarea.input {
+  margin-top: 0;
+}
+
 /* Sources: ruled blocks, indented under a development; only the quoted span is tinted. */
 .source {
   display: block;

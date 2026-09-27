@@ -126,7 +126,7 @@ export interface paths {
          * List Developments
          * @description The latest run's developments in display order, optionally for some subjects (groups
          *     include their members), for a dashboard's subjects, or only those new or updated since the
-         *     previous run. A dashboard's changed developments are the ones its Since widget counts.
+         *     previous run. What changed since the review, as a Since widget counts it, is /what-changed.
          */
         get: operations["list_developments"];
         put?: never;
@@ -430,6 +430,67 @@ export interface paths {
          * @description Undo Mark reviewed: the subject counts from its review before.
          */
         delete: operations["undo_review"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/feedback/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Remove Tag
+         * @description Marks a development's subject tag wrong. Every later run leaves the tag off it.
+         */
+        post: operations["remove_tag"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/feedback/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark Answer Wrong
+         * @description Marks the latest run's answer to a built-in question wrong. The next run's answer prompt
+         *     for the subject sees the correction.
+         */
+        post: operations["mark_answer_wrong"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/feedback/{feedback_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Undo Feedback
+         * @description Undo a correction: later runs no longer see it.
+         */
+        delete: operations["undo_feedback"];
         options?: never;
         head?: never;
         patch?: never;
@@ -871,6 +932,82 @@ export interface components {
             developments: components["schemas"]["DevelopmentDetail"][];
         };
         /**
+         * AnswerFeedback
+         * @description The analyst marked an answer wrong. The run that recomputes the answer's run, and the run
+         *     after it, see the correction in their answer prompt.
+         */
+        AnswerFeedback: {
+            /** Id */
+            id: number;
+            /** Subject Id */
+            subject_id: string;
+            /** Question Id */
+            question_id: string;
+            /**
+             * Run Id
+             * @description The run whose answer was marked wrong
+             */
+            run_id: string;
+            /**
+             * Answer State
+             * @description The answer as it was marked wrong
+             * @enum {string}
+             */
+            answer_state: "stable" | "watch" | "needs_attention" | "new";
+            /** Answer Summary */
+            answer_summary: string;
+            /**
+             * State
+             * @description What the state should be, when the state is wrong
+             */
+            state: ("stable" | "watch" | "needs_attention" | "new") | null;
+            /** Summary Wrong */
+            summary_wrong: boolean;
+            /**
+             * Development Ids
+             * @description Cited developments that do not support it
+             */
+            development_ids: string[];
+            /** Reason */
+            reason: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * AnswerFeedbackRequest
+         * @description What is wrong with the latest run's answer to a built-in question: at least one of the
+         *     state, the summary, cited developments, or a reason.
+         */
+        AnswerFeedbackRequest: {
+            /** Subject Id */
+            subject_id: string;
+            /** Question Id */
+            question_id: string;
+            /**
+             * State
+             * @description What the state should be
+             */
+            state?: ("stable" | "watch" | "needs_attention" | "new") | null;
+            /**
+             * Summary Wrong
+             * @default false
+             */
+            summary_wrong: boolean;
+            /**
+             * Development Ids
+             * @description Cited developments that do not support it
+             */
+            development_ids?: string[];
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
+        };
+        /**
          * AssistantMessage
          * @description A message from the agent. Content is optional because a turn may consist
          *     only of tool calls.
@@ -1281,6 +1418,11 @@ export interface components {
             materiality_confidence: number;
             /** Subject Confidence */
             subject_confidence: components["schemas"]["SubjectConfidence"][];
+            /**
+             * Tag Feedback
+             * @description Tags the analyst removed, oldest first
+             */
+            tag_feedback: components["schemas"]["TagFeedback"][];
             /**
              * Sources
              * @description Primary sources first, then earliest
@@ -1814,7 +1956,10 @@ export interface components {
             question: string;
             /** Lookback Days */
             lookback_days: number;
-            /** Custom */
+            /**
+             * Custom
+             * @description Custom answers are not recomputed by runs, so not corrected
+             */
             custom: boolean;
             /** Summary */
             summary: string;
@@ -1828,6 +1973,8 @@ export interface components {
             /** Development Ids */
             development_ids: string[];
             change: components["schemas"]["AnswerChange"];
+            /** @description The latest correction given since the latest run finished, which the next run takes in */
+            feedback: components["schemas"]["AnswerFeedback"] | null;
         };
         /** QuestionData */
         QuestionData: {
@@ -2476,6 +2623,46 @@ export interface components {
             content: string;
         } & {
             [key: string]: unknown;
+        };
+        /**
+         * TagFeedback
+         * @description The analyst removed a subject tag from a development; every later run leaves it off.
+         */
+        TagFeedback: {
+            /** Id */
+            id: number;
+            subject: components["schemas"]["SubjectRef"];
+            /** Development Id */
+            development_id: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Run Id
+             * @description The latest run when it was given
+             */
+            run_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Applied
+             * @description The latest run already leaves the tag off
+             */
+            applied: boolean;
+        };
+        /** TagFeedbackRequest */
+        TagFeedbackRequest: {
+            /** Development Id */
+            development_id: string;
+            /** Subject Id */
+            subject_id: string;
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
         };
         /**
          * TextPart
@@ -3638,6 +3825,101 @@ export interface operations {
             header?: never;
             path: {
                 review_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_tag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TagFeedbackRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagFeedback"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_answer_wrong: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerFeedbackRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerFeedback"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    undo_feedback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                feedback_id: number;
             };
             cookie?: never;
         };

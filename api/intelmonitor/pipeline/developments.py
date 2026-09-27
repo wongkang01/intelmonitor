@@ -1,7 +1,8 @@
 """Steps 5 and 6: findings that report the same event are merged into Developments, and Jev scores
 each development's materiality. Developments are rebuilt per run from the findings in documents
 published on or before the run date; a development's id is its earliest finding's id, so the same
-event keeps its id from one run to the next."""
+event keeps its id from one run to the next. A development's subjects are its findings' subjects,
+less the tags the analyst removed from it."""
 
 import asyncio
 import json
@@ -17,6 +18,7 @@ from numpy.typing import NDArray
 from typesafe_sdk import Noul, Score
 
 from intelmonitor.config import DATA_DIR
+from intelmonitor.pipeline.feedback import removed_tags
 from intelmonitor.pipeline.inference import Inference, StepFailed, noul, score
 from intelmonitor.pipeline.params import (
     EMBEDDING_MODEL,
@@ -294,9 +296,12 @@ async def build_developments(
     devs = cluster(findings, merges)
 
     tags = _subject_confidence(conn, list({f.document_id for f in findings}))
+    removed = removed_tags(conn)
     for dev in devs:
         for f in dev.findings:
             for sid in f.subjects:
+                if (dev.id, sid) in removed:  # the analyst marked this tag wrong
+                    continue
                 conf, source = tags.get((f.document_id, sid), (0.0, "claude"))
                 best = dev.subjects.get(sid)
                 if best is None or conf > best[0]:

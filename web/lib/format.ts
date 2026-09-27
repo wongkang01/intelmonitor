@@ -65,6 +65,13 @@ export function whenAt(iso: string): string {
   return near ? `${near.toLowerCase()} at ${clock(iso)}` : dateTime(iso);
 }
 
+/** "today", "yesterday" or "on 23 Sep" for an API timestamp, to follow a verb: "You marked this wrong today". */
+export function onDay(iso: string): string {
+  const at = new Date(iso);
+  const near = RELATIVE_DAY[dayOffset(at)];
+  return near ? near.toLowerCase() : `on ${dayMonth(at)}`;
+}
+
 /** The short past form: "04:01" today, then "yesterday", then "23 Sep". */
 export function shortTime(iso: string): string {
   const at = new Date(iso);
@@ -73,6 +80,14 @@ export function shortTime(iso: string): string {
   if (offset === -1) return "yesterday";
   return dayMonth(at);
 }
+
+/** "98%" for a 0 to 1 confidence. */
+export const percent = (x: number) => `${Math.round(x * 100)}%`;
+
+const TAGGERS: Record<string, string> = { jev: "Jev", claude: "Claude" };
+
+/** Who tagged a development to a subject, from a tag's source. */
+export const tagger = (source: string) => TAGGERS[source] ?? source;
 
 /** "14 s" or "3 min". */
 export const duration = (seconds: number) =>

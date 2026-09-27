@@ -223,7 +223,7 @@
     "/developments": {
       "get": {
         "summary": "List Developments",
-        "description": "The latest run's developments in display order, optionally for some subjects (groups\ninclude their members), for a dashboard's subjects, or only those new or updated since the\nprevious run. A dashboard's changed developments are the ones its Since widget counts.",
+        "description": "The latest run's developments in display order, optionally for some subjects (groups\ninclude their members), for a dashboard's subjects, or only those new or updated since the\nprevious run. What changed since the review, as a Since widget counts it, is /what-changed.",
         "operationId": "list_developments",
         "parameters": [
           {
@@ -1172,6 +1172,117 @@
             "schema": {
               "type": "integer",
               "title": "Review Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feedback/tags": {
+      "post": {
+        "summary": "Remove Tag",
+        "description": "Marks a development's subject tag wrong. Every later run leaves the tag off it.",
+        "operationId": "remove_tag",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagFeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagFeedback"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feedback/answers": {
+      "post": {
+        "summary": "Mark Answer Wrong",
+        "description": "Marks the latest run's answer to a built-in question wrong. The next run's answer prompt\nfor the subject sees the correction.",
+        "operationId": "mark_answer_wrong",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerFeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerFeedback"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feedback/{feedback_id}": {
+      "delete": {
+        "summary": "Undo Feedback",
+        "description": "Undo a correction: later runs no longer see it.",
+        "operationId": "undo_feedback",
+        "parameters": [
+          {
+            "name": "feedback_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Feedback Id"
             }
           }
         ],
@@ -2185,6 +2296,153 @@
         ],
         "title": "AnswerEvidence",
         "description": "Everything behind one standing question answer: the answer and the developments it\nrelies on, each with its sources."
+      },
+      "AnswerFeedback": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "subject_id": {
+            "type": "string",
+            "title": "Subject Id"
+          },
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id",
+            "description": "The run whose answer was marked wrong"
+          },
+          "answer_state": {
+            "type": "string",
+            "enum": [
+              "stable",
+              "watch",
+              "needs_attention",
+              "new"
+            ],
+            "title": "Answer State",
+            "description": "The answer as it was marked wrong"
+          },
+          "answer_summary": {
+            "type": "string",
+            "title": "Answer Summary"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "stable",
+                  "watch",
+                  "needs_attention",
+                  "new"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State",
+            "description": "What the state should be, when the state is wrong"
+          },
+          "summary_wrong": {
+            "type": "boolean",
+            "title": "Summary Wrong"
+          },
+          "development_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Development Ids",
+            "description": "Cited developments that do not support it"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "subject_id",
+          "question_id",
+          "run_id",
+          "answer_state",
+          "answer_summary",
+          "state",
+          "summary_wrong",
+          "development_ids",
+          "reason",
+          "created_at"
+        ],
+        "title": "AnswerFeedback",
+        "description": "The analyst marked an answer wrong. The run that recomputes the answer's run, and the run\nafter it, see the correction in their answer prompt."
+      },
+      "AnswerFeedbackRequest": {
+        "properties": {
+          "subject_id": {
+            "type": "string",
+            "title": "Subject Id"
+          },
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "stable",
+                  "watch",
+                  "needs_attention",
+                  "new"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State",
+            "description": "What the state should be"
+          },
+          "summary_wrong": {
+            "type": "boolean",
+            "title": "Summary Wrong",
+            "default": false
+          },
+          "development_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Development Ids",
+            "description": "Cited developments that do not support it"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_id",
+          "question_id"
+        ],
+        "title": "AnswerFeedbackRequest",
+        "description": "What is wrong with the latest run's answer to a built-in question: at least one of the\nstate, the summary, cited developments, or a reason."
       },
       "AssistantMessage": {
         "properties": {
@@ -3288,6 +3546,14 @@
             "type": "array",
             "title": "Subject Confidence"
           },
+          "tag_feedback": {
+            "items": {
+              "$ref": "#/components/schemas/TagFeedback"
+            },
+            "type": "array",
+            "title": "Tag Feedback",
+            "description": "Tags the analyst removed, oldest first"
+          },
           "sources": {
             "items": {
               "$ref": "#/components/schemas/EvidenceSource"
@@ -3325,6 +3591,7 @@
           "run",
           "materiality_confidence",
           "subject_confidence",
+          "tag_feedback",
           "sources",
           "notes"
         ],
@@ -4620,7 +4887,8 @@
           },
           "custom": {
             "type": "boolean",
-            "title": "Custom"
+            "title": "Custom",
+            "description": "Custom answers are not recomputed by runs, so not corrected"
           },
           "summary": {
             "type": "string",
@@ -4649,6 +4917,17 @@
           },
           "change": {
             "$ref": "#/components/schemas/AnswerChange"
+          },
+          "feedback": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnswerFeedback"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The latest correction given since the latest run finished, which the next run takes in"
           }
         },
         "type": "object",
@@ -4662,7 +4941,8 @@
           "state",
           "new_count",
           "development_ids",
-          "change"
+          "change",
+          "feedback"
         ],
         "title": "QuestionAnswerView"
       },
@@ -6312,6 +6592,76 @@
         ],
         "title": "SystemMessage",
         "description": "Instructions from the system."
+      },
+      "TagFeedback": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "development_id": {
+            "type": "string",
+            "title": "Development Id"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id",
+            "description": "The latest run when it was given"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "applied": {
+            "type": "boolean",
+            "title": "Applied",
+            "description": "The latest run already leaves the tag off"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "subject",
+          "development_id",
+          "reason",
+          "run_id",
+          "created_at",
+          "applied"
+        ],
+        "title": "TagFeedback",
+        "description": "The analyst removed a subject tag from a development; every later run leaves it off."
+      },
+      "TagFeedbackRequest": {
+        "properties": {
+          "development_id": {
+            "type": "string",
+            "title": "Development Id"
+          },
+          "subject_id": {
+            "type": "string",
+            "title": "Subject Id"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "development_id",
+          "subject_id"
+        ],
+        "title": "TagFeedbackRequest"
       },
       "TextPart": {
         "properties": {

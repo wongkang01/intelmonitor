@@ -465,7 +465,8 @@ export function useUndoReview() {
 /** Notes hang off a subject (monitor pages) or a development (the evidence drawer). */
 export type NoteTarget = { subject_id: string } | { development_id: string };
 
-function invalidateNotes(client: QueryClient) {
+/** Refetches what shows notes and corrections: monitor pages and the evidence drawer. */
+function invalidateAnnotations(client: QueryClient) {
   return Promise.all([
     client.invalidateQueries({ queryKey: ["monitor-page"] }),
     client.invalidateQueries({ queryKey: ["development"] }),
@@ -478,7 +479,7 @@ export function useAddNote() {
   return useMutation({
     mutationFn: ({ target, text }: { target: NoteTarget; text: string }) =>
       unwrap(api.POST("/notes", { body: { ...target, text } })),
-    onSuccess: () => invalidateNotes(client),
+    onSuccess: () => invalidateAnnotations(client),
   });
 }
 
@@ -525,7 +526,7 @@ export function useDeleteNote() {
       });
       if (error !== undefined || !response.ok) throw new ApiError(response.status, error);
     },
-    onSuccess: () => invalidateNotes(client),
+    onSuccess: () => invalidateAnnotations(client),
   });
 }
 
@@ -534,7 +535,39 @@ export function useRestoreNote() {
   return useMutation({
     mutationFn: (noteId: number) =>
       unwrap(api.POST("/notes/{note_id}/restore", { params: { path: { note_id: noteId } } })),
-    onSuccess: () => invalidateNotes(client),
+    onSuccess: () => invalidateAnnotations(client),
+  });
+}
+
+/** Removes a wrong subject tag from a development; the next run leaves it off. */
+export function useRemoveTag() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Schema<"TagFeedbackRequest">) => unwrap(api.POST("/feedback/tags", { body })),
+    onSuccess: () => invalidateAnnotations(client),
+  });
+}
+
+/** Marks a standing question answer wrong; the next run's answer prompt sees the correction. */
+export function useMarkAnswerWrong() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Schema<"AnswerFeedbackRequest">) => unwrap(api.POST("/feedback/answers", { body })),
+    onSuccess: () => invalidateAnnotations(client),
+  });
+}
+
+/** Undoes a tag removal or an answer correction. */
+export function useUndoFeedback() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (feedbackId: number) => {
+      const { error, response } = await api.DELETE("/feedback/{feedback_id}", {
+        params: { path: { feedback_id: feedbackId } },
+      });
+      if (error !== undefined || !response.ok) throw new ApiError(response.status, error);
+    },
+    onSuccess: () => invalidateAnnotations(client),
   });
 }
 

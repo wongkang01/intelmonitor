@@ -1,6 +1,7 @@
 """Step 7: one Claude call per subject per run answers all of the subject's standing questions
 from the developments tagged to it (for groups, also to its members) inside each question's
-lookback. Code keeps only development ids that were eligible for the question."""
+lookback. Code keeps only development ids that were eligible for the question. The analyst's
+corrections to this run's or the previous run's answers go into the prompt."""
 
 import asyncio
 import json
@@ -12,6 +13,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 from intelmonitor.pipeline.diff import DevelopmentChange
+from intelmonitor.pipeline.feedback import AnswerCorrection, answer_corrections
 from intelmonitor.pipeline.inference import Inference, StepFailed
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS
 from intelmonitor.pipeline.subjects import Subject, all_subjects, questions_for
@@ -98,6 +100,7 @@ def answer_prompt(
     upcoming: list[tuple[str, str, str]],
     previous: dict[str, tuple[str, str]],
     base_as_of: str | None,
+    corrections: list[AnswerCorrection],
 ) -> str:
     names = all_subjects()
 
@@ -128,6 +131,14 @@ def answer_prompt(
     if previous:
         parts += ["", f"Answers at the previous run ({base_as_of}):"]
         parts += [f"- {qid}: {state}: {summary}" for qid, (state, summary) in previous.items()]
+    asked = {q.id for q in questions}
+    if wanted := [c for c in corrections if c.question_id in asked]:
+        parts += [
+            "",
+            "The analyst marked these answers wrong. Take their corrections into account where "
+            "the developments still bear them out:",
+        ]
+        parts += [c.prompt_line() for c in wanted]
     parts += ["", "Questions. Answer each one using only the developments eligible for it."]
     for q in questions:
         eligible = ", ".join(f"D:{d.id}" for d in _eligible(q, devs, as_of)) or "none"
@@ -194,12 +205,13 @@ async def answer_subject(
         )
     }
     base_as_of = base_id  # run ids are their as-of dates
+    corrections = answer_corrections(conn, subject.id, [run_id, *([base_id] if base_id else [])])
 
     answered: dict[str, QuestionAnswer] = {}
     pending = questions
     for attempt in range(2):
         prompt = answer_prompt(
-            subject, as_of, pending, devs, changes, upcoming, previous, base_as_of
+            subject, as_of, pending, devs, changes, upcoming, previous, base_as_of, corrections
         )
         ref = f"subject:{subject.id}" + (f":retry{attempt}" if attempt else "")
         result = await inf.claude("answer", ref, prompt, SubjectAnswers, ANSWER_SYSTEM)

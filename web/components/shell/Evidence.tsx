@@ -10,12 +10,13 @@ import { Fragment, useEffect, useEffectEvent, useRef, type ReactNode } from "rea
 
 import type { Schema } from "@/lib/api/client";
 import { useAnswerEvidence, useDevelopment } from "@/lib/api/queries";
-import { answerText, longDate, plural } from "@/lib/format";
+import { answerText, longDate, percent, plural, tagger } from "@/lib/format";
 import { typingIn } from "@/lib/dom";
 import { CloseButton } from "@/components/ui/Modal";
 import { Dotted, StateChange } from "@/components/monitor/parts";
 import { DevelopmentBadge } from "@/components/widgets/parts";
 
+import { TagList, useAnswerCorrection } from "./Feedback";
 import { Notes } from "./Notes";
 import { SubjectLink } from "./SubjectLink";
 
@@ -101,6 +102,7 @@ export function EvidenceDrawer() {
 
 function AnswerEvidenceView({ evidence }: { evidence: Schema<"AnswerEvidence"> }) {
   const a = evidence.answer;
+  const correction = useAnswerCorrection(evidence.subject.id, a, { icon: true });
   const before = a.change.kind === "state_changed" ? a.change.previous_state : null;
   return (
     <>
@@ -116,6 +118,13 @@ function AnswerEvidenceView({ evidence }: { evidence: Schema<"AnswerEvidence"> }
         <StateChange state={a.state} from={before} />
         {before && a.change.previous_summary && <span className="meta">, was: {answerText(a.change.previous_summary)}</span>}
       </p>
+      {!a.custom && (
+        <p className="fb-wrong">
+          {correction.link}
+          {correction.line}
+        </p>
+      )}
+      {correction.form}
       <h4 className="ev-label">
         {evidence.developments.length ? `Based on ${plural(evidence.developments.length, "development")}` : "Sources"}
       </h4>
@@ -131,7 +140,8 @@ function AnswerEvidenceView({ evidence }: { evidence: Schema<"AnswerEvidence"> }
 
 /**
  * One development: badge and facts, its title, who it is tagged to, and each source with its
- * highlighted quotes. Nested inside an answer it links to its own drawer, where notes live.
+ * highlighted quotes. Nested inside an answer it links to its own drawer, where notes and the
+ * tag list with Wrong live.
  */
 function DevelopmentEvidence({ development: d, nested = false }: { development: Schema<"DevelopmentDetail">; nested?: boolean }) {
   const evidence = useEvidenceHref();
@@ -152,7 +162,16 @@ function DevelopmentEvidence({ development: d, nested = false }: { development: 
       ) : (
         <h3 className="ev-answer">{d.title}</h3>
       )}
-      <Confidence development={d} />
+      {nested ? (
+        <Confidence development={d} />
+      ) : (
+        <>
+          <p className="meta ev-conf">
+            Materiality: <MaterialityConfidence development={d} />
+          </p>
+          <TagList development={d} />
+        </>
+      )}
     </>
   );
   const sources = d.sources.map((s) => <Source key={s.document_id} source={s} title={d.title} />);
@@ -174,11 +193,9 @@ function DevelopmentEvidence({ development: d, nested = false }: { development: 
   );
 }
 
-const percent = (x: number) => `${Math.round(x * 100)}%`;
-const TAGGER: Record<string, string> = { jev: "Jev", claude: "Claude" };
 const confidenceWord = (x: number) => (x >= 0.7 ? "high" : x >= 0.4 ? "medium" : "low");
 
-/** One line: who the development is tagged to, then materiality confidence in words. Percentages show on hover. */
+/** One line under a nested development: who it is tagged to, then materiality confidence in words. Percentages show on hover. */
 function Confidence({ development: d }: { development: Schema<"DevelopmentDetail"> }) {
   return (
     <p className="meta ev-conf">
@@ -188,7 +205,7 @@ function Confidence({ development: d }: { development: Schema<"DevelopmentDetail
           {d.subject_confidence.map((c, i) => (
             <Fragment key={c.subject.id}>
               {i > 0 && ", "}
-              <span title={`${percent(c.confidence)} confidence, tagged by ${TAGGER[c.source] ?? c.source}`}>
+              <span title={`${percent(c.confidence)} confidence, tagged by ${tagger(c.source)}`}>
                 <SubjectLink subject={c.subject} />
               </span>
             </Fragment>
@@ -196,10 +213,16 @@ function Confidence({ development: d }: { development: Schema<"DevelopmentDetail
           {" · "}
         </>
       )}
-      <span title={`Materiality confidence ${percent(d.materiality_confidence)}`}>
-        {confidenceWord(d.materiality_confidence)} confidence
-      </span>
+      <MaterialityConfidence development={d} />
     </p>
+  );
+}
+
+function MaterialityConfidence({ development: d }: { development: Schema<"DevelopmentDetail"> }) {
+  return (
+    <span title={`Materiality confidence ${percent(d.materiality_confidence)}`}>
+      {confidenceWord(d.materiality_confidence)} confidence
+    </span>
   );
 }
 

@@ -128,6 +128,14 @@ Mocks: `mocks/*.html`. Picks from the user on 2026-09-27 are noted per item.
    Each subject tag has a "Wrong" link with a reason and Remove tag.
    The row then shows "You marked this wrong today: ... Undo".
    Tag corrections are respected by the next run; answer corrections are recorded and shown, and the next run's answer prompt sees them.
+   Built: corrections are rows in a `feedback` table; `POST /feedback/tags` and `POST /feedback/answers` add one and `DELETE /feedback/{id}` is Undo.
+   The pipeline leaves a removed tag off its development in every later run (`removed_tags` in `pipeline/feedback.py`), which also keeps it out of that run's answer prompts, the graph and custom question matching.
+   An answer correction goes into the answer prompt of the run that recomputes the corrected run and of the run after it, with the answer as it was, what was wrong and the reason; later runs no longer see it.
+   Checked with Run now: a removed SEA countries tag stayed off its OCBC Malaysia development, and OCBC's Adverse answer came back as Watch citing only the outage, as the correction asked; after Undo, a rerun restored both from cached calls.
+   `QuestionAnswerView.feedback` is the correction given since the latest run finished, which the row and drawer show with Undo; once a run has taken it in, Mark wrong shows again.
+   `DevelopmentDetail.tag_feedback` lists removed tags, so the drawer keeps showing one the run dropped, with Undo.
+   Mark wrong shows on every built-in answer, including ones with no sources (the mock showed it only on answers with evidence), and never on custom answers, which runs do not recompute.
+   The State option uses a native select, and when an answer cites several developments, checking Cited developments lists them, all checked, to uncheck the sound ones.
 5. **Notes and deletes.** No mock picked: no Trash and no note editing.
    Deleting a note or dashboard shows the Undo toast for longer (8 s, paused on hover or focus); that is the only restore.
    Soft-deleted rows are purged when the API starts if they were deleted more than a day ago.

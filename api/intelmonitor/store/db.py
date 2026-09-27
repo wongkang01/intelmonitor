@@ -252,6 +252,26 @@ CREATE TABLE IF NOT EXISTS follows (
     created_at TEXT NOT NULL
 );
 
+-- The analyst's corrections to the AI. A tag correction removes a subject from one development
+-- in every later run. An answer correction goes into the answer prompt of the run that recomputes
+-- the corrected answer's run and of the run after it. Undo deletes the row.
+CREATE TABLE IF NOT EXISTS feedback (
+    id INTEGER PRIMARY KEY,
+    kind TEXT NOT NULL,                -- tag or answer
+    subject_id TEXT NOT NULL,          -- the tag's subject, or the answer's subject
+    development_id TEXT,               -- tag: the development it is removed from
+    question_id TEXT,                  -- answer: the built-in question
+    run_id TEXT NOT NULL,              -- the latest run when it was given
+    answer_state TEXT,                 -- answer: the answer as it was marked wrong
+    answer_summary TEXT,
+    state TEXT,                        -- answer: what the state should be, when it is wrong
+    summary_wrong INTEGER NOT NULL DEFAULT 0,
+    development_ids TEXT NOT NULL DEFAULT '[]', -- answer: JSON [id], cited ones marked wrong
+    reason TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS feedback_kind ON feedback (kind, subject_id);
+
 CREATE TABLE IF NOT EXISTS custom_questions (
     id TEXT PRIMARY KEY,               -- custom-<hex>
     subject_id TEXT NOT NULL,

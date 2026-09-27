@@ -139,17 +139,38 @@ class AnswerChange(BaseModel):
     previous_summary: str | None
 
 
+class AnswerFeedback(BaseModel):
+    """The analyst marked an answer wrong. The run that recomputes the answer's run, and the run
+    after it, see the correction in their answer prompt."""
+
+    id: int
+    subject_id: str
+    question_id: str
+    run_id: str = Field(description="The run whose answer was marked wrong")
+    answer_state: State = Field(description="The answer as it was marked wrong")
+    answer_summary: str
+    state: State | None = Field(description="What the state should be, when the state is wrong")
+    summary_wrong: bool
+    development_ids: list[str] = Field(description="Cited developments that do not support it")
+    reason: str
+    created_at: datetime
+
+
 class QuestionAnswerView(BaseModel):
     question_id: str
     label: str
     question: str
     lookback_days: int
-    custom: bool
+    custom: bool = Field(description="Custom answers are not recomputed by runs, so not corrected")
     summary: str
     state: State
     new_count: int
     development_ids: list[str]
     change: AnswerChange
+    feedback: AnswerFeedback | None = Field(
+        description="The latest correction given since the latest run finished, which the next "
+        "run takes in"
+    )
 
 
 class QuestionStateChange(BaseModel):
@@ -363,10 +384,23 @@ class SubjectConfidence(BaseModel):
     source: str
 
 
+class TagFeedback(BaseModel):
+    """The analyst removed a subject tag from a development; every later run leaves it off."""
+
+    id: int
+    subject: SubjectRef
+    development_id: str
+    reason: str
+    run_id: str = Field(description="The latest run when it was given")
+    created_at: datetime
+    applied: bool = Field(description="The latest run already leaves the tag off")
+
+
 class DevelopmentDetail(DevelopmentSummary):
     run: RunRef
     materiality_confidence: float
     subject_confidence: list[SubjectConfidence]
+    tag_feedback: list[TagFeedback] = Field(description="Tags the analyst removed, oldest first")
     sources: list[EvidenceSource] = Field(description="Primary sources first, then earliest")
     notes: list[Note]
 
@@ -488,6 +522,26 @@ class NoteRequest(BaseModel):
     subject_id: SubjectId | None = None
     development_id: str | None = None
     text: str = Field(min_length=1, max_length=4000)
+
+
+class TagFeedbackRequest(BaseModel):
+    development_id: str
+    subject_id: SubjectId
+    reason: str = Field(default="", max_length=2000)
+
+
+class AnswerFeedbackRequest(BaseModel):
+    """What is wrong with the latest run's answer to a built-in question: at least one of the
+    state, the summary, cited developments, or a reason."""
+
+    subject_id: SubjectId
+    question_id: str
+    state: State | None = Field(default=None, description="What the state should be")
+    summary_wrong: bool = False
+    development_ids: list[str] = Field(
+        default_factory=list[str], description="Cited developments that do not support it"
+    )
+    reason: str = Field(default="", max_length=2000)
 
 
 AlertBadge = Literal["needs_attention", "watch"]

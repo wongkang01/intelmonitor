@@ -18,6 +18,7 @@ from intelmonitor.pipeline.subjects import all_subjects
 from intelmonitor.server import alerts as alert_list
 from intelmonitor.server import custom_questions as cq
 from intelmonitor.server import dashboards as dash
+from intelmonitor.server import feedback as fb
 from intelmonitor.server import runs
 from intelmonitor.server import triage as tri
 from intelmonitor.server.evidence import development_sources, document_detail, new_documents
@@ -25,6 +26,8 @@ from intelmonitor.server.graph import neighbourhood
 from intelmonitor.server.models import (
     Alerts,
     AnswerEvidence,
+    AnswerFeedback,
+    AnswerFeedbackRequest,
     DataSources,
     DataSourceStats,
     DevelopmentDetail,
@@ -47,6 +50,8 @@ from intelmonitor.server.models import (
     SubjectRef,
     SubjectSummary,
     SubjectTrend,
+    TagFeedback,
+    TagFeedbackRequest,
     Triage,
     TriageChange,
     WhatChanged,
@@ -123,6 +128,11 @@ async def _cap(_: Request, error: cq.CapReachedError) -> JSONResponse:
 @app.exception_handler(dash.OrderError)
 async def _order(_: Request, error: dash.OrderError) -> JSONResponse:
     return JSONResponse({"detail": str(error)}, status_code=409)
+
+
+@app.exception_handler(fb.FeedbackError)
+async def _feedback(_: Request, error: fb.FeedbackError) -> JSONResponse:
+    return JSONResponse({"detail": str(error)}, status_code=422)
 
 
 @app.exception_handler(runs.RunInProgressError)
@@ -277,6 +287,7 @@ def _development_detail(q: Queries, development_id: str) -> DevelopmentDetail:
         run=q.run,
         materiality_confidence=row["materiality_confidence"],
         subject_confidence=confidence,
+        tag_feedback=fb.tag_feedback(q, development_id),
         sources=development_sources(
             q.conn, q.run.id, development_id, new_documents(q.conn, q.run.id, development_id)
         ),
@@ -390,6 +401,25 @@ def mark_reviewed(q: Q, request: ReviewRequest) -> list[Review]:
 def undo_review(q: Q, review_id: int) -> None:
     """Undo Mark reviewed: the subject counts from its review before."""
     tri.undo_review(q.conn, review_id)
+
+
+@app.post("/feedback/tags", status_code=201)
+def remove_tag(q: Q, request: TagFeedbackRequest) -> TagFeedback:
+    """Marks a development's subject tag wrong. Every later run leaves the tag off it."""
+    return fb.remove_tag(q, request)
+
+
+@app.post("/feedback/answers", status_code=201)
+def mark_answer_wrong(q: Q, request: AnswerFeedbackRequest) -> AnswerFeedback:
+    """Marks the latest run's answer to a built-in question wrong. The next run's answer prompt
+    for the subject sees the correction."""
+    return fb.mark_answer_wrong(q, request)
+
+
+@app.delete("/feedback/{feedback_id}", status_code=204)
+def undo_feedback(q: Q, feedback_id: int) -> None:
+    """Undo a correction: later runs no longer see it."""
+    fb.undo(q.conn, feedback_id)
 
 
 @app.get("/follows")

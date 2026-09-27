@@ -133,6 +133,14 @@ export const ExclamationIcon = () => (
   </svg>
 );
 
+/** A ring with an exclamation: Mark wrong. */
+export const WrongIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <circle cx="8" cy="8" r="5.6" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M8 5v3.4M8 10.8v.1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+  </svg>
+);
+
 /** The static running mark: a ring with its left half filled. Never animated. */
 export const RunningIcon = () => (
   <svg className="half" width="8" height="8" viewBox="0 0 8 8" aria-hidden="true">

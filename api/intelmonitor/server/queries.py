@@ -20,6 +20,7 @@ from intelmonitor.seed import load_subjects
 from intelmonitor.server.models import (
     STAGE_ORDER,
     AnswerChange,
+    AnswerFeedback,
     CategorySeries,
     ChangedDevelopment,
     CommonIssue,
@@ -418,6 +419,7 @@ class Queries:
         an answer in the latest run (a custom question still being answered) are left out."""
         current = self._answer_rows(self.run.id, subject_id)
         base = self._answer_rows(self.run.previous_run_id, subject_id)
+        feedback = self.pending_answer_feedback(subject_id)
         out: list[QuestionAnswerView] = []
         for q in defs if defs is not None else self.question_defs(subject_id):
             a = current.get(q.id)
@@ -447,9 +449,19 @@ class Queries:
                     new_count=a["new_count"],
                     development_ids=ids,
                     change=change,
+                    feedback=feedback.get(q.id),
                 )
             )
         return out
+
+    def pending_answer_feedback(self, subject_id: str) -> dict[str, AnswerFeedback]:
+        """Per question, the latest correction given after the latest run finished."""
+        rows = self.conn.execute(
+            "SELECT * FROM feedback WHERE kind = 'answer' AND subject_id = ? AND created_at > ? "
+            "ORDER BY created_at, id",
+            (subject_id, self._run_row["finished_at"] or ""),
+        ).fetchall()
+        return {r["question_id"]: answer_feedback(r) for r in rows}
 
     # ---- what changed, upcoming, stages, group insights
 
@@ -678,6 +690,22 @@ class Queries:
         if row is None:
             raise NotFoundError(f"note {note_id}")
         return _note(row)
+
+
+def answer_feedback(r: sqlite3.Row) -> AnswerFeedback:
+    return AnswerFeedback(
+        id=r["id"],
+        subject_id=r["subject_id"],
+        question_id=r["question_id"],
+        run_id=r["run_id"],
+        answer_state=r["answer_state"],
+        answer_summary=r["answer_summary"],
+        state=r["state"],
+        summary_wrong=bool(r["summary_wrong"]),
+        development_ids=json.loads(r["development_ids"]),
+        reason=r["reason"],
+        created_at=r["created_at"],
+    )
 
 
 def _note(r: sqlite3.Row) -> Note:

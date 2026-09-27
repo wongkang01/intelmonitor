@@ -103,6 +103,12 @@ Group pages add common issues and outliers. Topic pages add the stage track (sig
 
 Slides in from the right; the page stays visible behind it. Shows the finding, each source (title, date, source type, highlighted passage), confidence, and notes. Keyboard: Esc closes.
 
+The analyst corrects the AI in place.
+Under a built-in standing question answer (in the drawer and in the monitor page row's meta), Mark wrong opens a form under it: which of the state, the summary and the cited developments is wrong, what the state should be, and a reason.
+A development's drawer lists its tags under "Tagged to", each with its confidence and a Wrong link that opens a reason and Remove tag.
+Until the next run takes a correction in, the answer or tag reads "You marked this wrong today", with Undo; a tag the run removed stays listed with Undo.
+Custom answers have no Mark wrong, since runs do not recompute them.
+
 ### Graph view
 
 Opens centred on the current page at 1 hop, expandable to 2. Node color = type. Filters: node type, link type, time window. Nodes with new developments are highlighted. Click a node to open its page. Never shows the whole graph by default.

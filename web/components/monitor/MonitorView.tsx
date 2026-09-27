@@ -14,6 +14,7 @@ import { answerText, capitalize, daysBetween, inDays, plural, shortDate, TYPE_PL
 import { monitorHref, type SubjectType } from "@/lib/widgets";
 import { CustomQuestionComposer, CustomQuestionEditor } from "@/components/custom/CustomQuestion";
 import { useEvidenceHref } from "@/components/shell/Evidence";
+import { useAnswerCorrection } from "@/components/shell/Feedback";
 import { Notes } from "@/components/shell/Notes";
 import { SubjectLink, SubjectLinks } from "@/components/shell/SubjectLink";
 import { PlusIcon, TickIcon } from "@/components/ui/icons";
@@ -110,7 +111,6 @@ function Summary({ subject: s }: { subject: Schema<"SubjectDetail"> }) {
 }
 
 function Questions({ page }: { page: Page }) {
-  const evidence = useEvidenceHref();
   const toast = useToast();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
@@ -127,48 +127,9 @@ function Questions({ page }: { page: Page }) {
   return (
     <Section id="questions" title="Standing questions" meta={changed > 0 ? `${plural(changed, "answer")} changed` : plural(page.questions.length, "question")}>
       <div className="rows">
-        {page.questions.map((a) => {
-          const before = a.change.kind === "state_changed" ? a.change.previous_state : null;
-          return (
-            <div key={a.question_id} className="row qrow" data-question-id={a.question_id}>
-              <span className="stat">
-                <StateBadge state={a.state} newCount={a.new_count} />
-              </span>
-              <div className="qbody">
-                <div className="qlabel">
-                  <b>{a.label}</b>
-                  {a.custom && (
-                    <>
-                      <span className="badge b-neutral">Custom</span>
-                      <button type="button" className="link" onClick={() => setEditing(a.question_id)} aria-label={`Edit ${a.label}`}>
-                        Edit
-                      </button>
-                    </>
-                  )}
-                </div>
-                <p className="qquestion">{a.question}</p>
-                <div className="qanswer">
-                  <p>{answerText(a.summary)}</p>
-                </div>
-                <p className="meta qmeta">
-                  <Dotted
-                    parts={[
-                      before && <StateChange key="s" state={a.state} from={before} />,
-                      `Last ${a.lookback_days} days`,
-                      a.development_ids.length > 0 ? (
-                        <Link key="e" href={evidence.answer(page.subject.id, a.question_id)} scroll={false} className="link">
-                          See evidence
-                        </Link>
-                      ) : (
-                        "No sources"
-                      ),
-                    ]}
-                  />
-                </p>
-              </div>
-            </div>
-          );
-        })}
+        {page.questions.map((a) => (
+          <QuestionRow key={a.question_id} subjectId={page.subject.id} answer={a} onEdit={() => setEditing(a.question_id)} />
+        ))}
         {page.questions.length === 0 && <p className="mon-empty">No answers in this run.</p>}
         {adding && (
           <div className="row qrow compose">
@@ -208,6 +169,55 @@ function Questions({ page }: { page: Page }) {
         }}
       />
     </Section>
+  );
+}
+
+/** One standing question: state, label, question, answer, then meta with See evidence and Mark wrong. */
+function QuestionRow({ subjectId, answer: a, onEdit }: { subjectId: string; answer: Schema<"QuestionAnswerView">; onEdit: () => void }) {
+  const evidence = useEvidenceHref();
+  const correction = useAnswerCorrection(subjectId, a);
+  const before = a.change.kind === "state_changed" ? a.change.previous_state : null;
+  return (
+    <div className="row qrow" data-question-id={a.question_id}>
+      <span className="stat">
+        <StateBadge state={a.state} newCount={a.new_count} />
+      </span>
+      <div className="qbody">
+        <div className="qlabel">
+          <b>{a.label}</b>
+          {a.custom && (
+            <>
+              <span className="badge b-neutral">Custom</span>
+              <button type="button" className="link" onClick={onEdit} aria-label={`Edit ${a.label}`}>
+                Edit
+              </button>
+            </>
+          )}
+        </div>
+        <p className="qquestion">{a.question}</p>
+        <div className="qanswer">
+          <p>{answerText(a.summary)}</p>
+        </div>
+        <p className="meta qmeta">
+          <Dotted
+            parts={[
+              before && <StateChange key="s" state={a.state} from={before} />,
+              `Last ${a.lookback_days} days`,
+              a.development_ids.length > 0 ? (
+                <Link key="e" href={evidence.answer(subjectId, a.question_id)} scroll={false} className="link">
+                  See evidence
+                </Link>
+              ) : (
+                "No sources"
+              ),
+              correction.link,
+            ]}
+          />
+          {correction.line}
+        </p>
+        {correction.form}
+      </div>
+    </div>
   );
 }
 

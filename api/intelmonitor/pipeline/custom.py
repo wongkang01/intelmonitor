@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 from typesafe_sdk import Noul
 
 from intelmonitor.pipeline.answers import State, scope
+from intelmonitor.pipeline.feedback import removed_tags
 from intelmonitor.pipeline.inference import Inference, noul
 from intelmonitor.pipeline.subjects import all_subjects
 
@@ -92,8 +93,10 @@ def candidates(
     conn: sqlite3.Connection, run_id: str, config: CustomConfig, after: date, until: date
 ) -> list[Candidate]:
     """Documents published after `after` and up to `until` with findings tagged to the subject
-    (or a group's members) that belong to one of the run's developments."""
+    (or a group's members) that belong to one of the run's developments. Tags the analyst removed
+    from a development do not count."""
     ids = scope(all_subjects()[config.subject_id])
+    removed = removed_tags(conn)
     out: dict[str, Candidate] = {}
     for r in conn.execute(
         "SELECT f.statement, f.subjects, f.quotes, s.development_id, d.id, d.title, d.domain, "
@@ -103,7 +106,8 @@ def candidates(
         "AND substr(d.published_at, 1, 10) <= ? ORDER BY d.published_at, f.id",
         (run_id, after.isoformat(), until.isoformat()),
     ):
-        if not ids & set(json.loads(r["subjects"])):
+        tagged = {s for s in json.loads(r["subjects"]) if (r["development_id"], s) not in removed}
+        if not ids & tagged:
             continue
         c = out.get(r["id"])
         if c is None:
