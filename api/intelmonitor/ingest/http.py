@@ -1,8 +1,10 @@
 """HTTP client that caches every response under data/raw/, keyed by request.
 
-A request is identified by method, URL, query params and JSON body (never headers, so API keys
-stay out of the cache key). Final responses (2xx and 4xx) are cached; network errors, 429 and 5xx
-are retried and never cached. A rerun over the same requests makes zero network calls, which
+A request is identified by method, URL, query params, JSON body and an optional `vary` tag. Headers
+and `secret_params` are sent but never keyed or stored, so API keys stay out of the cache. `vary`
+is keyed but never sent: a caller passes the fetch date for a URL whose answer changes daily.
+Final responses (2xx, and 4xx unless `cache_errors` is off) are cached; network errors, 429 and
+5xx are retried and never cached. A rerun over the same requests makes zero network calls, which
 `network` counts per namespace.
 """
 
@@ -61,6 +63,8 @@ class _Request:
     url: str
     params: dict[str, str]
     body: dict[str, JSONValue] | None
+    vary: str | None = None
+    secret_params: dict[str, str] | None = None  # sent, never part of the key
 
     def key(self) -> dict[str, JSONValue]:
         key: dict[str, JSONValue] = {"method": self.method, "url": self.url}
@@ -68,6 +72,8 @@ class _Request:
             key["params"] = dict(self.params)
         if self.body is not None:
             key["body"] = self.body
+        if self.vary is not None:
+            key["vary"] = self.vary
         return key
 
 
@@ -91,9 +97,12 @@ class CachedHttp:
         params: dict[str, str] | None = None,
         headers: dict[str, str] | None = None,
         expect_json: bool = False,
+        vary: str | None = None,
+        secret_params: dict[str, str] | None = None,
+        cache_errors: bool = True,
     ) -> CachedResponse:
-        request = _Request("GET", url, params or {}, None)
-        return self._fetch(namespace, request, headers or {}, expect_json)
+        request = _Request("GET", url, params or {}, None, vary, secret_params)
+        return self._fetch(namespace, request, headers or {}, expect_json, cache_errors)
 
     def post_json(
         self,
@@ -112,6 +121,7 @@ class CachedHttp:
         request: _Request,
         headers: dict[str, str],
         expect_json: bool,
+        cache_errors: bool = True,
     ) -> CachedResponse:
         key = request.key()
         digest = hashlib.sha256(json.dumps(key, sort_keys=True).encode()).hexdigest()[:32]
@@ -129,6 +139,8 @@ class CachedHttp:
             )
 
         response = self._request(namespace, request, headers, expect_json)
+        if not (response.ok or cache_errors):
+            return response
         meta_path.parent.mkdir(parents=True, exist_ok=True)
         body_path.write_bytes(response.content)
         meta_path.write_text(
@@ -163,16 +175,20 @@ class CachedHttp:
                 if request.body is not None:
                     r = self.client.post(url, json=request.body, headers=headers)
                 else:
-                    r = self.client.get(url, params=request.params, headers=headers)
+                    params = {**request.params, **(request.secret_params or {})}
+                    r = self.client.get(url, params=params, headers=headers)
             except httpx.HTTPError as e:
                 error = repr(e)
                 continue
             if r.status_code == 429 or r.status_code >= 500:
                 error = f"HTTP {r.status_code}"
                 continue
+            final_url = r.url
+            for name in request.secret_params or {}:
+                final_url = final_url.copy_remove_param(name)
             response = CachedResponse(
                 status=r.status_code,
-                url=str(r.url),
+                url=str(final_url),
                 content_type=r.headers.get("content-type", ""),
                 content=r.content,
             )

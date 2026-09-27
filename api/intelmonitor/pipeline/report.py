@@ -10,6 +10,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from intelmonitor.config import ARTIFACTS_DIR
+from intelmonitor.ingest.series.collect import FetchSummary
 from intelmonitor.pipeline.extract import Extraction, locate_quote
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS, ROUTE_HIGH, ROUTE_LOW
 from intelmonitor.pipeline.subjects import all_subjects, questions_for
@@ -465,6 +466,45 @@ def _usage(conn: sqlite3.Connection) -> list[str]:
     ]
 
 
+def _series(conn: sqlite3.Connection) -> list[str]:
+    out = ["## Series", ""]
+    stored = get_meta(conn, "series_last_fetch")
+    if stored is None:
+        return out + ["No series fetched yet: run `im series backfill`."]
+    last = FetchSummary.model_validate_json(stored)
+    calls = ", ".join(f"{k} {v}" for k, v in last.network.items()) or "none"
+    out += [
+        f"Latest fetch {last.fetched_at:%Y-%m-%d %H:%M} UTC, up to {last.today}, history from "
+        f"{last.floor}: {last.added:,} rows added, {last.revised} revised, "
+        f"{len(last.failures)} series failed. External calls: {calls}.",
+        "",
+    ]
+    rows = conn.execute(
+        "SELECT s.source, count(DISTINCT s.id) AS series, count(o.period) AS observations, "
+        "max(o.period) AS latest, "
+        "(SELECT count(*) FROM observation_revisions r JOIN series x ON x.id = r.series_id "
+        "WHERE x.source = s.source) AS revisions "
+        "FROM series s LEFT JOIN observations o ON o.series_id = s.id "
+        "GROUP BY s.source ORDER BY s.source"
+    ).fetchall()
+    out.append(
+        _table(
+            ["Source", "Series", "Observations", "Latest period", "Revisions"],
+            [
+                [r["source"], r["series"], f"{r['observations']:,}", r["latest"], r["revisions"]]
+                for r in rows
+            ],
+        )
+    )
+    if last.failures:
+        out += ["", "Failed in the latest fetch:", ""]
+        out += [f"- {series_id}: {reason}" for series_id, reason in last.failures.items()]
+    if last.stale:
+        stale = ", ".join(f"{k} ({v})" for k, v in last.stale.items())
+        out += ["", f"Stale (latest point more than a day old): {stale}."]
+    return out
+
+
 def _minutes(started: str, finished: str | None) -> str:
     if not finished:
         return ""
@@ -496,6 +536,7 @@ def build_report(conn: sqlite3.Connection) -> str:
         ],
         _checks(conn, runs),
         _documents(conn, runs),
+        _series(conn),
         _screening(conn),
         _extraction(conn),
         _developments(conn, runs),

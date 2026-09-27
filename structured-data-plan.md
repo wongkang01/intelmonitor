@@ -14,9 +14,9 @@ Checked with the keys in `.env` on 2026-09-27.
 | MAS I.18 | Non-bank loan-to-deposit ratio: overall, SGD, foreign currency | Monthly | Jul 2021 on (61 rows) | One call returns the whole table; latest rows carry `p_ind: "P"` (preliminary) and get revised |
 | MAS I.12A | Non-performing loan ratio, overall and 20 sectors | Quarterly | 2021 Q3 on (20 rows) | Same shape; preliminary flag |
 | MAS I.5B | Loans to non-residents, total and by industry, S$ million | Monthly | Jul 2021 on | Industry, not country |
-| MAS exchange rates | SGD per unit of USD, EUR, GBP, CNY, HKD, MYR, THB, IDR, PHP, VND and 11 more | Daily | Any day | One call per day (`end_of_day` filter is required); Asian currencies are quoted per 100 units |
-| FRED | USD/SGD, USD/MYR, USD/THB daily; USD/IDR monthly; Fed funds (`DFF`), ECB deposit rate (`ECBDFR`), US 10-year (`DGS10`), US high-yield spread (`BAMLH0A0HYM2`), VIX (`VIXCLS`) | Daily or monthly | Decades | No PHP or VND series; MAS covers them |
-| CoinGecko (demo key) | Price and market cap: USDT, USDC, PYUSD, USDP, XSGD | Daily beyond 90 days, hourly within | 365 days | Rate-limited; XSGD is pegged to SGD, so its peg needs USD/SGD |
+| MAS exchange rates | SGD per unit of USD, EUR, GBP, CNY, HKD, MYR, THB, IDR, PHP, VND and 11 more | Daily | 1988 on, daily from 2003 | The unfiltered URL returns the whole table in one call (6,739 rows, 3.3 MB); `end_of_day=YYYY-MM-DD` returns one day; other filters are ignored; Asian currencies are quoted per 100 units |
+| FRED | USD/SGD, USD/MYR, USD/THB daily; USD/IDR monthly; Fed funds (`DFF`), ECB deposit rate (`ECBDFR`), US 10-year (`DGS10`), US high-yield spread (`BAMLH0A0HYM2`), VIX (`VIXCLS`) | Daily or monthly | Decades; the high-yield spread only from Sep 2023 | No PHP or VND series, and MAS has all FX history, so FRED is used for rates only; FRED stalls requests that send a browser user agent |
+| CoinGecko (demo key) | Price and market cap: USDT, USDC, PYUSD, USDP, XSGD | Daily beyond 90 days, hourly within | 365 days (a range starting earlier answers 401) | Rate-limited; XSGD is pegged to SGD, so its peg needs USD/SGD |
 | DefiLlama (no key) | Circulating supply per stablecoin and per chain, 427 coins | Daily | Full | Total stablecoin market cap as well |
 
 Everything is system-wide or market-wide.
@@ -41,10 +41,11 @@ New tables in `api/intelmonitor/store/db.py`:
 Rules:
 
 - `available_at` is when the value could have been known: the source's own publish or create date where it gives one (MAS rows carry `create_date`), otherwise period end plus the source's usual lag.
+  MAS reloads whole tables (every row said 31 Aug 2026 when probed), so a create date more than twice the usual lag after period end is a reload, and the value falls back to period end plus the lag.
   A run as of date D only reads observations with `available_at` on or before D, so backfilled runs never see the future.
 - Units are normalised on the way in: MAS "per 100 units" quotes become per unit, and every FX series is stored in one declared direction.
 - Derived series are computed by code after a fetch and stored as observations with `source = derived`.
-  They use a small fixed set of operations, declared in the seed: `deviation` (value minus a target), `product` (for example XSGD in USD times USD/SGD gives XSGD in SGD) and `share` (a part over a total).
+  They use a small fixed set of operations, declared in the seed: `deviation` (distance from a target, in percent of the target), `product` (for example XSGD in USD times USD/SGD gives XSGD in SGD) and `share` (a part over a total).
   There is no free-form expression language.
 - Series ids, names, units and subject mappings live in `api/seed/series.yaml`, next to `subjects.yaml`, so adding a series needs no code change.
 
@@ -57,7 +58,7 @@ Rules:
 - `im series fetch` fetches every series up to today; `im series backfill --from 2021-07-01` fills history once.
   `im ingest` and Run now call the fetch first, so a run always has current data.
 - Backfill cost is small: MAS tables and FRED return full history in one call per table or series, DefiLlama in one call per coin, and CoinGecko in one call per coin for 365 days.
-  MAS exchange rates need one call per day: use FRED for USD, MYR and THB history, and MAS for PHP, VND and IDR over the last 365 days (365 cached calls, throttled).
+  MAS exchange rates return their whole daily history in one call, so the backfill makes one call for every currency; a daily fetch asks for each weekday of the last 14 days instead (about ten small calls, mostly cached).
 - Each fetch logs calls per namespace, the same way document ingest does, and the pipeline report gains a series section: series fetched, rows added, rows revised, failures.
 
 ### Failure modes to handle
@@ -81,7 +82,7 @@ Written before the code, per the project's testing rule.
 | Loan-to-deposit ratio: overall, SGD, foreign currency | MAS I.18 | Singapore banks, Singapore; DBS, OCBC, UOB, MAS |
 | NPL ratio: overall; construction, transport and storage, manufacturing, wholesale trade | MAS I.12A | Singapore banks, Singapore; DBS, OCBC, UOB, MAS, Banking regulation |
 | Loans to non-residents: total and top industries | MAS I.5B | Singapore banks; Geopolitics |
-| SGD against USD, MYR, THB, IDR, PHP, VND, CNY, HKD | MAS exchange rates, FRED for history | Each country; SEA countries, MAS, BNM, PBoC, HKMA; Geopolitics |
+| SGD against USD, MYR, THB, IDR, PHP, VND, CNY, HKD | MAS exchange rates | Each country; SEA countries, MAS, BNM, PBoC, HKMA; Geopolitics |
 | Fed funds rate | FRED `DFF` | Fed; Central banks, Banking regulation |
 | ECB deposit rate | FRED `ECBDFR` | ECB; Central banks |
 | US 10-year yield, US high-yield spread, VIX | FRED | Geopolitics (risk sentiment); Central banks |
@@ -95,6 +96,35 @@ Written before the code, per the project's testing rule.
 
 The tables, adapters, seed, CLI and backfill above.
 API: `GET /series/{id}?from=&to=` returns observations and revisions; `GET /subjects/{id}/indicators` returns the subject's series with latest value, change over 1 week, 1 month, 3 months and 1 year, where the latest value sits in its history (percentile), and state.
+
+Built (store and collection; the two endpoints come next):
+
+- The five tables are in `api/intelmonitor/store/db.py` and `connect()` creates them in existing stores.
+  `run_indicators` stays empty until runs compute indicators.
+- `api/seed/series.yaml` holds 62 series: 22 MAS, 5 FRED, 5 CoinGecko, 15 DefiLlama and 15 derived.
+  `load_series()` in `seed.py` checks that subjects exist, that derived inputs are declared above their use, and that every `fx.sgd.<ccy>` series is SGD per unit with a matching MAS field.
+- Ids: `mas.ltd.*`, `mas.npl.*`, `mas.nrl.*` (loans to non-residents), `fx.sgd.<ccy>`, `fred.*`, `cg.<coin>.price`, `llama.<coin>.supply` and `llama.<coin>.supply.<chain>`, `llama.total.supply`, and `derived.<coin>.peg`, `derived.<coin>.share.<chain>`, `derived.xsgd.price_sgd`.
+- Adapters in `api/intelmonitor/ingest/series/` share one interface, `fetch(http, settings, sources, window) -> Fetched`, and never raise for a bad source.
+  `collect.py` runs them, saves, derives and logs calls per namespace; `store/series.py` saves observations and reads them.
+- `read_observations(conn, id, as_of)` returns only what was available by the end of `as_of`, at the value it had before any later revision.
+- `available_at`: MAS tables by the create-date rule above (31-day lag for monthly tables, 62 for I.12A); exchange rates the next day; FRED `lag_days` after the date (default 1); CoinGecko the point's own time; DefiLlama the end of the point's day.
+- A fetched value counts as a revision only when it differs at the series' precision and by more than float noise; a preliminary flag that clears without a value change is updated without one.
+- Derived values: `deviation` is percent off the target; `product` and `share` take, for each period of the first input, the latest second input already available at that time, so weekend coin prices use Friday's rate and a later rate never rewrites an earlier result.
+- `im series fetch`, `im series backfill --from 2021-07-01`; `im ingest` fetches series before documents, and Run now fetches them before the run, logging a failure and going ahead.
+  `im report` has a Series section: the latest fetch, and per source the series, observations, latest period and revisions.
+- Differs from the plan: every FX series comes from MAS, whose unfiltered exchange-rate URL returns the whole daily history in one call, so FRED is not used for FX and nothing needs throttling.
+  `CachedHttp` gained `vary` (keyed, not sent: the fetch date for URLs without a date parameter), `secret_params` (sent, never keyed or stored: FRED's key) and `cache_errors`.
+  Data API requests send the user agent `intelmonitor/0.1`, because FRED stalls the browser user agent used for official pages.
+- Failure modes: (1) a missing key fails that source's series with one log line per reason, and a rejected key (401 or 403, or FRED's 400) stops that source's further calls; error responses are never cached, so a fixed key works on the next fetch.
+  (2) An HTML page is retried, then fails its series, and is never cached or parsed.
+  (3) Validation fails one table or response; a missing MAS field fails only its series.
+  (4) Revisions as above.
+  (5) Gaps stay gaps (FRED's "." is skipped).
+  (6) The fetch lists CoinGecko and DefiLlama series whose latest point is more than a day old as stale; the "Stale" state belongs to the indicators endpoint.
+  (7) The per-100 conversion was checked against FRED cross rates: SGD per MYR on 18 Sep 2026 is 0.3128 from MAS and 0.3132 from `DEXSIUS / DEXMAUS`, SGD per THB 0.038342 and 0.038294; the E2E unit check comes with the API.
+  (8) `CachedHttp` already retries 429 and never caches it.
+  (9) `read_observations` with `as_of`.
+- `data/intelmonitor.db` holds the real backfill from 2021-07-01: 55,890 observations.
 
 ### F2. Facts in standing answers
 

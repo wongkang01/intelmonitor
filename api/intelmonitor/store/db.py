@@ -295,6 +295,62 @@ CREATE TABLE IF NOT EXISTS custom_question_answers (
     PRIMARY KEY (question_id, run_id)
 );
 
+-- Structured data (structured-data-plan.md, store/series.py). The catalogue tables mirror
+-- api/seed/series.yaml and are rewritten on every series fetch; observations keep the latest value
+-- per period, and a changed value leaves a revision row.
+CREATE TABLE IF NOT EXISTS series (
+    id TEXT PRIMARY KEY,               -- e.g. mas.ltd.overall
+    source TEXT NOT NULL,              -- mas, fred, coingecko, defillama or derived
+    name TEXT NOT NULL,
+    unit TEXT NOT NULL,
+    frequency TEXT NOT NULL,           -- daily, monthly or quarterly
+    decimals INTEGER NOT NULL,
+    bad_direction TEXT NOT NULL,       -- up, down or none
+    source_url TEXT NOT NULL,
+    derived_from TEXT                  -- JSON operation, e.g. {"kind": "share", ...}; null if raw
+);
+
+CREATE TABLE IF NOT EXISTS series_subjects (
+    series_id TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    role TEXT NOT NULL,                -- primary or context
+    PRIMARY KEY (series_id, subject_id)
+);
+CREATE INDEX IF NOT EXISTS series_subjects_subject ON series_subjects (subject_id);
+
+CREATE TABLE IF NOT EXISTS observations (
+    series_id TEXT NOT NULL,
+    period TEXT NOT NULL,              -- period end, YYYY-MM-DD
+    value REAL NOT NULL,
+    preliminary INTEGER NOT NULL,      -- 1 while the source flags it preliminary
+    available_at TEXT NOT NULL,        -- ISO 8601 UTC, when the value could first have been known
+    fetched_at TEXT NOT NULL,          -- when it was stored or last changed
+    PRIMARY KEY (series_id, period)
+);
+
+CREATE TABLE IF NOT EXISTS observation_revisions (
+    id INTEGER PRIMARY KEY,
+    series_id TEXT NOT NULL,
+    period TEXT NOT NULL,
+    old_value REAL NOT NULL,
+    new_value REAL NOT NULL,
+    revised_at TEXT NOT NULL           -- ISO 8601 UTC, the fetch that saw the new value
+);
+CREATE INDEX IF NOT EXISTS observation_revisions_series
+ON observation_revisions (series_id, period);
+
+-- What each run saw per series, so runs diff and "since your last review" covers indicators.
+CREATE TABLE IF NOT EXISTS run_indicators (
+    run_id TEXT NOT NULL,
+    series_id TEXT NOT NULL,
+    period TEXT NOT NULL,              -- the latest period available as of the run
+    value REAL NOT NULL,
+    change TEXT NOT NULL,              -- JSON {window: change}
+    state TEXT NOT NULL,
+    detail TEXT NOT NULL,              -- JSON
+    PRIMARY KEY (run_id, series_id)
+);
+
 -- Full-text search (store/search.py). Both tables keep their own copy of the text, so they do not
 -- depend on rowids staying put. Triggers index documents on every write; the pipeline indexes a
 -- run's developments when it stores them, with the statements of all their findings as summary.

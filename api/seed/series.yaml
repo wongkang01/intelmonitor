@@ -1,0 +1,697 @@
+# Series catalogue v1 (structured-data-plan.md). `im series fetch` loads it into the series and
+# series_subjects tables; adding a series from a known source needs no code change.
+#
+# source: where the values come from, by kind.
+#   mas        table (i18, i12a, i5b or fx) and field, from the MAS statistics APIs
+#   fred       series id, plus lag_days: days after the period end a value is usually published
+#   coingecko  coin id; daily USD price for the last 365 days
+#   defillama  stablecoin id (omit for all stablecoins) and optional chain; circulating supply
+#   deviation  input and target: percent off the target, (value / target - 1) * 100
+#   product    inputs [a, b]: a times the latest b known when a was
+#   share      part and total: percent of the total, part / total * 100
+# Derived series (deviation, product, share) may only use series declared above them.
+#
+# FX direction: every FX series is SGD per one unit of the foreign currency, the MAS quote
+# direction. MAS quotes Asian currencies per 100 units (fields ending in _100); they are stored per
+# unit. The FX ids, units and fields must agree (checked when the seed loads).
+#
+# subjects: primary series belong to the subject itself; context series are shown on its page as
+# system-wide or market-wide context.
+
+series:
+  # MAS I.18: non-bank loan-to-deposit ratios, monthly.
+  - id: mas.ltd.overall
+    name: Loan-to-deposit ratio, all currencies
+    unit: "%"
+    frequency: monthly
+    decimals: 1
+    bad_direction: up
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i18, field: overall_nb_ltd_ratio}
+    subjects:
+      primary: [singapore-banks, singapore]
+      context: [dbs, ocbc, uob, mas]
+  - id: mas.ltd.sgd
+    name: Loan-to-deposit ratio, SGD
+    unit: "%"
+    frequency: monthly
+    decimals: 1
+    bad_direction: up
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i18, field: sgd_nb_ltd_ratio}
+    subjects:
+      primary: [singapore-banks, singapore]
+      context: [dbs, ocbc, uob, mas]
+  - id: mas.ltd.fc
+    name: Loan-to-deposit ratio, foreign currency
+    unit: "%"
+    frequency: monthly
+    decimals: 1
+    bad_direction: up
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i18, field: for_curr_nb_ltd_ratio}
+    subjects:
+      primary: [singapore-banks, singapore]
+      context: [dbs, ocbc, uob, mas]
+
+  # MAS I.12A: non-performing loan ratios by sector, quarterly.
+  - id: mas.npl.overall
+    name: NPL ratio, all sectors
+    unit: "%"
+    frequency: quarterly
+    decimals: 2
+    bad_direction: up
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i12a, field: overall}
+    subjects:
+      primary: [singapore-banks, singapore]
+      context: [dbs, ocbc, uob, mas, banking-regulation]
+  - id: mas.npl.construction
+    name: NPL ratio, construction
+    unit: "%"
+    frequency: quarterly
+    decimals: 2
+    bad_direction: up
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i12a, field: bc_construction}
+    subjects:
+      primary: [singapore-banks, singapore]
+      context: [dbs, ocbc, uob, mas, banking-regulation]
+  - id: mas.npl.transport
+    name: NPL ratio, transport and storage
+    unit: "%"
+    frequency: quarterly
+    decimals: 2
+    bad_direction: up
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i12a, field: tsc_trns_strg}
+    subjects:
+      primary: [singapore-banks, singapore]
+      context: [dbs, ocbc, uob, mas, banking-regulation]
+  - id: mas.npl.manufacturing
+    name: NPL ratio, manufacturing
+    unit: "%"
+    frequency: quarterly
+    decimals: 2
+    bad_direction: up
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i12a, field: manufactring}
+    subjects:
+      primary: [singapore-banks, singapore]
+      context: [dbs, ocbc, uob, mas, banking-regulation]
+  - id: mas.npl.wholesale
+    name: NPL ratio, wholesale trade
+    unit: "%"
+    frequency: quarterly
+    decimals: 2
+    bad_direction: up
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i12a, field: gc_whsl_trd}
+    subjects:
+      primary: [singapore-banks, singapore]
+      context: [dbs, ocbc, uob, mas, banking-regulation]
+
+  # MAS I.5B: loans and advances to non-residents by industry, S$ million, monthly.
+  - id: mas.nrl.total
+    name: Loans to non-residents, total
+    unit: SGD m
+    frequency: monthly
+    decimals: 0
+    bad_direction: none
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i5b, field: ln_adv_tot}
+    subjects:
+      primary: [singapore-banks]
+      context: [geopolitics]
+  - id: mas.nrl.financial
+    name: Loans to non-residents, financial and insurance
+    unit: SGD m
+    frequency: monthly
+    decimals: 0
+    bad_direction: none
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i5b, field: fnc_ins_act}
+    subjects:
+      primary: [singapore-banks]
+      context: [geopolitics]
+  - id: mas.nrl.manufacturing
+    name: Loans to non-residents, manufacturing
+    unit: SGD m
+    frequency: monthly
+    decimals: 0
+    bad_direction: none
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i5b, field: manufactring}
+    subjects:
+      primary: [singapore-banks]
+      context: [geopolitics]
+  - id: mas.nrl.transport
+    name: Loans to non-residents, transport, storage and communications
+    unit: SGD m
+    frequency: monthly
+    decimals: 0
+    bad_direction: none
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i5b, field: tsc_tot}
+    subjects:
+      primary: [singapore-banks]
+      context: [geopolitics]
+  - id: mas.nrl.commerce
+    name: Loans to non-residents, general commerce
+    unit: SGD m
+    frequency: monthly
+    decimals: 0
+    bad_direction: none
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i5b, field: gc_tot}
+    subjects:
+      primary: [singapore-banks]
+      context: [geopolitics]
+  - id: mas.nrl.construction
+    name: Loans to non-residents, building and construction
+    unit: SGD m
+    frequency: monthly
+    decimals: 0
+    bad_direction: none
+    source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
+    source: {kind: mas, table: i5b, field: bc_tot}
+    subjects:
+      primary: [singapore-banks]
+      context: [geopolitics]
+
+  # MAS exchange rates, end of day, SGD per unit of the foreign currency.
+  - id: fx.sgd.usd
+    name: SGD per US dollar
+    unit: SGD per USD
+    frequency: daily
+    decimals: 4
+    bad_direction: none
+    source_url: https://eservices.mas.gov.sg/Statistics/msb/ExchangeRates.aspx
+    source: {kind: mas, table: fx, field: usd_sgd}
+    subjects:
+      primary: [singapore]
+      context: [mas, fed, geopolitics]
+  - id: fx.sgd.myr
+    name: SGD per Malaysian ringgit
+    unit: SGD per MYR
+    frequency: daily
+    decimals: 4
+    bad_direction: none
+    source_url: https://eservices.mas.gov.sg/Statistics/msb/ExchangeRates.aspx
+    source: {kind: mas, table: fx, field: myr_sgd_100}
+    subjects:
+      primary: [malaysia]
+      context: [sea-countries, singapore, mas, bnm, geopolitics]
+  - id: fx.sgd.thb
+    name: SGD per Thai baht
+    unit: SGD per THB
+    frequency: daily
+    decimals: 5
+    bad_direction: none
+    source_url: https://eservices.mas.gov.sg/Statistics/msb/ExchangeRates.aspx
+    source: {kind: mas, table: fx, field: thb_sgd_100}
+    subjects:
+      primary: [thailand]
+      context: [sea-countries, singapore, mas, geopolitics]
+  - id: fx.sgd.idr
+    name: SGD per Indonesian rupiah
+    unit: SGD per IDR
+    frequency: daily
+    decimals: 8
+    bad_direction: none
+    source_url: https://eservices.mas.gov.sg/Statistics/msb/ExchangeRates.aspx
+    source: {kind: mas, table: fx, field: idr_sgd_100}
+    subjects:
+      primary: [indonesia]
+      context: [sea-countries, singapore, mas, geopolitics]
+  - id: fx.sgd.php
+    name: SGD per Philippine peso
+    unit: SGD per PHP
+    frequency: daily
+    decimals: 5
+    bad_direction: none
+    source_url: https://eservices.mas.gov.sg/Statistics/msb/ExchangeRates.aspx
+    source: {kind: mas, table: fx, field: php_sgd_100}
+    subjects:
+      primary: [philippines]
+      context: [sea-countries, singapore, mas, geopolitics]
+  - id: fx.sgd.vnd
+    name: SGD per Vietnamese dong
+    unit: SGD per VND
+    frequency: daily
+    decimals: 8
+    bad_direction: none
+    source_url: https://eservices.mas.gov.sg/Statistics/msb/ExchangeRates.aspx
+    source: {kind: mas, table: fx, field: vnd_sgd_100}
+    subjects:
+      primary: [vietnam]
+      context: [sea-countries, singapore, mas, geopolitics]
+  - id: fx.sgd.cny
+    name: SGD per Chinese yuan
+    unit: SGD per CNY
+    frequency: daily
+    decimals: 4
+    bad_direction: none
+    source_url: https://eservices.mas.gov.sg/Statistics/msb/ExchangeRates.aspx
+    source: {kind: mas, table: fx, field: cny_sgd_100}
+    subjects:
+      primary: [pboc]
+      context: [singapore, mas, geopolitics]
+  - id: fx.sgd.hkd
+    name: SGD per Hong Kong dollar
+    unit: SGD per HKD
+    frequency: daily
+    decimals: 4
+    bad_direction: none
+    source_url: https://eservices.mas.gov.sg/Statistics/msb/ExchangeRates.aspx
+    source: {kind: mas, table: fx, field: hkd_sgd_100}
+    subjects:
+      primary: [hkma]
+      context: [singapore, mas, geopolitics]
+
+  # FRED: policy rates and risk sentiment.
+  - id: fred.fed_funds
+    name: Fed funds effective rate
+    unit: "%"
+    frequency: daily
+    decimals: 2
+    bad_direction: none
+    source_url: https://fred.stlouisfed.org/series/DFF
+    source: {kind: fred, series: DFF}
+    subjects:
+      primary: [fed]
+      context: [central-banks, banking-regulation]
+  - id: fred.ecb_deposit
+    name: ECB deposit facility rate
+    unit: "%"
+    frequency: daily
+    decimals: 2
+    bad_direction: none
+    source_url: https://fred.stlouisfed.org/series/ECBDFR
+    source: {kind: fred, series: ECBDFR}
+    subjects:
+      primary: [ecb]
+      context: [central-banks]
+  - id: fred.us10y
+    name: US 10-year Treasury yield
+    unit: "%"
+    frequency: daily
+    decimals: 2
+    bad_direction: none
+    source_url: https://fred.stlouisfed.org/series/DGS10
+    source: {kind: fred, series: DGS10}
+    subjects:
+      primary: [geopolitics]
+      context: [central-banks]
+  - id: fred.us_hy_spread
+    name: US high-yield spread
+    unit: "%"
+    frequency: daily
+    decimals: 2
+    bad_direction: up
+    source_url: https://fred.stlouisfed.org/series/BAMLH0A0HYM2
+    source: {kind: fred, series: BAMLH0A0HYM2}
+    subjects:
+      primary: [geopolitics]
+      context: [central-banks]
+  - id: fred.vix
+    name: VIX
+    unit: index
+    frequency: daily
+    decimals: 2
+    bad_direction: up
+    source_url: https://fred.stlouisfed.org/series/VIXCLS
+    source: {kind: fred, series: VIXCLS}
+    subjects:
+      primary: [geopolitics]
+      context: [central-banks]
+
+  # CoinGecko prices, and peg deviation derived from them.
+  - id: cg.usdt.price
+    name: USDT price
+    unit: USD
+    frequency: daily
+    decimals: 4
+    bad_direction: none
+    source_url: https://www.coingecko.com/en/coins/tether
+    source: {kind: coingecko, coin: tether}
+    subjects:
+      context: [tether, stablecoin-issuers, stablecoins]
+  - id: derived.usdt.peg
+    name: USDT off its USD peg
+    unit: "%"
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://www.coingecko.com/en/coins/tether
+    source: {kind: deviation, input: cg.usdt.price, target: 1}
+    subjects:
+      primary: [tether]
+      context: [stablecoin-issuers, stablecoins]
+  - id: cg.usdc.price
+    name: USDC price
+    unit: USD
+    frequency: daily
+    decimals: 4
+    bad_direction: none
+    source_url: https://www.coingecko.com/en/coins/usdc
+    source: {kind: coingecko, coin: usd-coin}
+    subjects:
+      context: [circle, stablecoin-issuers, stablecoins]
+  - id: derived.usdc.peg
+    name: USDC off its USD peg
+    unit: "%"
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://www.coingecko.com/en/coins/usdc
+    source: {kind: deviation, input: cg.usdc.price, target: 1}
+    subjects:
+      primary: [circle]
+      context: [stablecoin-issuers, stablecoins]
+  - id: cg.pyusd.price
+    name: PYUSD price
+    unit: USD
+    frequency: daily
+    decimals: 4
+    bad_direction: none
+    source_url: https://www.coingecko.com/en/coins/paypal-usd
+    source: {kind: coingecko, coin: paypal-usd}
+    subjects:
+      context: [paxos, stablecoin-issuers, stablecoins]
+  - id: derived.pyusd.peg
+    name: PYUSD off its USD peg
+    unit: "%"
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://www.coingecko.com/en/coins/paypal-usd
+    source: {kind: deviation, input: cg.pyusd.price, target: 1}
+    subjects:
+      primary: [paxos]
+      context: [stablecoin-issuers, stablecoins]
+  - id: cg.usdp.price
+    name: USDP price
+    unit: USD
+    frequency: daily
+    decimals: 4
+    bad_direction: none
+    source_url: https://www.coingecko.com/en/coins/pax-dollar
+    source: {kind: coingecko, coin: paxos-standard}
+    subjects:
+      context: [paxos, stablecoin-issuers, stablecoins]
+  - id: derived.usdp.peg
+    name: USDP off its USD peg
+    unit: "%"
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://www.coingecko.com/en/coins/pax-dollar
+    source: {kind: deviation, input: cg.usdp.price, target: 1}
+    subjects:
+      primary: [paxos]
+      context: [stablecoin-issuers, stablecoins]
+  - id: cg.xsgd.price
+    name: XSGD price in USD
+    unit: USD
+    frequency: daily
+    decimals: 4
+    bad_direction: none
+    source_url: https://www.coingecko.com/en/coins/xsgd
+    source: {kind: coingecko, coin: xsgd}
+    subjects:
+      context: [straitsx, stablecoin-issuers, stablecoins]
+  - id: derived.xsgd.price_sgd
+    name: XSGD price in SGD
+    unit: SGD
+    frequency: daily
+    decimals: 4
+    bad_direction: none
+    source_url: https://www.coingecko.com/en/coins/xsgd
+    source: {kind: product, inputs: [cg.xsgd.price, fx.sgd.usd]}
+    subjects:
+      context: [straitsx, stablecoin-issuers, stablecoins]
+  - id: derived.xsgd.peg
+    name: XSGD off its SGD peg
+    unit: "%"
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://www.coingecko.com/en/coins/xsgd
+    source: {kind: deviation, input: derived.xsgd.price_sgd, target: 1}
+    subjects:
+      primary: [straitsx]
+      context: [stablecoin-issuers, stablecoins]
+
+  # DefiLlama circulating supply, per coin and on its largest chains, with each chain's share.
+  - id: llama.usdt.supply
+    name: USDT circulating supply
+    unit: USD
+    frequency: daily
+    decimals: 0
+    bad_direction: down
+    source_url: https://defillama.com/stablecoin/tether
+    source: {kind: defillama, stablecoin: 1}
+    subjects:
+      primary: [tether]
+      context: [stablecoin-issuers, stablecoins]
+  - id: llama.usdt.supply.tron
+    name: USDT supply on Tron
+    unit: USD
+    frequency: daily
+    decimals: 0
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/tether
+    source: {kind: defillama, stablecoin: 1, chain: Tron}
+    subjects:
+      context: [tether]
+  - id: llama.usdt.supply.ethereum
+    name: USDT supply on Ethereum
+    unit: USD
+    frequency: daily
+    decimals: 0
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/tether
+    source: {kind: defillama, stablecoin: 1, chain: Ethereum}
+    subjects:
+      context: [tether]
+  - id: derived.usdt.share.tron
+    name: Share of USDT on Tron
+    unit: "%"
+    frequency: daily
+    decimals: 1
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/tether
+    source: {kind: share, part: llama.usdt.supply.tron, total: llama.usdt.supply}
+    subjects:
+      context: [tether]
+  - id: derived.usdt.share.ethereum
+    name: Share of USDT on Ethereum
+    unit: "%"
+    frequency: daily
+    decimals: 1
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/tether
+    source: {kind: share, part: llama.usdt.supply.ethereum, total: llama.usdt.supply}
+    subjects:
+      context: [tether]
+
+  - id: llama.usdc.supply
+    name: USDC circulating supply
+    unit: USD
+    frequency: daily
+    decimals: 0
+    bad_direction: down
+    source_url: https://defillama.com/stablecoin/usd-coin
+    source: {kind: defillama, stablecoin: 2}
+    subjects:
+      primary: [circle]
+      context: [stablecoin-issuers, stablecoins]
+  - id: llama.usdc.supply.ethereum
+    name: USDC supply on Ethereum
+    unit: USD
+    frequency: daily
+    decimals: 0
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/usd-coin
+    source: {kind: defillama, stablecoin: 2, chain: Ethereum}
+    subjects:
+      context: [circle]
+  - id: llama.usdc.supply.solana
+    name: USDC supply on Solana
+    unit: USD
+    frequency: daily
+    decimals: 0
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/usd-coin
+    source: {kind: defillama, stablecoin: 2, chain: Solana}
+    subjects:
+      context: [circle]
+  - id: derived.usdc.share.ethereum
+    name: Share of USDC on Ethereum
+    unit: "%"
+    frequency: daily
+    decimals: 1
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/usd-coin
+    source: {kind: share, part: llama.usdc.supply.ethereum, total: llama.usdc.supply}
+    subjects:
+      context: [circle]
+  - id: derived.usdc.share.solana
+    name: Share of USDC on Solana
+    unit: "%"
+    frequency: daily
+    decimals: 1
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/usd-coin
+    source: {kind: share, part: llama.usdc.supply.solana, total: llama.usdc.supply}
+    subjects:
+      context: [circle]
+
+  - id: llama.pyusd.supply
+    name: PYUSD circulating supply
+    unit: USD
+    frequency: daily
+    decimals: 0
+    bad_direction: down
+    source_url: https://defillama.com/stablecoin/paypal-usd
+    source: {kind: defillama, stablecoin: 120}
+    subjects:
+      primary: [paxos]
+      context: [stablecoin-issuers, stablecoins]
+  - id: llama.pyusd.supply.ethereum
+    name: PYUSD supply on Ethereum
+    unit: USD
+    frequency: daily
+    decimals: 0
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/paypal-usd
+    source: {kind: defillama, stablecoin: 120, chain: Ethereum}
+    subjects:
+      context: [paxos]
+  - id: llama.pyusd.supply.solana
+    name: PYUSD supply on Solana
+    unit: USD
+    frequency: daily
+    decimals: 0
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/paypal-usd
+    source: {kind: defillama, stablecoin: 120, chain: Solana}
+    subjects:
+      context: [paxos]
+  - id: derived.pyusd.share.ethereum
+    name: Share of PYUSD on Ethereum
+    unit: "%"
+    frequency: daily
+    decimals: 1
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/paypal-usd
+    source: {kind: share, part: llama.pyusd.supply.ethereum, total: llama.pyusd.supply}
+    subjects:
+      context: [paxos]
+  - id: derived.pyusd.share.solana
+    name: Share of PYUSD on Solana
+    unit: "%"
+    frequency: daily
+    decimals: 1
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/paypal-usd
+    source: {kind: share, part: llama.pyusd.supply.solana, total: llama.pyusd.supply}
+    subjects:
+      context: [paxos]
+
+  - id: llama.usdp.supply
+    name: USDP circulating supply
+    unit: USD
+    frequency: daily
+    decimals: 0
+    bad_direction: down
+    source_url: https://defillama.com/stablecoin/pax-dollar
+    source: {kind: defillama, stablecoin: 11}
+    subjects:
+      primary: [paxos]
+      context: [stablecoin-issuers, stablecoins]
+  - id: llama.usdp.supply.ethereum
+    name: USDP supply on Ethereum
+    unit: USD
+    frequency: daily
+    decimals: 0
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/pax-dollar
+    source: {kind: defillama, stablecoin: 11, chain: Ethereum}
+    subjects:
+      context: [paxos]
+  - id: derived.usdp.share.ethereum
+    name: Share of USDP on Ethereum
+    unit: "%"
+    frequency: daily
+    decimals: 1
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/pax-dollar
+    source: {kind: share, part: llama.usdp.supply.ethereum, total: llama.usdp.supply}
+    subjects:
+      context: [paxos]
+
+  - id: llama.xsgd.supply
+    name: XSGD circulating supply
+    unit: SGD
+    frequency: daily
+    decimals: 0
+    bad_direction: down
+    source_url: https://defillama.com/stablecoin/xsgd
+    source: {kind: defillama, stablecoin: 289}
+    subjects:
+      primary: [straitsx]
+      context: [stablecoin-issuers, stablecoins]
+  - id: llama.xsgd.supply.ethereum
+    name: XSGD supply on Ethereum
+    unit: SGD
+    frequency: daily
+    decimals: 0
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/xsgd
+    source: {kind: defillama, stablecoin: 289, chain: Ethereum}
+    subjects:
+      context: [straitsx]
+  - id: llama.xsgd.supply.polygon
+    name: XSGD supply on Polygon
+    unit: SGD
+    frequency: daily
+    decimals: 0
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/xsgd
+    source: {kind: defillama, stablecoin: 289, chain: Polygon}
+    subjects:
+      context: [straitsx]
+  - id: derived.xsgd.share.ethereum
+    name: Share of XSGD on Ethereum
+    unit: "%"
+    frequency: daily
+    decimals: 1
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/xsgd
+    source: {kind: share, part: llama.xsgd.supply.ethereum, total: llama.xsgd.supply}
+    subjects:
+      context: [straitsx]
+  - id: derived.xsgd.share.polygon
+    name: Share of XSGD on Polygon
+    unit: "%"
+    frequency: daily
+    decimals: 1
+    bad_direction: none
+    source_url: https://defillama.com/stablecoin/xsgd
+    source: {kind: share, part: llama.xsgd.supply.polygon, total: llama.xsgd.supply}
+    subjects:
+      context: [straitsx]
+
+  - id: llama.total.supply
+    name: Total stablecoin supply
+    unit: USD
+    frequency: daily
+    decimals: 0
+    bad_direction: down
+    source_url: https://defillama.com/stablecoins
+    source: {kind: defillama}
+    subjects:
+      primary: [stablecoins]
+      context: [stablecoin-issuers]

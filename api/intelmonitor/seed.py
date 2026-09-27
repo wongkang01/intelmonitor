@@ -1,10 +1,11 @@
-"""Typed loaders for api/seed/subjects.yaml and api/seed/questions.yaml."""
+"""Typed loaders for api/seed/subjects.yaml, questions.yaml and series.yaml."""
 
+import re
 from functools import lru_cache
-from typing import Literal, Self
+from typing import Annotated, Literal, Self
 
 import yaml
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 from intelmonitor.config import SEED_DIR
 
@@ -93,3 +94,133 @@ def load_subjects() -> SubjectsSeed:
 @lru_cache
 def load_questions() -> QuestionsSeed:
     return QuestionsSeed.model_validate(yaml.safe_load((SEED_DIR / "questions.yaml").read_text()))
+
+
+# Series (api/seed/series.yaml). Each series has one source: a fetch from an external API, or an
+# operation over series declared above it.
+
+MasTable = Literal["i18", "i12a", "i5b", "fx"]
+Frequency = Literal["daily", "monthly", "quarterly"]
+BadDirection = Literal["up", "down", "none"]
+
+
+class MasSource(BaseModel):
+    kind: Literal["mas"]
+    table: MasTable
+    field: str
+
+    @property
+    def per(self) -> int:
+        """Units per quote: MAS quotes Asian currencies per 100 units (fields ending in _100)."""
+        return 100 if self.field.endswith("_100") else 1
+
+
+class FredSource(BaseModel):
+    kind: Literal["fred"]
+    series: str
+    lag_days: int = 1  # days after the period a value is usually published
+
+
+class CoinGeckoSource(BaseModel):
+    kind: Literal["coingecko"]
+    coin: str
+
+
+class DefiLlamaSource(BaseModel):
+    kind: Literal["defillama"]
+    stablecoin: int | None = None  # None: all stablecoins
+    chain: str | None = None
+
+
+class Deviation(BaseModel):
+    kind: Literal["deviation"]
+    input: str
+    target: float
+
+
+class Product(BaseModel):
+    kind: Literal["product"]
+    inputs: tuple[str, str]
+
+
+class Share(BaseModel):
+    kind: Literal["share"]
+    part: str
+    total: str
+
+
+FetchSource = MasSource | FredSource | CoinGeckoSource | DefiLlamaSource
+DerivedSource = Deviation | Product | Share
+SeriesSource = Annotated[FetchSource | DerivedSource, Field(discriminator="kind")]
+
+
+def derived_inputs(source: DerivedSource) -> tuple[str, ...]:
+    match source:
+        case Deviation():
+            return (source.input,)
+        case Product():
+            return source.inputs
+        case Share():
+            return (source.part, source.total)
+
+
+class SeriesSubjects(BaseModel):
+    primary: list[str] = []
+    context: list[str] = []
+
+
+class SeriesDef(BaseModel):
+    id: str
+    name: str
+    unit: str
+    frequency: Frequency
+    decimals: int
+    bad_direction: BadDirection
+    source_url: str
+    source: SeriesSource
+    subjects: SeriesSubjects
+
+    @property
+    def source_name(self) -> str:
+        """The series table's source: the API it is fetched from, or derived."""
+        return "derived" if isinstance(self.source, DerivedSource) else self.source.kind
+
+
+_FX_ID = re.compile(r"fx\.sgd\.([a-z]{3})")
+
+
+class SeriesSeed(BaseModel):
+    series: list[SeriesDef]
+
+    @model_validator(mode="after")
+    def _check(self) -> Self:
+        subjects = load_subjects()
+        subject_ids = {s.id for s in [*subjects.topics, *subjects.groups, *subjects.entities]}
+        seen: set[str] = set()
+        for s in self.series:
+            if s.id in seen:
+                raise ValueError(f"series {s.id} is declared twice")
+            if unknown := set(s.subjects.primary + s.subjects.context) - subject_ids:
+                raise ValueError(f"series {s.id} has unknown subjects {sorted(unknown)}")
+            if isinstance(s.source, DerivedSource):
+                if missing := set(derived_inputs(s.source)) - seen:
+                    raise ValueError(
+                        f"series {s.id} uses {sorted(missing)} before they are declared"
+                    )
+            if m := _FX_ID.fullmatch(s.id):
+                # One declared FX direction: SGD per one unit of the foreign currency.
+                code = m.group(1)
+                source = s.source
+                if s.unit != f"SGD per {code.upper()}" or not (
+                    isinstance(source, MasSource)
+                    and source.table == "fx"
+                    and source.field in (f"{code}_sgd", f"{code}_sgd_100")
+                ):
+                    raise ValueError(f"FX series {s.id} must be SGD per {code.upper()}")
+            seen.add(s.id)
+        return self
+
+
+@lru_cache
+def load_series() -> SeriesSeed:
+    return SeriesSeed.model_validate(yaml.safe_load((SEED_DIR / "series.yaml").read_text()))

@@ -1,8 +1,9 @@
 """Run history, the run status chip and Run now.
 
 The POC has no scheduler, so runs are manual: `im run` on the command line, or Run now in the app,
-which recomputes Run 2 (as of T0) over the stored corpus without ingesting. Model calls are
-cached, so it is quick."""
+which fetches the measured series up to today and then recomputes Run 2 (as of T0) over the stored
+corpus without ingesting documents. Model calls and a day's series responses are cached, so it is
+quick."""
 
 import asyncio
 import logging
@@ -11,9 +12,11 @@ import threading
 from datetime import date, datetime
 from statistics import median
 
+from intelmonitor.ingest.series.collect import fetch_series
 from intelmonitor.pipeline import runlog
 from intelmonitor.pipeline.run import compute_run, run_dates
 from intelmonitor.server.models import RunInfo, RunStatus
+from intelmonitor.store.db import connect
 
 log = logging.getLogger("uvicorn.error")
 
@@ -152,6 +155,10 @@ def run_now(conn: sqlite3.Connection, triggered_by: str) -> RunStatus:
 
     def work() -> None:
         try:
+            try:
+                fetch_series(connect(), date.today(), log=log.info)
+            except Exception:
+                log.exception("Series fetch failed; the run goes ahead with the stored series")
             asyncio.run(compute_run(as_of, log.info, "manual", triggered_by))
         except Exception:
             log.exception("Run now failed")
