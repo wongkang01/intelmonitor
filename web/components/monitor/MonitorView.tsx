@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useMarkReviewed, useMonitorPage } from "@/lib/api/queries";
+import { trackRailHeight } from "@/lib/dom";
 import { answerText, capitalize, changeCounts, dateTime, daysBetween, inDays, plural, shortDate, TYPE_PLURAL } from "@/lib/format";
 import { monitorHref, type SubjectType } from "@/lib/widgets";
 import { CustomQuestionComposer, CustomQuestionEditor } from "@/components/custom/CustomQuestion";
@@ -58,7 +59,7 @@ export function MonitorView({ id }: { id: string }) {
           {p.stage_track && <StageTrack track={p.stage_track} />}
           {p.subject.type === "topic" && <Upcoming page={p} />}
         </div>
-        <aside className="panel mon-rail" aria-label="Links and actions">
+        <aside className="panel mon-rail" aria-label="Links and actions" ref={trackRailHeight}>
           <Links subject={p.subject} />
           <Actions page={p} />
         </aside>

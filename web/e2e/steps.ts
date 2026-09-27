@@ -6,11 +6,11 @@ export const STEPS = [
   "Edit mode: drag, remove, reload keeps the layout",
   "New dashboard, Build",
   "New dashboard, Generate",
-  "Monitor page from ⌘K: mark reviewed, add a note, delete and Undo",
+  "Monitor page from ⌘K: mark reviewed, add a note, delete and Undo, the rail's foot in reach",
   "Custom question with answer and citations",
   "Graph view: 2 hops, click a node, its page opens",
   "Sidebar: drag and Move up reorder dashboards, colors stay",
-  "⌘K full text: a development and a document open their evidence",
+  "⌘K full text: a development and a document open their evidence, snippets are body text",
 ] as const;
 
 /** Where each run writes its artifacts; playwright.config.ts sets it once per run. */

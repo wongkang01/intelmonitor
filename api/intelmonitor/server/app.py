@@ -64,7 +64,7 @@ from intelmonitor.server.widgets import (
     catalog,
     widget_data,
 )
-from intelmonitor.store.db import connect, get_meta, set_meta
+from intelmonitor.store.db import connect, get_meta, purge_deleted, set_meta
 
 WEB_ORIGIN = "https://intelmonitor.web.localhost"
 
@@ -72,6 +72,7 @@ WEB_ORIGIN = "https://intelmonitor.web.localhost"
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
     conn = connect()
+    purge_deleted(conn)
     dash.seed_dashboards(conn)
     runlog.interrupt_stale(conn)
     runlog.backfill(conn)

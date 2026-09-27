@@ -15,3 +15,15 @@ const subscribeCoarse = (onChange: () => void) => {
 /** True on a device with a touch screen, where `styles/touch.css` grows rows to 44px. False on the server. */
 export const useCoarsePointer = () =>
   useSyncExternalStore(subscribeCoarse, () => window.matchMedia(COARSE).matches, () => false);
+
+/**
+ * Ref callback for a sticky rail: keeps `--rail-h` set to its height, so its CSS can let a rail
+ * taller than the window scroll until its bottom shows before it sticks (`.mon-rail` in
+ * styles/monitor.css).
+ */
+export const trackRailHeight = (rail: HTMLElement | null) => {
+  if (!rail) return;
+  const observer = new ResizeObserver(() => rail.style.setProperty("--rail-h", `${rail.offsetHeight}px`));
+  observer.observe(rail);
+  return () => observer.disconnect();
+};

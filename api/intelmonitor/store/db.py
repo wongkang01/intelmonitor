@@ -1,6 +1,7 @@
 """SQLite store at data/intelmonitor.db. Each phase adds its tables to SCHEMA."""
 
 import sqlite3
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from intelmonitor.config import DATA_DIR
@@ -316,9 +317,7 @@ def connect(path: Path = DB_PATH) -> sqlite3.Connection:
     conn = sqlite3.connect(path, timeout=30, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")  # the API reads while a pipeline run writes
-    indexed = conn.execute(
-        "SELECT 1 FROM sqlite_master WHERE name = 'developments_fts'"
-    ).fetchone()
+    indexed = conn.execute("SELECT 1 FROM sqlite_master WHERE name = 'developments_fts'").fetchone()
     conn.executescript(SCHEMA)
     _add_columns(conn)
     if indexed is None:
@@ -337,4 +336,17 @@ def set_meta(conn: sqlite3.Connection, key: str, value: str) -> None:
         "ON CONFLICT (key) DO UPDATE SET value = excluded.value",
         (key, value),
     )
+    conn.commit()
+
+
+# Deleted dashboards and notes are kept this long, for Undo, before purge_deleted removes them.
+PURGE_AFTER = timedelta(days=1)
+
+
+def purge_deleted(conn: sqlite3.Connection) -> None:
+    """Removes dashboards and notes deleted more than PURGE_AFTER ago. The API runs it when it
+    starts; the delete toast's Undo is the only restore, so nothing reads them after that."""
+    cutoff = (datetime.now(UTC) - PURGE_AFTER).isoformat()
+    conn.execute("DELETE FROM dashboards WHERE deleted_at < ?", (cutoff,))
+    conn.execute("DELETE FROM analyst_actions WHERE deleted_at < ?", (cutoff,))
     conn.commit()

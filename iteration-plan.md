@@ -119,6 +119,11 @@ Mocks: `mocks/*.html`. Picks from the user on 2026-09-27 are noted per item.
 5. **Notes and deletes.** No mock picked: no Trash and no note editing.
    Deleting a note or dashboard shows the Undo toast for longer (8 s, paused on hover or focus); that is the only restore.
    Soft-deleted rows are purged when the API starts if they were deleted more than a day ago.
+   Built: the toast takes a duration, and a note or dashboard delete passes 8 s (`DELETE_UNDO_MS`); every toast's timer pauses while the pointer is over it or focus is in it, and resumes with the time left.
+   `purge_deleted` in `store/db.py` runs first in the API's startup and removes dashboards and notes whose `deleted_at` is more than a day old.
+   Two bugs found while mocking are fixed with it.
+   The monitor rail stuck at 80 px, so a rail taller than the window hid its foot (the note field) until the page end; one that tall now scrolls until its foot is 24 px above the window's bottom and sticks there, using a `--rail-h` that `trackRailHeight` keeps current.
+   ⌘K document snippets came from FTS5 over the raw text, so they often restated the title or began with markdown; the API now builds them from the body: markdown stripped, lines restating the title, level-1 headings and a first line that is not a sentence skipped, then the line with the most typed words, starting at its sentence or two words before the first match.
 6. **Developments list.** Picked B (`mocks/developments.html`): filter bar and sortable table. Where it lives is an open question.
 7. **Document reader and source labels.** Dropped: the evidence drawer is enough.
 8. **Tablet layout.** Dropped: the app is desktop web only.

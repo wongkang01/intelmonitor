@@ -66,9 +66,12 @@
 .monitor > .panel {
   display: block;
 }
+/* The rail sticks 24px under the top bar. One taller than the window scrolls with the page until
+   its bottom is 24px above the window's, and sticks there, so all of it can be reached;
+   lib/dom.ts keeps --rail-h set to its height. */
 .mon-rail {
   position: sticky;
-  top: 80px;
+  top: min(80px, calc(100vh - var(--rail-h, 0px) - var(--s-5)));
 }
 /* A ruled section: 15/600 header over a --line-strong rule, 32px between sections. */
 .mon-sec + .mon-sec {

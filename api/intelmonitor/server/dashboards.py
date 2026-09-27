@@ -2,7 +2,8 @@
 inserted once, the first time the store has none, so deleting one keeps it deleted.
 Every stored dashboard has a color, so reordering the sidebar never recolors one.
 Deleting sets deleted_at and restoring clears it; every read skips deleted dashboards. A deleted
-dashboard keeps its position, so an Undo puts it back where it was."""
+dashboard keeps its position, so an Undo puts it back where it was. The API purges it a day later
+(purge_deleted in store/db.py)."""
 
 import sqlite3
 import uuid

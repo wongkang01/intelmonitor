@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useDeleteDashboard, useRestoreDashboard, useSaveDashboard } from "@/lib/api/queries";
-import { useToast } from "@/components/ui/Toast";
+import { DELETE_UNDO_MS, useToast } from "@/components/ui/Toast";
 
 type Dashboard = Schema<"Dashboard">;
 type DashboardColor = Dashboard["color"];
@@ -87,7 +87,7 @@ export function DashboardEditPop({
               if (wasOpen) router.push(href);
             })
             .catch(() => toast({ message: "Could not restore the dashboard" }));
-        toast({ message: `Deleted ${dashboard.name}`, action: { label: "Undo", run: undo } });
+        toast({ message: `Deleted ${dashboard.name}`, action: { label: "Undo", run: undo }, duration: DELETE_UNDO_MS });
         if (wasOpen) router.push("/");
       },
       onError: () => toast({ message: "Could not delete the dashboard" }),

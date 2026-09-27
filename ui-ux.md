@@ -55,6 +55,7 @@ The row's options menu has Move up and Move down for keyboard and touch.
 **Top bar:** 56 px tall, one row.
 The search field flexes from the left: "Search monitors, developments and documents" with ⌘K, 32 px, bordered.
 Results come in three groups: monitors open their page, and developments and documents open the evidence drawer.
+A document result shows the passage of its body that matches, as plain text without the title.
 Typing a name jumps to its page.
 Typing a question gets an answer with citations (P1; the POC only jumps to pages).
 To the right of the search field, 8 px apart: a run status chip and an alerts button, both 32 px with a 1 px border at the 6 px control radius.
@@ -83,6 +84,9 @@ Same order on every scope, so users learn it once:
 2. **Standing questions**, one row each: answer, state, change badge. Custom questions sit in the same list with a "Custom" label, followed by "Add a question".
 3. **Links**: linked subjects by type, plus "Open graph view".
 4. **Actions**: Mark reviewed, Add note.
+
+Links and Actions share a rail that sticks under the top bar. A rail taller than the window scrolls with the page until its foot shows, then sticks, so every part of it can be reached.
+Deleting a note or a dashboard shows Undo for 8 s, paused while the pointer is over it or focus is in it; that is the only restore.
 
 Group pages add common issues and outliers. Topic pages add the stage track (signal → consultation → proposed → enacted → enforced) and upcoming dates.
 

@@ -12,7 +12,7 @@ def search(q: Queries, text: str, limit: int) -> SearchResults:
     if query is None:
         return SearchResults(subjects=subjects(text), developments=[], documents=[])
     development_ids = fts.developments(q.conn, q.run.id, query, limit)
-    documents = fts.documents(q.conn, q.run.id, query, limit)
+    documents = fts.documents(q.conn, q.run.id, text, limit)
     citing = _citing_development(q, [d.id for d in documents])
     return SearchResults(
         subjects=subjects(text),

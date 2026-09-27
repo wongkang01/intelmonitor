@@ -1314,7 +1314,7 @@ export interface components {
             published_at: string;
             /**
              * Snippet
-             * @description Plain text around the best match, with … where clipped
+             * @description The best matching passage of the body as plain text, without the title, with … where clipped
              */
             snippet: string;
             /**

@@ -3363,7 +3363,7 @@
           "snippet": {
             "type": "string",
             "title": "Snippet",
-            "description": "Plain text around the best match, with \u2026 where clipped"
+            "description": "The best matching passage of the body as plain text, without the title, with \u2026 where clipped"
           },
           "development_id": {
             "type": "string",

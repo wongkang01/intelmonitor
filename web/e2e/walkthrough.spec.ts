@@ -319,12 +319,39 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(note).toBeVisible();
       await expect(actions.getByRole("textbox", { name: "Note" })).toHaveValue("");
 
-      // Deleting is a soft delete: the toast's Undo restores the note.
+      // Deleting is a soft delete: the toast's Undo restores the note. The toast waits while the
+      // pointer is over it, well past its 8 s.
       await note.getByRole("button", { name: "Delete note" }).click();
       await expect(note).toHaveCount(0);
       const toast = page.locator(".toast", { hasText: "Deleted note" });
+      await toast.hover();
+      await page.waitForTimeout(9_000);
+      await expect(toast).toBeVisible();
       await toast.getByRole("button", { name: "Undo" }).click();
       await expect(note).toBeVisible();
+
+      // Left alone, it shows for 8 s, longer than a plain Undo toast's 5 s, and then goes.
+      await note.getByRole("button", { name: "Delete note" }).click();
+      await expect(note).toHaveCount(0);
+      await page.mouse.move(700, 150);
+      await page.waitForTimeout(6_000);
+      await expect(toast).toBeVisible();
+      await expect(toast).toHaveCount(0, { timeout: 4_000 });
+
+      // In a window only as tall as the rail, the rail cannot fit under the top bar: scrolling to
+      // where its foot would show brings Add note into view instead of leaving it pinned below.
+      const main = page.locator("main.main");
+      const railBox = async () => {
+        await main.evaluate((m) => m.scrollTo(0, 0));
+        const box = await page.locator(".mon-rail").boundingBox();
+        if (!box) throw new Error("the monitor rail is not on screen");
+        return box;
+      };
+      await page.setViewportSize({ width: 1440, height: Math.round((await railBox()).height) });
+      const rail = await railBox();
+      await main.evaluate((m, foot) => m.scrollTo(0, foot - m.clientHeight + 24), rail.y + rail.height);
+      await expect(actions.getByRole("button", { name: "Add note" })).toBeInViewport({ ratio: 1 });
+      await page.setViewportSize({ width: 1440, height: 900 });
     });
 
     await step(STEPS[6], async () => {
@@ -486,11 +513,17 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(page).toHaveURL(new RegExp(`[?&]evidence=${encodeURIComponent(development.id)}$`));
       await expect(drawer.getByRole("heading", { level: 3 })).toHaveText(development.title);
 
+      // Document snippets are a passage of body text: no markdown, and not the title again.
+      for (const d of results.documents) {
+        expect(d.snippet, d.title).not.toMatch(/^[#>*-]|\*\*|\]\(/);
+        expect(d.snippet.toLowerCase(), d.title).not.toContain(d.title.toLowerCase());
+      }
       const document = results.documents[0];
       await page.keyboard.press("ControlOrMeta+k");
       await search.pressSequentially(word, { delay: 20 });
       const docOption = list.getByRole("group", { name: "Documents" }).getByRole("option").first();
       await expect(docOption).toContainText(document.title);
+      await expect(docOption.locator(".alias")).toHaveText(document.snippet);
       await docOption.click();
       await expect(page).toHaveURL(new RegExp(`[?&]evidence=${encodeURIComponent(document.development_id)}$`));
       await expect(drawer.locator(".source a").filter({ hasText: document.title }).first()).toBeVisible();

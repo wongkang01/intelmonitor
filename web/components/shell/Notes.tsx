@@ -8,7 +8,7 @@ import type { Schema } from "@/lib/api/client";
 import { useAddNote, useDeleteNote, useRestoreNote, type NoteTarget } from "@/lib/api/queries";
 import { dateTime } from "@/lib/format";
 import { XIcon } from "@/components/ui/icons";
-import { useToast } from "@/components/ui/Toast";
+import { DELETE_UNDO_MS, useToast } from "@/components/ui/Toast";
 
 export function Notes({ target, notes }: { target: NoteTarget; notes: Schema<"Note">[] }) {
   const [text, setText] = useState("");
@@ -37,6 +37,7 @@ export function Notes({ target, notes }: { target: NoteTarget; notes: Schema<"No
       onSuccess: () =>
         toast({
           message: "Deleted note",
+          duration: DELETE_UNDO_MS,
           action: {
             label: "Undo",
             run: () =>

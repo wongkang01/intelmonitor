@@ -416,7 +416,10 @@ class DocumentHit(BaseModel):
     title: str
     domain: str
     published_at: datetime
-    snippet: str = Field(description="Plain text around the best match, with … where clipped")
+    snippet: str = Field(
+        description="The best matching passage of the body as plain text, without the title, "
+        "with … where clipped"
+    )
     development_id: str = Field(
         description="The development whose evidence it opens: the first citing it in display order"
     )
