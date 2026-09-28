@@ -9,6 +9,8 @@ import typer
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 series_app = typer.Typer(no_args_is_help=True, help="Fetch measured series (api/seed/series.yaml).")
 app.add_typer(series_app, name="series")
+check_app = typer.Typer(no_args_is_help=True, help="Checks the walkthrough runs on fixture data.")
+app.add_typer(check_app, name="check")
 
 
 @app.command()
@@ -80,6 +82,14 @@ def run(
     dates = list(run_dates(connect())) if both else [date.fromisoformat(str(as_of))]
     for d in dates:
         asyncio.run(compute_run(d, lambda line: typer.echo(line)))
+
+
+@check_app.command("depeg")
+def check_depeg() -> None:
+    """Fire the peg rule and the depeg detector on fixture prices in a scratch store; print JSON."""
+    from intelmonitor.checks import depeg_check
+
+    typer.echo(asyncio.run(depeg_check()).model_dump_json(indent=1))
 
 
 @app.command()

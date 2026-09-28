@@ -2,6 +2,7 @@
 // whatever the pipeline produced through the API to decide what to click and what to expect, and
 // undoes its own changes at the end so it can run again.
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
@@ -10,6 +11,15 @@ import { listQuery } from "../lib/developments";
 import { answerText, changeCounts, plural, shortDate, STATE_LABEL } from "../lib/format";
 
 import { runDir, screenshotName, STEPS } from "./steps";
+
+/** What `im check depeg` prints (api/intelmonitor/checks.py). */
+interface DepegCheck {
+  detections: string[];
+  developments: { title: string; materiality_label: string; needs_attention: boolean; sources: number }[];
+  fixed_states: Schema<"FixedState">[];
+  peg: { question_id: string; state: string; summary: string; state_rules: string[] };
+  prices: Schema<"Observation">[];
+}
 
 /** Claude-backed actions (Generate, custom question drafts) can take minutes. */
 const LLM_TIMEOUT = 6 * 60_000;
@@ -1257,6 +1267,29 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect.poll(async () => (await unwrap(api.GET("/alerts"))).alerts.find((a) => a.id === alert.id)?.read).toBe(true);
 
       writeFileSync(path.join(dir, "detections.json"), JSON.stringify({ run: latest, alert, development: dev }, null, 2));
+    });
+
+    await step(STEPS[18], async () => {
+      // No stored price breaches a peg, so `im check depeg` puts fixture prices in a scratch store:
+      // USDC 0.70%, 0.85% and 0.75% below its peg on 8 to 10 Sep 2026, a 48-hour spell. It runs the
+      // pipeline's detectors, merge and answer step with a canned model that answers Stable, so only
+      // the rule can raise Peg (api/intelmonitor/checks.py).
+      const out = execFileSync("uv", ["run", "im", "check", "depeg"], { cwd: path.resolve(__dirname, "../../api"), encoding: "utf8" });
+      const check: DepegCheck = JSON.parse(out);
+      const statement =
+        "USDC off its USD peg by more than 0.50% for 24 hours, from 8 Sep 2026 to 9 Sep 2026; 0.9915 USD (0.85% below) on 9 Sep 2026.";
+      expect(check.detections).toEqual([statement]);
+      // The detection alone makes a development titled by its sentence, at the rule's level.
+      expect(check.developments).toEqual([{ title: statement, materiality_label: "Significant", needs_attention: true, sources: 1 }]);
+      // The peg rule (0.5% for 24 hours, api/seed/questions.yaml) fixes Peg over the model's Stable.
+      expect(check.fixed_states.map((f) => [f.question_id, f.series_id, f.state, f.start, f.end, f.hours])).toEqual([
+        ["issuer.peg", "derived.usdc.peg", "needs_attention", "2026-09-08", "2026-09-10", 48],
+      ]);
+      expect(check.peg.state).toBe("needs_attention");
+      expect(check.peg.state_rules).toEqual(check.fixed_states.map((f) => f.text));
+
+      writeFileSync(path.join(dir, "depeg.json"), JSON.stringify(check, null, 2));
+      await page.setContent(`<pre style="font: 13px/1.5 ui-monospace, monospace; white-space: pre-wrap">${JSON.stringify({ ...check, prices: check.prices.slice(-5) }, null, 2)}</pre>`);
     });
 
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);

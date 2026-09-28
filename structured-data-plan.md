@@ -221,7 +221,8 @@ Built:
   After the SGD-side wording the 24 Sep run was recomputed (30 new answer calls, none asked again): every answer on FX series tells its moves by the SGD's side, for example "SGD weakened 0.55% vs MYR this week" and "SGD strengthened 0.88% against THB monthly, weakened 0.42% weekly".
   The 15 Aug run's latest stated observation was available on 15 Aug: its NPL facts stop at Q1 2026 and its loan-to-deposit facts at May 2026, while later runs state Q2 and July.
 - The walkthrough's last step checks that linked answers cite series whose facts were known by the run date, that facts as of 15 Aug 2026 state nothing available later while today's do, that a date before the history states no data, that XSGD in SGD is each day's USD price times the same day's MAS rate and fixes nothing in May 2026, that USDP's single day fixes nothing, and that the latest answers on FX series name no currency pair; it writes `facts.json`.
-  With no depeg in the stored history, the walkthrough has no case of a rule firing.
+  No stored price breaches a peg, so `im check depeg` (`api/intelmonitor/checks.py`) puts fixture prices in a scratch store, USDC 0.70%, 0.85% and 0.75% below its peg on 8 to 10 Sep 2026, and runs the pipeline's detectors, merge and answer step with a canned model that answers every question Stable and fails on any other call.
+  The walkthrough's fixture step runs it: the peg rule fixes Peg at Needs attention over the model's Stable (48 hours, 8 to 10 Sep), and the depeg detector's event becomes a Significant development of its own, titled by its sentence, needing attention; it writes `depeg.json`.
 
 ### F3. Detectors: developments from data
 

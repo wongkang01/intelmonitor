@@ -19,6 +19,7 @@ export const STEPS = [
   "Series: per-100 quotes stored per unit, indicators as of Run 1 see nothing later, gaps never compare with zero",
   "Facts in answers: answers cite their series' facts and name FX rates by the SGD's side, a past date's facts see nothing later, XSGD pairs same-day rates",
   "Detectors: the Fed funds rise fires into a Run 2 development that alerts for a followed subject, the data as its evidence",
+  "Peg rule and depeg detector on fixture prices: 48 hours off the peg makes Peg Needs attention and the detection a Significant development",
 ] as const;
 
 /** Where each run writes its artifacts; playwright.config.ts sets it once per run. */
