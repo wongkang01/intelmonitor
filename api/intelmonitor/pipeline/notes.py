@@ -343,6 +343,22 @@ def _states(
     ]
 
 
+def _allowed(moves: list[SeriesMove], week: list[RunDevelopment]) -> str:
+    """The text a note may quote numbers from: its facts and the week's developments."""
+    return "\n".join([m.text for m in moves] + [d.title for d in week])
+
+
+def stored_note_problems(row: sqlite3.Row, as_of: date, devs: list[RunDevelopment]) -> list[str]:
+    """The rules a stored `run_notes` row breaks under today's checks: numbers found in neither
+    the facts it was given nor the week's developments, and, on FX series, pairs and rates said
+    to go up or down. `devs` are its run's developments."""
+    subject = all_subjects()[row["subject_id"]]
+    moves = [SeriesMove.model_validate(m) for m in json.loads(row["moves"])]
+    week = week_developments(devs, scope(subject), date.fromisoformat(row["since"]), as_of)
+    fx = any(fx_currency(s) for s in note_series(subject.id))
+    return answer_problems(f"{row['headline']}\n{row['body']}", _allowed(moves, week), fx)
+
+
 async def note_subject(
     inf: Inference,
     conn: sqlite3.Connection,
@@ -359,7 +375,7 @@ async def note_subject(
     since = date.fromisoformat(base_id) if base_id else as_of - timedelta(days=7)
     moves = [series_move(conn, s, by_id, since, as_of, _rule(subject, s)) for s in series]
     week = week_developments(devs, scope(subject), since, as_of)
-    allowed = "\n".join([m.text for m in moves] + [d.title for d in week])
+    allowed = _allowed(moves, week)
     fx = any(fx_currency(s) for s in series)
     context = all(subject.id not in s.subjects.primary for s in series)
     states = _states(conn, run_id, base_id, subject)

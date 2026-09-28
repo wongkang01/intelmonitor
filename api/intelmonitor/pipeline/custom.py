@@ -3,7 +3,8 @@ then the answer job runs on demand over the stored corpus for every complete run
 Jev scores each document tagged to the subject inside the lookback ("Does this document help
 answer: ...?"), and Claude answers from the top matches, citing the run's developments. When
 nothing in the lookback matches, the answer is Stable and cites the latest earlier matches, so a
-quiet question still shows where things stand.
+quiet question still shows where things stand. The answer prompt calls the lookback the window
+and asks answers to name it plainly ("in the last 14 days").
 
 A question can name measured series of its subject (structured-data-plan.md, F7): each run's
 answer then gets their facts as of the run date (pipeline/facts.py), may cite them, and is asked
@@ -24,7 +25,7 @@ from intelmonitor.pipeline.facts import SeriesFact, SubjectFacts, subject_facts
 from intelmonitor.pipeline.feedback import removed_tags
 from intelmonitor.pipeline.inference import Inference, noul
 from intelmonitor.pipeline.subjects import all_subjects
-from intelmonitor.pipeline.wording import fx_currency
+from intelmonitor.pipeline.wording import day, fx_currency
 from intelmonitor.seed import QuestionDef, SeriesDef, load_series
 
 DEFAULT_LOOKBACK_DAYS = 14
@@ -281,6 +282,12 @@ SERIES_ANSWER_SYSTEM = (
 )
 
 
+# Answers are read by analysts: the window is "the last 14 days", not a prompt term.
+PLAIN_WINDOW = """\
+- Name the window as the analyst would, "in the last 14 days" or "since 10 Sep", never
+  "lookback" or "window"."""
+
+
 def answer_prompt(
     config: CustomConfig,
     as_of: date,
@@ -303,22 +310,23 @@ def answer_prompt(
     parts = [
         f"Run date: {as_of}. Subject: {subject.description}.",
         f"Question: {config.question}",
-        f"Lookback: {config.lookback_days} days.",
+        f"Window: the last {config.lookback_days} days, since "
+        f"{day(as_of - timedelta(days=config.lookback_days))}.",
         "",
-        "Best-matching documents in the lookback:",
+        "Best-matching documents in the window:",
         "\n".join(describe(c) for c in top) or "(none)",
     ]
     if earlier:
         quiet = (
-            "No document in the lookback bears on the question; give the latest earlier "
+            "No document in the window bears on the question; give the latest earlier "
             "position with its date, citing its developments, next to what the facts show:"
             if facts
-            else "Nothing in the lookback bears on the question, so the state is stable; say so "
+            else "Nothing in the window bears on the question, so the state is stable; say so "
             "and give the latest earlier position with its date, citing its developments:"
         )
         parts += [
             "",
-            f"Earlier matching documents, before the lookback. {quiet}",
+            f"Earlier matching documents, before the window. {quiet}",
             "\n".join(describe(c) for c in earlier),
         ]
     if facts:
@@ -339,14 +347,15 @@ def answer_prompt(
     if not facts:
         parts += [
             "",
-            """Return:
+            f"""Return:
 - summary: one line of at most 25 words, plain and specific. If no document bears on the
   question, say so briefly.
+{PLAIN_WINDOW}
 - state, calm by default:
   - needs_attention: something could hurt a tracked subject or needs supervisory follow-up now.
   - watch: something adverse or uncertain is developing that could become material.
   - new: relevant new items that are routine, neutral or positive.
-  - stable: nothing relevant happened in the lookback.
+  - stable: nothing relevant happened in the window.
 - development_ids: the ids the answer relies on, without the "D:" prefix, most important
   first. Empty if none.""",
         ]
@@ -356,6 +365,7 @@ def answer_prompt(
         f"""Return:
 - summary: one line of at most 25 words, plain and specific. Say what the facts show, and
   what the documents add; if no document bears on the question, say so briefly.
+{PLAIN_WINDOW}
 - Numbers: quote only numbers the facts or documents give, as they give them; never compute,
   convert or estimate new ones.
 {FX_WORDING}
@@ -364,7 +374,7 @@ def answer_prompt(
   - watch: something adverse or uncertain is developing that could become material, in the
     documents or the facts.
   - new: relevant new items that are routine, neutral or positive.
-  - stable: nothing relevant happened in the lookback.
+  - stable: nothing relevant happened in the window.
 - development_ids: the ids the answer relies on, without the "D:" prefix, most important
   first. Empty if none.
 - series_ids: the series whose facts the answer relies on, without the "S:" prefix. Empty if

@@ -1329,7 +1329,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
             params: { path: { subject_id: subjectId, question_id: questionId } },
           }),
         );
-        expect(ev.answer.summary, `${subjectId} ${questionId} names no currency pair`).not.toMatch(/\b(?:SGD\/[A-Z]{3}|[A-Z]{3}\/SGD)\b/);
+        expect(ev.answer.summary, `${subjectId} ${questionId} names no currency pair`).not.toMatch(/\b(?:SGD ?[/:\-–] ?[A-Z]{3}|[A-Z]{3} ?[/:\-–] ?SGD|SGD[A-Z]{3}|[A-Z]{3}SGD)\b/);
       }
 
       writeFileSync(path.join(dir, "facts.json"), JSON.stringify({ as_of: past, subjects: snapshot, held, answers: cited }, null, 2));
@@ -1829,10 +1829,11 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
         deleted(api.DELETE("/custom-questions/{question_id}", { params: { path: { question_id: draft.id } } })),
       );
       expect(draft.series.map((x) => x.id)).toEqual(["fx.sgd.myr"]);
-      const pair = /\b(?:SGD\/[A-Z]{3}|[A-Z]{3}\/SGD)\b/;
+      const pair = /\b(?:SGD ?[/:\-–] ?[A-Z]{3}|[A-Z]{3} ?[/:\-–] ?SGD|SGD[A-Z]{3}|[A-Z]{3}SGD)\b/;
       for (const text of [draft.question, draft.label, ...draft.runs.map((r) => r.summary)]) {
         expect(text, "FX is named by the SGD's side, never as a pair").not.toMatch(pair);
       }
+      for (const r of draft.runs) expect(r.summary, "answers name their window plainly").not.toMatch(/lookback|\bwindow\b/i);
       const newest = draft.runs.at(-1);
       if (!newest) throw new Error("the custom question has no answers");
       expect(newest.run.id).toBe(latest.id);

@@ -115,15 +115,28 @@ def unsupported_numbers(summary: str, allowed: str) -> list[str]:
     return [n for n in dict.fromkeys(_NUMBER.findall(summary)) if n.replace(",", "") not in plain]
 
 
-# Currency pair names such as SGD/MYR or USD/SGD, and a rate said to go up or down ("SGD per USD
-# up 0.23%", "SGD weaker against the MYR, up 0.55%"). Readers take a pair or a rate's rise either
-# way round, so answers tell FX moves only by the SGD's side, as the facts do: "SGD weakened 0.23%
-# against the USD".
-_FX_PAIR = re.compile(r"\b(?:SGD/[A-Z]{3}|[A-Z]{3}/SGD)\b")
+# Currency pair names (SGD/MYR, USD-SGD, SGDMYR), and a rate said to go up or down: after a rate
+# or a counter currency ("SGD per USD up 0.23%", "against the MYR, up 0.55%", "vs MYR, up 0.03%",
+# "SGD/MYR rose"), or before one with no SGD before the verb ("up 0.03% vs MYR"). Readers take a
+# pair or a rate's rise either way round, so answers, custom answers and Trend notes tell FX moves
+# only by the SGD's side, as the facts do: "SGD weakened 0.23% against the USD" or "vs the USD".
+# Codes are upper case even where the rest of a pattern ignores case.
+_PAIR = r"(?-i:SGD ?[/:\-–] ?[A-Z]{3}|[A-Z]{3} ?[/:\-–] ?SGD|SGD[A-Z]{3}|[A-Z]{3}SGD)"
+_CODE = r"(?-i:[A-Z]{3})"
+_FX_PAIR = re.compile(rf"\b{_PAIR}\b")
+_MOVED = (
+    r"(?:up|down|rose|fell|rising|falling|higher|lower|gained|lost|climbed|dropped|increased|"
+    r"decreased|appreciated|depreciated)"
+)
+_COUNTER = rf"(?:{_CODE} per {_CODE}|(?:against|vs\.?|versus) (?:the )?{_CODE}|{_PAIR})"
+# A word or a number, and up to three of them between the rate and the verb ("against the MYR
+# on the week, up"); a gap never crosses the end of a sentence or clause.
+_WORD = r"(?:\d[\d.,]*%?|[^\s.;]+?)"
+_GAP = rf"(?:[\s,:()]+{_WORD}){{0,3}}?[\s,:()]+"
 _FX_RATE_MOVE = re.compile(
-    r"\b(?:[A-Z]{3} per [A-Z]{3}|against the [A-Z]{3})[\s,]+(?:[\d.,]+[\s,]+)?"
-    r"(?:(?:was|is|has|had)\s+)?"
-    r"(?:up|down|rose|fell|rising|falling|higher|lower|gained|lost|climbed|dropped)\b",
+    rf"\b{_COUNTER}{_GAP}(?:(?:was|is|has|had)\s+)?{_MOVED}\b"
+    rf"|(?<!SGD )\b{_MOVED}(?:[\s,]+{_WORD}){{0,2}}?[\s,]+"
+    rf"(?:against|vs\.?|versus) (?:the )?{_CODE}\b",
     re.IGNORECASE,
 )
 

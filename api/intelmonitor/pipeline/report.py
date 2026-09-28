@@ -6,13 +6,15 @@ import random
 import sqlite3
 from collections import Counter
 from collections.abc import Iterable, Sequence
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from intelmonitor.config import ARTIFACTS_DIR
 from intelmonitor.ingest.series.collect import FetchSummary
+from intelmonitor.pipeline.answers import load_run_developments
 from intelmonitor.pipeline.extract import Extraction, locate_quote
 from intelmonitor.pipeline.facts import SeriesFact
+from intelmonitor.pipeline.notes import stored_note_problems
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS, ROUTE_HIGH, ROUTE_LOW
 from intelmonitor.pipeline.subjects import all_subjects, questions_for
 from intelmonitor.store.db import connect, get_meta
@@ -392,6 +394,38 @@ def _answers(conn: sqlite3.Connection, runs: list[sqlite3.Row]) -> list[str]:
     return out
 
 
+def _notes(conn: sqlite3.Connection, runs: list[sqlite3.Row]) -> list[str]:
+    """Trend notes (F6) per run: written, asked again for a number outside their facts and
+    developments or for the FX wording, and still breaking a rule under today's checks."""
+    rows: list[list[object]] = []
+    broken: list[list[object]] = []
+    for run in runs:
+        notes = conn.execute(
+            "SELECT * FROM run_notes WHERE run_id = ? ORDER BY subject_id", (run["id"],)
+        ).fetchall()
+        asked = conn.execute(
+            "SELECT count(DISTINCT input_ref) FROM inference_records WHERE stage = 'note' "
+            "AND run_id = ? AND input_ref LIKE '%:retry%' AND status = 'ok'",
+            (run["id"],),
+        ).fetchone()[0]
+        devs = load_run_developments(conn, run["id"]) if notes else []
+        as_of = date.fromisoformat(run["as_of"])
+        still = 0
+        for n in notes:
+            if problems := stored_note_problems(n, as_of, devs):
+                still += 1
+                broken.append([run["id"], n["subject_id"], "; ".join(problems)])
+        rows.append([run["id"], len(notes), asked, still])
+    out = [
+        "## Trend notes",
+        "",
+        _table(["Run", "Notes written", "Asked again", "Still breaking a rule"], rows),
+    ]
+    if broken:
+        out += ["", "Notes still breaking a rule:", "", _table(["Run", "Subject", "Why"], broken)]
+    return out
+
+
 def _spot_check(conn: sqlite3.Connection) -> list[str]:
     ids = [r[0] for r in conn.execute("SELECT id FROM findings ORDER BY id")]
     sample = random.Random(len(ids)).sample(ids, min(SPOT_CHECK_FINDINGS, len(ids)))
@@ -685,6 +719,7 @@ def build_report(conn: sqlite3.Connection) -> str:
         _extraction(conn),
         _developments(conn, runs),
         _answers(conn, runs),
+        _notes(conn, runs),
         _spot_check(conn),
         _usage(conn),
     ]
