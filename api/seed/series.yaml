@@ -17,11 +17,22 @@
 #
 # subjects: primary series belong to the subject itself; context series are shown on its page as
 # system-wide or market-wide context.
+#
+# How a series shows on monitor pages (Indicators, Trend) and in the evidence drawer:
+#   short_name  the row name under its group heading, when shorter than the name
+#   group       the heading its rows sit under, e.g. Loan-to-deposit ratio; ungrouped rows lead
+#   scope       system (the Singapore banking system's figures) or market (market-wide), labelled
+#               "System-wide" or "Market-wide"
+#   listed      false keeps an input to a derived series (a price, a per-chain supply) off the
+#               Indicators; it still feeds facts, derived series and the drawer
 
 series:
   # MAS I.18: non-bank loan-to-deposit ratios, monthly.
   - id: mas.ltd.overall
     name: Loan-to-deposit ratio, all currencies
+    short_name: Loan-to-deposit, all currencies
+    group: Loan-to-deposit ratio
+    scope: system
     unit: "%"
     frequency: monthly
     decimals: 1
@@ -33,6 +44,9 @@ series:
       context: [dbs, ocbc, uob, mas]
   - id: mas.ltd.sgd
     name: Loan-to-deposit ratio, SGD
+    short_name: Loan-to-deposit, SGD
+    group: Loan-to-deposit ratio
+    scope: system
     unit: "%"
     frequency: monthly
     decimals: 1
@@ -44,6 +58,9 @@ series:
       context: [dbs, ocbc, uob, mas]
   - id: mas.ltd.fc
     name: Loan-to-deposit ratio, foreign currency
+    short_name: Loan-to-deposit, foreign currency
+    group: Loan-to-deposit ratio
+    scope: system
     unit: "%"
     frequency: monthly
     decimals: 1
@@ -57,6 +74,8 @@ series:
   # MAS I.12A: non-performing loan ratios by sector, quarterly.
   - id: mas.npl.overall
     name: NPL ratio, all sectors
+    group: Non-performing loans
+    scope: system
     unit: "%"
     frequency: quarterly
     decimals: 2
@@ -68,6 +87,8 @@ series:
       context: [dbs, ocbc, uob, mas, banking-regulation]
   - id: mas.npl.construction
     name: NPL ratio, construction
+    group: Non-performing loans
+    scope: system
     unit: "%"
     frequency: quarterly
     decimals: 2
@@ -79,6 +100,8 @@ series:
       context: [dbs, ocbc, uob, mas, banking-regulation]
   - id: mas.npl.transport
     name: NPL ratio, transport and storage
+    group: Non-performing loans
+    scope: system
     unit: "%"
     frequency: quarterly
     decimals: 2
@@ -90,6 +113,8 @@ series:
       context: [dbs, ocbc, uob, mas, banking-regulation]
   - id: mas.npl.manufacturing
     name: NPL ratio, manufacturing
+    group: Non-performing loans
+    scope: system
     unit: "%"
     frequency: quarterly
     decimals: 2
@@ -101,6 +126,8 @@ series:
       context: [dbs, ocbc, uob, mas, banking-regulation]
   - id: mas.npl.wholesale
     name: NPL ratio, wholesale trade
+    group: Non-performing loans
+    scope: system
     unit: "%"
     frequency: quarterly
     decimals: 2
@@ -114,6 +141,9 @@ series:
   # MAS I.5B: loans and advances to non-residents by industry, S$ million, monthly.
   - id: mas.nrl.total
     name: Loans to non-residents, total
+    short_name: Total
+    group: Loans to non-residents
+    scope: system
     unit: SGD m
     frequency: monthly
     decimals: 0
@@ -125,6 +155,9 @@ series:
       context: [geopolitics]
   - id: mas.nrl.financial
     name: Loans to non-residents, financial and insurance
+    short_name: Financial and insurance
+    group: Loans to non-residents
+    scope: system
     unit: SGD m
     frequency: monthly
     decimals: 0
@@ -136,6 +169,9 @@ series:
       context: [geopolitics]
   - id: mas.nrl.manufacturing
     name: Loans to non-residents, manufacturing
+    short_name: Manufacturing
+    group: Loans to non-residents
+    scope: system
     unit: SGD m
     frequency: monthly
     decimals: 0
@@ -147,6 +183,9 @@ series:
       context: [geopolitics]
   - id: mas.nrl.transport
     name: Loans to non-residents, transport, storage and communications
+    short_name: Transport, storage and communications
+    group: Loans to non-residents
+    scope: system
     unit: SGD m
     frequency: monthly
     decimals: 0
@@ -158,6 +197,9 @@ series:
       context: [geopolitics]
   - id: mas.nrl.commerce
     name: Loans to non-residents, general commerce
+    short_name: General commerce
+    group: Loans to non-residents
+    scope: system
     unit: SGD m
     frequency: monthly
     decimals: 0
@@ -169,6 +211,9 @@ series:
       context: [geopolitics]
   - id: mas.nrl.construction
     name: Loans to non-residents, building and construction
+    short_name: Building and construction
+    group: Loans to non-residents
+    scope: system
     unit: SGD m
     frequency: monthly
     decimals: 0
@@ -182,6 +227,8 @@ series:
   # MAS exchange rates, end of day, SGD per unit of the foreign currency.
   - id: fx.sgd.usd
     name: SGD per US dollar
+    group: Exchange rates
+    scope: market
     unit: SGD per USD
     frequency: daily
     decimals: 4
@@ -193,6 +240,8 @@ series:
       context: [mas, fed, geopolitics]
   - id: fx.sgd.myr
     name: SGD per Malaysian ringgit
+    group: Exchange rates
+    scope: market
     unit: SGD per MYR
     frequency: daily
     decimals: 4
@@ -204,6 +253,8 @@ series:
       context: [sea-countries, singapore, mas, bnm, geopolitics]
   - id: fx.sgd.thb
     name: SGD per Thai baht
+    group: Exchange rates
+    scope: market
     unit: SGD per THB
     frequency: daily
     decimals: 5
@@ -215,6 +266,8 @@ series:
       context: [sea-countries, singapore, mas, geopolitics]
   - id: fx.sgd.idr
     name: SGD per Indonesian rupiah
+    group: Exchange rates
+    scope: market
     unit: SGD per IDR
     frequency: daily
     decimals: 8
@@ -226,6 +279,8 @@ series:
       context: [sea-countries, singapore, mas, geopolitics]
   - id: fx.sgd.php
     name: SGD per Philippine peso
+    group: Exchange rates
+    scope: market
     unit: SGD per PHP
     frequency: daily
     decimals: 5
@@ -237,6 +292,8 @@ series:
       context: [sea-countries, singapore, mas, geopolitics]
   - id: fx.sgd.vnd
     name: SGD per Vietnamese dong
+    group: Exchange rates
+    scope: market
     unit: SGD per VND
     frequency: daily
     decimals: 8
@@ -248,6 +305,8 @@ series:
       context: [sea-countries, singapore, mas, geopolitics]
   - id: fx.sgd.cny
     name: SGD per Chinese yuan
+    group: Exchange rates
+    scope: market
     unit: SGD per CNY
     frequency: daily
     decimals: 4
@@ -259,6 +318,8 @@ series:
       context: [singapore, mas, geopolitics]
   - id: fx.sgd.hkd
     name: SGD per Hong Kong dollar
+    group: Exchange rates
+    scope: market
     unit: SGD per HKD
     frequency: daily
     decimals: 4
@@ -294,6 +355,7 @@ series:
       context: [central-banks]
   - id: fred.us10y
     name: US 10-year Treasury yield
+    scope: market
     unit: "%"
     frequency: daily
     decimals: 2
@@ -305,6 +367,7 @@ series:
       context: [central-banks]
   - id: fred.us_hy_spread
     name: US high-yield spread
+    scope: market
     unit: "%"
     frequency: daily
     decimals: 2
@@ -316,6 +379,7 @@ series:
       context: [central-banks]
   - id: fred.vix
     name: VIX
+    scope: market
     unit: index
     frequency: daily
     decimals: 2
@@ -329,6 +393,7 @@ series:
   # CoinGecko prices, and peg deviation derived from them.
   - id: cg.usdt.price
     name: USDT price
+    listed: false
     unit: USD
     frequency: daily
     decimals: 4
@@ -350,6 +415,7 @@ series:
       context: [stablecoin-issuers, stablecoins]
   - id: cg.usdc.price
     name: USDC price
+    listed: false
     unit: USD
     frequency: daily
     decimals: 4
@@ -371,6 +437,7 @@ series:
       context: [stablecoin-issuers, stablecoins]
   - id: cg.pyusd.price
     name: PYUSD price
+    listed: false
     unit: USD
     frequency: daily
     decimals: 4
@@ -392,6 +459,7 @@ series:
       context: [stablecoin-issuers, stablecoins]
   - id: cg.usdp.price
     name: USDP price
+    listed: false
     unit: USD
     frequency: daily
     decimals: 4
@@ -413,6 +481,7 @@ series:
       context: [stablecoin-issuers, stablecoins]
   - id: cg.xsgd.price
     name: XSGD price in USD
+    listed: false
     unit: USD
     frequency: daily
     decimals: 4
@@ -427,6 +496,7 @@ series:
   # off on ten days a year, where this is never more than 0.45% off.
   - id: derived.xsgd.price_sgd
     name: XSGD price in SGD
+    listed: false
     unit: SGD
     frequency: daily
     decimals: 4
@@ -461,6 +531,7 @@ series:
       context: [stablecoin-issuers, stablecoins]
   - id: llama.usdt.supply.tron
     name: USDT supply on Tron
+    listed: false
     unit: USD
     frequency: daily
     decimals: 0
@@ -471,6 +542,7 @@ series:
       context: [tether]
   - id: llama.usdt.supply.ethereum
     name: USDT supply on Ethereum
+    listed: false
     unit: USD
     frequency: daily
     decimals: 0
@@ -481,6 +553,8 @@ series:
       context: [tether]
   - id: derived.usdt.share.tron
     name: Share of USDT on Tron
+    short_name: Share on Tron
+    group: Supply by chain
     unit: "%"
     frequency: daily
     decimals: 1
@@ -491,6 +565,8 @@ series:
       context: [tether]
   - id: derived.usdt.share.ethereum
     name: Share of USDT on Ethereum
+    short_name: Share on Ethereum
+    group: Supply by chain
     unit: "%"
     frequency: daily
     decimals: 1
@@ -513,6 +589,7 @@ series:
       context: [stablecoin-issuers, stablecoins]
   - id: llama.usdc.supply.ethereum
     name: USDC supply on Ethereum
+    listed: false
     unit: USD
     frequency: daily
     decimals: 0
@@ -523,6 +600,7 @@ series:
       context: [circle]
   - id: llama.usdc.supply.solana
     name: USDC supply on Solana
+    listed: false
     unit: USD
     frequency: daily
     decimals: 0
@@ -533,6 +611,8 @@ series:
       context: [circle]
   - id: derived.usdc.share.ethereum
     name: Share of USDC on Ethereum
+    short_name: Share on Ethereum
+    group: Supply by chain
     unit: "%"
     frequency: daily
     decimals: 1
@@ -543,6 +623,8 @@ series:
       context: [circle]
   - id: derived.usdc.share.solana
     name: Share of USDC on Solana
+    short_name: Share on Solana
+    group: Supply by chain
     unit: "%"
     frequency: daily
     decimals: 1
@@ -565,6 +647,7 @@ series:
       context: [stablecoin-issuers, stablecoins]
   - id: llama.pyusd.supply.ethereum
     name: PYUSD supply on Ethereum
+    listed: false
     unit: USD
     frequency: daily
     decimals: 0
@@ -575,6 +658,7 @@ series:
       context: [paxos]
   - id: llama.pyusd.supply.solana
     name: PYUSD supply on Solana
+    listed: false
     unit: USD
     frequency: daily
     decimals: 0
@@ -585,6 +669,8 @@ series:
       context: [paxos]
   - id: derived.pyusd.share.ethereum
     name: Share of PYUSD on Ethereum
+    short_name: Share on Ethereum
+    group: Supply by chain
     unit: "%"
     frequency: daily
     decimals: 1
@@ -595,6 +681,8 @@ series:
       context: [paxos]
   - id: derived.pyusd.share.solana
     name: Share of PYUSD on Solana
+    short_name: Share on Solana
+    group: Supply by chain
     unit: "%"
     frequency: daily
     decimals: 1
@@ -617,6 +705,7 @@ series:
       context: [stablecoin-issuers, stablecoins]
   - id: llama.usdp.supply.ethereum
     name: USDP supply on Ethereum
+    listed: false
     unit: USD
     frequency: daily
     decimals: 0
@@ -627,6 +716,8 @@ series:
       context: [paxos]
   - id: derived.usdp.share.ethereum
     name: Share of USDP on Ethereum
+    short_name: Share on Ethereum
+    group: Supply by chain
     unit: "%"
     frequency: daily
     decimals: 1
@@ -649,6 +740,7 @@ series:
       context: [stablecoin-issuers, stablecoins]
   - id: llama.xsgd.supply.ethereum
     name: XSGD supply on Ethereum
+    listed: false
     unit: SGD
     frequency: daily
     decimals: 0
@@ -659,6 +751,7 @@ series:
       context: [straitsx]
   - id: llama.xsgd.supply.polygon
     name: XSGD supply on Polygon
+    listed: false
     unit: SGD
     frequency: daily
     decimals: 0
@@ -669,6 +762,8 @@ series:
       context: [straitsx]
   - id: derived.xsgd.share.ethereum
     name: Share of XSGD on Ethereum
+    short_name: Share on Ethereum
+    group: Supply by chain
     unit: "%"
     frequency: daily
     decimals: 1
@@ -679,6 +774,8 @@ series:
       context: [straitsx]
   - id: derived.xsgd.share.polygon
     name: Share of XSGD on Polygon
+    short_name: Share on Polygon
+    group: Supply by chain
     unit: "%"
     frequency: daily
     decimals: 1
@@ -690,6 +787,7 @@ series:
 
   - id: llama.total.supply
     name: Total stablecoin supply
+    scope: market
     unit: USD
     frequency: daily
     decimals: 0

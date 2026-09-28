@@ -1,9 +1,9 @@
 "use client";
 
 // A monitor page for a topic, group or entity. Every scope has the same order: What changed,
-// Standing questions, Links, Actions. Topics add the stage track and upcoming dates; groups add
-// common issues and outliers. The main panel holds the first two and the scope extras; a sticky
-// rail panel holds Links and Actions. The head's Follow button decides whether the subject alerts.
+// Indicators (where series are mapped), Standing questions, Links, Actions. Topics add the stage
+// track and upcoming dates; groups add common issues and outliers. The main panel holds the first
+// three and the scope extras; a sticky rail panel holds Links and Actions. The head's Follow button decides whether the subject alerts.
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -21,6 +21,7 @@ import { PlusIcon, TickIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
 import { DevelopmentRow, StateBadge } from "@/components/widgets/parts";
 
+import { Indicators } from "./Indicators";
 import { StageTrack } from "./StageTrack";
 import { hasUnreviewed, WhatChanged } from "./WhatChanged";
 import { Dotted, Section, StateChange } from "./parts";
@@ -59,6 +60,7 @@ export function MonitorView({ id }: { id: string }) {
       <div className="monitor">
         <div className="panel mon-main">
           <WhatChanged wc={p.what_changed} subjectId={p.subject.id} />
+          <Indicators subjectId={p.subject.id} asOf={p.run.as_of} />
           <Questions page={p} />
           {p.group && <GroupInsights group={p.group} />}
           {p.stage_track && <StageTrack track={p.stage_track} />}

@@ -158,3 +158,69 @@ export const COLLECTION_LABEL: Record<Schema<"EvidenceSource">["collection"], st
   data: "Data",
   news: "News",
 };
+
+type Series = Schema<"SeriesInfo">;
+type Indicator = Schema<"SubjectIndicator">;
+export type IndicatorState = Indicator["state"];
+
+/** An indicator's data state (api/intelmonitor/pipeline/indicators.py), in words. */
+export const INDICATOR_STATE_LABEL: Record<IndicatorState, string> = {
+  no_data: "No data",
+  stale: "Stale",
+  revised: "Revised",
+  preliminary: "Preliminary",
+  current: "Current",
+};
+
+export const SCOPE_LABEL: Record<NonNullable<Series["scope"]>, string> = {
+  system: "System-wide",
+  market: "Market-wide",
+};
+
+// Amounts in these units read as money in billions or millions; "SGD m" is S$ million.
+const MONEY: Record<string, { prefix: string; scale: number }> = {
+  USD: { prefix: "$", scale: 1 },
+  SGD: { prefix: "S$", scale: 1 },
+  "SGD m": { prefix: "S$", scale: 1e6 },
+};
+const MINUS = "−";
+const signed = (x: number, text: string) => `${x > 0 ? "+" : x < 0 ? MINUS : ""}${text}`;
+
+/** A series value in its unit: "70.3%", "S$16.5M", "$183.4B", "0.3132" (SGD per MYR). */
+export function seriesValue(s: Series, v: number): string {
+  const sign = v < 0 ? MINUS : "";
+  const a = Math.abs(v);
+  if (s.unit === "%") return `${sign}${a.toFixed(s.decimals)}%`;
+  const money = s.decimals === 0 ? MONEY[s.unit] : undefined;
+  if (money) {
+    const amount = a * money.scale;
+    const [div, suffix] = amount >= 1e9 ? [1e9, "B"] : amount >= 1e6 ? [1e6, "M"] : [1e3, "K"];
+    return `${sign}${money.prefix}${(amount / div).toFixed(1)}${suffix}`;
+  }
+  return `${sign}${a.toFixed(s.decimals)}`;
+}
+
+/** A period as its series is released: "24 Sep" daily, "Jul 2026" monthly, "Q2 2026" quarterly. */
+export function seriesPeriod(s: Series, iso: string): string {
+  const d = day(iso);
+  if (s.frequency === "daily") return shortDate(iso);
+  if (s.frequency === "monthly") return `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  return `Q${Math.floor(d.getMonth() / 3) + 1} ${d.getFullYear()}`;
+}
+
+/**
+ * The change an indicator row shows, with its window: over 1 month for daily series ("1 month"),
+ * against the previous release for monthly and quarterly ones ("vs Jun", "vs Q1"). Series in %
+ * change in points ("+0.3 pt"), others in percent ("+2.6%"). Null when the window has no change.
+ */
+export function indicatorChange(ind: Indicator): { value: string; window: string } | null {
+  const s = ind.series;
+  const c = ind.changes.find((x) => x.window === (s.frequency === "quarterly" ? "3m" : "1m"));
+  if (!c || c.change === null || !c.since) return null;
+  const size = (ind.change_basis === "points" ? Math.abs(c.change).toFixed(s.decimals) : Math.abs(c.change).toFixed(1));
+  // A change that rounds to zero takes no sign.
+  const value = signed(Number(size) === 0 ? 0 : c.change, ind.change_basis === "points" ? `${size} pt` : `${size}%`);
+  if (s.frequency === "daily") return { value, window: "1 month" };
+  // "Jun 2026" or "Q1 2026" without its year.
+  return { value, window: `vs ${seriesPeriod(s, c.since).split(" ")[0]}` };
+}

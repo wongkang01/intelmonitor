@@ -160,7 +160,7 @@ Built, endpoints and run indicators:
   A change is null when the window is shorter than the frequency (1w on monthly, 1w and 1m on quarterly), reaches before the stored history (CoinGecko's 364 days have no 1y change), or starts from zero.
 - `percentile` is the percent of the stored history, from the backfill floor to the latest value, below the latest value, ties counting half.
 - States, worst first: `no_data` (nothing available by the date), `stale` (a daily CoinGecko or DefiLlama series whose latest point was available more than a day before the end of the date, or before now if that is earlier; a derived series is stale when one of its market inputs is, so XSGD's peg over a weekend without MAS rates stays current while its price feed is), `revised` (a revision made since the previous run, or in the 31 days to the date for the endpoint), `preliminary` (the latest value is flagged preliminary), `current`.
-  Labels for them wait for the F4 mock.
+  Their labels are `INDICATOR_STATE_LABEL` in `web/lib/format.ts` (F4).
 - The computation is `pipeline/indicators.py`, shared by the endpoint and the pipeline: `compute_run` writes every series' indicator as of the run date to `run_indicators` before answering questions, counting revisions from the previous run's date.
   A series with no data by then gets no row, since `period` and `value` are required.
 - `im ingest` and Run now already fetched series first (above); `im report`'s Series section now says how many series the latest fetch got, and lists each run's indicator states with a look-ahead check: no run indicator may use an observation available after its run date.
@@ -291,6 +291,29 @@ Built:
 An Indicators section on every monitor page with mapped series: one row per series with the latest value, change, a small line over 12 months, the state as a word, and "system-wide" or "market-wide" where it applies.
 Issuer pages get peg, supply and supply by chain; bank pages get the system context; country pages get FX; central bank pages get their policy rate.
 Mocked first.
+
+Built (direction A "Rows" in `mocks/indicators.html`):
+
+- `components/monitor/Indicators.tsx` renders the section between What changed and Standing questions on every monitor page with listed series, from `GET /subjects/{id}/indicators` as of the page's run date.
+  A subject with none (Maybank, CIMB, Bangkok Bank, SEA regional banks) has no section.
+- Each row: the status, the name with the latest period ("Jul 2026, preliminary", "23 Sep"), the source label and the scope, the latest value, the change with its window, and the line over the 12 months to the run date.
+  The change is over 1 month for daily series ("1 month"), against the previous release for monthly and quarterly ones ("vs Jun", "vs Q1"); series in % change in points ("+0.3 pt"), others in percent.
+  Values: "70.3%", "S$16.5M", "$183.4B", "0.3132" for SGD per MYR; S$ million series read as S$ billions.
+- The status column: the data states No data and Stale (neutral badges) come first, else the indicator's status, Stable, Watch or Needs attention.
+  Preliminary and Revised sit after the period in the meta line; Revised carries each revision's old value in its tooltip.
+- Differs from the plan: the mock's Watch and Stable came from placeholder rules in the mock script (z-scores of monthly moves, peg bands).
+  The built status comes from the declared detectors instead: a series reads Watch or Needs attention (its rule Significant or above) while one of its detector events was known since the previous run, or still holds at its latest point (a level still above its threshold, a spell still off the peg, the latest release being the one that moved), else Stable.
+  `live_events` in `pipeline/detectors.py` selects them (each `Detection` now says whether it `holds`); the endpoint's previous run is the latest completed run before the date, else 7 days before.
+  A row with such an event opens the development that carries it in the run, in the evidence drawer; other rows are not links.
+  On 24 Sep only the Fed funds rate reads Watch (its 17 Sep rise, known 18 Sep), and its row opens the FOMC decision's development.
+- `SubjectIndicator` gained `status`, `events` (statement, materiality, when known, and the development carrying it) and `line` (the observations of the 12 months to the date as known then, none for unlisted series); `SeriesInfo` gained `short_name`, `group`, `scope`, `listed`, `baseline` (0 for a peg's distance, drawn as a rule), `source_label` ("MAS I.18", "FRED DFF", "CoinGecko, MAS") and `providers`.
+- Display fields in `api/seed/series.yaml`: `group` puts rows under a heading (Loan-to-deposit ratio, Non-performing loans, Loans to non-residents, Exchange rates, Supply by chain) when two or more of a page's rows share it; a lone member leads with the ungrouped rows under its full name, so the Fed's SGD per US dollar has no heading.
+  `short_name` names a row under its heading; a group where two rows share one (Paxos's PYUSD and USDP shares on Ethereum) uses full names.
+  `scope` labels rows "System-wide" (MAS banking tables) or "Market-wide" (FX, US rates, VIX, total stablecoin supply); a section whose rows are all system-wide says "System-wide" in its head, others list the providers ("FRED, MAS").
+  `listed: false` keeps the inputs to derived series (CoinGecko prices, XSGD in SGD, supply per chain) off the rows.
+- Where the section is narrower than 640 px (a 1024 px window), the name takes a row's first line and the line, value and change share its second.
+- The line spans the 12 months to the run date on a fixed axis, so MAS monthly and quarterly lines end at their last release; the pointer snaps a crosshair to the nearest observation with a readout of its value, date and series.
+- The walkthrough's last step checks OCBC's rows against the endpoint as of the run (System-wide head and rows, group headings, values, periods, changes), that the Fed funds row reads Watch, that its line's readout shows the latest value, and that it opens its development with the detection as a data source; that Circle lists no prices or per-chain supplies and Maybank has no section. It writes `monitor-indicators.json`.
 
 ### F5. Indicator widget
 

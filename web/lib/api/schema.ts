@@ -2102,7 +2102,44 @@ export interface components {
              */
             change: number | null;
         };
+        /**
+         * IndicatorEvent
+         * @description A detector event behind an indicator's status.
+         */
+        IndicatorEvent: {
+            /**
+             * Statement
+             * @description The sentence code wrote for it
+             */
+            statement: string;
+            /**
+             * Materiality Label
+             * @description Its rule's level, e.g. Notable
+             */
+            materiality_label: string;
+            /**
+             * Known On
+             * Format: date
+             * @description When every value it rests on was known
+             */
+            known_on: string;
+            /**
+             * Development Id
+             * @description The development carrying it in the latest run by the date, if any
+             */
+            development_id: string | null;
+        };
         JsonValue: unknown;
+        /** LinePoint */
+        LinePoint: {
+            /**
+             * Period
+             * Format: date
+             */
+            period: string;
+            /** Value */
+            value: number;
+        };
         /**
          * MaterialityLevel
          * @description A materiality level for Help: what it means and how the app treats it.
@@ -2700,6 +2737,26 @@ export interface components {
             /** Name */
             name: string;
             /**
+             * Short Name
+             * @description The row name under its group heading
+             */
+            short_name: string;
+            /**
+             * Group
+             * @description The heading its rows sit under on monitor pages
+             */
+            group: string | null;
+            /**
+             * Scope
+             * @description system: the banking system's figures; market: market-wide
+             */
+            scope: ("system" | "market") | null;
+            /**
+             * Listed
+             * @description False: an input to a derived series, off the Indicators
+             */
+            listed: boolean;
+            /**
              * Unit
              * @description "%" for ratios and rates, else e.g. "USD" or "SGD per MYR"
              */
@@ -2718,10 +2775,25 @@ export interface components {
              */
             bad_direction: "up" | "down" | "none";
             /**
+             * Baseline
+             * @description A level its line is read against: 0 for a distance from a peg
+             */
+            baseline: number | null;
+            /**
              * Source
              * @enum {string}
              */
             source: "mas" | "fred" | "coingecko" | "defillama" | "derived";
+            /**
+             * Source Label
+             * @description Where its values come from: "MAS I.18", "FRED DFF"
+             */
+            source_label: string;
+            /**
+             * Providers
+             * @description The APIs its values come from, following derived inputs: ["CoinGecko", "MAS"]
+             */
+            providers: string[];
             /** Source Url */
             source_url: string;
         };
@@ -2933,6 +3005,21 @@ export interface components {
              * @enum {string}
              */
             role: "primary" | "context";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "stable" | "watch" | "needs_attention";
+            /**
+             * Events
+             * @description Detector events known since the previous run, or still holding at the latest point, worst first
+             */
+            events: components["schemas"]["IndicatorEvent"][];
+            /**
+             * Line
+             * @description Observations over the 12 months to the date, as known by then; none for a series not listed
+             */
+            line: components["schemas"]["LinePoint"][];
         };
         /** SubjectIndicators */
         SubjectIndicators: {

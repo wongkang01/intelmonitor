@@ -13,6 +13,7 @@ from intelmonitor.seed import (
     BadDirection,
     EntityKind,
     Frequency,
+    SeriesScope,
     SourceName,
     SubjectType,
     TopicIcon,
@@ -464,11 +465,24 @@ class DevelopmentDetail(DevelopmentSummary):
 class SeriesInfo(BaseModel):
     id: str
     name: str
+    short_name: str = Field(description="The row name under its group heading")
+    group: str | None = Field(description="The heading its rows sit under on monitor pages")
+    scope: SeriesScope | None = Field(
+        description="system: the banking system's figures; market: market-wide"
+    )
+    listed: bool = Field(description="False: an input to a derived series, off the Indicators")
     unit: str = Field(description='"%" for ratios and rates, else e.g. "USD" or "SGD per MYR"')
     frequency: Frequency
     decimals: int
     bad_direction: BadDirection = Field(description="Which way is worse, if either")
+    baseline: float | None = Field(
+        description="A level its line is read against: 0 for a distance from a peg"
+    )
     source: SourceName
+    source_label: str = Field(description='Where its values come from: "MAS I.18", "FRED DFF"')
+    providers: list[str] = Field(
+        description='The APIs its values come from, following derived inputs: ["CoinGecko", "MAS"]'
+    )
     source_url: str
 
 

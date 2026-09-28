@@ -14,6 +14,7 @@ import bisect
 import json
 import math
 import sqlite3
+from collections.abc import Collection
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from typing import Literal
@@ -66,6 +67,7 @@ class Detection:
     statement: str
     adverse: float
     direction: Direction
+    holds: bool  # the condition still holds at the series' latest point
 
     @property
     def event_date(self) -> date:
@@ -189,7 +191,7 @@ def _threshold(d: ThresholdDetector, s: SeriesDef, pts: list[Point]) -> list[Det
         _when(d, p) and ((p.obs.value > level) if rising else (p.obs.value < level)) for p in pts
     ]
     out: list[Detection] = []
-    for first, _ in _runs(hits):
+    for first, last in _runs(hits):
         if first == 0:
             continue  # the history starts beyond the level: no crossing seen
         before, p = pts[first - 1], pts[first]
@@ -199,7 +201,8 @@ def _threshold(d: ThresholdDetector, s: SeriesDef, pts: list[Point]) -> list[Det
             f"{s.name} {crossed} to {_stated(s, p)}, from {_stated(s, before)}{_released(s, p)}."
         )
         known = max(before.known_at, p.known_at)
-        out.append(Detection(d, s, p.obs.period, p, known, statement, adverse, direction))
+        holds = last == len(pts) - 1
+        out.append(Detection(d, s, p.obs.period, p, known, statement, adverse, direction, holds))
     return out
 
 
@@ -229,7 +232,8 @@ def _deviation(
             f"{peg_side(s, source, by_id, p.obs.value)} on {day(p.obs.period)}."
         )
         known = max(q.known_at for q in pts[first : at + 1])
-        out.append(Detection(d, s, start, p, known, statement, 1.0, "negative"))
+        holds = last == len(pts) - 1
+        out.append(Detection(d, s, start, p, known, statement, 1.0, "negative", holds))
     return out
 
 
@@ -256,7 +260,7 @@ def _move(d: MoveDetector, s: SeriesDef, pts: list[Point]) -> list[Detection]:
         if c is not None:
             n, total, squares = n + 1, total + c, squares + c * c
     out: list[Detection] = []
-    for first, _ in _runs(hits):
+    for first, last in _runs(hits):
         p, ref, c, k = pts[first], refs[first], changes[first], sigmas[first]
         assert ref is not None and c is not None  # a hit has both
         noted = f" ({k:.1f} standard deviations of its moves)" if k is not None else ""
@@ -272,7 +276,8 @@ def _move(d: MoveDetector, s: SeriesDef, pts: list[Point]) -> list[Detection]:
             )
         adverse, direction = _tone(s, c)
         known = max(ref.known_at, p.known_at)
-        out.append(Detection(d, s, p.obs.period, p, known, statement, adverse, direction))
+        holds = last == len(pts) - 1
+        out.append(Detection(d, s, p.obs.period, p, known, statement, adverse, direction, holds))
     return out
 
 
@@ -288,7 +293,8 @@ def _release(d: ReleaseDetector, s: SeriesDef, pts: list[Point]) -> list[Detecti
         )
         adverse, direction = _tone(s, c)
         known = max(before.known_at, p.known_at)
-        out.append(Detection(d, s, p.obs.period, p, known, statement, adverse, direction))
+        holds = p is pts[-1]  # the latest release is the one that moved
+        out.append(Detection(d, s, p.obs.period, p, known, statement, adverse, direction, holds))
     return out
 
 
@@ -307,12 +313,15 @@ def evaluate(
             return _release(d, s, pts)
 
 
-def detect(conn: sqlite3.Connection, as_of: date, since: date) -> list[Detection]:
-    """Every seeded detector's events known between the start of `since` and the end of `as_of`,
-    from what was known by then. A series with no data or a stale market price as of the date
-    fires nothing."""
+def _events(
+    conn: sqlite3.Connection, as_of: date, series_ids: Collection[str] | None = None
+) -> list[Detection]:
+    """Every seeded detector's events over the series (default all), from what was known by the
+    end of `as_of`. A series with no data or a stale market price as of the date fires nothing."""
     by_id = {s.id: s for s in load_series().series}
     pairs = load_detectors().matching(list(by_id))
+    if series_ids is not None:
+        pairs = [(d, i) for d, i in pairs if i in series_ids]
     usable = {
         i
         for i, ind in compute_indicators(conn, {i for _, i in pairs}, as_of).items()
@@ -326,8 +335,23 @@ def detect(conn: sqlite3.Connection, as_of: date, since: date) -> list[Detection
         pts = cache.get(series_id)
         if pts is None:
             pts = cache[series_id] = points(conn, series_id, as_of)
-        out += [e for e in evaluate(d, by_id[series_id], by_id, pts) if e.known_at.date() >= since]
+        out += evaluate(d, by_id[series_id], by_id, pts)
     return sorted(out, key=lambda e: (e.known_at, e.detector.id, e.series.id))
+
+
+def detect(conn: sqlite3.Connection, as_of: date, since: date) -> list[Detection]:
+    """Every seeded detector's events known between the start of `since` and the end of `as_of`,
+    from what was known by then."""
+    return [e for e in _events(conn, as_of) if e.known_at.date() >= since]
+
+
+def live_events(
+    conn: sqlite3.Connection, series_ids: Collection[str], as_of: date, after: date
+) -> list[Detection]:
+    """The events that set the series' indicator signals as of `as_of`: those known after the end
+    of `after` (the previous run's date), and older ones whose condition still holds at the
+    series' latest point, such as a level still above its threshold."""
+    return [e for e in _events(conn, as_of, series_ids) if e.holds or e.known_at.date() > after]
 
 
 # ---- documents

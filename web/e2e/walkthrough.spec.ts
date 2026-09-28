@@ -8,7 +8,7 @@ import path from "node:path";
 
 import { api, API_URL, type Schema } from "../lib/api/client";
 import { listQuery } from "../lib/developments";
-import { answerText, changeCounts, plural, shortDate, STATE_LABEL } from "../lib/format";
+import { answerText, changeCounts, indicatorChange, plural, seriesPeriod, seriesValue, shortDate, STATE_LABEL } from "../lib/format";
 
 import { runDir, screenshotName, STEPS } from "./steps";
 
@@ -1290,6 +1290,82 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
 
       writeFileSync(path.join(dir, "depeg.json"), JSON.stringify(check, null, 2));
       await page.setContent(`<pre style="font: 13px/1.5 ui-monospace, monospace; white-space: pre-wrap">${JSON.stringify({ ...check, prices: check.prices.slice(-5) }, null, 2)}</pre>`);
+    });
+
+    await step(STEPS[19], async () => {
+      // Indicators sit between What changed and Standing questions, as of the page's run date
+      // (structured-data-plan.md, F4). OCBC has no figures of its own: its rows are the Singapore
+      // banking system's MAS series, labelled System-wide in the head and on every row.
+      const ocbc = await unwrap(
+        api.GET("/subjects/{subject_id}/indicators", { params: { path: { subject_id: "ocbc" }, query: { as_of: latest.as_of } } }),
+      );
+      const rows = ocbc.indicators.filter((i) => i.series.listed);
+      expect(rows.length, "OCBC has the system's series").toBeGreaterThan(0);
+      // The mock's width; the list steps before this one leave the window at 1024 px.
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto("/monitors/ocbc");
+      const section = page.locator("section", { has: page.locator("h2#indicators") });
+      await expect(section.locator(".mon-sec-head .meta")).toHaveText("System-wide");
+      const headings = await page.locator("main h2").allTextContents();
+      expect(headings.indexOf("Indicators"), "Indicators come before Standing questions").toBeLessThan(headings.indexOf("Standing questions"));
+      await expect(section.locator(".mon-sub")).toHaveText(["Loan-to-deposit ratio", "Non-performing loans"]);
+      for (const ind of rows) {
+        if (!ind.latest) throw new Error(`${ind.series.id} has no data as of ${latest.as_of}`);
+        expect(ind.latest.available_at.slice(0, 10) <= latest.as_of, `${ind.series.id} was known by the run date`).toBe(true);
+        const row = section.locator(`[data-series-id="${ind.series.id}"]`);
+        await expect(row.locator(".ind-val")).toHaveText(seriesValue(ind.series, ind.latest.value));
+        const meta = row.locator(".row-meta").first();
+        await expect(meta).toContainText(seriesPeriod(ind.series, ind.latest.period));
+        await expect(meta).toContainText(`${ind.series.source_label} · System-wide`);
+        if (ind.state === "preliminary") await expect(meta).toContainText("preliminary");
+        const change = indicatorChange(ind);
+        if (change) await expect(row.locator(".ind-chg")).toHaveText(`${change.value}${change.window}`);
+      }
+
+      // The Fed funds rise of 17 Sep fired its detector after Run 1 (F3), so the rate reads Watch
+      // in Run 2 and its row opens the development that carries the detection.
+      const fed = await unwrap(
+        api.GET("/subjects/{subject_id}/indicators", { params: { path: { subject_id: "fed" }, query: { as_of: latest.as_of } } }),
+      );
+      const funds = fed.indicators.find((i) => i.series.id === "fred.fed_funds");
+      if (!funds) throw new Error("the Fed has no Fed funds indicator");
+      expect(funds.status).toBe("watch");
+      const event = funds.events.find((e) => e.statement.startsWith("Fed funds effective rate up 0.25 points to 3.88%"));
+      if (!event?.development_id) throw new Error("the Fed funds indicator does not carry its detection's development");
+      await page.goto("/monitors/fed");
+      const fundsRow = page.locator('[data-series-id="fred.fed_funds"]');
+      await expect(fundsRow.locator(".stat")).toHaveText("Watch");
+      await expect(page.locator('[data-series-id="fx.sgd.usd"] .row-meta').first()).toContainText("Market-wide");
+
+      // The line's readout: the crosshair snaps to an observation and names its value and date.
+      const line = fundsRow.locator(".ind-line");
+      await line.scrollIntoViewIfNeeded();
+      const box = await line.boundingBox();
+      if (!box) throw new Error("the Fed funds line is not on screen");
+      await page.mouse.move(box.x + box.width - 2, box.y + box.height / 2);
+      const tip = page.getByRole("tooltip");
+      await expect(tip).toBeVisible();
+      await expect(tip.locator("b")).toHaveText(seriesValue(funds.series, funds.line[funds.line.length - 1].value));
+      await expect(tip).toContainText("Fed funds effective rate");
+
+      await fundsRow.click();
+      await expect(page).toHaveURL(new RegExp(`[?&]evidence=${encodeURIComponent(event.development_id)}$`));
+      const dev = await unwrap(api.GET("/developments/{development_id}", { params: { path: { development_id: event.development_id } } }));
+      await expect(page.getByTestId("evidence-drawer").getByRole("heading", { level: 3 })).toHaveText(dev.title);
+      expect(dev.sources.some((src) => src.collection === "data" && src.findings.some((f) => f.statement === event.statement))).toBe(true);
+
+      // Inputs to derived series (prices, supply per chain) stay off the rows; a bank with no
+      // mapped series has no section.
+      await page.goto("/monitors/circle");
+      await expect(page.locator("h2#indicators")).toBeVisible();
+      await expect(page.locator('[data-series-id^="cg."], [data-series-id^="llama.usdc.supply."]')).toHaveCount(0);
+      await page.goto("/monitors/maybank");
+      await expect(page.getByRole("heading", { level: 2, name: "Standing questions" })).toBeVisible();
+      await expect(page.locator("h2#indicators")).toHaveCount(0);
+
+      writeFileSync(path.join(dir, "monitor-indicators.json"), JSON.stringify({ run: latest, ocbc, fed }, null, 2));
+      await page.goto("/monitors/ocbc");
+      await page.locator("h2#indicators").scrollIntoViewIfNeeded();
     });
 
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);

@@ -212,9 +212,17 @@ class SeriesSubjects(BaseModel):
     context: list[str] = []
 
 
+# system: the Singapore banking system's figures; market: market-wide figures.
+SeriesScope = Literal["system", "market"]
+
+
 class SeriesDef(BaseModel):
     id: str
     name: str
+    short_name: str | None = None  # the row name under its group heading
+    group: str | None = None  # the heading its rows sit under on monitor pages
+    scope: SeriesScope | None = None
+    listed: bool = True  # False: an input to a derived series, kept off the Indicators
     unit: str
     frequency: Frequency
     decimals: int
@@ -227,6 +235,41 @@ class SeriesDef(BaseModel):
     def source_name(self) -> SourceName:
         """The series table's source: the API it is fetched from, or derived."""
         return "derived" if isinstance(self.source, DerivedSource) else self.source.kind
+
+
+_MAS_TABLE_LABEL: dict[MasTable, str] = {
+    "i18": "MAS I.18",
+    "i12a": "MAS I.12A",
+    "i5b": "MAS I.5B",
+    "fx": "MAS exchange rates",
+}
+_PROVIDER: dict[str, str] = {
+    "mas": "MAS",
+    "fred": "FRED",
+    "coingecko": "CoinGecko",
+    "defillama": "DefiLlama",
+}
+
+
+def source_label(s: SeriesDef, by_id: dict[str, SeriesDef]) -> str:
+    """Where a series' values come from, in a few words: "MAS I.18", "FRED DFF", or the providers
+    of a derived series' inputs, "CoinGecko, MAS"."""
+    match s.source:
+        case MasSource():
+            return _MAS_TABLE_LABEL[s.source.table]
+        case FredSource():
+            return f"FRED {s.source.series}"
+        case CoinGeckoSource() | DefiLlamaSource():
+            return _PROVIDER[s.source.kind]
+        case Deviation() | Product() | Share():
+            return ", ".join(dict.fromkeys(providers(s, by_id)))
+
+
+def providers(s: SeriesDef, by_id: dict[str, SeriesDef]) -> list[str]:
+    """The APIs a series' values come from, following derived series to their inputs."""
+    if isinstance(s.source, DerivedSource):
+        return [p for i in derived_inputs(s.source) for p in providers(by_id[i], by_id)]
+    return [_PROVIDER[s.source.kind]]
 
 
 _FX_ID = re.compile(r"fx\.sgd\.([a-z]{3})")

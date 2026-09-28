@@ -5244,7 +5244,67 @@
         ],
         "title": "IndicatorChange"
       },
+      "IndicatorEvent": {
+        "properties": {
+          "statement": {
+            "type": "string",
+            "title": "Statement",
+            "description": "The sentence code wrote for it"
+          },
+          "materiality_label": {
+            "type": "string",
+            "title": "Materiality Label",
+            "description": "Its rule's level, e.g. Notable"
+          },
+          "known_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Known On",
+            "description": "When every value it rests on was known"
+          },
+          "development_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Development Id",
+            "description": "The development carrying it in the latest run by the date, if any"
+          }
+        },
+        "type": "object",
+        "required": [
+          "statement",
+          "materiality_label",
+          "known_on",
+          "development_id"
+        ],
+        "title": "IndicatorEvent",
+        "description": "A detector event behind an indicator's status."
+      },
       "JsonValue": {},
+      "LinePoint": {
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date",
+            "title": "Period"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "value"
+        ],
+        "title": "LinePoint"
+      },
       "MaterialityLevel": {
         "properties": {
           "level": {
@@ -6734,6 +6794,44 @@
             "type": "string",
             "title": "Name"
           },
+          "short_name": {
+            "type": "string",
+            "title": "Short Name",
+            "description": "The row name under its group heading"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group",
+            "description": "The heading its rows sit under on monitor pages"
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "system",
+                  "market"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope",
+            "description": "system: the banking system's figures; market: market-wide"
+          },
+          "listed": {
+            "type": "boolean",
+            "title": "Listed",
+            "description": "False: an input to a derived series, off the Indicators"
+          },
           "unit": {
             "type": "string",
             "title": "Unit",
@@ -6762,6 +6860,18 @@
             "title": "Bad Direction",
             "description": "Which way is worse, if either"
           },
+          "baseline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline",
+            "description": "A level its line is read against: 0 for a distance from a peg"
+          },
           "source": {
             "type": "string",
             "enum": [
@@ -6773,6 +6883,19 @@
             ],
             "title": "Source"
           },
+          "source_label": {
+            "type": "string",
+            "title": "Source Label",
+            "description": "Where its values come from: \"MAS I.18\", \"FRED DFF\""
+          },
+          "providers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Providers",
+            "description": "The APIs its values come from, following derived inputs: [\"CoinGecko\", \"MAS\"]"
+          },
           "source_url": {
             "type": "string",
             "title": "Source Url"
@@ -6782,11 +6905,18 @@
         "required": [
           "id",
           "name",
+          "short_name",
+          "group",
+          "scope",
+          "listed",
           "unit",
           "frequency",
           "decimals",
           "bad_direction",
+          "baseline",
           "source",
+          "source_label",
+          "providers",
           "source_url"
         ],
         "title": "SeriesInfo"
@@ -7276,6 +7406,31 @@
               "context"
             ],
             "title": "Role"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "stable",
+              "watch",
+              "needs_attention"
+            ],
+            "title": "Status"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/IndicatorEvent"
+            },
+            "type": "array",
+            "title": "Events",
+            "description": "Detector events known since the previous run, or still holding at the latest point, worst first"
+          },
+          "line": {
+            "items": {
+              "$ref": "#/components/schemas/LinePoint"
+            },
+            "type": "array",
+            "title": "Line",
+            "description": "Observations over the 12 months to the date, as known by then; none for a series not listed"
           }
         },
         "type": "object",
@@ -7289,7 +7444,10 @@
           "state",
           "revisions",
           "series",
-          "role"
+          "role",
+          "status",
+          "events",
+          "line"
         ],
         "title": "SubjectIndicator"
       },
