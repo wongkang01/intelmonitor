@@ -80,6 +80,7 @@ It extends `poc-plan.md`; where they disagree, this plan wins for the items it l
    The corpus spans 27 Jul to 23 Sep and there are 2 runs, so weekly series come from publication dates and the per-run series is short.
    Built: `GET /subjects/{id}/trend` returns `SubjectTrend`; the web hook is `useTrend`.
    Weekly series count the latest run's developments by first publication, bucketed by the same helper as the Direction widget (`week_spans` and `weekly_counts` in `queries.py`).
+   Replaced by F6 in `structured-data-plan.md`: the endpoint now feeds the Trend tab with the subject's series, marked developments, each run's note and its questions' states and answers per run; the weekly counts, which nothing read, are gone.
    Each week carries its development and material counts; material means materiality Notable or above, as in the Direction widget.
    `categories` lists every category in a fixed order, with material developments only; `stages` (topics) and `members` (groups) count every development.
    Developments without a stage are left out of `stages`; a development tagged to several members counts for each, and one tagged only to the group counts for none.

@@ -81,9 +81,9 @@ export interface paths {
         };
         /**
          * Get Subject Trend
-         * @description Developments per week over the 12 weeks ending on the run date, by category (material
-         *     only), by stage for topics and by member for groups, plus each standing question's state per
-         *     run.
+         * @description The subject's series over the 12 months to the latest run with its Needs attention and
+         *     Watch developments, each run's note on why the series moved with the developments it cites
+         *     and the facts it was given, and each standing question's state and answer per run.
          */
         get: operations["get_subject_trend"];
         put?: never;
@@ -1145,19 +1145,6 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        /** CategorySeries */
-        CategorySeries: {
-            /**
-             * Category
-             * @enum {string}
-             */
-            category: "incident" | "regulatory" | "financial" | "management" | "strategy" | "policy" | "security" | "market" | "other";
-            /**
-             * Counts
-             * @description Material developments per week, aligned with weeks
-             */
-            counts: number[];
-        };
         /**
          * ChangedDevelopment
          * @description A development with its What changed and triage state. When unreviewed, `change` is its
@@ -1445,6 +1432,37 @@ export interface components {
             /** Sources */
             sources: components["schemas"]["DataSourceStats"][];
         };
+        /** DatedDevelopment */
+        DatedDevelopment: {
+            /** @description As it stood in the note's run */
+            development: components["schemas"]["DevelopmentSummary"];
+            /**
+             * On
+             * Format: date
+             * @description Where it sits on the chart: its event date when within the chart's 12 months, else its first publication
+             */
+            on: string;
+        };
+        /**
+         * DayMove
+         * @description A daily series' largest move from one point to the next within the week.
+         */
+        DayMove: {
+            /**
+             * Period
+             * Format: date
+             */
+            period: string;
+            /** From Value */
+            from_value: number;
+            /** Value */
+            value: number;
+            /**
+             * Change
+             * @description In the series' change basis: points for %, else percent
+             */
+            change: number;
+        };
         /**
          * DeveloperMessage
          * @description Instructions from the application developer.
@@ -1722,6 +1740,30 @@ export interface components {
              */
             size: "M" | "L";
             settings: components["schemas"]["DevelopmentsSettings"];
+        };
+        /**
+         * DeviationRule
+         * @description Fixes the answer's state when a series is more than `beyond` away from zero, either way, for
+         *     at least `for_hours` within the question's lookback: a peg series more than 0.5% off for 24
+         *     hours. A spell runs from its first to its last observation in a row beyond the threshold.
+         */
+        DeviationRule: {
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "deviation";
+            /** Series */
+            series: string;
+            /** Beyond */
+            beyond: number;
+            /** For Hours */
+            for_hours: number;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "watch" | "needs_attention";
         };
         /** DirectionData */
         DirectionData: {
@@ -2255,15 +2297,6 @@ export interface components {
              */
             developments: number;
         };
-        /** MemberSeries */
-        MemberSeries: {
-            member: components["schemas"]["SubjectRef"];
-            /**
-             * Counts
-             * @description Developments per week tagged to this member, aligned with weeks
-             */
-            counts: number[];
-        };
         /** MonitorPage */
         MonitorPage: {
             subject: components["schemas"]["SubjectDetail"];
@@ -2287,6 +2320,11 @@ export interface components {
             group: components["schemas"]["GroupInsights"] | null;
             /** Notes */
             notes: components["schemas"]["Note"][];
+            /**
+             * Trend
+             * @description The subject has measured series for a Trend view
+             */
+            trend: boolean;
         };
         /** Note */
         Note: {
@@ -2490,6 +2528,11 @@ export interface components {
              * @description Its state in each run, aligned with runs; null where it has no answer
              */
             states: (("stable" | "watch" | "needs_attention" | "new") | null)[];
+            /**
+             * Summaries
+             * @description Its answer in each run, aligned with runs
+             */
+            summaries: (string | null)[];
         };
         /** QuestionWidget */
         QuestionWidget: {
@@ -2546,6 +2589,25 @@ export interface components {
             } | null;
         } & {
             [key: string]: unknown;
+        };
+        /**
+         * Record
+         * @description The latest value is the highest (or lowest) since `since`: the last earlier period with a
+         *     value at least as high (as low), or the start of the stored history.
+         */
+        Record: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "high" | "low";
+            /**
+             * Since
+             * Format: date
+             */
+            since: string;
+            /** Whole History */
+            whole_history: boolean;
         };
         /**
          * ResumeEntry
@@ -2706,6 +2768,34 @@ export interface components {
             finished_at: string | null;
             /** Duration Seconds */
             duration_seconds: number | null;
+        };
+        /**
+         * RunNote
+         * @description A run's note on why the subject's series moved in the week to the run.
+         */
+        RunNote: {
+            /** Headline */
+            headline: string;
+            /**
+             * Body
+             * @description [n] cites developments[n - 1]
+             */
+            body: string;
+            /**
+             * Series Id
+             * @description The series the headline is about
+             */
+            series_id: string | null;
+            /**
+             * Developments
+             * @description Cited, in citation order
+             */
+            developments: components["schemas"]["DatedDevelopment"][];
+            /**
+             * Facts
+             * @description What code computed for the note, per series
+             */
+            facts: components["schemas"]["SeriesMove"][];
         };
         /** RunRef */
         RunRef: {
@@ -2930,6 +3020,45 @@ export interface components {
             /** Source Url */
             source_url: string;
         };
+        /**
+         * SeriesMove
+         * @description What one series did in the week to a run, as code computed it for the run's note.
+         */
+        SeriesMove: {
+            /** Series Id */
+            series_id: string;
+            /**
+             * Since
+             * Format: date
+             * @description The week's start: the previous run's date
+             */
+            since: string;
+            latest: components["schemas"]["Observation"] | null;
+            /** @description The latest value known by the end of `since` */
+            start: components["schemas"]["Observation"] | null;
+            /**
+             * Change
+             * @description Latest against start, in the change basis
+             */
+            change: number | null;
+            /** @description Daily series other than pegs */
+            largest_day: components["schemas"]["DayMove"] | null;
+            record: components["schemas"]["Record"] | null;
+            /** @description Peg series: furthest from the peg in the week */
+            widest: components["schemas"]["Observation"] | null;
+            /**
+             * Released
+             * @description Monthly and quarterly: a new period came out in the week
+             */
+            released: boolean;
+            /** @description A standing question's rule on the series */
+            rule: components["schemas"]["DeviationRule"] | null;
+            /**
+             * Text
+             * @description The sentence the note prompt gets
+             */
+            text: string;
+        };
         /** SeriesSubject */
         SeriesSubject: {
             subject: components["schemas"]["SubjectRef"];
@@ -3003,19 +3132,6 @@ export interface components {
              * @description Most material first, at most 3
              */
             developments: components["schemas"]["DevelopmentSummary"][];
-        };
-        /** StageSeries */
-        StageSeries: {
-            /**
-             * Stage
-             * @enum {string}
-             */
-            stage: "signal" | "consultation" | "proposed" | "enacted" | "enforced";
-            /**
-             * Counts
-             * @description Developments per week at this stage, aligned with weeks
-             */
-            counts: number[];
         };
         /** StageTrack */
         StageTrack: {
@@ -3247,41 +3363,37 @@ export interface components {
              */
             needs_attention: number;
         };
-        /**
-         * SubjectTrend
-         * @description A subject's developments per week over the weeks ending on the run date, by first
-         *     publication in the latest run, and its standing questions' states per run.
-         */
+        /** SubjectTrend */
         SubjectTrend: {
             subject: components["schemas"]["SubjectRef"];
             run: components["schemas"]["RunRef"];
-            /** Min Materiality Level */
-            min_materiality_level: number;
             /**
-             * Weeks
-             * @description Oldest first; the last ends on the run date
+             * Start
+             * Format: date
+             * @description The chart's start, 12 months before the run date
              */
-            weeks: components["schemas"]["TrendWeek"][];
+            start: string;
             /**
-             * Categories
-             * @description Every category, in a fixed order
+             * Documents From
+             * Format: date
+             * @description The first document's day: none before it
              */
-            categories: components["schemas"]["CategorySeries"][];
+            documents_from: string;
             /**
-             * Stages
-             * @description Topics only: every stage, earliest first; developments without one are left out
+             * Series
+             * @description The subject's own listed series, else its listed context ones, in catalogue order
              */
-            stages: components["schemas"]["StageSeries"][] | null;
+            series: components["schemas"]["TrendSeries"][];
             /**
-             * Members
-             * @description Groups only, in member order; a development tagged to several members counts for each, and one tagged only to the group for none
+             * Developments
+             * @description The subject's Needs attention and Watch developments dated in the 12 months, newest first
              */
-            members: components["schemas"]["MemberSeries"][] | null;
+            developments: components["schemas"]["MarkedDevelopment"][];
             /**
              * Runs
-             * @description Complete runs dated within the weeks, oldest first; the last is the latest
+             * @description Complete runs within the 12 months, oldest first; the last is the latest
              */
-            runs: components["schemas"]["RunRef"][];
+            runs: components["schemas"]["TrendRun"][];
             /**
              * Questions
              * @description Built-in questions, then kept custom ones
@@ -3487,29 +3599,26 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        /** TrendWeek */
-        TrendWeek: {
+        /** TrendRun */
+        TrendRun: {
+            run: components["schemas"]["RunRef"];
             /**
-             * Week Start
+             * Since
              * Format: date
+             * @description The week's start: the previous run's date
              */
-            week_start: string;
+            since: string;
+            /** @description None when the run wrote no note for the subject */
+            note: components["schemas"]["RunNote"] | null;
+        };
+        /** TrendSeries */
+        TrendSeries: {
+            series: components["schemas"]["SeriesInfo"];
             /**
-             * Week End
-             * Format: date
-             * @description The run date for the last week
+             * Line
+             * @description Observations over the 12 months to the run date, as known by then
              */
-            week_end: string;
-            /**
-             * Developments
-             * @description Developments first published in the week
-             */
-            developments: number;
-            /**
-             * Material
-             * @description Of those, the ones at or above min_materiality_level
-             */
-            material: number;
+            line: components["schemas"]["LinePoint"][];
         };
         /** Triage */
         Triage: {

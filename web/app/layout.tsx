@@ -7,6 +7,7 @@ import "@/styles/sheet.css";
 import "@/styles/popup.css";
 import "@/styles/monitor.css";
 import "@/styles/graph.css";
+import "@/styles/trend.css";
 import "@/styles/custom.css";
 import "@/styles/help.css";
 import "@/styles/developments.css";

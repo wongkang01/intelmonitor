@@ -26,6 +26,7 @@ from intelmonitor.server import dashboards as dash
 from intelmonitor.server import feedback as fb
 from intelmonitor.server import runs
 from intelmonitor.server import series as series_views
+from intelmonitor.server import trend as trend_view
 from intelmonitor.server import triage as tri
 from intelmonitor.server.developments import DevelopmentQuery, development_list
 from intelmonitor.server.evidence import development_sources, document_detail, new_documents
@@ -57,7 +58,6 @@ from intelmonitor.server.models import (
     SubjectDetail,
     SubjectRef,
     SubjectSummary,
-    SubjectTrend,
     TagFeedback,
     TagFeedbackRequest,
     Triage,
@@ -191,15 +191,16 @@ def get_monitor_page(q: Q, subject_id: str) -> MonitorPage:
         stage_track=q.stage_track(subject_id) if s.type == "topic" else None,
         group=q.group_insights(subject_id) if s.type == "group" else None,
         notes=q.notes(subject_id=subject_id),
+        trend=trend_view.has_trend(subject_id),
     )
 
 
 @app.get("/subjects/{subject_id}/trend")
-def get_subject_trend(q: Q, subject_id: str) -> SubjectTrend:
-    """Developments per week over the 12 weeks ending on the run date, by category (material
-    only), by stage for topics and by member for groups, plus each standing question's state per
-    run."""
-    return q.trend(subject_id)
+def get_subject_trend(q: Q, subject_id: str) -> trend_view.SubjectTrend:
+    """The subject's series over the 12 months to the latest run with its Needs attention and
+    Watch developments, each run's note on why the series moved with the developments it cites
+    and the facts it was given, and each standing question's state and answer per run."""
+    return trend_view.trend(q, subject_id)
 
 
 @app.get("/subjects/{subject_id}/indicators")

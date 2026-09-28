@@ -1,0 +1,410 @@
+/* A monitor page's Trend tab (components/monitor/TrendView.tsx, TrendChart.tsx). */
+
+/* Overview and Trend in the page head, left of Follow: the segmented control with links. */
+.mon-tabs {
+  margin: 0 var(--s-2) 4px 0;
+}
+.mon-tabs a {
+  position: relative;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--r-badge);
+  color: var(--ink2);
+  font: 500 var(--fs-meta) / var(--lh-meta) var(--font);
+}
+.mon-tabs a::after {
+  content: "";
+  position: absolute;
+  inset: -11px -1px;
+}
+.mon-tabs a:hover {
+  color: var(--ink);
+}
+.mon-tabs a[aria-current="page"] {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+/* Question state marks: Stable a baseline, New and Watch half height, Needs attention full.
+   New and Watch are lighter steps of their hues so they read as fills. */
+:root {
+  --tr-new: oklch(0.7 0.11 258);
+  --tr-watch: oklch(0.74 0.13 72);
+}
+
+.tr-runs {
+  margin-top: var(--s-3);
+  flex-wrap: wrap;
+}
+.tr-lead {
+  max-width: 70ch;
+  margin: var(--s-3) 0 0;
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  font-weight: 600;
+}
+.tr-prose {
+  max-width: 72ch;
+  margin: 6px 0 0;
+}
+/* A citation: a superscript number linking its development, with a 32px tall hit area. */
+.tr-prose .cite,
+.tr-prose .cite-sep {
+  position: relative;
+  margin-left: 1px;
+  font-size: 11px;
+  line-height: 0;
+  vertical-align: super;
+  font-weight: 600;
+  color: var(--accent);
+}
+.tr-prose .cite::after {
+  content: "";
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  top: 50%;
+  height: 32px;
+  transform: translateY(-50%);
+}
+.tr-prose .cite:hover {
+  text-decoration: underline;
+}
+.tr-changes {
+  margin: var(--s-1) 0 0;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}
+.tr-changes b {
+  font-weight: 500;
+  color: var(--ink);
+}
+.tr-changes .state-change {
+  white-space: nowrap;
+}
+
+.tr-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+}
+.tr-name {
+  font-weight: 500;
+}
+.tr-select {
+  height: 28px;
+  max-width: 320px;
+}
+.tr-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-left: auto;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}
+.tr-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tr-legend i {
+  display: inline-block;
+  width: 2px;
+  height: 12px;
+  background: var(--watch);
+}
+.tr-legend i.attn {
+  background: var(--attn);
+}
+
+/* The chart: an SVG sized to the panel, with development ticks and numbered markers laid over it
+   as links. */
+.tr-chart {
+  position: relative;
+  margin-top: var(--s-3);
+  min-height: 240px;
+}
+.tr-chart svg {
+  display: block;
+  overflow: visible;
+}
+.tr-pre {
+  fill: var(--canvas);
+}
+.tr-cut {
+  stroke: var(--line-field);
+  stroke-width: 1;
+}
+.tr-band {
+  fill: var(--rail);
+}
+.tr-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.tr-base {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+.tr-ax {
+  font-family: var(--font);
+  font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+  fill: var(--ink2);
+}
+.tr-line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.tr-line.pre {
+  stroke: var(--line-field);
+}
+.tr-end {
+  fill: var(--ink);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+.tr-end.pre {
+  fill: var(--surface);
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+.tr-leader {
+  stroke: var(--line-field);
+  stroke-width: 1;
+}
+.tr-xh {
+  stroke: var(--ink3);
+  stroke-width: 1;
+  pointer-events: none;
+}
+.tr-xd {
+  fill: var(--ink);
+  stroke: var(--surface);
+  stroke-width: 2;
+  pointer-events: none;
+}
+/* A day's developments: a 2px tick up from the axis, taller with more of them, in Watch or Needs
+   attention; a 20 by 44px hit area. */
+.tr-tk {
+  position: absolute;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--watch);
+}
+.tr-tk.attn {
+  background: var(--attn);
+}
+.tr-tk::after {
+  content: "";
+  position: absolute;
+  left: -9px;
+  right: -9px;
+  bottom: -8px;
+  height: 44px;
+}
+.tr-tk:hover,
+.tr-tk:focus-visible {
+  background: var(--accent);
+}
+/* A cited development: its number in a 16px disc above the line, a 44px hit area. */
+.tr-mk {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 2px var(--surface);
+  color: var(--surface);
+  font: 600 11px / 1 var(--font);
+  font-variant-numeric: tabular-nums;
+}
+.tr-mk.attn {
+  background: var(--attn);
+}
+.tr-mk::after {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+}
+.tr-mk:hover,
+.tr-mk:focus-visible {
+  background: var(--accent);
+}
+
+/* Standing questions by run. */
+.tr-qt {
+  width: 100%;
+  margin-top: var(--s-1);
+  border-collapse: collapse;
+}
+.tr-qt thead th {
+  padding: var(--s-2) var(--s-3) 6px 0;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  font-weight: 500;
+  color: var(--ink2);
+  text-align: left;
+  white-space: nowrap;
+}
+.tr-qt tbody th,
+.tr-qt td {
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+  border-top: 1px solid var(--line);
+  vertical-align: top;
+  text-align: left;
+}
+.tr-qt tbody th {
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tr-state {
+  width: 112px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tr-state.none {
+  color: var(--ink3);
+  font-weight: 400;
+}
+.tr-answer {
+  width: 100%;
+}
+.tr-answer span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.tr-strip {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 18px;
+}
+.tr-strip s {
+  position: relative;
+  width: 10px;
+  height: 2px;
+  flex: none;
+  background: var(--line-field);
+  text-decoration: none;
+}
+.tr-strip s.new {
+  height: 9px;
+  background: var(--tr-new);
+  border-radius: 2px 2px 0 0;
+}
+.tr-strip s.watch {
+  height: 9px;
+  background: var(--tr-watch);
+  border-radius: 2px 2px 0 0;
+}
+.tr-strip s.needs_attention {
+  height: 18px;
+  background: var(--attn);
+  border-radius: 2px 2px 0 0;
+}
+.tr-strip s.none {
+  height: 2px;
+  background: none;
+  border-top: 1px dashed var(--line-field);
+}
+/* The selected run: a hairline under its mark. */
+.tr-strip s.sel::after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  bottom: -4px;
+  height: 2px;
+  background: var(--ink);
+}
+.tr-states {
+  margin: var(--s-2) 0 0;
+  justify-content: flex-end;
+}
+.tr-states i {
+  width: 8px;
+  height: 9px;
+  border-radius: 2px 2px 0 0;
+}
+.tr-states i.stable {
+  height: 2px;
+  border-radius: 0;
+  background: var(--line-field);
+}
+.tr-states i.new {
+  background: var(--tr-new);
+}
+.tr-states i.watch {
+  background: var(--tr-watch);
+}
+.tr-states i.needs_attention {
+  height: 12px;
+  background: var(--attn);
+}
+.tr-states i.none {
+  height: 0;
+  border-top: 1px dashed var(--line-field);
+  background: none;
+}
+
+/* Cited: the number, the Needs attention badge, the title with its meta, the date it sits at. */
+.row.tr-cited {
+  grid-template-columns: 24px var(--stat) minmax(0, 1fr) auto;
+}
+.tr-n {
+  font-weight: 600;
+  color: var(--ink2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The rail's facts: label left, value right, hairlines between. */
+.tr-facts {
+  margin: 0 0 var(--s-4);
+}
+.tr-facts > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s-3);
+  align-items: baseline;
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line);
+}
+.tr-facts > div:first-child {
+  border-top: 0;
+}
+.tr-facts dt {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}
+.tr-facts dd {
+  margin: 0;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.tr-src {
+  margin: 0 0 var(--s-1);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}

@@ -40,6 +40,7 @@ from intelmonitor.server.series import (
     mapped_series,
     subject_indicators,
 )
+from intelmonitor.store.documents import first_document_day
 
 Size = Literal["S", "M", "L"]
 CUSTOM_PREFIX = "custom-"
@@ -548,8 +549,7 @@ def indicator(q: Queries, widget_id: str, settings: IndicatorSettings) -> Indica
 def documents_from(q: Queries, as_of: date) -> date:
     """The day of the earliest stored document, else the corpus start: the lane is empty before
     it because nothing was collected, not because nothing happened."""
-    row = q.conn.execute("SELECT min(substr(published_at, 1, 10)) FROM source_documents").fetchone()
-    return date.fromisoformat(row[0]) if row[0] else corpus_start(q.conn, as_of)
+    return first_document_day(q.conn) or corpus_start(q.conn, as_of)
 
 
 def marked(q: Queries, subject_id: str, as_of: date) -> list[MarkedDevelopment]:

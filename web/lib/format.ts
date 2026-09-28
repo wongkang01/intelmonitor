@@ -200,6 +200,23 @@ export function seriesValue(s: Series, v: number): string {
   return `${sign}${a.toFixed(s.decimals)}`;
 }
 
+/**
+ * A move from one value to another in the series' unit: points for series in % ("+0.3 pt"),
+ * else the difference and the percent ("+$2.2B (+3.0%)", "+0.0017 (+0.5%)").
+ */
+export function seriesChange(s: Series, from: number, to: number): string {
+  const diff = to - from;
+  if (s.unit === "%") {
+    const size = Math.abs(diff).toFixed(s.decimals);
+    return signed(Number(size) === 0 ? 0 : diff, `${size} pt`);
+  }
+  const amount = signed(diff, seriesValue(s, Math.abs(diff)));
+  if (!from) return amount;
+  const pct = (diff / Math.abs(from)) * 100;
+  const size = Math.abs(pct).toFixed(1);
+  return `${amount} (${signed(Number(size) === 0 ? 0 : pct, `${size}%`)})`;
+}
+
 /** An axis tick in the series' unit: money as "$180.0B", other values as bare numbers ("3.50"). */
 export function seriesTick(s: Series, v: number, decimals: number): string {
   if (s.decimals === 0 && MONEY[s.unit]) return seriesValue(s, v);
@@ -233,6 +250,16 @@ export function indicatorChange(ind: Indicator): { value: string; window: string
   if (s.frequency === "daily") return { value, window: "1 month" };
   // "Jun 2026" or "Q1 2026" without its year.
   return { value, window: `vs ${seriesPeriod(s, c.since).split(" ")[0]}` };
+}
+
+/** The same day `months` earlier, clamped to its month; a month end maps to a month end, as the API's windows do. */
+export function monthsBefore(iso: string, months: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const t = y * 12 + m - 1 - months;
+  const [year, month] = [Math.floor(t / 12), (t % 12) + 1];
+  const last = new Date(year, month, 0).getDate();
+  const at = d === new Date(y, m, 0).getDate() ? last : Math.min(d, last);
+  return `${year}-${String(month).padStart(2, "0")}-${String(at).padStart(2, "0")}`;
 }
 
 /** "Sep 2025". */

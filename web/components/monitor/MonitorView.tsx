@@ -3,7 +3,9 @@
 // A monitor page for a topic, group or entity. Every scope has the same order: What changed,
 // Indicators (where series are mapped), Standing questions, Links, Actions. Topics add the stage
 // track and upcoming dates; groups add common issues and outliers. The main panel holds the first
-// three and the scope extras; a sticky rail panel holds Links and Actions. The head's Follow button decides whether the subject alerts.
+// three and the scope extras; a sticky rail panel holds Links and Actions. The head's Follow button
+// decides whether the subject alerts; a subject with measured series gets Overview and Trend tabs
+// beside it (TrendView.tsx).
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -36,27 +38,7 @@ export function MonitorView({ id }: { id: string }) {
   if (!p) return null;
   return (
     <>
-      <div className="mon-head">
-        <div className="mon-head-main">
-          {p.subject.logo_full && (
-            // Local logo files need no image optimization; the name below carries the meaning.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              className={`mon-logo${p.subject.kind === "country" ? " flag" : ""}`}
-              src={p.subject.logo_full}
-              alt=""
-            />
-          )}
-          <h1>
-            {!p.subject.logo_full && <SubjectIcon subject={p.subject} size={28} />}
-            {p.subject.name}
-          </h1>
-          <p>
-            <Summary subject={p.subject} />
-          </p>
-        </div>
-        <FollowButton subjectId={p.subject.id} />
-      </div>
+      <MonitorHead page={p} view="overview" />
       <div className="monitor">
         <div className="panel mon-main">
           <WhatChanged wc={p.what_changed} subjectId={p.subject.id} />
@@ -72,6 +54,43 @@ export function MonitorView({ id }: { id: string }) {
         </aside>
       </div>
     </>
+  );
+}
+
+/**
+ * The page head: logo, name and summary line, the Overview and Trend tabs where the subject has
+ * measured series, and Follow.
+ */
+export function MonitorHead({ page: p, view }: { page: Page; view: "overview" | "trend" }) {
+  const href = monitorHref(p.subject.id);
+  return (
+    <div className="mon-head">
+      <div className="mon-head-main">
+        {p.subject.logo_full && (
+          // Local logo files need no image optimization; the name below carries the meaning.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className={`mon-logo${p.subject.kind === "country" ? " flag" : ""}`} src={p.subject.logo_full} alt="" />
+        )}
+        <h1>
+          {!p.subject.logo_full && <SubjectIcon subject={p.subject} size={28} />}
+          {p.subject.name}
+        </h1>
+        <p>
+          <Summary subject={p.subject} />
+        </p>
+      </div>
+      {p.trend && (
+        <nav className="seg mon-tabs" aria-label="View">
+          <Link href={href} aria-current={view === "overview" ? "page" : undefined}>
+            Overview
+          </Link>
+          <Link href={`${href}/trend`} aria-current={view === "trend" ? "page" : undefined}>
+            Trend
+          </Link>
+        </nav>
+      )}
+      <FollowButton subjectId={p.subject.id} />
+    </div>
   );
 }
 
@@ -308,7 +327,7 @@ function Links({ subject }: { subject: Schema<"SubjectDetail"> }) {
   );
 }
 
-function Actions({ page }: { page: Page }) {
+export function Actions({ page }: { page: Page }) {
   const review = useMarkReviewed();
   const undo = useUndoReview();
   const toast = useToast();

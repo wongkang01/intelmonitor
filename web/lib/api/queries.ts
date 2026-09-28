@@ -285,8 +285,8 @@ export const useMonitorPage = (id: string) =>
   });
 
 /**
- * A subject's developments per week over the 12 weeks ending on the run date (by category, and by
- * stage for topics or member for groups), and each standing question's state per run.
+ * A subject's Trend view: its series over the 12 months to the latest run with its marked
+ * developments, each run's note on why they moved, and its questions' states per run.
  */
 export const useTrend = (id: string) =>
   useQuery({

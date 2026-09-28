@@ -10,18 +10,16 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from functools import cached_property
 from statistics import median
-from typing import get_args
 
 from intelmonitor.pipeline.answers import scope
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS
-from intelmonitor.pipeline.screen import JURISDICTION_NAMES, Category
+from intelmonitor.pipeline.screen import JURISDICTION_NAMES
 from intelmonitor.pipeline.subjects import Subject, all_subjects, questions_for
 from intelmonitor.seed import load_subjects
 from intelmonitor.server.models import (
     STAGE_ORDER,
     AnswerChange,
     AnswerFeedback,
-    CategorySeries,
     ChangeCounts,
     ChangedDevelopment,
     Collection,
@@ -29,23 +27,18 @@ from intelmonitor.server.models import (
     DevelopmentChangeKind,
     DevelopmentSummary,
     GroupInsights,
-    MemberSeries,
     Note,
     Outlier,
     QuestionAnswerView,
     QuestionStateChange,
-    QuestionTrend,
     RunRef,
     StageBucket,
-    StageSeries,
     StageTrack,
     State,
     SubjectDetail,
     SubjectLinks,
     SubjectRef,
     SubjectSummary,
-    SubjectTrend,
-    TrendWeek,
     UpcomingItem,
     WhatChanged,
 )
@@ -53,7 +46,6 @@ from intelmonitor.server.models import (
 UPCOMING_HORIZON_DAYS = 90
 STAGE_LOOKBACK_DAYS = 30
 GROUP_LOOKBACK_DAYS = 14
-TREND_WEEKS = 12
 # Developments at or above this materiality level (Notable) count as material.
 MATERIAL_LEVEL = 2
 # A source reports on a jurisdiction when Jev scores it at least this likely.
@@ -143,7 +135,7 @@ class RunDevelopments:
 _run_cache: dict[tuple[str, str], RunDevelopments] = {}
 
 
-def _load_developments(conn: sqlite3.Connection, run: RunRef) -> RunDevelopments:
+def load_developments(conn: sqlite3.Connection, run: RunRef) -> RunDevelopments:
     tags: dict[str, list[str]] = {}
     for r in conn.execute(
         "SELECT development_id, subject_id FROM development_subjects WHERE run_id = ? "
@@ -277,7 +269,7 @@ class Queries:
         key = (self.run.id, str(self._run_row["finished_at"]))
         if key not in _run_cache:
             _run_cache.clear()
-            _run_cache[key] = _load_developments(self.conn, self.run)
+            _run_cache[key] = load_developments(self.conn, self.run)
         return _run_cache[key]
 
     def development(self, development_id: str) -> DevelopmentSummary:
@@ -416,7 +408,7 @@ class Queries:
             raise NotFoundError(f"answer to {question_id} for {subject_id} in run {self.run.id}")
         return found[0]
 
-    def _answer_rows(self, run_id: str | None, subject_id: str) -> dict[str, sqlite3.Row]:
+    def answer_rows(self, run_id: str | None, subject_id: str) -> dict[str, sqlite3.Row]:
         if run_id is None:
             return {}
         rows = self.conn.execute(
@@ -435,8 +427,8 @@ class Queries:
     ) -> list[QuestionAnswerView]:
         """Answers in the latest run with their change against the base run. Questions without
         an answer in the latest run (a custom question still being answered) are left out."""
-        current = self._answer_rows(self.run.id, subject_id)
-        base = self._answer_rows(self.run.previous_run_id, subject_id)
+        current = self.answer_rows(self.run.id, subject_id)
+        base = self.answer_rows(self.run.previous_run_id, subject_id)
         feedback = self.pending_answer_feedback(subject_id)
         out: list[QuestionAnswerView] = []
         for q in defs if defs is not None else self.question_defs(subject_id):
@@ -627,70 +619,6 @@ class Queries:
                 )
         return GroupInsights(
             lookback_days=GROUP_LOOKBACK_DAYS, common_issues=common[:5], outliers=outliers
-        )
-
-    # ---- trend
-
-    def trend(self, subject_id: str) -> SubjectTrend:
-        """Weekly series over TREND_WEEKS weeks ending on the run date, by first publication of
-        the latest run's developments, and each standing question's state in the runs dated
-        within those weeks."""
-        s = subject(subject_id)
-        spans = week_spans(self.run.as_of, TREND_WEEKS)
-        devs = self.developments_in([subject_id])
-        material = [d for d in devs if d.materiality_level >= MATERIAL_LEVEL]
-
-        def counts(of: Iterable[DevelopmentSummary]) -> list[int]:
-            return weekly_counts([d.first_published for d in of], spans)
-
-        runs = [
-            RunRef(id=r["id"], as_of=r["as_of"], previous_run_id=r["previous_run_id"])
-            for r in self.conn.execute(
-                "SELECT id, as_of, previous_run_id FROM runs WHERE status = 'complete' "
-                "AND as_of >= ? AND as_of <= ? ORDER BY as_of",
-                (spans[0][0].isoformat(), self.run.as_of.isoformat()),
-            )
-        ]
-        answers = [self._answer_rows(r.id, subject_id) for r in runs]
-        return SubjectTrend(
-            subject=subject_ref(subject_id),
-            run=self.run,
-            min_materiality_level=MATERIAL_LEVEL,
-            weeks=[
-                TrendWeek(week_start=start, week_end=end, developments=all_n, material=material_n)
-                for (start, end), all_n, material_n in zip(
-                    spans, counts(devs), counts(material), strict=True
-                )
-            ],
-            categories=[
-                CategorySeries(category=c, counts=counts(d for d in material if d.category == c))
-                for c in get_args(Category)
-            ],
-            stages=[
-                StageSeries(stage=stage, counts=counts(d for d in devs if d.stage == stage))
-                for stage in STAGE_ORDER
-            ]
-            if s.type == "topic"
-            else None,
-            members=[
-                MemberSeries(
-                    member=subject_ref(m),
-                    counts=counts(d for d in devs if m in self.devs.subject_ids[d.id]),
-                )
-                for m in s.members
-            ]
-            if s.type == "group"
-            else None,
-            runs=runs,
-            questions=[
-                QuestionTrend(
-                    question_id=q.id,
-                    label=q.label,
-                    custom=q.custom,
-                    states=[a[q.id]["state"] if q.id in a else None for a in answers],
-                )
-                for q in self.question_defs(subject_id)
-            ],
         )
 
     # ---- analyst actions

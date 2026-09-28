@@ -130,7 +130,7 @@
     "/subjects/{subject_id}/trend": {
       "get": {
         "summary": "Get Subject Trend",
-        "description": "Developments per week over the 12 weeks ending on the run date, by category (material\nonly), by stage for topics and by member for groups, plus each standing question's state per\nrun.",
+        "description": "The subject's series over the 12 months to the latest run with its Needs attention and\nWatch developments, each run's note on why the series moved with the developments it cites\nand the facts it was given, and each standing question's state and answer per run.",
         "operationId": "get_subject_trend",
         "parameters": [
           {
@@ -2948,39 +2948,6 @@
         "title": "AudioPart",
         "description": "An audio part."
       },
-      "CategorySeries": {
-        "properties": {
-          "category": {
-            "type": "string",
-            "enum": [
-              "incident",
-              "regulatory",
-              "financial",
-              "management",
-              "strategy",
-              "policy",
-              "security",
-              "market",
-              "other"
-            ],
-            "title": "Category"
-          },
-          "counts": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array",
-            "title": "Counts",
-            "description": "Material developments per week, aligned with weeks"
-          }
-        },
-        "type": "object",
-        "required": [
-          "category",
-          "counts"
-        ],
-        "title": "CategorySeries"
-      },
       "ChangedDevelopment": {
         "properties": {
           "id": {
@@ -3756,6 +3723,57 @@
         ],
         "title": "DataSources"
       },
+      "DatedDevelopment": {
+        "properties": {
+          "development": {
+            "$ref": "#/components/schemas/DevelopmentSummary",
+            "description": "As it stood in the note's run"
+          },
+          "on": {
+            "type": "string",
+            "format": "date",
+            "title": "On",
+            "description": "Where it sits on the chart: its event date when within the chart's 12 months, else its first publication"
+          }
+        },
+        "type": "object",
+        "required": [
+          "development",
+          "on"
+        ],
+        "title": "DatedDevelopment"
+      },
+      "DayMove": {
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date",
+            "title": "Period"
+          },
+          "from_value": {
+            "type": "number",
+            "title": "From Value"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "change": {
+            "type": "number",
+            "title": "Change",
+            "description": "In the series' change basis: points for %, else percent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "from_value",
+          "value",
+          "change"
+        ],
+        "title": "DayMove",
+        "description": "A daily series' largest move from one point to the next within the week."
+      },
       "DeveloperMessage": {
         "properties": {
           "subagentRunId": {
@@ -4395,6 +4413,45 @@
           "settings"
         ],
         "title": "DevelopmentsWidget"
+      },
+      "DeviationRule": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "deviation",
+            "title": "Kind"
+          },
+          "series": {
+            "type": "string",
+            "title": "Series"
+          },
+          "beyond": {
+            "type": "number",
+            "title": "Beyond"
+          },
+          "for_hours": {
+            "type": "integer",
+            "title": "For Hours"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "watch",
+              "needs_attention"
+            ],
+            "title": "State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "series",
+          "beyond",
+          "for_hours",
+          "state"
+        ],
+        "title": "DeviationRule",
+        "description": "Fixes the answer's state when a series is more than `beyond` away from zero, either way, for\nat least `for_hours` within the question's lookback: a peg series more than 0.5% off for 24\nhours. A spell runs from its first to its last observation in a row beyond the threshold."
       },
       "DirectionData": {
         "properties": {
@@ -5551,27 +5608,6 @@
         "title": "MaterialityLevel",
         "description": "A materiality level for Help: what it means and how the app treats it."
       },
-      "MemberSeries": {
-        "properties": {
-          "member": {
-            "$ref": "#/components/schemas/SubjectRef"
-          },
-          "counts": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array",
-            "title": "Counts",
-            "description": "Developments per week tagged to this member, aligned with weeks"
-          }
-        },
-        "type": "object",
-        "required": [
-          "member",
-          "counts"
-        ],
-        "title": "MemberSeries"
-      },
       "MonitorPage": {
         "properties": {
           "subject": {
@@ -5631,6 +5667,11 @@
             },
             "type": "array",
             "title": "Notes"
+          },
+          "trend": {
+            "type": "boolean",
+            "title": "Trend",
+            "description": "The subject has measured series for a Trend view"
           }
         },
         "type": "object",
@@ -5643,7 +5684,8 @@
           "upcoming",
           "stage_track",
           "group",
-          "notes"
+          "notes",
+          "trend"
         ],
         "title": "MonitorPage"
       },
@@ -6129,6 +6171,21 @@
             "type": "array",
             "title": "States",
             "description": "Its state in each run, aligned with runs; null where it has no answer"
+          },
+          "summaries": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Summaries",
+            "description": "Its answer in each run, aligned with runs"
           }
         },
         "type": "object",
@@ -6136,7 +6193,8 @@
           "question_id",
           "label",
           "custom",
-          "states"
+          "states",
+          "summaries"
         ],
         "title": "QuestionTrend"
       },
@@ -6263,6 +6321,35 @@
         ],
         "title": "ReasoningMessage",
         "description": "A span of the agent's reasoning, materialised as a message. Stands alone\nrather than composing BaseMessage, because it carries no name."
+      },
+      "Record": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "high",
+              "low"
+            ],
+            "title": "Kind"
+          },
+          "since": {
+            "type": "string",
+            "format": "date",
+            "title": "Since"
+          },
+          "whole_history": {
+            "type": "boolean",
+            "title": "Whole History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "since",
+          "whole_history"
+        ],
+        "title": "Record",
+        "description": "The latest value is the highest (or lowest) since `since`: the last earlier period with a\nvalue at least as high (as low), or the start of the stored history."
       },
       "ResumeEntry": {
         "properties": {
@@ -6676,6 +6763,57 @@
         ],
         "title": "RunInfo",
         "description": "One execution of a run. A run recomputed with Run now appears once per execution."
+      },
+      "RunNote": {
+        "properties": {
+          "headline": {
+            "type": "string",
+            "title": "Headline"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body",
+            "description": "[n] cites developments[n - 1]"
+          },
+          "series_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Series Id",
+            "description": "The series the headline is about"
+          },
+          "developments": {
+            "items": {
+              "$ref": "#/components/schemas/DatedDevelopment"
+            },
+            "type": "array",
+            "title": "Developments",
+            "description": "Cited, in citation order"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesMove"
+            },
+            "type": "array",
+            "title": "Facts",
+            "description": "What code computed for the note, per series"
+          }
+        },
+        "type": "object",
+        "required": [
+          "headline",
+          "body",
+          "series_id",
+          "developments",
+          "facts"
+        ],
+        "title": "RunNote",
+        "description": "A run's note on why the subject's series moved in the week to the run."
       },
       "RunRef": {
         "properties": {
@@ -7209,6 +7347,122 @@
         ],
         "title": "SeriesInfo"
       },
+      "SeriesMove": {
+        "properties": {
+          "series_id": {
+            "type": "string",
+            "title": "Series Id"
+          },
+          "since": {
+            "type": "string",
+            "format": "date",
+            "title": "Since",
+            "description": "The week's start: the previous run's date"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Observation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Observation"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The latest value known by the end of `since`"
+          },
+          "change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change",
+            "description": "Latest against start, in the change basis"
+          },
+          "largest_day": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DayMove"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Daily series other than pegs"
+          },
+          "record": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Record"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "widest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Observation"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Peg series: furthest from the peg in the week"
+          },
+          "released": {
+            "type": "boolean",
+            "title": "Released",
+            "description": "Monthly and quarterly: a new period came out in the week"
+          },
+          "rule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeviationRule"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A standing question's rule on the series"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "The sentence the note prompt gets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "series_id",
+          "since",
+          "latest",
+          "start",
+          "change",
+          "largest_day",
+          "record",
+          "widest",
+          "released",
+          "rule",
+          "text"
+        ],
+        "title": "SeriesMove",
+        "description": "What one series did in the week to a run, as code computed it for the run's note."
+      },
       "SeriesSubject": {
         "properties": {
           "subject": {
@@ -7375,35 +7629,6 @@
           "developments"
         ],
         "title": "StageBucket"
-      },
-      "StageSeries": {
-        "properties": {
-          "stage": {
-            "type": "string",
-            "enum": [
-              "signal",
-              "consultation",
-              "proposed",
-              "enacted",
-              "enforced"
-            ],
-            "title": "Stage"
-          },
-          "counts": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array",
-            "title": "Counts",
-            "description": "Developments per week at this stage, aligned with weeks"
-          }
-        },
-        "type": "object",
-        "required": [
-          "stage",
-          "counts"
-        ],
-        "title": "StageSeries"
       },
       "StageTrack": {
         "properties": {
@@ -8000,63 +8225,41 @@
           "run": {
             "$ref": "#/components/schemas/RunRef"
           },
-          "min_materiality_level": {
-            "type": "integer",
-            "title": "Min Materiality Level"
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start",
+            "description": "The chart's start, 12 months before the run date"
           },
-          "weeks": {
+          "documents_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Documents From",
+            "description": "The first document's day: none before it"
+          },
+          "series": {
             "items": {
-              "$ref": "#/components/schemas/TrendWeek"
+              "$ref": "#/components/schemas/TrendSeries"
             },
             "type": "array",
-            "title": "Weeks",
-            "description": "Oldest first; the last ends on the run date"
+            "title": "Series",
+            "description": "The subject's own listed series, else its listed context ones, in catalogue order"
           },
-          "categories": {
+          "developments": {
             "items": {
-              "$ref": "#/components/schemas/CategorySeries"
+              "$ref": "#/components/schemas/MarkedDevelopment"
             },
             "type": "array",
-            "title": "Categories",
-            "description": "Every category, in a fixed order"
-          },
-          "stages": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/StageSeries"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Stages",
-            "description": "Topics only: every stage, earliest first; developments without one are left out"
-          },
-          "members": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/MemberSeries"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Members",
-            "description": "Groups only, in member order; a development tagged to several members counts for each, and one tagged only to the group for none"
+            "title": "Developments",
+            "description": "The subject's Needs attention and Watch developments dated in the 12 months, newest first"
           },
           "runs": {
             "items": {
-              "$ref": "#/components/schemas/RunRef"
+              "$ref": "#/components/schemas/TrendRun"
             },
             "type": "array",
             "title": "Runs",
-            "description": "Complete runs dated within the weeks, oldest first; the last is the latest"
+            "description": "Complete runs within the 12 months, oldest first; the last is the latest"
           },
           "questions": {
             "items": {
@@ -8071,16 +8274,14 @@
         "required": [
           "subject",
           "run",
-          "min_materiality_level",
-          "weeks",
-          "categories",
-          "stages",
-          "members",
+          "start",
+          "documents_from",
+          "series",
+          "developments",
           "runs",
           "questions"
         ],
-        "title": "SubjectTrend",
-        "description": "A subject's developments per week over the weeks ending on the run date, by first\npublication in the latest run, and its standing questions' states per run."
+        "title": "SubjectTrend"
       },
       "SummaryData": {
         "properties": {
@@ -8554,38 +8755,57 @@
         "title": "ToolMessage",
         "description": "What a tool returned, as a message in the conversation. Stands alone\nrather than composing BaseMessage, because it carries no name."
       },
-      "TrendWeek": {
+      "TrendRun": {
         "properties": {
-          "week_start": {
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "since": {
             "type": "string",
             "format": "date",
-            "title": "Week Start"
+            "title": "Since",
+            "description": "The week's start: the previous run's date"
           },
-          "week_end": {
-            "type": "string",
-            "format": "date",
-            "title": "Week End",
-            "description": "The run date for the last week"
-          },
-          "developments": {
-            "type": "integer",
-            "title": "Developments",
-            "description": "Developments first published in the week"
-          },
-          "material": {
-            "type": "integer",
-            "title": "Material",
-            "description": "Of those, the ones at or above min_materiality_level"
+          "note": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunNote"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None when the run wrote no note for the subject"
           }
         },
         "type": "object",
         "required": [
-          "week_start",
-          "week_end",
-          "developments",
-          "material"
+          "run",
+          "since",
+          "note"
         ],
-        "title": "TrendWeek"
+        "title": "TrendRun"
+      },
+      "TrendSeries": {
+        "properties": {
+          "series": {
+            "$ref": "#/components/schemas/SeriesInfo"
+          },
+          "line": {
+            "items": {
+              "$ref": "#/components/schemas/LinePoint"
+            },
+            "type": "array",
+            "title": "Line",
+            "description": "Observations over the 12 months to the run date, as known by then"
+          }
+        },
+        "type": "object",
+        "required": [
+          "series",
+          "line"
+        ],
+        "title": "TrendSeries"
       },
       "Triage": {
         "properties": {

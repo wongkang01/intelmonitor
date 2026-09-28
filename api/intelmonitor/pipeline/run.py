@@ -21,6 +21,7 @@ from intelmonitor.pipeline.extract import extract_documents
 from intelmonitor.pipeline.graph import store_graph
 from intelmonitor.pipeline.indicators import store_run_indicators
 from intelmonitor.pipeline.inference import Inference
+from intelmonitor.pipeline.notes import write_notes
 from intelmonitor.pipeline.params import RUN_SPACING_DAYS
 from intelmonitor.pipeline.screen import screen_documents
 from intelmonitor.pipeline.upcoming import store_upcoming
@@ -102,6 +103,8 @@ async def compute_run(
         step(f"answer questions (base run {base_id})")
         unsupported = await answer_subjects(inf, conn, run_id, as_of, changes, base_id)
         step(f"answers still quoting numbers outside their facts or FX pairs: {unsupported}")
+        notes, broken = await write_notes(inf, conn, run_id, as_of, base_id)
+        step(f"{notes} notes on why series moved, {broken} still breaking their number rules")
         if base_id:
             step(f"{store_changes(conn, run_id, base_id, changes)} changes vs {base_id}")
         conn.execute("UPDATE runs SET previous_run_id = ? WHERE id = ?", (base_id, run_id))

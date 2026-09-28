@@ -11,9 +11,11 @@ import { listQuery } from "../lib/developments";
 import {
   answerText,
   changeCounts,
+  daysBetween,
   indicatorChange,
   indicatorSentence,
   longDate,
+  monthsBefore,
   plural,
   seriesPeriod,
   seriesValue,
@@ -46,16 +48,6 @@ async function unwrap<T>(request: Promise<{ data?: T; error?: unknown; response:
 async function deleted(request: Promise<{ response: Response }>) {
   const { response } = await request;
   if (!response.ok && response.status !== 404) throw new Error(`${response.url} answered ${response.status}`);
-}
-
-/** The same day `months` earlier, clamped to its month; a month end maps to a month end (pipeline/indicators.py). */
-function monthsBefore(iso: string, months: number): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const t = y * 12 + m - 1 - months;
-  const [year, month] = [Math.floor(t / 12), (t % 12) + 1];
-  const last = new Date(year, month, 0).getDate();
-  const day = d === new Date(y, m, 0).getDate() ? last : Math.min(d, last);
-  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 const grid = (scope: Page | Locator) => scope.locator(".dash-grid [data-widget-id]");
@@ -1574,6 +1566,99 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(tip).toContainText(seriesPeriod(dbs.series[0].series, dbs.series[0].chart.cited?.period ?? ""));
 
       writeFileSync(path.join(dir, "data-sources.json"), JSON.stringify({ run: latest, answers }, null, 2));
+    });
+
+    await step(STEPS[22], async () => {
+      // Weekly runs from 30 Jul to the latest, each with a note on why the subject's series moved in
+      // its week, citing that run's developments and given facts known by its date
+      // (structured-data-plan.md, F6).
+      const trend = await unwrap(api.GET("/subjects/{subject_id}/trend", { params: { path: { subject_id: "circle" } } }));
+      expect(trend.run.id).toBe(latest.id);
+      expect(trend.runs[0].run.as_of).toBe("2026-07-30");
+      expect(trend.runs[trend.runs.length - 1].run.id).toBe(latest.id);
+      for (const [i, r] of trend.runs.entries()) {
+        if (i > 0) expect(daysBetween(trend.runs[i - 1].run.as_of, r.run.as_of), `${r.run.id} is a week after the run before`).toBe(7);
+        expect(r.since, `${r.run.id}'s week starts at the run before`).toBe(i > 0 ? trend.runs[i - 1].run.as_of : "2026-07-23");
+        const note = r.note;
+        if (!note) throw new Error(`${r.run.id} has no note for Circle`);
+        const cites = [...new Set([...note.body.matchAll(/\[(\d+)\]/g)].map((m) => Number(m[1])))];
+        expect(cites, `${r.run.id}'s citations are numbered in order`).toEqual(note.developments.map((_, k) => k + 1));
+        for (const d of note.developments) {
+          expect(d.development.last_published <= r.run.as_of, `${d.development.id} was published by ${r.run.id}`).toBe(true);
+          expect(d.on >= trend.start && d.on <= trend.run.as_of, `${d.development.id} sits in the chart`).toBe(true);
+        }
+        expect(note.facts.map((f) => f.series_id)).toEqual(trend.series.map((s) => s.series.id));
+        for (const f of note.facts) {
+          for (const o of [f.latest, f.start, f.widest]) {
+            if (o) expect(o.available_at.slice(0, 10) <= r.run.as_of, `${r.run.id} ${f.series_id} was known by the run date`).toBe(true);
+          }
+        }
+      }
+      expect(trend.runs[0].since < trend.documents_from, "the first run's week reaches before the first document").toBe(true);
+      expect(trend.questions.every((q) => q.states.length === trend.runs.length && q.states.every((st) => st !== null))).toBe(true);
+      const shown = trend.runs[trend.runs.length - 1];
+      const note = shown.note;
+      if (!note) throw new Error("the latest run has no note for Circle");
+      const inView = note.developments.filter((d) => d.on >= trend.start);
+
+      // In the app: the Trend tab opens on the latest run's note, its citations linked and numbered
+      // on the chart of the series it is about, with the facts it was given beside it.
+      await page.goto("/monitors/circle");
+      await page.getByRole("navigation", { name: "View" }).getByRole("link", { name: "Trend" }).click();
+      await expect(page).toHaveURL(/\/monitors\/circle\/trend$/);
+      const why = page.locator('section[aria-labelledby="why"]');
+      await expect(why.locator(".mon-sec-head .meta")).toHaveText(`Run of ${shortDate(shown.run.as_of)} against ${shortDate(shown.since)}`);
+      const runButtons = why.getByRole("group", { name: "Run" }).getByRole("button");
+      await expect(runButtons).toHaveText([...trend.runs.map((r) => shortDate(r.run.as_of)).reverse(), `Before ${shortDate(trend.documents_from)}`]);
+      await expect(why.locator(".tr-lead")).toHaveText(note.headline);
+      await expect(why.locator(".tr-prose .cite")).toHaveCount(note.body.match(/\[\d+\]/g)?.length ?? 0);
+      if (note.developments.length) await expect(why.locator(".tr-prose .cite").first()).toHaveAttribute("title", note.developments[0].development.title);
+      await expect(why.locator(".tr-mk")).toHaveCount(inView.length);
+      const lead = trend.series.find((x) => x.series.id === note.series_id) ?? trend.series[0];
+      await expect(why.getByRole("group", { name: "Series" }).getByRole("button", { pressed: true })).toHaveText(lead.series.short_name);
+      const days = new Set(trend.developments.filter((m) => m.on >= trend.start).map((m) => m.on));
+      await expect(why.locator(".tr-tk")).toHaveCount(days.size);
+      const fact = note.facts.find((f) => f.series_id === lead.series.id);
+      if (!fact?.latest) throw new Error(`the note has no latest value for ${lead.series.id}`);
+      const facts = page.locator('section[aria-labelledby="facts"]');
+      await expect(facts.locator(".mon-sec-head .meta")).toHaveText("Given to the note");
+      await expect(facts.locator(".tr-facts > div").first()).toHaveText(`Latest, ${shortDate(fact.latest.period)}${seriesValue(lead.series, fact.latest.value)}`);
+      await expect(facts.getByRole("link", { name: "Open source table" })).toHaveAttribute("href", lead.series.source_url);
+
+      // Standing questions: one mark per run, the shown run's state and answer in words.
+      const table = page.locator("table.tr-qt");
+      await expect(table.locator("tbody tr")).toHaveCount(trend.questions.length);
+      await expect(table.locator("tbody tr").first().locator(".tr-strip s")).toHaveCount(trend.runs.length);
+      const last = trend.runs.length - 1;
+      await expect(table.locator("tbody .tr-state")).toHaveText(trend.questions.map((q) => STATE_LABEL[q.states[last] ?? "stable"]));
+      await expect(page.locator('section[aria-labelledby="cited"] .tr-cited')).toHaveCount(note.developments.length);
+
+      // An earlier run shows its own note and week; the 1-month window ends on it.
+      const earlier = trend.runs[last - 1];
+      await runButtons.filter({ hasText: new RegExp(`^${shortDate(earlier.run.as_of)}$`) }).click();
+      await expect(why.locator(".tr-lead")).toHaveText(earlier.note?.headline ?? "");
+      await expect(why.locator(".mon-sec-head .meta")).toHaveText(`Run of ${shortDate(earlier.run.as_of)} against ${shortDate(earlier.since)}`);
+      await expect(table.locator("tbody .tr-state")).toHaveText(trend.questions.map((q) => STATE_LABEL[q.states[last - 1] ?? "stable"]));
+      await why.getByRole("group", { name: "Period" }).getByRole("button", { name: "1 month" }).click();
+      await expect(why.locator(".tr-chart svg")).toHaveAccessibleName(new RegExp(`to ${longDate(earlier.run.as_of)}, latest`));
+
+      // Before the first document there is no run and no note: the series alone, facts by code.
+      await runButtons.filter({ hasText: "Before" }).click();
+      await expect(why.locator(".mon-sec-head .meta")).toHaveText("No run: before collection started");
+      await expect(why.locator(".tr-lead")).toHaveText(`No documents before ${shortDate(trend.documents_from)}`);
+      await expect(why.locator(".tr-mk")).toHaveCount(0);
+      await expect(page.locator('section[aria-labelledby="cited"]')).toHaveCount(0);
+      await expect(facts.locator(".mon-sec-head .meta")).toHaveText("Computed");
+      await expect(table.locator("tbody .tr-state").first()).toHaveText("No run");
+
+      // A subject without measured series has no Trend tab.
+      await page.goto("/monitors/maybank");
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Maybank");
+      await expect(page.getByRole("navigation", { name: "View" })).toHaveCount(0);
+
+      writeFileSync(path.join(dir, "trend.json"), JSON.stringify(trend, null, 2));
+      await page.goto("/monitors/circle/trend");
+      await expect(page.locator(".tr-lead")).toHaveText(note.headline);
     });
 
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);

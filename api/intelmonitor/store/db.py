@@ -363,6 +363,20 @@ CREATE TABLE IF NOT EXISTS run_facts (
     PRIMARY KEY (run_id, subject_id, series_id)
 );
 
+-- Each run's note per subject on why its series moved in the week to the run (pipeline/notes.py),
+-- with the facts code computed for it.
+CREATE TABLE IF NOT EXISTS run_notes (
+    run_id TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    since TEXT NOT NULL,               -- the week's start: the previous run's date
+    headline TEXT NOT NULL,
+    body TEXT NOT NULL,                -- [n] cites development_ids[n - 1]
+    development_ids TEXT NOT NULL,     -- JSON, in citation order
+    series_id TEXT,                    -- the series the headline is about
+    moves TEXT NOT NULL,               -- JSON [SeriesMove], the facts the note was given
+    PRIMARY KEY (run_id, subject_id)
+);
+
 -- Detector firings (pipeline/detectors.py): each one is a source document in the data collection
 -- with one finding. Written once per event: the document id comes from the detector, the series and
 -- the event's first period, so reruns find the row already there.

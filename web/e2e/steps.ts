@@ -23,6 +23,7 @@ export const STEPS = [
   "Indicators on monitor pages: a bank's system-wide rows as of the run, the Fed funds rise reads Watch and opens its development, the line's readout",
   "Indicator widget: a subject alone shows its peg, the gallery suggests the peg first, supply added at Large marks developments on its lane",
   "Data as a source: an answer's cited series show their sentence, flags in words and a chart over their span with the cited period highlighted",
+  "Trend tab: weekly runs from 30 Jul, each run's note numbered on the chart with the facts it was given, question states per run, no note before the first document",
 ] as const;
 
 /** Where each run writes its artifacts; playwright.config.ts sets it once per run. */

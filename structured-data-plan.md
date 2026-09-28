@@ -216,7 +216,7 @@ Built:
   `GET /subjects/{id}/facts?as_of=` returns `SubjectFacts`: what a run as of that date would give the subject's answers, with the rules that fire.
   The evidence drawer shows each cited series as a data source (see the data source item under F3).
 - `im report`'s Series section lists each run's facts, answers citing series and states fixed by rules, with a look-ahead check on every stated observation.
-- Runs: 17 Sep, 15 Aug (new, the past-date check) and 24 Sep were recomputed with facts; 25 or 26 of the 200 answers in each cite series, quoting their numbers ("USDC stayed near peg, 0.9996-0.9999 USD over 14 days; supply rose 2.98% weekly to $75.87bn"), and no rule fires on those dates.
+- Runs: 17 Sep, 15 Aug (new, the past-date check; deleted in F6, off the weekly cadence) and 24 Sep were recomputed with facts; 25 or 26 of the 200 answers in each cite series, quoting their numbers ("USDC stayed near peg, 0.9996-0.9999 USD over 14 days; supply rose 2.98% weekly to $75.87bn"), and no rule fires on those dates.
   After the FX wording and XSGD fixes the three runs were recomputed (30 to 33 new answer calls each): no answer on FX series names a pair, for example "SGD weaker against the MYR, up 0.55% weekly", and 26 answers in each cite series.
   After the SGD-side wording the 24 Sep run was recomputed (30 new answer calls, none asked again): every answer on FX series tells its moves by the SGD's side, for example "SGD weakened 0.55% vs MYR this week" and "SGD strengthened 0.88% against THB monthly, weakened 0.42% weekly".
   The 15 Aug run's latest stated observation was available on 15 Aug: its NPL facts stop at Q1 2026 and its loan-to-deposit facts at May 2026, while later runs state Q2 and July.
@@ -375,6 +375,36 @@ Each monitor page gets a Trend view: the subject's series over 12 months with ev
 A per-run LLM step writes "why it moved", citing the developments and the facts block; before 27 Jul the corpus is empty, so the explanation says so rather than guessing.
 The `GET /subjects/{id}/trend` endpoint from A7 feeds the development markers.
 Mocked first, with the directions in `mocks/trend-future.html` redone on real series.
+
+Built (direction B "Brief" in `mocks/trend-series.html`):
+
+- Runs: weekly runs as of 30 Jul, 6, 13, 20 and 27 Aug, 3 and 10 Sep were added on the Thursday cadence of 17 and 24 Sep, and 17 and 24 Sep were recomputed against them.
+  The run as of 15 Aug, left by F2's look-ahead check and off the cadence, was deleted with its derived rows; no review, note, triage read, feedback or custom answer referred to it, and its model calls stay cached.
+  The backfill made 679 model calls: 509 Claude calls (270 answers and 234 notes, one per subject per run, plus 2 and 3 asked again for an unsupported number or an FX wording) and 170 Jev calls (147 same-event pairs and 23 materiality scores); screening and extraction were all cached.
+  The CLI put the Claude calls at USD 31.93 (answers 24.34, notes 7.59).
+  Every run from 6 Aug compares with the week before, so the 17 Sep run now compares with 10 Sep instead of 15 Aug; the 24 Sep run still compares with 17 Sep (303 new, 15 updated, 35 need attention).
+- `pipeline/notes.py` runs after the answers: for each subject with listed series (26 subjects; Maybank, CIMB, Bangkok Bank and SEA regional banks have none) it computes the week's facts per series, from the previous run's date (seven days before the first run) to the run date, from what was known by then.
+  A daily series gets its latest value against the one known at the week's start, its largest day-to-day move and whether the latest is a high or low since some date; a peg its latest and furthest point from the peg in the week; a monthly or quarterly series whether a release came out; any standing question rule on it.
+  The subject's own listed series are used, else its listed context series, which the prompt says are system-wide or market-wide figures, not the subject's own.
+  One Claude call per subject writes a headline (18 words at most), a body (90 words at most) citing the week's developments (a source published in the week, most material first, 40 at most) as `[D:<id>]`, and the series the headline is about.
+  As in answers, numbers may come only from the facts and developments and FX moves are told by the SGD's side; a note that breaks either is asked again once (`answer_problems` from `answers.py`).
+  A week that reaches before the first document (27 Jul) is told so, and the note says that no development can explain a move before then.
+  Code numbers the citations `[1]`, `[2]` in order of first use, dropping ids not listed; `run_notes` keeps the headline, body, cited ids, lead series and the facts as `SeriesMove` JSON.
+- `GET /subjects/{id}/trend` returns a new `SubjectTrend` (`server/trend.py`): the note series with their observations over the 12 months to the latest run as known then, the Needs attention and Watch developments at their event dates (F5's `marked`), every complete run in the 12 months with its week and note (its cited developments as they stood in that run, each at its event date when inside the 12 months, else its first publication, and the facts), and each question's state and answer per run.
+  The document-count fields of A7 (weeks, categories, stages, members) are gone; nothing read them.
+  `MonitorPage.trend` says whether the subject has series, and so the tab.
+- Web: `/monitors/<id>/trend` (`components/monitor/TrendView.tsx`, `TrendChart.tsx`); the page head has Overview and Trend tabs, as links, beside Follow.
+  Why it moved: the run selector (runs newest first, then "Before 27 Jul"), the meta "Run of 24 Sep against 17 Sep", the headline and body with numbered citations linking the evidence drawer, and the questions whose state changed against the previous run.
+  Under it, the series switcher (a segmented control up to three series, a menu above), the window (12 months; 3 months and 1 month end on the selected run; no 1 month for a monthly series, 12 months only for a quarterly one), the legend and the chart.
+  The chart: one 1.5 px line on a fixed time axis, a preliminary tail lighter, the stretch before the first document shaded and named, the selected week as a band, a round scale at the left (a peg's at the rule's 0.5% either side of zero), months on the axis (weekly days in the 1-month window), the developments as 2 px ticks at their event dates in Watch or Needs attention colors (taller with more on a day, each a link to the day's most pressing one with the titles and published dates in its title), and the note's citations as numbered discs above the line at their dates, stacked where close.
+  The pointer snaps a crosshair to the nearest observation with its value, date and that day's marked developments.
+  Standing questions by run: per question a mark per run (Stable a baseline, New and Watch half height, Needs attention full, a week without a run dashed), the selected run's mark underlined, its state in words and its answer; before the first run the state reads No run.
+  Cited: number, Needs attention badge, title linking the drawer, category, sources and first publication when it differs from the date shown.
+  The rail: the facts given to the note for the charted series (latest, change since the week's start or on the previous release, largest day, highest or lowest since, a peg's widest gap, the rule), its source and a link to the source table, then Actions.
+  Before 27 Jul there is no note: the lead says "No documents before 27 Jul", the rail's facts are computed from the line before then (first, last, change, low, high).
+- Differs from the mock: the mock had two runs, so its question table gave each run a column of words; with nine runs each run is a mark, and the selected run's state is in words beside its answer.
+  The legend names Watch and Needs attention ticks where the mock said Development: only those developments are marked.
+  The rail shows the facts of the charted series, not every series', since a bank's note has eight.
 
 ### F7. Custom questions with series
 

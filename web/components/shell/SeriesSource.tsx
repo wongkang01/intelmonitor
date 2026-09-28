@@ -103,7 +103,7 @@ const CHAR = 6.8;
 const TIP_ROOM = 260;
 
 /** At most four round ticks covering `lo` to `hi`, their step's decimals, and the covered range. */
-function niceTicks(lo: number, hi: number) {
+export function niceTicks(lo: number, hi: number) {
   const raw = (hi - lo) / 3 || Math.abs(hi) / 3 || 1;
   const mag = 10 ** Math.floor(Math.log10(raw));
   const span = (m: number) => [Math.floor(lo / m + 1e-9) * m, Math.ceil(hi / m - 1e-9) * m];
