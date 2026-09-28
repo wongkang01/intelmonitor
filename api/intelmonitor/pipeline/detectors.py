@@ -127,6 +127,11 @@ def _size(s: SeriesDef, change: float) -> str:
     return f"{abs(change):.2f}%"
 
 
+def _when(d: DetectorDef, p: Point) -> bool:
+    """Whether the detector's `when` condition, if any, holds at the point."""
+    return d.when is None or d.when.holds(p.obs.value)
+
+
 def _ways(direction: MoveDirection, change: float) -> bool:
     return direction == "either" or (change > 0) == (direction == "up")
 
@@ -180,7 +185,9 @@ def _threshold(d: ThresholdDetector, s: SeriesDef, pts: list[Point]) -> list[Det
     level = d.above if d.above is not None else d.below
     assert level is not None  # the seed requires one of them
     rising = d.above is not None
-    hits = [(p.obs.value > level) if rising else (p.obs.value < level) for p in pts]
+    hits = [
+        _when(d, p) and ((p.obs.value > level) if rising else (p.obs.value < level)) for p in pts
+    ]
     out: list[Detection] = []
     for first, _ in _runs(hits):
         if first == 0:
@@ -202,7 +209,7 @@ def _deviation(
     source = s.source
     assert isinstance(source, Deviation)  # the seed requires a deviation series
     out: list[Detection] = []
-    for first, last in _runs([abs(p.obs.value) > d.beyond for p in pts]):
+    for first, last in _runs([_when(d, p) and abs(p.obs.value) > d.beyond for p in pts]):
         start = pts[first].obs.period
         at = next(
             (
@@ -234,9 +241,9 @@ def _move(d: MoveDetector, s: SeriesDef, pts: list[Point]) -> list[Detection]:
     hits: list[bool] = []
     sigmas: list[float | None] = []
     n, total, squares = 0, 0.0, 0.0  # earlier changes, for the standard deviation
-    for c in changes:
+    for p, c in zip(pts, changes, strict=True):
         k: float | None = None
-        if c is None:
+        if c is None or not _when(d, p):
             hit = False
         elif d.beyond is not None:
             hit = abs(c) > d.beyond and _ways(d.direction, c)
@@ -270,7 +277,7 @@ def _release(d: ReleaseDetector, s: SeriesDef, pts: list[Point]) -> list[Detecti
     out: list[Detection] = []
     for before, p in zip(pts, pts[1:], strict=False):
         c = _change(s, p.obs.value, before.obs.value)
-        if c is None or abs(c) <= d.beyond or not _ways(d.direction, c):
+        if c is None or abs(c) <= d.beyond or not _ways(d.direction, c) or not _when(d, p):
             continue  # each release is its own event, so no runs here
         statement = (
             f"{s.name} {'up' if c > 0 else 'down'} {_size(s, c)} to {_stated(s, p)}, from "
@@ -325,6 +332,15 @@ def detect(conn: sqlite3.Connection, as_of: date, since: date) -> list[Detection
 
 def describe(d: DetectorDef, s: SeriesDef) -> str:
     """The rule in words, for the document text."""
+    if d.when is None:
+        return _rule(d, s)
+    if d.when.below is not None:
+        return f"{_rule(d, s)}, while the level is below {value(s, d.when.below)}"
+    assert d.when.at_least is not None
+    return f"{_rule(d, s)}, while the level is at least {value(s, d.when.at_least)}"
+
+
+def _rule(d: DetectorDef, s: SeriesDef) -> str:
     basis = "points" if change_basis(s) == "points" else "%"
     ways = {"up": " up", "down": " down", "either": ""}
     match d:

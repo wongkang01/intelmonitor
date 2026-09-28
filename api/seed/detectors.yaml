@@ -18,6 +18,9 @@
 #   release    beyond and direction: a monthly or quarterly release that changes by more than
 #              `beyond` from the previous period
 #
+# Any detector may add `when`, below or at_least: it is evaluated only at points where the series'
+# value, in its own unit (supply in the coin's peg currency), meets that level.
+#
 # The thresholds are placeholders to agree with the pilot analysts.
 
 detectors:
@@ -82,12 +85,23 @@ detectors:
     sigmas: 3
     category: market
     materiality: notable
+  # Small coins' supply swings more, so under 1bn the weekly move must pass 20%.
   - id: stablecoin-supply-weekly-10pct
     name: Stablecoin supply moves more than 10% in a week
     kind: move
     series: "llama.*.supply"
     window: 1w
     beyond: 10
+    when: {at_least: 1000000000}
+    category: market
+    materiality: notable
+  - id: stablecoin-supply-weekly-20pct-small
+    name: Stablecoin supply under 1bn moves more than 20% in a week
+    kind: move
+    series: "llama.*.supply"
+    window: 1w
+    beyond: 20
+    when: {below: 1000000000}
     category: market
     materiality: notable
   - id: npl-sector-up

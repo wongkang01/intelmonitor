@@ -284,12 +284,34 @@ _MOVE_WINDOWS: dict[Frequency, set[MoveWindow]] = {
 }
 
 
+class LevelCondition(BaseModel):
+    """A detector's `when`: the series' value, in its own unit, is `below` a level or `at_least`
+    one. A rule for small coins and another for large ones split a series between them."""
+
+    below: float | None = None
+    at_least: float | None = None
+
+    @model_validator(mode="after")
+    def _one_level(self) -> Self:
+        if (self.below is None) == (self.at_least is None):
+            raise ValueError("when: give one of below or at_least")
+        return self
+
+    def holds(self, v: float) -> bool:
+        if self.below is not None:
+            return v < self.below
+        assert self.at_least is not None  # the validator requires one of them
+        return v >= self.at_least
+
+
 class _Detector(BaseModel):
     id: str
     name: str  # what the rule watches for, as the evidence drawer shows it
     series: str  # pattern over series ids (fnmatch, `*` spans dots)
     category: DetectorCategory
     materiality: MaterialityName  # the level its developments get, instead of Jev's score
+    # Evaluated only at points where the series' value meets this; the rest never fire.
+    when: LevelCondition | None = None
 
     def applies_to(self, series_id: str) -> bool:
         return fnmatchcase(series_id, self.series)
