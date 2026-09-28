@@ -311,7 +311,7 @@ mocks/              design mocks
   Series add series, series_subjects, observations, observation_revisions, detections, and per run run_indicators, run_facts and run_notes.
 - **API:** FastAPI. Pydantic models are the source of truth, and `openapi-typescript` generates the web client types from the OpenAPI schema, so the two sides can't drift.
 - **Dashboard spec:** a list of widgets with `type`, `size`, `order` and typed `settings` (subject, question). One schema per widget type drives the gallery, manual edits and the Generate agent.
-- **Generate agent:** Claude Agent SDK with in-process tools `add_widget`, `update_widget`, `remove_widget`, `reorder` and `list_subjects`. Tool arguments are validated against the widget schemas. The server maps the agent's stream to AG-UI events (`TEXT_MESSAGE_*`, `TOOL_CALL_*`, `STATE_DELTA`) over SSE.
+- **Generate agent:** Claude Agent SDK with in-process tools `add_widget`, `update_widget`, `remove_widget`, `reorder` and `list_subjects`. Tool arguments are validated against the widget schemas. The server maps the agent's stream to AG-UI events (`TEXT_MESSAGE_*`, `TOOL_CALL_*`, `STATE_DELTA`, and a `CUSTOM` "changes" event naming the message that lists the run's changes) over SSE. A prompt whose request fails before the agent starts (a dropped connection, Chrome's network-change abort, a 502 to 504 while the API restarts) is sent again after 1, 2 and 4 seconds; once the agent has written or edited anything it is not.
 - **Web AG-UI client:** bare `@ag-ui/core` and `@ag-ui/client`, no CopilotKit. One hook applies state deltas to the dashboard spec and tracks pending changes for Keep and Undo.
 - **Graph view:** sigma.js with graphology and ForceAtlas2. The layout runs until it settles and then stops.
 - **Dev servers:** `portless intelmonitor.web pnpm dev` and `portless intelmonitor.api uv run ...`, served at `https://intelmonitor.web.localhost` and `https://intelmonitor.api.localhost`. Run `scripts/proxy-start.sh` first so the Portless proxy listens on 443 without sudo.
@@ -380,7 +380,7 @@ It covers:
 2. Open evidence on a development and check the quote is highlighted in the source.
 3. Edit mode: drag a widget, remove one, reload, check the layout persisted.
 4. New dashboard, Build: pick a subject, add three widgets, rearrange, create, check it appears in the sidebar.
-5. New dashboard, Generate: send a prompt, check widgets arrive, Undo, send again, Keep, create.
+5. New dashboard, Generate: send a prompt whose first request is dropped, check it is sent again and widgets arrive with a summary counting them, Undo, send again, Keep, create.
 6. Open a monitor page from ⌘K, mark reviewed, add a note, delete it and Undo; the Undo toast waits while hovered and otherwise lasts 8 s; on a short window, the rail's foot scrolls into view.
 7. Add a custom question, keep it, check the answer and citations.
 8. Open the graph view, expand to 2 hops, click a node, check its page opens.

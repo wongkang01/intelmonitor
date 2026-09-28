@@ -326,7 +326,7 @@ The Trend chart also delivers the multi-month trend charts listed as P1 in the m
 - The LLM only fills the config schema. It never writes code or invents a widget type.
 - Every custom question points at existing subjects. If one is missing (e.g. no "chipmakers" group), the agent proposes it with members and topic links, and the user confirms.
 - Numbers are computed by code, never typed by the LLM. They come from Jev tags in the store or from structured data. News and DMS alone support narrative answers ("prices rising, driven by X"), not price lines.
-- Answers and notes may quote a number only from the facts code gave them or from their documents, and name an exchange rate move by the SGD's side ("SGD weakened 0.55% against MYR"), never as a pair. An answer that breaks either is asked again once.
+- Answers and notes may quote a number only from the facts code gave them or from their documents, and name an exchange rate move by the SGD's side ("SGD weakened 0.55% against MYR"), never as a pair. An answer that breaks either is asked again once. Generate's replies name exchange rates the same way.
 - Custom questions carry a "Custom" label and show their question, so users can tell them from curated questions.
 - Users edit the question later by flipping the widget to its settings, like any other widget.
 - Each custom question adds an LLM run. The POC caps custom questions at 10 per user and answers them on demand over the stored corpus. Scheduled answering depends on scheduled runs, which are P1.

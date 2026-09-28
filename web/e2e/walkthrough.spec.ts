@@ -350,12 +350,19 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       const keep = dialog.getByRole("button", { name: "Keep" });
       const failure = dialog.locator(".nd-error");
 
+      // The first request dies on the way, as when Chrome aborts it on a network change; the
+      // prompt is sent again and generates.
+      let dropped = 0;
+      await page.route(`${apiBase}agent/generate`, (route) => (dropped++, route.abort("connectionreset")), { times: 1 });
       await prompt.fill(ask);
       await prompt.press("Enter");
       await expect(undo.or(failure)).toBeVisible({ timeout: LLM_TIMEOUT });
       await expect(failure).toBeHidden();
+      expect(dropped, "the first Generate request was dropped").toBe(1);
       const first = await grid(dialog).count();
       expect(first, "the agent added widgets").toBeGreaterThan(0);
+      // The summary counts the widgets the draft gained, never Claude's own sentence.
+      await expect(dialog.locator(".nd-thread summary b")).toHaveText(`Added ${plural(first, "widget")}`);
 
       await undo.click();
       await expect(grid(dialog)).toHaveCount(0);

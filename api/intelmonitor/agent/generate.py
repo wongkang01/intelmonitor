@@ -5,7 +5,9 @@ STATE_DELTA (JSON Patch on `{"widgets": [...]}`) for each edit as it lands.
 
 The server is stateless: every run gets the conversation and the current draft from the page
 (`RunAgentInput.messages` and `.state`), so manual edits made between prompts are what the agent
-sees. After Claude's reply, one more text message lists the run's changes in plain words."""
+sees. After Claude's reply, one more text message lists the run's changes in plain words, so
+the next prompt's history has them; a CUSTOM "changes" event before it names that message and
+its lines, so the page tells them from Claude's own words (`ChangesEvent`)."""
 
 import asyncio
 import json
@@ -16,6 +18,7 @@ from typing import Any
 from ag_ui.core import (
     AssistantMessage,
     BaseEvent,
+    CustomEvent,
     RunAgentInput,
     RunErrorEvent,
     RunFinishedEvent,
@@ -42,7 +45,7 @@ from claude_agent_sdk import (
     query,
 )
 from claude_agent_sdk import UserMessage as SdkUserMessage
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from intelmonitor.agent.tools import SERVER_NAME, DashboardEditor, DraftState, build_server, compact
 from intelmonitor.config import get_settings
@@ -111,7 +114,11 @@ most two per request.
 
 Write no text before or between tool calls. When done, reply with one plain sentence of at most \
 25 words on what the dashboard is for. Do not recap the widgets or use lists or markdown: the \
-app lists each change itself."""
+app lists each change itself.
+
+Name an exchange rate by the SGD's side, as the app does: "the SGD against the ringgit" or "SGD \
+per Malaysian ringgit". Never write pairs such as SGD/MYR or USD/SGD, even when the request \
+does, and never say a rate went up or down: readers take them the other way round."""
 
 
 def _user_text(message: UserMessage) -> str:
@@ -194,8 +201,16 @@ class _StreamMapper:
         self._blocks.clear()
 
 
-def _say(emit: Callable[[BaseEvent], None], text: str) -> None:
-    message_id = uuid.uuid4().hex
+class ChangesEvent(BaseModel):
+    """The value of the CUSTOM "changes" event: the text message that lists the run's changes,
+    one line per tool edit ("Added Watchlist, large, OCBC.")."""
+
+    message_id: str
+    lines: list[str]
+
+
+def _say(emit: Callable[[BaseEvent], None], text: str, message_id: str | None = None) -> None:
+    message_id = message_id or uuid.uuid4().hex
     emit(TextMessageStartEvent(message_id=message_id, role="assistant"))
     emit(TextMessageContentEvent(message_id=message_id, delta=text))
     emit(TextMessageEndEvent(message_id=message_id))
@@ -242,7 +257,9 @@ async def _drive(run: RunAgentInput, draft: DraftState, emit: Callable[[BaseEven
     if result is None or result.is_error:
         raise RuntimeError(result.result if result and result.result else "the agent stopped")
     if editor.changes:
-        _say(emit, "\n".join(editor.changes))
+        changes = ChangesEvent(message_id=uuid.uuid4().hex, lines=editor.changes)
+        emit(CustomEvent(name="changes", value=changes.model_dump()))
+        _say(emit, "\n".join(changes.lines), changes.message_id)
     elif not result.result:
         _say(emit, "No changes.")
 

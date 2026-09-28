@@ -366,6 +366,9 @@ Built (direction B "State first" in `mocks/indicators.html`):
   Edit mode's settings face has Subject and Series pickers; a new subject resets the series to its default.
 - Generate: `add_widget` takes the type from `WidgetType` and gains `series_id` in its settings schema; the catalog in the system prompt describes the settings, and `list_subjects` with `subject_ids` lists each subject's listed series with its role, the default flagged.
   "add a USDC peg widget" adds "Indicator (USDC off its USD peg), small, Circle".
+  The reply's summary ("Added 2 widgets") is counted on the draft, widgets added, changed and removed; it used to count every line starting "Added", so a reply of Claude's that began "Added" read as one more widget.
+  The server's change lines come in a text message of their own, which a CUSTOM "changes" event names (`ChangesEvent` in `agent/generate.py`), so they stay in the conversation and the page tells them from Claude's words; only Claude's last message shows, not what it said before a tool call.
+  The system prompt names exchange rates by the SGD's side, as answers do: "A small dashboard on SGD/MYR and USD/SGD moves" was answered "tracks USD/SGD and SGD/MYR exchange rate moves", and is now "tracks moves in the SGD against the Malaysian ringgit and against the US dollar" (two tries).
 - The walkthrough's last step adds a dashboard with Tether's indicator set by subject and checks it shows the USDT peg as of the run with the sentence from `indicatorSentence`; in the gallery, Circle's first suggestion is the indicator on its peg with its supply as the second primary option; supply added at Large saves `{subject_id: circle, series_id: llama.usdc.supply}` and shows its scale, the no-documents axis label, one marker per marked day with the tooltip and linked row, and the latest rows; See data opens Tether's Indicators; Maybank has no Indicator offer.
   It writes `indicator-widget.json`.
 

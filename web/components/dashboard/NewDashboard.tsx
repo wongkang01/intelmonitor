@@ -9,7 +9,8 @@ import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type Keyb
 
 import type { Widget } from "@/lib/api/client";
 import { errorMessage, useCatalog, useCreateDashboard, useSubjects } from "@/lib/api/queries";
-import { useDashboardDraft } from "@/lib/agent";
+import { useDashboardDraft, type Tally } from "@/lib/agent";
+import { capitalize } from "@/lib/format";
 import { defaultName, subjectsUsed } from "@/lib/widgets";
 import { ChevronLeftIcon, PlusIcon, SendIcon, SparkleIcon } from "@/components/ui/icons";
 import { CloseButton, Modal, type CloseReason } from "@/components/ui/Modal";
@@ -318,23 +319,13 @@ function CloseConfirm({
   );
 }
 
-// The server's change lines, one per widget: "Added Watchlist, medium, OCBC."
-const CHANGE = /^(Added|Changed|Removed) .+/;
-const VERB_PAST = { Added: "added", Changed: "changed", Removed: "removed" } as const;
-
-/** Splits the agent reply into a one-line summary of the changes ("Added 6 widgets"), the agent's
- *  own sentence, and the change lines for the Details disclosure. Without change lines, the agent's
- *  text is the summary. */
-function readReply(reply: string) {
-  const lines = reply.split("\n").filter((l) => l.trim());
-  const changes = lines.filter((l) => CHANGE.test(l));
-  const note = lines.filter((l) => !CHANGE.test(l)).join(" ");
-  if (!changes.length) return { summary: note, note: "", changes };
-  const counts = (["Added", "Changed", "Removed"] as const)
-    .map((verb) => [verb, changes.filter((l) => l.startsWith(`${verb} `)).length] as const)
-    .filter(([, n]) => n > 0)
-    .map(([verb, n], i) => `${i ? VERB_PAST[verb] : verb} ${widgetCount(n)}`);
-  return { summary: counts.join(", "), note, changes };
+/** "Added 2 widgets, changed 1 widget": the change counted on the draft, or empty when it moved none. */
+function tallyText(tally: Tally | null): string {
+  if (!tally) return "";
+  return (["added", "changed", "removed"] as const)
+    .filter((verb) => tally[verb] > 0)
+    .map((verb, i) => `${i ? verb : capitalize(verb)} ${widgetCount(tally[verb])}`)
+    .join(", ");
 }
 
 /** Grid callbacks that edit the draft by hand. */
@@ -488,7 +479,12 @@ function GeneratePane({
     send(text);
   };
 
-  const { summary, note, changes } = readReply(draft.reply || (draft.running ? "Working on your dashboard" : ""));
+  // With changes, the summary counts them and Details holds Claude's sentence and the server's
+  // lines; a rearrangement alone is summed up by its line. Without, Claude's words are the summary.
+  const changes = draft.changes;
+  const reply = draft.reply || (draft.running ? "Working on your dashboard" : "");
+  const summary = changes.length ? tallyText(draft.tally) || changes.join(" ") : reply;
+  const note = changes.length ? draft.reply : "";
   // Until the agent's first change lands, the canvas blurs under a "Generating" card.
   const waiting = draft.running && draft.changed.size === 0;
   // Outline only small edits to an existing draft; a first build or a big change is listed instead.
