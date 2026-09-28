@@ -1,6 +1,7 @@
 """Dashboard spec and widgets. One settings schema per widget type drives the gallery, manual
 edits and the Generate agent; `widget_data` fills a widget from the latest run."""
 
+import json
 from datetime import date, datetime
 from typing import Annotated, Literal, Self, get_args
 
@@ -333,6 +334,10 @@ class QuestionData(_Data):
     type: Literal["question"]
     subject: SubjectRef
     answer: QuestionAnswerView
+    indicator: SubjectIndicator | None = Field(
+        description="A custom question's first series as of the run date, for the line at M; "
+        "none for built-in questions and custom ones without series"
+    )
 
 
 class SummaryData(_Data):
@@ -452,6 +457,7 @@ def widget_data(q: Queries, widget: Widget, dashboard_subject_ids: list[str]) ->
                 type="question",
                 subject=subject_ref(s.subject_id),
                 answer=q.answer(s.subject_id, s.question_id),
+                indicator=question_line(q, s.subject_id, s.question_id),
             )
         case SummaryWidget(settings=s):
             return SummaryData(
@@ -491,6 +497,20 @@ def widget_data(q: Queries, widget: Widget, dashboard_subject_ids: list[str]) ->
             )
         case IndicatorWidget(settings=s):
             return indicator(q, widget.id, s)
+
+
+def question_line(q: Queries, subject_id: str, question_id: str) -> SubjectIndicator | None:
+    """A custom question's first series as of the run date. Every size gets it, since widget
+    data is cached across resizes."""
+    row = q.conn.execute(
+        "SELECT series_ids FROM custom_questions WHERE id = ? AND subject_id = ?",
+        (question_id, subject_id),
+    ).fetchone()
+    ids: list[str] = json.loads(row["series_ids"]) if row else []
+    if not ids:
+        return None
+    found = subject_indicators(q.conn, subject_id, q.run.as_of, ids[0]).indicators
+    return found[0] if found else None  # a series since removed from the seed
 
 
 def direction(q: Queries, widget_id: str, subject_id: str) -> DirectionData:

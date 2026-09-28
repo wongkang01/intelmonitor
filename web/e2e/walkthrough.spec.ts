@@ -1661,6 +1661,117 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(page.locator(".tr-lead")).toHaveText(note.headline);
     });
 
+    await step(STEPS[23], async () => {
+      // A custom question can name series of its subject, picked like the gallery's indicator
+      // series; each run's answer gets their facts as of its date and may cite them
+      // (structured-data-plan.md, F7). The text and pick are fixed, so the calls are recorded.
+      const slots = await unwrap(api.GET("/custom-questions/slots"));
+      expect(slots.left, "a custom question slot is free").toBeGreaterThan(0);
+      await page.goto("/monitors/malaysia");
+      const questions = page.getByRole("region", { name: "Standing questions" });
+      await questions.getByRole("button", { name: "Add a question" }).click();
+      await questions.getByLabel("Your question about Malaysia").fill("How is the SGD moving against the ringgit, and what is driving it?");
+      const picker = questions.getByRole("combobox", { name: "Series", exact: true });
+      await expect(picker).toHaveValue("");
+      await expect(picker.locator("option").first()).toHaveText("Named in the question");
+      await expect(picker.locator('optgroup[label="Primary"] option')).toHaveText(["SGD per Malaysian ringgit"]);
+      // Malaysia lists one series, so there is no second to add.
+      await expect(questions.getByRole("button", { name: "Add series" })).toHaveCount(0);
+      await picker.selectOption("fx.sgd.myr");
+      const drafted = page.waitForResponse(
+        (r) => r.url() === new URL("custom-questions", apiBase).href && r.request().method() === "POST",
+        { timeout: LLM_TIMEOUT },
+      );
+      await questions.getByRole("button", { name: "Draft question" }).click();
+      const response = await drafted;
+      expect(response.ok(), await response.text()).toBe(true);
+      expect(response.request().postDataJSON()).toEqual({
+        text: "How is the SGD moving against the ringgit, and what is driving it?",
+        subject_id: "malaysia",
+        series_ids: ["fx.sgd.myr"],
+      });
+      const draft: Schema<"CustomQuestion"> = await response.json();
+      cleanups.push(() =>
+        deleted(api.DELETE("/custom-questions/{question_id}", { params: { path: { question_id: draft.id } } })),
+      );
+      expect(draft.series.map((x) => x.id)).toEqual(["fx.sgd.myr"]);
+      const pair = /\b(?:SGD\/[A-Z]{3}|[A-Z]{3}\/SGD)\b/;
+      for (const text of [draft.question, draft.label, ...draft.runs.map((r) => r.summary)]) {
+        expect(text, "FX is named by the SGD's side, never as a pair").not.toMatch(pair);
+      }
+      const newest = draft.runs.at(-1);
+      if (!newest) throw new Error("the custom question has no answers");
+      expect(newest.run.id).toBe(latest.id);
+      expect(newest.series_ids, "the latest answer cites the series").toEqual(["fx.sgd.myr"]);
+
+      const preview = questions.getByRole("group", { name: "Custom question preview" });
+      await expect(preview.locator(".cq-config dt", { hasText: "Series" }).locator("+ dd")).toHaveText("SGD per Malaysian ringgit");
+      await expect(preview.locator(".cq-cites .cq-label")).toHaveText(/(^Cites | and )1 series$/);
+      await expect(preview.locator(".cq-cites .row-title").last()).toHaveText("SGD per Malaysian ringgit");
+      await preview.getByRole("button", { name: "Keep" }).click();
+      await expect(page.getByText(`${draft.label} added to Malaysia`)).toBeVisible();
+
+      // The evidence shows the facts this question was given: its own 14-day window, known by
+      // the run date, not the built-in questions' window.
+      const evidence = await unwrap(
+        api.GET("/subjects/{subject_id}/answers/{question_id}/evidence", {
+          params: { path: { subject_id: "malaysia", question_id: draft.id } },
+        }),
+      );
+      const cited = evidence.series[0];
+      expect(evidence.series.map((x) => x.series.id)).toEqual(["fx.sgd.myr"]);
+      expect(cited.fact.question_ids).toEqual([draft.id]);
+      expect(daysBetween(cited.fact.window_start ?? "", latest.as_of)).toBe(draft.lookback_days);
+      expect((cited.fact.latest?.available_at.slice(0, 10) ?? "9999") <= latest.as_of, "the fact was known by the run date").toBe(true);
+      const row = questions.locator(`.qrow[data-question-id="${draft.id}"]`);
+      await row.getByRole("link", { name: "See evidence" }).click();
+      const drawer = page.getByTestId("evidence-drawer");
+      await expect(drawer.getByRole("heading", { level: 4 }).first()).toHaveText(/^Based on (\d+ developments? and )?1 series$/);
+      const block = drawer.locator('.series-src[data-series-id="fx.sgd.myr"]');
+      await expect(block.getByRole("link", { name: "SGD per Malaysian ringgit" })).toBeVisible();
+      const sentence = cited.fact.text.slice("SGD per Malaysian ringgit: ".length);
+      await expect(block.locator(".finding p")).toHaveText(sentence.charAt(0).toUpperCase() + sentence.slice(1));
+      await drawer.getByRole("button", { name: "Close evidence" }).click();
+      await expect(drawer).toBeHidden();
+
+      // The edit dialog picks the series with the same select, None to drop it.
+      await row.getByRole("button", { name: `Edit ${draft.label}` }).click();
+      const dialog = page.getByRole("dialog", { name: "Edit custom question" });
+      const editPicker = dialog.getByRole("combobox", { name: "Series", exact: true });
+      await expect(editPicker).toHaveValue("fx.sgd.myr");
+      await expect(editPicker.locator("option").first()).toHaveText("None");
+      await dialog.getByRole("button", { name: "Cancel" }).click();
+      await expect(dialog).toBeHidden();
+
+      // Its widget at Medium draws the series' 12-month line beside the answer; Small has none.
+      const created = await unwrap(
+        api.POST("/dashboards", {
+          body: {
+            name: `E2E Custom series ${stamp}`,
+            subject_ids: ["malaysia"],
+            widgets: [
+              { id: "cqm", order: 0, type: "question", size: "M", settings: { subject_id: "malaysia", question_id: draft.id } },
+              { id: "cqs", order: 1, type: "question", size: "S", settings: { subject_id: "malaysia", question_id: draft.id } },
+            ],
+          },
+        }),
+      );
+      cleanups.push(() => deleted(api.DELETE("/dashboards/{dashboard_id}", { params: { path: { dashboard_id: created.id } } })));
+      const data = await unwrap(api.POST("/widgets/data", { body: { widget: created.widgets[0] } }));
+      if (data.type !== "question") throw new Error("the question widget returned other data");
+      expect(data.indicator?.series.id).toBe("fx.sgd.myr");
+      expect(data.indicator?.line.at(-1)?.period).toBe(data.indicator?.latest?.period);
+      await page.goto(`/dashboards/${created.id}`);
+      const medium = page.locator('[data-widget-id="cqm"]');
+      await expect(medium.locator(".wt")).toHaveText(draft.label);
+      await expect(medium.locator(".ind-wm .w-text")).toHaveText(answerText(newest.summary));
+      await expect(medium.locator(".ind-wm .ind-line svg")).toBeVisible();
+      await expect(medium.getByRole("link", { name: "See evidence" })).toBeVisible();
+      await expect(page.locator('[data-widget-id="cqs"] .ind-line')).toHaveCount(0);
+
+      writeFileSync(path.join(dir, "custom-series.json"), JSON.stringify({ run: latest, question: draft, evidence, widget: data }, null, 2));
+    });
+
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);
   } finally {
     const failures: string[] = [];

@@ -224,7 +224,7 @@ function QuestionRow({ subjectId, answer: a, onEdit }: { subjectId: string; answ
             parts={[
               before && <StateChange key="s" state={a.state} from={before} />,
               `Last ${a.lookback_days} days`,
-              a.development_ids.length > 0 ? (
+              a.development_ids.length + a.series_ids.length > 0 ? (
                 <Link key="e" href={evidence.answer(subjectId, a.question_id)} scroll={false} className="link">
                   See evidence
                 </Link>

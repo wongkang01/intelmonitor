@@ -11,6 +11,7 @@ from claude_agent_sdk import SdkMcpTool, create_sdk_mcp_server, tool
 from claude_agent_sdk.types import McpSdkServerConfig
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
+from intelmonitor.pipeline.custom import MAX_SERIES, SeriesChoiceError
 from intelmonitor.pipeline.subjects import all_subjects, questions_for
 from intelmonitor.server import custom_questions as cq
 from intelmonitor.server.models import State
@@ -28,6 +29,7 @@ STATE_LABEL: dict[State, str] = {
     "new": "New",
 }
 _WIDGET = TypeAdapter[Widget](Widget)
+_IDS = TypeAdapter(list[str])
 
 
 class DraftState(BaseModel):
@@ -144,15 +146,25 @@ class DashboardEditor:
         return _ok(f"Added {widget.id}. {self._state()}")
 
     async def add_custom(
-        self, text: str, subject_id: str, size: str, position: int | None
+        self,
+        text: str,
+        subject_id: str,
+        series_ids: list[str] | None,
+        size: str,
+        position: int | None,
     ) -> ToolResult:
-        """Drafts a custom question (config plus answers for every run) and adds its widget."""
+        """Drafts a custom question (config plus answers for every run) and adds its widget.
+        `series_ids` None lets the draft pick the series the text names or needs."""
         conn = connect()
         try:
-            request = cq.CustomQuestionRequest(text=text, subject_id=subject_id)
+            request = cq.CustomQuestionRequest(
+                text=text, subject_id=subject_id, series_ids=series_ids
+            )
             draft = await cq.create_draft(Queries(conn), request)
         except ValidationError as e:
             return _error(f"Invalid question: {_validation_message(e)}")
+        except SeriesChoiceError as e:
+            return _error(f"Invalid series: {e}. Use series ids list_subjects gives the subject.")
         except cq.CapReachedError as e:
             return _error(f"{e} Suggest the closest built-in widget instead.")
         finally:
@@ -163,9 +175,14 @@ class DashboardEditor:
             return added
         latest = draft.runs[-1] if draft.runs else None
         answer = f" Latest answer: {STATE_LABEL[latest.state]}, {latest.summary}" if latest else ""
+        series = (
+            f" Series: {', '.join(f'{s.id} ({s.name})' for s in draft.series)}."
+            if draft.series
+            else ""
+        )
         return _ok(
             f"Drafted custom question {draft.id} ({draft.label}): {draft.question} "
-            f"Lookback {draft.lookback_days} days.{answer}\n{added['content'][0]['text']}"
+            f"Lookback {draft.lookback_days} days.{series}{answer}\n{added['content'][0]['text']}"
         )
 
     def update(
@@ -381,7 +398,19 @@ def build_server(editor: DashboardEditor) -> tuple[McpSdkServerConfig, list[str]
                     "description": "The angle in the user's words, as one question",
                 },
                 "subject_id": {"type": "string", "description": "A subject id"},
-                "size": {"type": "string", "enum": ["S", "M"]},
+                "series_ids": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "maxItems": MAX_SERIES,
+                    "description": "Series ids of the subject from list_subjects whose facts "
+                    "the answers get, for an angle on a measured series (an exchange rate, a peg, "
+                    "a ratio); omit to let the draft pick those the question names",
+                },
+                "size": {
+                    "type": "string",
+                    "enum": ["S", "M"],
+                    "description": "M shows the first series' 12-month line beside the answer",
+                },
                 "position": {
                     "type": "integer",
                     "description": "0-based index in the layout order; omit to append",
@@ -391,9 +420,16 @@ def build_server(editor: DashboardEditor) -> tuple[McpSdkServerConfig, list[str]
         },
     )
     async def create_custom_widget(args: dict[str, Any]) -> ToolResult:
+        try:
+            series = (
+                None if args.get("series_ids") is None else _IDS.validate_python(args["series_ids"])
+            )
+        except ValidationError as e:
+            return _error(f"Invalid series_ids: {_validation_message(e)}")
         return await editor.add_custom(
             str(args["question"]),
             str(args["subject_id"]),
+            series,
             str(args.get("size") or "S"),
             args.get("position"),
         )

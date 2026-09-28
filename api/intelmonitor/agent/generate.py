@@ -103,7 +103,10 @@ different dashboard.
 If a request does not fit the catalog, add the closest widget and say so. When the user wants \
 an angle no standing question covers (check the subject's questions with list_subjects), call \
 create_custom_widget with that angle as one question and the subject it is about: it drafts a \
-custom standing question, answers it and adds a Standing question widget for it. Create at \
+custom standing question, answers it and adds a Standing question widget for it. When the angle \
+is about a measured series of the subject (an exchange rate such as the SGD against the ringgit, \
+a peg, a ratio), pass its ids from list_subjects as series_ids: the answers then get the \
+series' facts, and at M the widget shows the first series' line beside the answer. Create at \
 most two per request.
 
 Write no text before or between tool calls. When done, reply with one plain sentence of at most \

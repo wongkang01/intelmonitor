@@ -14,6 +14,7 @@ from fastapi.routing import APIRoute
 
 from intelmonitor.agent.generate import encode_events
 from intelmonitor.pipeline import runlog
+from intelmonitor.pipeline.custom import SeriesChoiceError
 from intelmonitor.pipeline.params import (
     MATERIALITY_LEVELS,
     MATERIALITY_RUBRIC,
@@ -132,6 +133,11 @@ async def _no_run(_: Request, error: NoRunError) -> JSONResponse:
 @app.exception_handler(cq.CapReachedError)
 async def _cap(_: Request, error: cq.CapReachedError) -> JSONResponse:
     return JSONResponse({"detail": str(error)}, status_code=409)
+
+
+@app.exception_handler(SeriesChoiceError)
+async def _series_choice(_: Request, error: SeriesChoiceError) -> JSONResponse:
+    return JSONResponse({"detail": str(error)}, status_code=422)
 
 
 @app.exception_handler(dash.OrderError)
@@ -296,7 +302,13 @@ def get_answer_evidence(q: Q, subject_id: str, question_id: str) -> AnswerEviden
         run=q.run,
         answer=answer,
         developments=[_development_detail(q, i) for i in answer.development_ids],
-        series=series_views.cited_series(q.conn, q.run, subject_id, answer.series_ids),
+        series=series_views.cited_series(
+            q.conn,
+            q.run,
+            subject_id,
+            answer.question_id if answer.custom else None,
+            answer.series_ids,
+        ),
     )
 
 

@@ -1257,6 +1257,11 @@ export interface components {
             /** Lookback Days */
             lookback_days: number;
             /**
+             * Series
+             * @description Series whose facts its answers get, in order
+             */
+            series: components["schemas"]["SeriesInfo"][];
+            /**
              * Status
              * @enum {string}
              */
@@ -1292,6 +1297,11 @@ export interface components {
             label?: string | null;
             /** Lookback Days */
             lookback_days?: number | null;
+            /**
+             * Series Ids
+             * @description Empty keeps them; [] removes them
+             */
+            series_ids?: string[] | null;
         };
         /** CustomQuestionRequest */
         CustomQuestionRequest: {
@@ -1305,6 +1315,11 @@ export interface components {
              * @description The monitor page's subject; empty lets Claude pick one
              */
             subject_id?: string | null;
+            /**
+             * Series Ids
+             * @description Listed series of the subject whose facts the answers get; empty lets Claude pick those the text names or needs
+             */
+            series_ids?: string[] | null;
         };
         /** CustomQuestionSlots */
         CustomQuestionSlots: {
@@ -1332,6 +1347,11 @@ export interface components {
             development_ids: string[];
             /** Document Ids */
             document_ids: string[];
+            /**
+             * Series Ids
+             * @description Series whose facts the answer cites
+             */
+            series_ids: string[];
         };
         /** Dashboard */
         Dashboard: {
@@ -2472,6 +2492,8 @@ export interface components {
             type: "question";
             subject: components["schemas"]["SubjectRef"];
             answer: components["schemas"]["QuestionAnswerView"];
+            /** @description A custom question's first series as of the run date, for the line at M; none for built-in questions and custom ones without series */
+            indicator: components["schemas"]["SubjectIndicator"] | null;
         };
         /** QuestionSettings */
         QuestionSettings: {

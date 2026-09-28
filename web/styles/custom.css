@@ -74,3 +74,19 @@
 .btn.btn-danger:is(:disabled, [aria-disabled="true"]):hover {
   background: var(--surface);
 }
+
+/* Series: the gallery's series select once per series, Add series after the last. */
+.cq-series-rows {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+}
+/* Holds its screen-reader label, which would otherwise hang off the page and lengthen it. */
+.cq-series-rows .series-select {
+  position: relative;
+}
+.cq-series-rows .series-select select {
+  width: 260px;
+  max-width: 100%;
+}

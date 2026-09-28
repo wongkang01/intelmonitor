@@ -98,6 +98,15 @@ _NUMBER = re.compile(r"\d[\d,]*\.\d+%?|\d[\d,]*%")
 _PER_CENT = re.compile(r"\s*(?:per ?cent|percent)\b", re.IGNORECASE)
 
 
+# How answers word exchange rate moves, in the answer prompts of standing and custom questions.
+FX_WORDING = """\
+- Exchange rates: tell every move by the SGD's side, as the facts do: "SGD weakened 0.55%
+  against the MYR on the week". Never say a rate or a pair went up or down ("SGD per MYR up
+  0.55%", "SGD weaker against the MYR, up 0.55%") and never write pairs such as SGD/MYR or
+  USD/SGD: readers take them the other way round. A level may be named as the facts name it,
+  "0.3138 SGD per MYR"."""
+
+
 def unsupported_numbers(summary: str, allowed: str) -> list[str]:
     """Decimals and percentages in `summary` that appear nowhere in `allowed` (the facts and
     development text the prompt gave), ignoring thousands separators and reading "per cent" as
@@ -238,18 +247,14 @@ def answer_prompt(
         parts.append(entry)
     parts += [
         "",
-        """For each question return:
+        f"""For each question return:
 - question_id.
 - summary: one line of at most 25 words, plain and specific (name the bodies, entities and
   actions). If nothing eligible bears on the question, say so briefly, for example "No new
   enforcement actions in the last 30 days."
 - Numbers: quote only numbers the facts or developments give, as they give them; never compute,
   convert or estimate new ones. Where a question has series, say what their facts show.
-- Exchange rates: tell every move by the SGD's side, as the facts do: "SGD weakened 0.55%
-  against the MYR on the week". Never say a rate or a pair went up or down ("SGD per MYR up
-  0.55%", "SGD weaker against the MYR, up 0.55%") and never write pairs such as SGD/MYR or
-  USD/SGD: readers take them the other way round. A level may be named as the facts name it,
-  "0.3138 SGD per MYR".
+{FX_WORDING}
 - state, calm by default. A question with a fixed state takes that state, and its summary says
   why:
   - needs_attention: something could hurt a tracked subject or needs supervisory follow-up now,

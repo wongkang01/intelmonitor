@@ -3,7 +3,8 @@
 // Custom standing questions. CustomQuestionComposer is the write, preview, Keep or Discard flow
 // under "Add a question" on monitor pages and in the widget gallery. CustomQuestionEditor is the
 // dialog that edits or deletes a kept question, opened from its row or its widget's settings.
-import { useRef, useState, type FormEvent } from "react";
+// Both pick the subject's series whose facts the answers get with the gallery's series select.
+import { useId, useRef, useState, type FormEvent } from "react";
 import { flushSync } from "react-dom";
 
 import {
@@ -13,16 +14,19 @@ import {
   useDeleteCustomQuestion,
   useDraftCustomQuestion,
   useEditCustomQuestion,
+  useIndicators,
   useKeepCustomQuestion,
   type CustomQuestion,
 } from "@/lib/api/queries";
-import { answerText, plural, shortDate } from "@/lib/format";
+import { answerText, plural, SCOPE_LABEL, shortDate } from "@/lib/format";
 import { CloseButton, Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { Dotted, StateChange } from "@/components/monitor/parts";
-import { DevelopmentRow, StateBadge } from "@/components/widgets/parts";
+import { DevelopmentRow, SeriesSelect, StateBadge } from "@/components/widgets/parts";
 
 const MIN_LENGTH = 5;
+/** The most series a question names (MAX_SERIES in api/intelmonitor/pipeline/custom.py). */
+const MAX_SERIES = 3;
 
 export function CustomQuestionComposer({
   subject,
@@ -43,6 +47,9 @@ export function CustomQuestionComposer({
   const keep = useKeepCustomQuestion();
   const discard = useDeleteCustomQuestion();
   const [text, setText] = useState("");
+  // Series rows as picked; an empty row picks nothing. None picked lets the draft pick those the
+  // question names.
+  const [series, setSeries] = useState<string[]>([]);
   const [preview, setPreview] = useState<CustomQuestion | null>(null);
 
   if (slots.data && slots.data.left === 0 && !preview) {
@@ -89,6 +96,7 @@ export function CustomQuestionComposer({
                 onSuccess: (kept) => {
                   setPreview(null);
                   setText("");
+                  setSeries([]);
                   onKept(kept);
                 },
               })
@@ -104,7 +112,11 @@ export function CustomQuestionComposer({
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (text.trim().length < MIN_LENGTH || draft.isPending) return;
-    draft.mutate({ text: text.trim(), subject_id: subject.id }, { onSuccess: setPreview });
+    const picked = series.filter(Boolean);
+    draft.mutate(
+      { text: text.trim(), subject_id: subject.id, series_ids: picked.length > 0 ? picked : undefined },
+      { onSuccess: setPreview },
+    );
   };
 
   return (
@@ -125,9 +137,10 @@ export function CustomQuestionComposer({
           autoFocus={autoFocus}
         />
       </label>
+      <SeriesPicker subjectId={subject.id} value={series} onChange={setSeries} none="Named in the question" disabled={draft.isPending} />
       {draft.isPending && (
         <p className="cq-note" role="status">
-          Drafting the question and answering it for both runs. This can take a minute.
+          Drafting the question and answering it for every run. This can take a minute.
         </p>
       )}
       {draft.isError && (
@@ -150,9 +163,68 @@ export function CustomQuestionComposer({
   );
 }
 
-/** The drafted config, the answer for each run (latest first) and the developments it cites. */
+/**
+ * The series a question names, one gallery series select each, and Add series up to MAX_SERIES.
+ * `none` words the first select's empty option: what naming no series means where it is used.
+ * Subjects without listed series show nothing.
+ */
+function SeriesPicker({
+  subjectId,
+  value,
+  onChange,
+  none,
+  disabled,
+}: {
+  subjectId: string;
+  value: string[];
+  onChange: (series: string[]) => void;
+  none: string;
+  disabled?: boolean;
+}) {
+  const indicators = useIndicators(subjectId);
+  const labelId = useId();
+  const listed = indicators.data?.indicators.filter((i) => i.series.listed) ?? [];
+  if (listed.length === 0) return null;
+  const rows = value.length > 0 ? value : [""];
+  const change = (at: number, id: string) => {
+    const next = rows.map((r, i) => (i === at ? id : r));
+    // Picking None on a later row removes it; the first row stays, empty.
+    onChange(id || at === 0 ? next : next.filter((_, i) => i !== at));
+  };
+  return (
+    <div className="form-field" role="group" aria-labelledby={labelId}>
+      <span id={labelId}>Series</span>
+      <div className="cq-series-rows">
+        {rows.map((id, i) => (
+          <SeriesSelect
+            key={i}
+            // Each series once: a row offers its own and those no other row picked.
+            listed={listed.filter((l) => l.series.id === id || !rows.includes(l.series.id))}
+            value={id}
+            onChange={(next) => change(i, next)}
+            label={i === 0 ? "Series" : `Series ${i + 1}`}
+            none={i === 0 ? none : "None"}
+            disabled={disabled}
+          />
+        ))}
+        {rows.every(Boolean) && rows.length < Math.min(MAX_SERIES, listed.length) && (
+          <button type="button" className="link" disabled={disabled} onClick={() => onChange([...rows, ""])}>
+            Add series
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** The drafted config, the answer for each run (latest first) and what the latest cites. */
 function Preview({ question: q, linkCitations }: { question: CustomQuestion; linkCitations: boolean }) {
   const runs = [...q.runs].reverse();
+  const cited = q.series.filter((s) => runs[0]?.series_ids.includes(s.id));
+  const cites = [
+    q.evidence.length > 0 && plural(q.evidence.length, "development"),
+    cited.length > 0 && plural(cited.length, "series", "series"),
+  ].filter(Boolean);
   return (
     <>
       <dl className="cq-config">
@@ -164,6 +236,12 @@ function Preview({ question: q, linkCitations }: { question: CustomQuestion; lin
         <dd>{q.subject.name}</dd>
         <dt>Lookback</dt>
         <dd>{plural(q.lookback_days, "day")}</dd>
+        {q.series.length > 0 && (
+          <>
+            <dt>Series</dt>
+            <dd>{q.series.map((s) => s.name).join(", ")}</dd>
+          </>
+        )}
       </dl>
       <div className="rows cq-runs">
         {runs.map((r, i) => {
@@ -188,12 +266,22 @@ function Preview({ question: q, linkCitations }: { question: CustomQuestion; lin
           );
         })}
       </div>
-      {q.evidence.length > 0 ? (
+      {cites.length > 0 ? (
         <div className="cq-cites">
-          <h4 className="cq-label">Cites {plural(q.evidence.length, "development")}</h4>
+          <h4 className="cq-label">Cites {cites.join(" and ")}</h4>
           <div className="rows">
             {q.evidence.map((d) => (
               <DevelopmentRow key={d.id} development={d} link={linkCitations} />
+            ))}
+            {cited.map((s) => (
+              <div key={s.id} className="row no-stat">
+                <span>
+                  <span className="row-title">{s.name}</span>
+                  <span className="row-meta">
+                    <Dotted parts={["Data", s.source_label, s.scope && SCOPE_LABEL[s.scope]]} />
+                  </span>
+                </span>
+              </div>
             ))}
           </div>
         </div>
@@ -204,7 +292,7 @@ function Preview({ question: q, linkCitations }: { question: CustomQuestion; lin
   );
 }
 
-/** Edits a kept custom question's wording, label and lookback, or deletes it. `onDeleted` runs
+/** Edits a kept custom question's wording, label, lookback and series, or deletes it. `onDeleted` runs
  *  after a delete, before `onClose`, so the opener can place focus once the question is gone. */
 export function CustomQuestionEditor({
   questionId,
@@ -245,10 +333,13 @@ function EditForm({
   const [wording, setWording] = useState(q.question);
   const [label, setLabel] = useState(q.label);
   const [lookback, setLookback] = useState(String(q.lookback_days));
+  const [series, setSeries] = useState(q.series.map((s) => s.id));
   const [confirming, setConfirming] = useState(false);
   const days = Number(lookback);
+  const picked = series.filter(Boolean);
   const valid = wording.trim().length >= MIN_LENGTH && label.trim().length > 0 && Number.isInteger(days) && days >= 1 && days <= 60;
-  const reanswers = wording.trim() !== q.question || days !== q.lookback_days;
+  const reanswers =
+    wording.trim() !== q.question || days !== q.lookback_days || picked.join() !== q.series.map((s) => s.id).join();
   const busy = edit.isPending || remove.isPending;
   const foot = useRef<HTMLDivElement>(null);
 
@@ -263,7 +354,7 @@ function EditForm({
     e.preventDefault();
     if (!valid || busy) return;
     edit.mutate(
-      { id: q.id, change: { question: wording.trim(), label: label.trim(), lookback_days: days } },
+      { id: q.id, change: { question: wording.trim(), label: label.trim(), lookback_days: days, series_ids: picked } },
       {
         onSuccess: () => {
           toast({ message: `${label.trim()} saved` });
@@ -293,9 +384,10 @@ function EditForm({
             <input className="input" type="number" min={1} max={60} value={lookback} onChange={(e) => setLookback(e.target.value)} />
           </label>
         </div>
+        <SeriesPicker subjectId={q.subject.id} value={series} onChange={setSeries} none="None" disabled={edit.isPending} />
         {edit.isPending && reanswers && (
           <p className="cq-note" role="status">
-            Answering again for both runs. This can take a minute.
+            Answering again for every run. This can take a minute.
           </p>
         )}
         {(edit.isError || remove.isError) && (

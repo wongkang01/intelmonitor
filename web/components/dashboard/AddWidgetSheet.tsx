@@ -261,7 +261,7 @@ function CustomOffer({
         </div>
       </div>
       <div className="offer-custom">
-        <p className="meta">Your own standing question about {subject.name}, answered for both runs</p>
+        <p className="meta">Your own standing question about {subject.name}, answered for every run</p>
         <CustomQuestionComposer
         subject={subject}
         linkCitations={false}

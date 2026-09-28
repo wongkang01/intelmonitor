@@ -411,6 +411,29 @@ Built (direction B "Brief" in `mocks/trend-series.html`):
 A custom question's config can name series (for example SGD/MYR); its answer gets their facts block and its widget can show the line.
 After F2 and F5.
 
+Built:
+
+- Config: a custom question keeps `series_ids` (`custom_questions.series_ids`), at most 3 of its subject's listed series, its own first, then context, as the gallery's series picker offers them (`listed_series` in `pipeline/custom.py`).
+  `POST /custom-questions` takes `series_ids`: given, they are checked against the subject (422 otherwise) and the draft prompt says the question is worded to use them; left out, the draft prompt lists the subject's listed series and Claude picks those the request asks about by name or by what they measure, and code drops ids it was not offered.
+  A first wording ("names or needs") made Claude attach SGD per Thai baht to "What were the most material developments for Thailand in this period, and what risks do they raise?", whose answers then cited only the rate; the prompt now says requests about developments, news or risks in general name none, and that draft has no series, while "Is USDC holding its peg this month, and is supply growing?" gets Circle's peg and supply.
+  `PATCH` takes `series_ids` too (left out keeps them, `[]` removes them), and a change answers every run again.
+  Drafts name an exchange rate by the SGD's side in the question and label ("SGD vs ringgit"), never as a pair; a first draft without that rule labelled its question "SGD/MYR trend".
+- Answers: for each run, a question with series gets F2's facts for them as of the run date (`subject_facts` with the question as its only linked question), so a daily series' low and high cover the question's own lookback and revisions count from the run before.
+  The prompt lists them as `S:<id> | <sentence>` with F2's rules on numbers and FX wording (`FX_WORDING`, shared with the standing answers), and the answer returns `series_ids`; an answer that quotes a number found in neither the facts nor the documents, or names a pair, is asked again once (`answer_problems`).
+  With facts, the state is the model's even when no document is in the lookback, since the facts are the run's own; without them it is Stable as before.
+  `custom_question_answers` keeps the cited `series_ids` and the `facts` each answer was given, so `AnswerEvidence.series` shows a custom answer's own facts and charts, not the run's.
+  Questions without series send the same prompts and schemas as before, so their recorded calls still serve them.
+- API: `CustomQuestion.series` (`SeriesInfo` in order), `CustomRunAnswer.series_ids`; `QuestionAnswerView.series_ids` for custom answers; `QuestionData.indicator`, a custom question's first series as of the run date.
+- Web: the composer (monitor pages and the gallery's Custom question) and the edit dialog pick series with the gallery's `SeriesSelect`, one per series, Primary and Context groups, and Add series up to three.
+  In the composer the empty choice reads "Named in the question" (Claude picks); in the dialog it reads "None".
+  The preview lists the series in the config and the cited ones under "Cites ... and 1 series".
+  A question widget at M with series puts the Indicator widget's M line beside the answer (`IndicatorLine`); S is unchanged.
+  See evidence shows wherever an answer cites a development or a series; answers citing only series used to read "No sources".
+- Generate: `create_custom_widget` takes `series_ids` from `list_subjects` (omitted, the draft picks), and the system prompt says a series angle passes them and that M shows the line.
+  "Add a medium custom question widget on how the SGD is moving against the Thai baht and why" drafted "SGD vs THB" on Singapore with SGD per Thai baht and added it at M.
+- Checked on Malaysia with SGD per Malaysian ringgit picked, "How is the SGD moving against the ringgit, and what is driving it?": 9 answers citing the series ("SGD weakened 0.55% against MYR on the week to 0.3132; no documents in lookback identify drivers."), Stable in every run; the same text with no pick made Claude pick the series.
+- The walkthrough's last step drafts that question on Malaysia with the picker, checks the request, no pair in the question, label or answers, the preview's Series and cited rows, the evidence's facts over the question's 14-day window known by the run date and the drawer's block, the edit dialog's picker, and the widget's line at M and none at S; it writes `custom-series.json`.
+
 ## Sequence
 
 1. Build F1, then F2 and F3, which need no new UI beyond a data source item in the evidence drawer.

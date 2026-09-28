@@ -5,7 +5,7 @@ import sqlite3
 from datetime import date, timedelta
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, TypeAdapter
 
 from intelmonitor.ingest.parse import document_id
 from intelmonitor.pipeline.detectors import Detection, live_events, materiality_level
@@ -25,6 +25,8 @@ from intelmonitor.server.models import (
 )
 from intelmonitor.server.queries import NotFoundError, subject, subject_ref
 from intelmonitor.store.series import Observation, Revision, read_observations, read_revisions
+
+_FACTS = TypeAdapter(list[SeriesFact])
 
 # primary: the subject's own series. context: system-wide or market-wide context for it.
 SeriesRole = Literal["primary", "context"]
@@ -309,18 +311,30 @@ def fact_chart(
 
 
 def cited_series(
-    conn: sqlite3.Connection, run: RunRef, subject_id: str, series_ids: list[str]
+    conn: sqlite3.Connection,
+    run: RunRef,
+    subject_id: str,
+    custom_question_id: str | None,
+    series_ids: list[str],
 ) -> list[CitedSeries]:
     """The series an answer cites, each with the fact its run gave the answer and its chart as of
-    the run date."""
+    the run date. A custom question's answer was given its own facts, over its own lookback."""
     by_id = {s.id: s for s in load_series().series}
-    stored = {
-        r["series_id"]: SeriesFact.model_validate_json(r["fact"])
-        for r in conn.execute(
-            "SELECT series_id, fact FROM run_facts WHERE run_id = ? AND subject_id = ?",
-            (run.id, subject_id),
-        )
-    }
+    if custom_question_id is None:
+        stored = {
+            r["series_id"]: SeriesFact.model_validate_json(r["fact"])
+            for r in conn.execute(
+                "SELECT series_id, fact FROM run_facts WHERE run_id = ? AND subject_id = ?",
+                (run.id, subject_id),
+            )
+        }
+    else:
+        row = conn.execute(
+            "SELECT facts FROM custom_question_answers WHERE run_id = ? AND question_id = ?",
+            (run.id, custom_question_id),
+        ).fetchone()
+        facts = _FACTS.validate_json(row["facts"]) if row else []
+        stored = {f.series_id: f for f in facts}
     return [
         CitedSeries(
             series=series_info(by_id[i]),

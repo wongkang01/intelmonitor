@@ -146,18 +146,29 @@ export function DevelopmentRow({
   );
 }
 
-/** A subject's listed series, its own (primary) first, then the system-wide or market-wide context. */
+/**
+ * A subject's listed series, its own (primary) first, then the system-wide or market-wide context.
+ * The widget gallery and settings pick an indicator's series with it; custom questions pick theirs
+ * (`none` adds an empty first option).
+ */
 export function SeriesSelect({
   listed,
   value,
   onChange,
   labelled = false,
+  label = "Series",
+  none,
+  disabled,
 }: {
   listed: Schema<"SubjectIndicator">[];
   value: string;
   onChange: (seriesId: string) => void;
   /** Settings faces show a visible label; the gallery names it for screen readers only. */
   labelled?: boolean;
+  label?: string;
+  /** The empty option's words, such as "None". */
+  none?: string;
+  disabled?: boolean;
 }) {
   const groups = [
     { label: "Primary", items: listed.filter((i) => i.role === "primary") },
@@ -165,8 +176,9 @@ export function SeriesSelect({
   ].filter((g) => g.items.length > 0);
   return (
     <label className="series-select">
-      <span className={labelled ? undefined : "sr-only"}>Series</span>
-      <select className="input" value={value} onChange={(e) => onChange(e.target.value)}>
+      <span className={labelled ? undefined : "sr-only"}>{label}</span>
+      <select className="input" value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}>
+        {none !== undefined && <option value="">{none}</option>}
         {groups.map((g) => (
           <optgroup key={g.label} label={g.label}>
             {g.items.map((i) => (

@@ -283,7 +283,8 @@ CREATE TABLE IF NOT EXISTS custom_questions (
     request TEXT NOT NULL,             -- what the user typed
     status TEXT NOT NULL,              -- draft until the user keeps it, then kept
     created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    series_ids TEXT NOT NULL DEFAULT '[]' -- JSON [series_id]: series whose facts answers get
 );
 
 CREATE TABLE IF NOT EXISTS custom_question_answers (
@@ -294,6 +295,8 @@ CREATE TABLE IF NOT EXISTS custom_question_answers (
     new_count INTEGER NOT NULL,
     development_ids TEXT NOT NULL,     -- JSON [development_id] in that run
     document_ids TEXT NOT NULL,        -- JSON [document_id]: the top matches Claude read
+    series_ids TEXT NOT NULL DEFAULT '[]', -- JSON [series_id] the answer cites
+    facts TEXT NOT NULL DEFAULT '[]',  -- JSON [SeriesFact]: what the answer was told
     PRIMARY KEY (question_id, run_id)
 );
 
@@ -421,6 +424,9 @@ ADDED_COLUMNS = [
     ("analyst_actions", "deleted_at", "TEXT"),
     ("question_answers", "series_ids", "TEXT NOT NULL DEFAULT '[]'"),
     ("question_answers", "state_rules", "TEXT NOT NULL DEFAULT '[]'"),
+    ("custom_questions", "series_ids", "TEXT NOT NULL DEFAULT '[]'"),
+    ("custom_question_answers", "series_ids", "TEXT NOT NULL DEFAULT '[]'"),
+    ("custom_question_answers", "facts", "TEXT NOT NULL DEFAULT '[]'"),
 ]
 
 

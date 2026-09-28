@@ -3213,6 +3213,14 @@
             "type": "integer",
             "title": "Lookback Days"
           },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesInfo"
+            },
+            "type": "array",
+            "title": "Series",
+            "description": "Series whose facts its answers get, in order"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -3267,6 +3275,7 @@
           "question",
           "label",
           "lookback_days",
+          "series",
           "status",
           "created_at",
           "updated_at",
@@ -3316,6 +3325,22 @@
               }
             ],
             "title": "Lookback Days"
+          },
+          "series_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Series Ids",
+            "description": "Empty keeps them; [] removes them"
           }
         },
         "type": "object",
@@ -3341,6 +3366,22 @@
             ],
             "title": "Subject Id",
             "description": "The monitor page's subject; empty lets Claude pick one"
+          },
+          "series_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Series Ids",
+            "description": "Listed series of the subject whose facts the answers get; empty lets Claude pick those the text names or needs"
           }
         },
         "type": "object",
@@ -3405,6 +3446,14 @@
             },
             "type": "array",
             "title": "Document Ids"
+          },
+          "series_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Series Ids",
+            "description": "Series whose facts the answer cites"
           }
         },
         "type": "object",
@@ -3413,7 +3462,8 @@
           "summary",
           "state",
           "development_ids",
-          "document_ids"
+          "document_ids",
+          "series_ids"
         ],
         "title": "CustomRunAnswer"
       },
@@ -6037,6 +6087,17 @@
           },
           "answer": {
             "$ref": "#/components/schemas/QuestionAnswerView"
+          },
+          "indicator": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubjectIndicator"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A custom question's first series as of the run date, for the line at M; none for built-in questions and custom ones without series"
           }
         },
         "type": "object",
@@ -6045,7 +6106,8 @@
           "run",
           "type",
           "subject",
-          "answer"
+          "answer",
+          "indicator"
         ],
         "title": "QuestionData"
       },

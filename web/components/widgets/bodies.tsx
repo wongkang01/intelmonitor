@@ -14,6 +14,7 @@ import { PlusIcon, XIcon } from "@/components/ui/icons";
 import { useEvidenceHref } from "@/components/shell/Evidence";
 import { SubjectLink } from "@/components/shell/SubjectLink";
 import { hasUnreviewed } from "@/components/monitor/WhatChanged";
+import { IndicatorLine } from "@/components/monitor/Indicators";
 
 import { IndicatorBody } from "./IndicatorBody";
 import { DevelopmentRow, Head, StateBadge, StateWords, stateText } from "./parts";
@@ -147,9 +148,13 @@ function SinceBody({ data, widget, href }: BodyProps & { data: DataOf<"since"> }
   );
 }
 
-function QuestionBody({ data, href }: BodyProps & { data: DataOf<"question"> }) {
+/** A question's state and answer. A custom question with series shows its first series' line
+ *  beside the answer at M, as the Indicator widget does. */
+function QuestionBody({ data, widget, href }: BodyProps & { data: DataOf<"question"> }) {
   const a = data.answer;
   const evidence = useEvidenceHref();
+  const summary = <p className="w-text summary">{answerText(a.summary)}</p>;
+  const ind = widget.size === "M" ? data.indicator : null;
   return (
     <>
       <Head title={a.label} href={href} meta={<SubjectLink subject={data.subject} />}>
@@ -158,9 +163,16 @@ function QuestionBody({ data, href }: BodyProps & { data: DataOf<"question"> }) 
       <p className="ans">
         <StateWords answer={a} />
       </p>
-      <p className="w-text summary">{answerText(a.summary)}</p>
+      {ind ? (
+        <div className="ind-wm">
+          {summary}
+          <IndicatorLine ind={ind} name={ind.series.name} asOf={data.run.as_of} className="ind-line ind-wm-line" />
+        </div>
+      ) : (
+        summary
+      )}
       <div className="wf">
-        {a.development_ids.length > 0 ? (
+        {a.development_ids.length + a.series_ids.length > 0 ? (
           <Link href={evidence.answer(data.subject.id, a.question_id)} className="link" scroll={false}>
             See evidence
           </Link>
@@ -203,7 +215,7 @@ function SummaryBody({ data, widget, href }: BodyProps & { data: DataOf<"summary
             </>
           );
           // Answers with sources open their evidence; the rest are plain rows.
-          return a.development_ids.length > 0 ? (
+          return a.development_ids.length + a.series_ids.length > 0 ? (
             <Link
               key={a.question_id}
               href={evidence.answer(data.subject.id, a.question_id)}
