@@ -108,6 +108,7 @@ class CannedAnswers(Inference):
 class CheckedDevelopment(BaseModel):
     title: str
     materiality_label: str
+    materiality_rule: str | None = Field(description="The detector whose rule set the level")
     needs_attention: bool
     sources: int
 
@@ -177,7 +178,8 @@ async def _depeg_check(conn: sqlite3.Connection) -> DepegCheck:
             CheckedDevelopment(
                 title=d.title,
                 materiality_label=MATERIALITY_LEVELS[d.level],
-                needs_attention=_needs_attention(conn, run_id, d.id),
+                materiality_rule=_stored(conn, run_id, d.id)["materiality_rule"],
+                needs_attention=bool(_stored(conn, run_id, d.id)["needs_attention"]),
                 sources=d.sources,
             )
             for d in devs
@@ -198,12 +200,10 @@ def _documents(conn: sqlite3.Connection) -> list[sqlite3.Row]:
     ).fetchall()
 
 
-def _needs_attention(conn: sqlite3.Connection, run_id: str, development_id: str) -> bool:
-    row = conn.execute(
-        "SELECT needs_attention FROM developments WHERE run_id = ? AND id = ?",
-        (run_id, development_id),
+def _stored(conn: sqlite3.Connection, run_id: str, development_id: str) -> sqlite3.Row:
+    return conn.execute(
+        "SELECT * FROM developments WHERE run_id = ? AND id = ?", (run_id, development_id)
     ).fetchone()
-    return bool(row["needs_attention"])
 
 
 def _quiet(_: str) -> None:
@@ -349,7 +349,7 @@ def _run_rows(conn: sqlite3.Connection, run_id: str) -> dict[str, set[tuple[obje
     """What a run stored, row by row, to compare a recomputed run with the stored one."""
     queries = {
         "developments": "SELECT id, title, category, event_date, materiality_level, "
-        "needs_attention FROM developments WHERE run_id = ?",
+        "materiality_rule, needs_attention FROM developments WHERE run_id = ?",
         "sources": "SELECT development_id, finding_id FROM development_sources WHERE run_id = ?",
         "answers": "SELECT subject_id, question_id, state, summary, development_ids, series_ids, "
         "state_rules FROM question_answers WHERE run_id = ?",

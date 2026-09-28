@@ -61,6 +61,7 @@ class RunFinding:
     adverse: float
     direction: str
     rule_level: int | None  # a detection's materiality, set by its detector
+    rule_id: str | None  # that detector
 
     @property
     def when(self) -> date:
@@ -106,6 +107,7 @@ def load_findings(conn: sqlite3.Connection, as_of: date) -> list[RunFinding]:
             adverse=r["adverse"],
             direction=r["direction"],
             rule_level=materiality_level(detectors[r["detector_id"]]) if r["detector_id"] else None,
+            rule_id=r["detector_id"],
         )
         for r in rows
         if r["detector_id"] is None or r["detector_id"] in detectors
@@ -184,6 +186,9 @@ class Development:
     materiality_level: int = 0
     materiality_score: float = 0.0
     materiality_confidence: float = 0.0
+    # The detector whose rule set the level: every source is a detection, or the rule's level is
+    # at least Jev's. None when Jev's score set it.
+    materiality_rule: str | None = None
 
     @property
     def lead(self) -> RunFinding:
@@ -193,10 +198,14 @@ class Development:
     def title(self) -> str:
         """The lead's statement, unless a detector measured the event: then the measured sentence,
         the most material rule's first, so What changed, search and alerts state the number."""
+        detection = self.detection
+        return detection.statement if detection else self.lead.statement
+
+    @property
+    def detection(self) -> RunFinding | None:
+        """The detection of the most material rule, primary and earliest first; None without."""
         detections = [f for f in self.findings if f.rule_level is not None]
-        if not detections:
-            return self.lead.statement
-        return min(detections, key=lambda f: (-(f.rule_level or 0), f.rank)).statement
+        return min(detections, key=lambda f: (-(f.rule_level or 0), f.rank), default=None)
 
     @property
     def category(self) -> str:
@@ -330,20 +339,27 @@ async def build_developments(
                     dev.subjects[sid] = (conf, source)
 
     async def rate(dev: Development) -> None:
-        rules = [f.rule_level for f in dev.findings if f.rule_level is not None]
-        if len(rules) == len(dev.findings):  # detections only: the rule decides
-            dev.materiality_level = max(rules)
-            dev.materiality_score = float(dev.materiality_level)
+        rule = dev.detection
+        level = rule.rule_level if rule else None
+        if rule and level is not None and all(f.rule_level is not None for f in dev.findings):
+            # Detections only: the rule decides.
+            dev.materiality_level = level
+            dev.materiality_score = float(level)
             dev.materiality_confidence = 1.0
+            dev.materiality_rule = rule.rule_id
             return
         try:
             await score_materiality(inf, dev)
         except Exception as error:
             failures.append(f"{dev.id}: {type(error).__name__}: {error}")
             return
-        if rules and max(rules) > dev.materiality_level:  # news merged with a detection
-            dev.materiality_level = max(rules)
-            dev.materiality_score = max(dev.materiality_score, float(dev.materiality_level))
+        if rule is None or level is None or level < dev.materiality_level:
+            return
+        # News merged with a detection: the rule's level stands when Jev scores it no higher.
+        dev.materiality_rule = rule.rule_id
+        if level > dev.materiality_level:
+            dev.materiality_level = level
+            dev.materiality_score = max(dev.materiality_score, float(level))
 
     await asyncio.gather(*(rate(d) for d in devs))
     if failures:
@@ -362,8 +378,8 @@ def store_developments(conn: sqlite3.Connection, run_id: str, devs: list[Develop
         conn.execute(
             "INSERT INTO developments (run_id, id, title, category, stage, event_date, "
             "first_published, last_published, materiality_level, materiality_score, "
-            "materiality_confidence, needs_attention, adverse, direction) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "materiality_confidence, needs_attention, adverse, direction, materiality_rule) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 run_id,
                 d.id,
@@ -379,6 +395,7 @@ def store_developments(conn: sqlite3.Connection, run_id: str, devs: list[Develop
                 int(d.materiality_level >= NEEDS_ATTENTION_LEVEL),
                 max(f.adverse for f in d.findings),
                 directions.most_common(1)[0][0],
+                d.materiality_rule,
             ),
         )
         conn.executemany(

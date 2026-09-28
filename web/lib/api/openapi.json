@@ -4036,6 +4036,18 @@
             "type": "number",
             "title": "Materiality Confidence"
           },
+          "materiality_rule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Materiality Rule",
+            "description": "The detector whose rule set the level, by name (\"Fed funds rate change\"); null when Jev scored it"
+          },
           "subject_confidence": {
             "items": {
               "$ref": "#/components/schemas/SubjectConfidence"
@@ -4057,7 +4069,7 @@
             },
             "type": "array",
             "title": "Sources",
-            "description": "Primary sources first, then earliest"
+            "description": "A detection first, then the tagged institutions' own publications, then DMS, official and news documents; earliest first within each"
           },
           "notes": {
             "items": {
@@ -4089,6 +4101,7 @@
           "new_source_count",
           "run",
           "materiality_confidence",
+          "materiality_rule",
           "subject_confidence",
           "tag_feedback",
           "sources",

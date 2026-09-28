@@ -3,9 +3,10 @@ verified quotes as offsets into the document text, and a short passage to highli
 
 import json
 import sqlite3
+from collections.abc import Collection
 from datetime import date
 
-from intelmonitor.seed import load_series
+from intelmonitor.seed import load_series, load_subjects
 from intelmonitor.server.models import (
     DocumentDetail,
     EvidenceFinding,
@@ -19,7 +20,37 @@ from intelmonitor.server.series import series_chart
 
 # Characters of context kept on each side of a finding's quotes in its passage.
 PASSAGE_CONTEXT = 280
-_COLLECTION_RANK = {"dms": 0, "official": 1, "data": 2, "news": 3}
+_COLLECTION_RANK = {"dms": 0, "official": 1, "news": 2}
+
+
+def own_site(domain: str, own: Collection[str]) -> bool:
+    """True for a document on one of `own` sites or a subdomain of one."""
+    return any(domain == d or domain.endswith(f".{d}") for d in own)
+
+
+def source_rank(collection: str, domain: str, own: Collection[str]) -> int:
+    """Where a source is listed, everywhere a development's sources are: a detection first, then
+    the publications of the institutions it is tagged to (documents on a tagged subject's own
+    site, `own`: the Fed's FOMC statement before a BIS speech about it), then DMS, official and
+    news documents. Sources of one rank are listed earliest first."""
+    if collection == "data":
+        return 0
+    if own_site(domain, own):
+        return 1
+    return 2 + _COLLECTION_RANK.get(collection, 3)
+
+
+def own_domains(conn: sqlite3.Connection, run_id: str, development_id: str) -> list[str]:
+    """The own sites of the subjects a development is tagged to in a run."""
+    domains = {e.id: e.domains for e in load_subjects().entities}
+    return [
+        d
+        for r in conn.execute(
+            "SELECT subject_id FROM development_subjects WHERE run_id = ? AND development_id = ?",
+            (run_id, development_id),
+        )
+        for d in domains.get(r["subject_id"], [])
+    ]
 
 
 def _quotes(raw: str) -> list[Quote]:
@@ -71,12 +102,10 @@ def development_sources(
     run_id: str,
     as_of: date,
     development_id: str,
-    title: str,
     new_document_ids: set[str],
 ) -> list[EvidenceSource]:
-    """A development's sources, each with its findings: the source of the finding its title states
-    first, then primary sources first, then earliest. A detector's document carries its series'
-    chart as of the run date."""
+    """A development's sources, each with its findings, in `source_rank` order. A detector's
+    document carries its series' chart as of the run date."""
     rows = conn.execute(
         "SELECT f.id AS finding_id, f.statement, f.event_date, f.quotes, d.* "
         "FROM development_sources s JOIN findings f ON f.id = s.finding_id "
@@ -115,13 +144,10 @@ def development_sources(
                 passage=passage(r["text"], quotes),
             )
         )
+    own = own_domains(conn, run_id, development_id)
     return sorted(
         sources.values(),
-        key=lambda s: (
-            all(f.statement != title for f in s.findings),
-            _COLLECTION_RANK.get(s.collection, 4),
-            s.published_at,
-        ),
+        key=lambda s: (source_rank(s.collection, s.domain, own), s.published_at),
     )
 
 

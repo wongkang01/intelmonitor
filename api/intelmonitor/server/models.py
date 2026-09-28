@@ -454,9 +454,16 @@ class TagFeedback(BaseModel):
 class DevelopmentDetail(DevelopmentSummary):
     run: RunRef
     materiality_confidence: float
+    materiality_rule: str | None = Field(
+        description='The detector whose rule set the level, by name ("Fed funds rate change"); '
+        "null when Jev scored it"
+    )
     subject_confidence: list[SubjectConfidence]
     tag_feedback: list[TagFeedback] = Field(description="Tags the analyst removed, oldest first")
-    sources: list[EvidenceSource] = Field(description="Primary sources first, then earliest")
+    sources: list[EvidenceSource] = Field(
+        description="A detection first, then the tagged institutions' own publications, then DMS, "
+        "official and news documents; earliest first within each"
+    )
     notes: list[Note]
 
 

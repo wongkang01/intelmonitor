@@ -141,6 +141,8 @@ Measured series are sources too.
 A series an answer cites, or a detector finding, is a data source block: the series name linking its source table, a meta line (date, Data, source label, scope), the fact sentence, flags in words (Preliminary, Revised), and a chart with the cited period as a band.
 The chart spans 12 months for a daily series, 24 for a monthly one, and the whole history for a quarterly one.
 A development with a detector finding takes the finding's measured sentence as its title, so its block does not repeat it.
+Sources are listed in one order wherever a development's sources are: a detection first, then the publications of the institutions it is tagged to (documents on a tagged subject's own site, such as the Fed's FOMC statement), then DMS, official and news documents, earliest first within each.
+Where a detector's rule set the development's materiality, the line under the title reads "Materiality set by rule:" and the rule's name instead of Jev's confidence.
 
 The analyst corrects the AI in place.
 Under a built-in standing question answer (in the drawer and in the monitor page row's meta), Mark wrong opens a form under it: which of the state, the summary and the cited developments is wrong, what the state should be, and a reason.

@@ -427,6 +427,8 @@ ADDED_COLUMNS = [
     ("custom_questions", "series_ids", "TEXT NOT NULL DEFAULT '[]'"),
     ("custom_question_answers", "series_ids", "TEXT NOT NULL DEFAULT '[]'"),
     ("custom_question_answers", "facts", "TEXT NOT NULL DEFAULT '[]'"),
+    # The detector whose rule set the level; null when Jev scored it (pipeline/developments.py).
+    ("developments", "materiality_rule", "TEXT"),
 ]
 
 

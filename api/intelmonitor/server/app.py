@@ -21,6 +21,7 @@ from intelmonitor.pipeline.params import (
     NEEDS_ATTENTION_LEVEL,
 )
 from intelmonitor.pipeline.subjects import all_subjects
+from intelmonitor.seed import load_detectors
 from intelmonitor.server import alerts as alert_list
 from intelmonitor.server import custom_questions as cq
 from intelmonitor.server import dashboards as dash
@@ -326,13 +327,17 @@ def _development_detail(q: Queries, development_id: str) -> DevelopmentDetail:
         if r["subject_id"] in all_subjects()
     ]
     row = q.conn.execute(
-        "SELECT materiality_confidence FROM developments WHERE run_id = ? AND id = ?",
+        "SELECT materiality_confidence, materiality_rule FROM developments "
+        "WHERE run_id = ? AND id = ?",
         (q.run.id, development_id),
     ).fetchone()
+    rule = row["materiality_rule"]
+    detectors = {x.id: x.name for x in load_detectors().detectors}
     return DevelopmentDetail(
         **d.model_dump(),
         run=q.run,
         materiality_confidence=row["materiality_confidence"],
+        materiality_rule=detectors.get(rule, rule) if rule else None,
         subject_confidence=confidence,
         tag_feedback=fb.tag_feedback(q, development_id),
         sources=development_sources(
@@ -340,7 +345,6 @@ def _development_detail(q: Queries, development_id: str) -> DevelopmentDetail:
             q.run.id,
             q.run.as_of,
             development_id,
-            d.title,
             new_documents(q.conn, q.run.id, development_id),
         ),
         notes=q.notes(development_id=development_id),

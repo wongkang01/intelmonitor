@@ -1569,6 +1569,11 @@ export interface components {
             run: components["schemas"]["RunRef"];
             /** Materiality Confidence */
             materiality_confidence: number;
+            /**
+             * Materiality Rule
+             * @description The detector whose rule set the level, by name ("Fed funds rate change"); null when Jev scored it
+             */
+            materiality_rule: string | null;
             /** Subject Confidence */
             subject_confidence: components["schemas"]["SubjectConfidence"][];
             /**
@@ -1578,7 +1583,7 @@ export interface components {
             tag_feedback: components["schemas"]["TagFeedback"][];
             /**
              * Sources
-             * @description Primary sources first, then earliest
+             * @description A detection first, then the tagged institutions' own publications, then DMS, official and news documents; earliest first within each
              */
             sources: components["schemas"]["EvidenceSource"][];
             /** Notes */

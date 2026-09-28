@@ -178,7 +178,15 @@ function DevelopmentEvidence({ development: d, nested = false }: { development: 
       ) : (
         <>
           <p className="meta ev-conf">
-            Materiality: <MaterialityConfidence development={d} />
+            {d.materiality_rule ? (
+              <>
+                Materiality set by rule: <span>{d.materiality_rule}</span>
+              </>
+            ) : (
+              <>
+                Materiality: <MaterialityConfidence development={d} />
+              </>
+            )}
           </p>
           <TagList development={d} />
         </>
@@ -206,7 +214,10 @@ function DevelopmentEvidence({ development: d, nested = false }: { development: 
 
 const confidenceWord = (x: number) => (x >= 0.7 ? "high" : x >= 0.4 ? "medium" : "low");
 
-/** One line under a nested development: who it is tagged to, then materiality confidence in words. Percentages show on hover. */
+/**
+ * One line under a nested development: who it is tagged to, then materiality confidence in words
+ * (percentages show on hover), or the detector whose rule set the level.
+ */
 function Confidence({ development: d }: { development: Schema<"DevelopmentDetail"> }) {
   return (
     <p className="meta ev-conf">
@@ -224,7 +235,7 @@ function Confidence({ development: d }: { development: Schema<"DevelopmentDetail
           {" · "}
         </>
       )}
-      <MaterialityConfidence development={d} />
+      {d.materiality_rule ? `materiality set by rule: ${d.materiality_rule}` : <MaterialityConfidence development={d} />}
     </p>
   );
 }

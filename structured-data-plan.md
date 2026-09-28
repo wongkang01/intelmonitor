@@ -273,7 +273,8 @@ Built:
   The document text is the sentence, the rule in words, its materiality, and the series; its one finding is the sentence, quoted whole, tagged to the series' primary subjects, with the detector's category and the event date (the value's own date for daily series, the release date for monthly and quarterly ones).
   A `detections` table keeps the detector, series, first period, value, and the adverse flag and direction from the series' bad direction (pegs are always adverse).
 - `compute_run` runs the detectors first, then screens and extracts only the other documents; `load_findings` takes detections without Jev tags and with their rule's level, from the seed as it is now (failure mode 11).
-  Data sources rank after official and DMS documents and before news, in a development's lead and in the evidence drawer, except that the drawer lists first the source whose finding is the title (see the data source item below).
+  Data sources rank after official and DMS documents and before news in a development's lead, which picks its title and the findings the answer prompt shows.
+  The evidence drawer lists sources by one rule (see the data source item below).
   `Collection` has `data` (label "Data") in the API and the web app, so the Source facet, the evidence drawer and Data sources list it.
 - `im report`'s Series section lists each run's detections with their development, materiality and sources, and checks no detection is published before its value was available; the inference record check leaves out detections, which make no model calls.
 - Formatting shared with facts moved to `pipeline/wording.py`; the facts text is unchanged, checked against the previous code for every subject.
@@ -293,7 +294,10 @@ Built, the data source item in the evidence drawer (direction B "Data as a sourc
 - A development that contains a detection is titled by the detection's measured sentence, the most material rule's first; otherwise by its lead finding's statement as before.
   `Development.title` in `pipeline/developments.py` sets it when the run stores developments, so What changed, search, alerts and the answer prompt all read the same title; materiality is still scored on the lead's statement, so Jev calls stay cached.
   The FOMC decision's development in Run 2 is now "Fed funds effective rate up 0.25 points to 3.88% on 17 Sep 2026, from 3.63% on 16 Sep 2026."; recomputing the 24 Sep run made 3 new answer calls.
-- A detector's document is drawn as its series, not as a quoted document: `EvidenceSource.series` is a `SeriesChart` (`GET /developments/{id}`), and the drawer lists first the source whose finding is the title, so a detection leads its development's sources.
+- A detector's document is drawn as its series, not as a quoted document: `EvidenceSource.series` is a `SeriesChart` (`GET /developments/{id}`).
+- Sources are listed by `source_rank` in `server/evidence.py`, wherever a development's sources are (the development's drawer and each development in an answer's evidence): a detection first, then the publications of the institutions the development is tagged to (documents on a tagged entity's own site, its `domains` in `subjects.yaml`, subdomains included), then DMS, official and news documents; earliest first within each.
+  The drawer used to list first the source whose finding is the title, then DMS before official: the FOMC decision's development showed a BIS speech before the Fed's own FOMC statement.
+  It now lists the Fed funds detection, the Fed's projections and FOMC statement (16 Sep), HKMA's base rate adjustment (17 Sep), a Fed speech (23 Sep), then the BIS speech and the news.
   A cited series in an answer is one more source block, before the developments: `AnswerEvidence.series` items are `CitedSeries`, the fact and its `SeriesChart`, and the label reads "Based on 5 developments and 2 series".
 - `SeriesChart` (`series_chart` in `server/series.py`): the series' observations as known by the end of the run date, from 12 months before it for a daily series, 24 months for a monthly one and the start of the stored history for a quarterly one, to the run date; the cited period (`cited_from` to `cited_to`), the cited value, and the revisions of its period made by the run date.
   A detection cites its event from its first period to the one that fired it; a fact cites a daily series' window after `window_start` to its latest point (the latest point alone when stale) and a release's latest period.
@@ -302,7 +306,12 @@ Built, the data source item in the evidence drawer (direction B "Data as a sourc
 - The chart is one neutral 2 px line on a fixed time axis to the run date, so MAS monthly and quarterly lines end at their last release; up to four round ticks with a hairline grid, the axis's first and last month (quarter for quarterly series), the latest value labelled at the line's end, a preliminary tail lighter with a hollow end, a peg's zero line, and the cited period as a band in the quote highlight's color.
   The pointer snaps a crosshair to the nearest observation with a readout of its value and date.
 - Differs from the mock: the meta line uses the scope labels of F4 ("System-wide", "Market-wide") where the mock said "Banking system", and the flag follows a comma as on the Indicators rows.
-  The mock's "Materiality set by rule" line is not built: a merged development's level is the higher of the rule's and Jev's, and the store does not keep which one set it.
+  The mock's "Materiality set by rule" line was built later, once the store kept which one set the level (below).
+- `developments.materiality_rule` keeps the detector whose rule set the level: every source is a detection, or the rule's level is at least Jev's (a tie counts as the rule's, since the agreed threshold alone gives that level); null when Jev scored it higher.
+  With several detections, the rule is the one whose sentence titles the development.
+  `DevelopmentDetail.materiality_rule` is the detector's name, and the drawer's line under the title then reads "Materiality set by rule: ECB deposit rate change" instead of Jev's confidence; a development nested in an answer's evidence says it after its tags.
+  Stored runs were filled in from their detections and levels: the ECB deposit rate rise (17 and 24 Sep) was set by its rule; the FOMC decision's development, Significant by Jev over the rule's Notable, was not.
+  `im check depeg` reports it (the fixture's depeg development is set by `depeg`), and `im check past-run` compares it.
   The sentences are the facts the answers saw, longer than the mock's.
 - The walkthrough's detector step checks the title in the development, search, What changed and alerts, that the detection leads the sources with its chart citing 17 Sep, and the drawer's block (link, meta, no repeated sentence, the cited period in its label).
   Its last step checks cited series' charts for DBS, Circle and the Fed (span by frequency, the run date, the cited period and value), then DBS's drawer: the label, each block's link, meta and sentence, the band's color, and the readout on the cited period; it writes `data-sources.json`.

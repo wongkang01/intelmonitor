@@ -66,7 +66,7 @@ interface PastRunCheck {
 /** What `im check depeg` prints (api/intelmonitor/checks.py). */
 interface DepegCheck {
   detections: string[];
-  developments: { title: string; materiality_label: string; needs_attention: boolean; sources: number }[];
+  developments: { title: string; materiality_label: string; materiality_rule: string | null; needs_attention: boolean; sources: number }[];
   fixed_states: Schema<"FixedState">[];
   peg: { question_id: string; state: string; summary: string; state_rules: string[] };
   prices: Schema<"Observation">[];
@@ -1367,6 +1367,8 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       expect(dev.subjects.map((s) => s.id)).toContain("fed");
       expect(dev.materiality_level).toBeGreaterThanOrEqual(2);
       if (dev.sources.length === 1) expect(dev).toMatchObject({ materiality_label: "Notable", materiality_confidence: 1 });
+      // The rule set the level unless Jev scored the merged development higher.
+      expect(dev.materiality_rule).toBe(dev.materiality_level === 2 ? "Fed funds rate change" : null);
       // A development with a detection is titled by its measured sentence, merged with news or
       // not, and the detection leads its sources as the series it measured, the event cited.
       expect(dev.title).toBe(statement);
@@ -1374,6 +1376,12 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       const changed = await unwrap(api.GET("/what-changed", { params: { query: { subject_id: ["fed"] } } }));
       expect(changed.developments.find((d) => d.id === dev.id)?.title, "What changed shows the measured title").toBe(statement);
       expect(dev.sources[0].document_id).toBe(doc.id);
+      // Then the Fed's own publications (its FOMC statement), then DMS (a BIS speech), official
+      // and news documents, earliest first within each.
+      const own = dev.sources.findIndex((s) => s.domain === "federalreserve.gov");
+      const later = dev.sources.findIndex((s) => s.domain !== "federalreserve.gov" && s.domain !== "hkma.gov.hk" && s.collection !== "data");
+      expect(own, "the Fed's own publications follow the detection").toBe(1);
+      expect(dev.sources.slice(later).every((s) => s.domain !== "federalreserve.gov"), "the Fed's publications come before other sources").toBe(true);
       expect(source.series).toMatchObject({ series: { id: "fred.fed_funds" }, end: latest.as_of, cited_from: "2026-09-17", cited_to: "2026-09-17", cited: { period: "2026-09-17", value: 3.88 } });
       const followed = new Set((await unwrap(api.GET("/follows"))).map((f) => f.id));
       expect(followed.has("fed") || followed.has("central-banks"), "the Fed is followed, itself or through Central banks").toBe(true);
@@ -1393,6 +1401,9 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(page).toHaveURL(new RegExp(`[?&]evidence=${encodeURIComponent(alert.id)}$`));
       const drawer = page.getByTestId("evidence-drawer");
       await expect(drawer.getByRole("heading", { level: 3 })).toHaveText(dev.title);
+      await expect(drawer.locator(".ev-conf").first()).toHaveText(
+        dev.materiality_rule ? `Materiality set by rule: ${dev.materiality_rule}` : /^Materiality: (high|medium|low) confidence$/,
+      );
       const article = drawer.locator('article.series-src[data-series-id="fred.fed_funds"]');
       await expect(drawer.locator("article.source").first()).toHaveAttribute("data-series-id", "fred.fed_funds");
       await expect(article.getByRole("link", { name: "Fed funds effective rate" })).toHaveAttribute("href", source.url);
@@ -1416,7 +1427,9 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
         "USDC off its USD peg by more than 0.50% for 24 hours, from 8 Sep 2026 to 9 Sep 2026; 0.9915 USD (0.85% below) on 9 Sep 2026.";
       expect(check.detections).toEqual([statement]);
       // The detection alone makes a development titled by its sentence, at the rule's level.
-      expect(check.developments).toEqual([{ title: statement, materiality_label: "Significant", needs_attention: true, sources: 1 }]);
+      expect(check.developments).toEqual([
+        { title: statement, materiality_label: "Significant", materiality_rule: "depeg", needs_attention: true, sources: 1 },
+      ]);
       // The peg rule (0.5% for 24 hours, api/seed/questions.yaml) fixes Peg over the model's Stable.
       expect(check.fixed_states.map((f) => [f.question_id, f.series_id, f.state, f.start, f.end, f.hours])).toEqual([
         ["issuer.peg", "derived.usdc.peg", "needs_attention", "2026-09-08", "2026-09-10", 48],
