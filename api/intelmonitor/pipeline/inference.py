@@ -37,6 +37,10 @@ def _is_refusal(error: Exception) -> bool:
     return "anthropic.com/legal/aup" in text or "can't help with this" in text
 
 
+class UnrecordedCall(RuntimeError):
+    """A call with no record, made by an Inference that may only replay recorded ones."""
+
+
 class StepFailed(RuntimeError):
     """Some items of a pipeline step failed; the rest finished and their calls are cached."""
 
@@ -91,11 +95,16 @@ def _hash(payload: object) -> str:
 
 
 class Inference:
-    """Model calls for one run. Concurrency is capped per engine across all callers on the loop."""
+    """Model calls for one run. Concurrency is capped per engine across all callers on the loop.
+    With `recorded_only`, a call with no record raises UnrecordedCall instead of reaching a model,
+    as in `im check past-run`."""
 
-    def __init__(self, conn: sqlite3.Connection, run_id: str | None) -> None:
+    def __init__(
+        self, conn: sqlite3.Connection, run_id: str | None, *, recorded_only: bool = False
+    ) -> None:
         self.conn = conn
         self.run_id = run_id
+        self.recorded_only = recorded_only
         self.calls = 0
         self.cache_hits = 0
 
@@ -119,6 +128,7 @@ class Inference:
         )
         if (cached := self._cached(stage, key)) is not None:
             return _ANSWERS.validate_json(cached)
+        self._require_record(stage, input_ref)
         async with _engine_limits()[0]:
             started = time.monotonic()
             try:
@@ -164,6 +174,7 @@ class Inference:
             return schema.model_validate_json(cached)
         if self._cached(stage, key, status="refused") is not None:
             raise ClaudeRefused(f"{stage} {input_ref}: refused earlier")
+        self._require_record(stage, input_ref)
         async with _engine_limits()[1]:
             for attempt in range(1, _CLAUDE_ATTEMPTS + 1):
                 started = time.monotonic()
@@ -196,6 +207,10 @@ class Inference:
                 )
                 return reply.output
         raise AssertionError("unreachable")
+
+    def _require_record(self, stage: str, input_ref: str) -> None:
+        if self.recorded_only:
+            raise UnrecordedCall(f"{stage} {input_ref}: no recorded call")
 
     def _cached(self, stage: str, key: str, status: str = "ok") -> str | None:
         row = self.conn.execute(

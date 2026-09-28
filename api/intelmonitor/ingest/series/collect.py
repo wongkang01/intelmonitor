@@ -91,11 +91,13 @@ def fetch_series(
     *,
     backfill_from: date | None = None,
     http: CachedHttp | None = None,
+    now: datetime | None = None,
     log: Callable[[str], None] = print,
 ) -> SeriesFetchResult:
     """Fetches every series up to `today`. `backfill_from` sets the floor, the earliest period
     kept, and fetches everything from it; later fetches keep that floor. A source that fails
-    (plan failure modes 1 to 3) fails only its own series, which the result lists."""
+    (plan failure modes 1 to 3) fails only its own series, which the result lists. `now`, the UTC
+    fetch time, defaults to the clock; a replay of cached responses passes the original one."""
     settings = get_settings()
     http = http or CachedHttp()
     seed = load_series()
@@ -105,7 +107,7 @@ def fetch_series(
     stored_floor = get_meta(conn, "series_floor")
     floor = date.fromisoformat(stored_floor) if stored_floor else DEFAULT_FLOOR
     result = SeriesFetchResult(today=today, floor=floor)
-    fetched_at = datetime.now(UTC)
+    fetched_at = now or datetime.now(UTC)
     decimals = {s.id: s.decimals for s in seed.series}
 
     def store(name: str, fetched: Fetched) -> None:

@@ -84,6 +84,23 @@ def run(
         asyncio.run(compute_run(d, lambda line: typer.echo(line)))
 
 
+@check_app.command("series")
+def check_series() -> None:
+    """Replay a series backfill and a daily fetch from cached responses in a scratch store; print
+    JSON."""
+    from intelmonitor.checks import series_check
+
+    typer.echo(series_check().model_dump_json(indent=1))
+
+
+@check_app.command("past-run")
+def check_past_run() -> None:
+    """Recompute a past run in a copy of the store from recorded model calls; print JSON."""
+    from intelmonitor.checks import past_run_check
+
+    typer.echo(asyncio.run(past_run_check()).model_dump_json(indent=1))
+
+
 @check_app.command("depeg")
 def check_depeg() -> None:
     """Fire the peg rule and the depeg detector on fixture prices in a scratch store; print JSON."""

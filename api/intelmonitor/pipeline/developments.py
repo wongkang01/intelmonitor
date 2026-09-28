@@ -7,6 +7,7 @@ detection's sentence when a detector measured the event. A development's subject
 findings' subjects, less the tags the analyst removed from it."""
 
 import asyncio
+import atexit
 import json
 import sqlite3
 from collections import Counter
@@ -114,6 +115,11 @@ def load_findings(conn: sqlite3.Connection, as_of: date) -> list[RunFinding]:
 @lru_cache
 def _embedder() -> TextEmbedding:
     return TextEmbedding(EMBEDDING_MODEL, cache_dir=str(DATA_DIR / "models"))
+
+
+# Close the ONNX session before the interpreter tears down: left to finalization, it sometimes
+# aborts the process on exit ("recursive_mutex lock failed") after a run has finished.
+atexit.register(_embedder.cache_clear)
 
 
 def embed(texts: list[str]) -> NDArray[np.float32]:

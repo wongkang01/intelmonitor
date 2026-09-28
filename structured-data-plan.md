@@ -442,8 +442,30 @@ Built:
 3. F7.
 4. Update `poc-plan.md`, `ui-ux.md` and the E2E walkthrough: a series backfill and fetch against cached responses, a detector firing into a development and an alert, a unit check on a per-100 quote, a past-date run with no look-ahead, and the indicator widget added from the gallery.
 
+All four steps are done.
+
+Built (step 4):
+
+- `poc-plan.md` covers the series sources, weekly runs, the four run steps series add (detectors, indicators, facts, notes), the look-ahead rule, the new tables and commands, the Indicator widget, the Indicators section and Trend tab, a phase for structured data, and the walkthrough's structured data steps.
+  `ui-ux.md` covers the Indicators section, the Trend view, data sources in the drawer, the Indicator widget, series on custom questions, the number and FX wording rules, and a Charts paragraph under Visual design.
+- Two new checks run in scratch stores and print JSON the walkthrough reads; all three checks now delete their scratch store afterwards (`im check depeg` used to leave one in the temp directory per run).
+  `im check series` backfills every series into an empty store and then fetches again as the daily fetch does, both at 00:30 UTC on 28 Sep 2026, the moment of the store's own fetches, with `CachedHttp(offline=True)`: a request with no cached response fails instead of reaching the source.
+  It found no request missing: 20 cached requests for the backfill and 30 for the fetch, 55,684 observations in all 62 series, and the fetch added and revised nothing.
+  Its 3,811 observations from 1 Jul to 24 Sep 2026 equal the store's as known that day, and SGD per MYR and per THB on 18 Sep read 0.3128 and 0.038342, as `GET /series` serves them.
+  `fetch_series` gained `now`, the UTC fetch time, so a replay keys its requests as the original fetch did.
+- `im check past-run` copies the store and recomputes Run 1 (17 Sep) in the copy with `compute_run(conn=..., recorded_only=True)`: `Inference` then raises `UnrecordedCall` for any call with no record, so the run cannot differ by chance.
+  The copy holds 166 documents, 466 observations and 1 detection (the Fed funds rise, known 18 Sep) from after the date.
+  The recomputed run uses none of them: no development source published later, no indicator, fact or note on an observation known later.
+  It still takes the ECB deposit rate detection known by then, and its developments, sources, answers, notes, indicators, facts and changes equal the stored run's row for row.
+  It replays 3,937 recorded calls in about 12 seconds.
+  The run as of 30 Jul was tried first, but no detector fires by then, so it could not show a detection held back.
+  About one process in eight aborted after printing its result ("recursive_mutex lock failed"), from the ONNX embedding session torn down during interpreter exit; `developments.py` now releases it in an `atexit` hook, and 32 runs in a row exited cleanly.
+- The walkthrough runs both as steps 17 and 18, after the series step, and writes `series-fetch.json` and `past-run.json`; the other items were already steps (per-100 values in the series step, the detector into a development and an alert, the indicator widget from the gallery, and the F4 to F7 steps).
+  A run writes a JSON file per structured data step, a screenshot per step, video, trace, `summary.json` and `index.html` into `artifacts/e2e/<timestamp>/`.
+
 ## Open questions
 
 - Thresholds for each detector, to agree with pilot analysts.
 - Whether to subscribe to the MAS SORA API and use the HKMA open API for rates, closing the policy-rate gaps.
 - How far back to backfill runs for the answer-state strip; series need no backfill, but question states only exist for computed runs.
+  For now weekly runs go back to 30 Jul, the first week with documents (F6).

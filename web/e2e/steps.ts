@@ -17,6 +17,8 @@ export const STEPS = [
   "Developments list: facets, sort and words survive reload and the drawer, What changed triage in the table",
   "Developments list: popovers follow the keyboard, bad parameters are ignored, at 1024 px the bar wraps and titles keep room",
   "Series: per-100 quotes stored per unit, indicators as of Run 1 see nothing later, gaps never compare with zero",
+  "Series fetch from cached responses: a backfill and the daily fetch after it reach no source, the fetch adds nothing and the values match the store",
+  "Past-date run: Run 1 recomputed from recorded calls in a store a week ahead uses nothing known later and matches the stored run",
   "Facts in answers: answers cite their series' facts and name FX rates by the SGD's side, a past date's facts see nothing later, XSGD pairs same-day rates",
   "Detectors: the Fed funds rise fires into a Run 2 development that alerts for a followed subject, the data as its evidence",
   "Peg rule and depeg detector on fixture prices: 48 hours off the peg makes Peg Needs attention and the detection a Significant development",

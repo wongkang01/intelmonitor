@@ -43,8 +43,13 @@ async def compute_run(
     log: Callable[[str], None] = print,
     trigger: runlog.Trigger = "cli",
     triggered_by: str | None = None,
+    *,
+    conn: sqlite3.Connection | None = None,
+    recorded_only: bool = False,
 ) -> None:
-    conn = connect()
+    """Computes the run in the app's store, or in `conn`. With `recorded_only`, every model call
+    must replay a recorded one (`Inference`)."""
+    conn = conn or connect()
     run_id = as_of.isoformat()
     # Detectors write their events as data documents first, so the run takes them like the rest.
     detected = store_detections(conn, as_of)
@@ -67,7 +72,7 @@ async def compute_run(
             (run_id, run_id, len(docs), started_at),
         )
     conn.commit()
-    inf = Inference(conn, run_id)
+    inf = Inference(conn, run_id, recorded_only=recorded_only)
 
     def step(name: str) -> None:
         log(

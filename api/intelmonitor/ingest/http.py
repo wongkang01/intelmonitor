@@ -5,7 +5,8 @@ and `secret_params` are sent but never keyed or stored, so API keys stay out of 
 is keyed but never sent: a caller passes the fetch date for a URL whose answer changes daily.
 Final responses (2xx, and 4xx unless `cache_errors` is off) are cached; network errors, 429 and
 5xx are retried and never cached. A rerun over the same requests makes zero network calls, which
-`network` counts per namespace.
+`network` counts per namespace. An `offline` client never reaches the network: a request with no
+cached response fails, and `missed` counts it.
 """
 
 import hashlib
@@ -78,8 +79,9 @@ class _Request:
 
 
 class CachedHttp:
-    def __init__(self, raw_dir: Path = RAW_DIR) -> None:
+    def __init__(self, raw_dir: Path = RAW_DIR, *, offline: bool = False) -> None:
         self.raw_dir = raw_dir
+        self.offline = offline
         self.client = httpx.Client(
             timeout=httpx.Timeout(45.0, connect=15.0),
             follow_redirects=True,
@@ -87,6 +89,7 @@ class CachedHttp:
         )
         self.network: Counter[str] = Counter()
         self.cached: Counter[str] = Counter()
+        self.missed: Counter[str] = Counter()
         self._lock = threading.Lock()
 
     def get(
@@ -138,6 +141,10 @@ class CachedHttp:
                 content=body_path.read_bytes(),
             )
 
+        if self.offline:
+            with self._lock:
+                self.missed[namespace] += 1
+            raise FetchError(f"{request.url}: not cached")
         response = self._request(namespace, request, headers, expect_json)
         if not (response.ok or cache_errors):
             return response

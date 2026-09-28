@@ -25,6 +25,44 @@ import {
 
 import { runDir, screenshotName, STEPS } from "./steps";
 
+/** One pass of `im check series`: requests that reached a source, were cached, or had no cache. */
+interface FetchReplay {
+  added: number;
+  revised: number;
+  failures: Record<string, string>;
+  network: number;
+  cached: number;
+  missed: number;
+}
+
+/** What `im check series` prints (api/intelmonitor/checks.py). */
+interface SeriesCheck {
+  backfill: FetchReplay;
+  fetch: FetchReplay;
+  catalogue: number;
+  series: number;
+  observations: number;
+  per_100: { series_id: string; unit: string; period: string; value: number | null }[];
+  compared: number;
+  differences: string[];
+}
+
+/** What `im check past-run` prints (api/intelmonitor/checks.py). */
+interface PastRunCheck {
+  as_of: string;
+  log: string[];
+  later_documents: number;
+  later_observations: number;
+  later_detections: number;
+  detections: number;
+  developments: number;
+  answers: number;
+  notes: number;
+  indicators: number;
+  late: { sources: number; indicators: number; facts: number; notes: number };
+  differences: string[];
+}
+
 /** What `im check depeg` prints (api/intelmonitor/checks.py). */
 interface DepegCheck {
   detections: string[];
@@ -33,6 +71,14 @@ interface DepegCheck {
   peg: { question_id: string; state: string; summary: string; state_rules: string[] };
   prices: Schema<"Observation">[];
 }
+
+/** Runs `uv run im check <name>` in api/ and returns what it prints. */
+const imCheck = (name: string) =>
+  execFileSync("uv", ["run", "im", "check", name], { cwd: path.resolve(__dirname, "../../api"), encoding: "utf8" });
+
+/** Shows a check's JSON as the step's page, so its screenshot records the result. */
+const showJson = (page: Page, value: unknown) =>
+  page.setContent(`<pre style="font: 13px/1.5 ui-monospace, monospace; white-space: pre-wrap">${JSON.stringify(value, null, 2)}</pre>`);
 
 /** Claude-backed actions (Generate, custom question drafts) can take minutes. */
 const LLM_TIMEOUT = 6 * 60_000;
@@ -1111,6 +1157,63 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
     });
 
     await step(STEPS[16], async () => {
+      // `im check series` backfills every series into a scratch store from data/raw/ alone, then
+      // fetches again as the daily fetch does, both at the moment of the store's fetches of 28 Sep
+      // (structured-data-plan.md, F1). A request with no cached response fails instead of reaching
+      // the source, so a clean pass proves the fetch path runs offline end to end.
+      const check: SeriesCheck = JSON.parse(imCheck("series"));
+      for (const [name, pass] of [["backfill", check.backfill], ["fetch", check.fetch]] as const) {
+        expect(pass.network, `the ${name} reaches no source`).toBe(0);
+        expect(pass.missed, `every ${name} request is cached`).toBe(0);
+        expect(pass.cached, `the ${name} made requests`).toBeGreaterThan(0);
+        expect(pass.failures, `no series fails in the ${name}`).toEqual({});
+      }
+      expect(check.backfill.added).toBe(check.observations);
+      expect(check.series, "every series has history").toBe(check.catalogue);
+      // The same responses again: nothing new, nothing revised.
+      expect([check.fetch.added, check.fetch.revised]).toEqual([0, 0]);
+      // Quotes per 100 units are stored per unit, the values the app serves.
+      for (const v of check.per_100) {
+        const served = await unwrap(
+          api.GET("/series/{series_id}", { params: { path: { series_id: v.series_id }, query: { from: v.period, to: v.period } } }),
+        );
+        expect([v.unit, v.value], `${v.series_id} on ${v.period}`).toEqual([served.series.unit, served.observations[0]?.value]);
+      }
+      expect(check.per_100.map((v) => v.value)).toEqual([0.3128, 0.038342]);
+      // Every replayed observation over the runs' months equals the store's as known that day.
+      expect(check.compared).toBeGreaterThan(3000);
+      expect(check.differences).toEqual([]);
+
+      writeFileSync(path.join(dir, "series-fetch.json"), JSON.stringify(check, null, 2));
+      await showJson(page, check);
+    });
+
+    await step(STEPS[17], async () => {
+      // `im check past-run` copies the store, which holds a week of documents, observations and
+      // detections after Run 1's date, among them the Fed funds rise known on 18 Sep, and
+      // recomputes Run 1 in the copy through the pipeline's own steps. Every model call must replay a recorded one, so the run cannot
+      // differ by chance: nothing it stores may use what became known after its date, and every
+      // development, answer, note, indicator and fact must equal the stored run's.
+      const check: PastRunCheck = JSON.parse(imCheck("past-run"));
+      expect(check.as_of).toBe(latest.previous_run_id);
+      const stored = runs.find((r) => r.as_of === check.as_of && r.status === "complete");
+      if (!stored) throw new Error(`no complete run as of ${check.as_of}`);
+      expect(check.later_documents, "the store holds documents from after the date").toBeGreaterThan(0);
+      expect(check.later_observations, "and observations known after it").toBeGreaterThan(0);
+      expect(check.later_detections, "and detections known after it").toBeGreaterThan(0);
+      expect(check.detections, "the run takes the detections known by its date").toBeGreaterThan(0);
+      expect(check.log.at(-1), "the run completes").toMatch(/\] complete: /);
+      expect(check.log.filter((line) => !/ \(\d+s, 0 calls, \d+ cached\)$/.test(line)), "no model call is made").toEqual([]);
+      expect(check.late).toEqual({ sources: 0, indicators: 0, facts: 0, notes: 0 });
+      expect(check.differences).toEqual([]);
+      expect(check.developments).toBe(stored.developments);
+      for (const n of [check.answers, check.notes, check.indicators]) expect(n).toBeGreaterThan(0);
+
+      writeFileSync(path.join(dir, "past-run.json"), JSON.stringify(check, null, 2));
+      await showJson(page, check);
+    });
+
+    await step(STEPS[18], async () => {
       // The latest run's answers to questions linked to series cite them, and each cited series
       // carries the fact the run gave the answer, from what was available by the run date.
       const linked: [string, string][] = [
@@ -1226,7 +1329,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await page.goto(new URL(`subjects/straitsx/facts?as_of=2026-05-10`, apiBase).href);
     });
 
-    await step(STEPS[17], async () => {
+    await step(STEPS[19], async () => {
       // The effective Fed funds rate rose from 3.63% to 3.88% on 17 Sep 2026, published by FRED
       // on 18 Sep: after Run 1's date and by Run 2's. The fed-funds-change detector
       // (api/seed/detectors.yaml) writes it as a data document, which search finds; the run takes
@@ -1296,13 +1399,12 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       writeFileSync(path.join(dir, "detections.json"), JSON.stringify({ run: latest, alert, development: dev }, null, 2));
     });
 
-    await step(STEPS[18], async () => {
+    await step(STEPS[20], async () => {
       // No stored price breaches a peg, so `im check depeg` puts fixture prices in a scratch store:
       // USDC 0.70%, 0.85% and 0.75% below its peg on 8 to 10 Sep 2026, a 48-hour spell. It runs the
       // pipeline's detectors, merge and answer step with a canned model that answers Stable, so only
       // the rule can raise Peg (api/intelmonitor/checks.py).
-      const out = execFileSync("uv", ["run", "im", "check", "depeg"], { cwd: path.resolve(__dirname, "../../api"), encoding: "utf8" });
-      const check: DepegCheck = JSON.parse(out);
+      const check: DepegCheck = JSON.parse(imCheck("depeg"));
       const statement =
         "USDC off its USD peg by more than 0.50% for 24 hours, from 8 Sep 2026 to 9 Sep 2026; 0.9915 USD (0.85% below) on 9 Sep 2026.";
       expect(check.detections).toEqual([statement]);
@@ -1316,10 +1418,10 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       expect(check.peg.state_rules).toEqual(check.fixed_states.map((f) => f.text));
 
       writeFileSync(path.join(dir, "depeg.json"), JSON.stringify(check, null, 2));
-      await page.setContent(`<pre style="font: 13px/1.5 ui-monospace, monospace; white-space: pre-wrap">${JSON.stringify({ ...check, prices: check.prices.slice(-5) }, null, 2)}</pre>`);
+      await showJson(page, { ...check, prices: check.prices.slice(-5) });
     });
 
-    await step(STEPS[19], async () => {
+    await step(STEPS[21], async () => {
       // Indicators sit between What changed and Standing questions, as of the page's run date
       // (structured-data-plan.md, F4). OCBC has no figures of its own: its rows are the Singapore
       // banking system's MAS series, labelled System-wide in the head and on every row.
@@ -1395,7 +1497,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await page.locator("h2#indicators").scrollIntoViewIfNeeded();
     });
 
-    await step(STEPS[20], async () => {
+    await step(STEPS[22], async () => {
       // An indicator set only to a subject shows its primary series, a peg first
       // (structured-data-plan.md, F5); values are as of the run date, the sentence written by code.
       const created = await unwrap(
@@ -1488,7 +1590,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await supply.scrollIntoViewIfNeeded();
     });
 
-    await step(STEPS[21], async () => {
+    await step(STEPS[23], async () => {
       // Each series an answer cites is a source block: its chart ends on the run date, as known
       // then, over 12 months for a daily series, 24 for a monthly one and the whole stored history
       // for a quarterly one; it highlights what the sentence cites (a daily series' window to its
@@ -1568,7 +1670,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       writeFileSync(path.join(dir, "data-sources.json"), JSON.stringify({ run: latest, answers }, null, 2));
     });
 
-    await step(STEPS[22], async () => {
+    await step(STEPS[24], async () => {
       // Weekly runs from 30 Jul to the latest, each with a note on why the subject's series moved in
       // its week, citing that run's developments and given facts known by its date
       // (structured-data-plan.md, F6).
@@ -1661,7 +1763,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(page.locator(".tr-lead")).toHaveText(note.headline);
     });
 
-    await step(STEPS[23], async () => {
+    await step(STEPS[25], async () => {
       // A custom question can name series of its subject, picked like the gallery's indicator
       // series; each run's answer gets their facts as of its date and may cite them
       // (structured-data-plan.md, F7). The text and pick are fixed, so the calls are recorded.

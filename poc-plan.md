@@ -17,7 +17,7 @@ Jev does the high-volume decisions, Claude writes the findings and answers, and 
 | Area | MVP spec | POC |
 | --- | --- | --- |
 | Where it runs | MAS infrastructure | Personal Mac, public data only |
-| Ingestion | Scheduled weekly runs over live sources | One data dump covering 60 days, then two precomputed runs |
+| Ingestion | Scheduled weekly runs over live sources | One data dump covering 60 days and measured series from July 2021, then nine weekly runs computed after the fact |
 | DMS | Internal DMS collections | Stand-in collection of public official documents, tagged `source: dms` |
 | News | Internal news feeds (Bloomberg and others) | Exa and Tavily, limited to reputable domains |
 | Jev | TypeSafe API | Jev through OpenRouter (`jev-1.13`, 32k context) |
@@ -31,7 +31,7 @@ Jev does the high-volume decisions, Claude writes the findings and answers, and 
 
 **In scope**
 
-- Dashboards: 4-column grid of 7 widget types, edit mode (drag to rearrange, minus to remove), Add widget gallery sheet.
+- Dashboards: 4-column grid of 8 widget types, edit mode (drag to rearrange, minus to remove), Add widget gallery sheet.
 - New dashboard popup with two tabs: Build (gallery sheet layout, mock variant B) and Generate (AG-UI).
 - Monitor pages for every topic, group and entity.
 - Evidence drawer.
@@ -40,7 +40,9 @@ Jev does the high-volume decisions, Claude writes the findings and answers, and 
 - Built-in standing questions per subject type, plus user-written custom standing questions.
 - Mark reviewed and notes.
 - Sidebar with New dashboard at the top of the Dashboards list, and a profile menu at the bottom.
-- Structured data: MAS statistics APIs (exchange rates; bank asset quality, liquidity and exposure), FRED, CoinGecko and DefiLlama, as indicator series with facts in answers, data-driven developments and trend charts. See `structured-data-plan.md`.
+- Structured data: MAS statistics APIs (exchange rates; bank asset quality, liquidity and exposure), FRED, CoinGecko and DefiLlama, as measured series.
+  They give facts in answers, developments from detectors, an Indicators section and a Trend tab on monitor pages, an Indicator widget, and series on custom questions.
+  See `structured-data-plan.md`.
 
 **Out of scope for the POC**
 
@@ -210,25 +212,38 @@ All figures are system-wide aggregates for commercial banks in Singapore, not pe
 Results come back oldest first, so recent data needs `$orderby` (for example `year DESC,month DESC`) with `$count`.
 The exchange rate API requires at least one filter, such as `end_of_day=YYYY-MM-DD`.
 
+**Other series sources.** FRED (`FRED_API_KEY`) gives the Fed funds rate, the ECB deposit rate, the US 10-year yield, the US high-yield spread and the VIX.
+CoinGecko (`COINGECKO_API_KEY`, demo tier) gives daily stablecoin prices for the last 365 days.
+DefiLlama needs no key and gives stablecoin supply, per coin and per chain.
+`api/seed/series.yaml` declares the 62 series and maps each to its subjects.
+Series responses go to the same `data/raw/` cache.
+A series request is keyed by its fetch day (FRED by the UTC hour), so a new day makes new requests and a past day's responses stay cached.
+
 **Parsing.** HTML goes through a readability extractor, PDFs through pymupdf.
 Documents are deduplicated by canonical URL and content hash.
 
 ## Pipeline
 
-A run is computed "as of" a date and only sees documents published on or before it.
-The POC computes two runs: **Run 1** as of `T0 - 7 days` and **Run 2** as of `T0`.
+A run is computed "as of" a date and only sees documents published on or before it, and observations that were available by the end of it.
+The POC computes weekly runs on Thursdays, from 30 Jul to `T0` (24 Sep); each compares with the one before.
+The last two are **Run 1** as of `T0 - 7 days` and **Run 2** as of `T0`.
 "Since your last review" is Run 2 compared with Run 1.
 
 ```mermaid
 flowchart TD
+    S[Series fetch<br/>MAS, FRED, CoinGecko, DefiLlama] --> T[Detectors<br/>events as data documents]
     A[Ingest + cache<br/>60 days] --> B[Normalize, dedup]
     B --> C[Jev screen + tag<br/>one call per doc]
+    T --> E
     C -->|not relevant| X[Archive]
     C -->|relevant| D[Claude extract findings<br/>quotes as citations]
     D --> E[Jev same event?<br/>merge into developments]
     E --> F[Jev materiality 1-5]
+    S --> K[Facts per series<br/>computed by code]
+    K --> G
     F --> G[Claude answers per subject per run]
-    G --> H[Diff Run 2 vs Run 1]
+    G --> N[Claude note per subject<br/>why its series moved]
+    N --> H[Diff with the previous run]
 ```
 
 1. **Ingest.** Fetch, cache, parse, dedup. Store `SourceDocument` rows with source, collection, URL, title, published date, text, hash and classification.
@@ -253,8 +268,21 @@ flowchart TD
 7. **Answers.** One Claude call per subject per run answers all of that subject's questions from the developments tagged to it inside each question's lookback.
    Each answer has a one-line summary, a state (Stable, Watch, Needs attention, or a count of new items), and the development ids it relies on.
 8. **Custom question job.** For a new custom question, Jev scores each candidate document tagged to the subject within the lookback ("Does this document help answer: ...?"), and Claude answers from the top matches for both run dates.
-9. **Diff.** Code compares Run 2 with Run 1: new developments, updated developments (new sources), and changed question states.
+9. **Diff.** Code compares each run with the one before: new developments, updated developments (new sources), and changed question states.
 10. **Graph.** Nodes and edges are written from subjects, links and developments (`MEMBER_OF`, `EXPOSED_TO`, `AFFECTS`), each edge with source and confidence.
+
+**Measured series.** `im ingest` and Run now fetch the series before anything else (`structured-data-plan.md`, F1).
+A run then adds four steps:
+
+- **Detectors** (F3) turn series events, such as a policy rate change or a stablecoin off its peg, into data documents with one finding each.
+  They join developments through the same-event step, set the development's title to their measured sentence, and set its materiality to at least the detector's level.
+- **Indicators** (F1) store every series' latest value, changes and state as of the run.
+- **Facts** (F2) give each answer the sentences code computed for its linked series.
+  An answer may quote a number only from its facts or documents and names FX moves by the SGD's side, or it is asked again once.
+  Rules such as "0.5% off the peg for 24 hours" fix a state whatever the model says.
+- **Notes** (F6): one Claude call per subject with series writes why they moved in the week, citing the week's developments.
+
+A backfilled run never sees the future: observations carry `available_at`, and a run as of D reads each one only if it was known by the end of D, at its value before any later revision.
 
 **Logging.** Every Jev and Claude call writes an `InferenceRecord`: stage, model and version, input reference, output, confidence, tokens or cost, run id.
 
@@ -267,12 +295,12 @@ The pipeline is resumable: each step skips work whose output already exists.
 ```
 api/                Python 3.12, uv
   intelmonitor/
-    ingest/         source adapters, cache, parsing
-    pipeline/       jev, claude, dedup, answers, diff, graph
+    ingest/         source adapters, series adapters (ingest/series/), cache, parsing
+    pipeline/       jev, claude, dedup, detectors, facts, answers, notes, diff, graph
     store/          SQLite schema and queries
     server/         FastAPI app, AG-UI endpoint
     agent/          Generate agent: Claude Agent SDK + dashboard tools
-  seed/             subjects.yaml, questions.yaml
+  seed/             subjects.yaml, questions.yaml, series.yaml, detectors.yaml, dashboards.yaml
 web/                Next.js (App Router), TypeScript, pnpm
 data/               gitignored: raw cache, intelmonitor.db
 artifacts/          gitignored: E2E runs and pipeline reports
@@ -280,6 +308,7 @@ mocks/              design mocks
 ```
 
 - **Store:** one SQLite file. Tables: subjects, subject_links, standing_questions, source_documents, document_tags, runs, findings, developments, development_subjects, development_sources, question_answers, upcoming_dates, analyst_actions, dashboards, graph_nodes, graph_edges, inference_records.
+  Series add series, series_subjects, observations, observation_revisions, detections, and per run run_indicators, run_facts and run_notes.
 - **API:** FastAPI. Pydantic models are the source of truth, and `openapi-typescript` generates the web client types from the OpenAPI schema, so the two sides can't drift.
 - **Dashboard spec:** a list of widgets with `type`, `size`, `order` and typed `settings` (subject, question). One schema per widget type drives the gallery, manual edits and the Generate agent.
 - **Generate agent:** Claude Agent SDK with in-process tools `add_widget`, `update_widget`, `remove_widget`, `reorder` and `list_subjects`. Tool arguments are validated against the widget schemas. The server maps the agent's stream to AG-UI events (`TEXT_MESSAGE_*`, `TOOL_CALL_*`, `STATE_DELTA`) over SSE.
@@ -289,9 +318,11 @@ mocks/              design mocks
 
 **Commands**
 
-- `uv run im ingest` fetches and parses the corpus.
+- `uv run im ingest` fetches the series, then fetches and parses the corpus.
+- `uv run im series fetch` fetches every series up to today; `uv run im series backfill --from 2021-07-01` fills their history once.
 - `uv run im run --as-of <date>` computes one run. `uv run im run --both` computes Run 1 and Run 2.
 - `uv run im report` writes the pipeline report (see Verification).
+- `uv run im check series`, `im check past-run` and `im check depeg` print the JSON checks the E2E walkthrough runs in scratch stores (see Verification).
 
 ## UI
 
@@ -299,15 +330,17 @@ The UI follows `ui-ux.md` and the mock.
 The app only shows data from the API; there is no sample data in the web code.
 
 - **Sidebar:** Dashboards (New dashboard first, then the user's dashboards), Monitors (Topics, Groups, Entities with counts), profile button at the bottom.
-- **Top bar:** the search field, then a run status chip (last run time, Runs popover with run history and Run now) and an alerts bell (unread count, Alerts popover of Needs attention and Watch developments). Run now computes Run 2 again over the stored corpus; ingestion stays offline in the POC.
+- **Top bar:** the search field, then a run status chip (last run time, Runs popover with run history and Run now) and an alerts bell (unread count, Alerts popover of Needs attention and Watch developments). Run now fetches the series, then computes Run 2 again over the stored corpus; document ingestion stays offline in the POC.
 - **Profile menu:** Settings (display name, default dashboard), Data sources (sources and document counts), Run history (runs with dates, document counts and duration), Help (glossary, shortcuts and Replay tour; see `iteration-plan.md` B2).
 - **Starter dashboards:** three seeded dashboards (Singapore banks, Stablecoin watch, Geopolitics in SEA) so the first screen is never blank.
-- **Widgets (7):** Since your last review, Standing question, Monitor summary, Developments, Direction of travel, Watchlist, Upcoming.
+- **Widgets (8):** Since your last review, Standing question, Monitor summary, Developments, Direction of travel, Watchlist, Upcoming, Indicator.
   Direction of travel counts material developments per week from Jev tags. Upcoming reads dates extracted in pipeline step 4.
+  Indicator shows one series' state and value, its 12-month line at M, and its marked developments at L.
 - **New dashboard popup:** 80% of the screen, Build selected by default.
   Build uses the gallery sheet layout (mock variant B). Generate starts with a centered input that slides to the bottom as widgets arrive.
-- **Monitor pages:** What changed, Standing questions (built-in and custom, plus "Add a question"), Links, Mark reviewed and Add note.
-- **Evidence drawer, graph view, ⌘K search:** as in `ui-ux.md`.
+- **Monitor pages:** What changed, Indicators (for subjects with series), Standing questions (built-in and custom, plus "Add a question"), Links, Mark reviewed and Add note.
+  Subjects with series also get a Trend tab: each run's note on why the series moved, the series over 12 months with developments marked, and question states per run.
+- **Evidence drawer, graph view, ⌘K search:** as in `ui-ux.md`. The drawer lists cited series and detections as data sources, each with its chart.
 
 ## Phases
 
@@ -326,6 +359,7 @@ Commit at the end of each phase.
 | 7. Graph view | Obsidian-style graph from any monitor page | Opens at 1 hop, expands to 2, filters work, new developments highlighted, clicking a node opens its page, layout stops when settled |
 | 8. Custom questions | Add, preview, keep, edit, delete | A custom question shows an answer with citations for both runs and a change badge |
 | 9. E2E | Full walkthrough test | The E2E run passes and writes its artifact (see Verification) |
+| 10. Structured data | F1 to F7 of `structured-data-plan.md`: series store, facts, detectors, Indicators, Indicator widget, data sources in the drawer, Trend tab, custom questions with series | The E2E walkthrough's structured data steps pass |
 
 ## Verification
 
@@ -336,7 +370,8 @@ Commit at the end of each phase.
 - developments per subject and the merge ratio (sources per development),
 - materiality distribution,
 - 10 random findings with their quotes and source links for a manual spot check,
-- Jev and Claude token totals and cost.
+- Jev and Claude token totals and cost,
+- series: the latest fetch (rows added and revised, failures, stale series, calls per source) and, per run, indicator states, facts, answers citing series, states fixed by rules and detections, each with a look-ahead check.
 
 **E2E.** One Playwright test in `web/e2e/` runs against the dev servers and records video, a trace and a screenshot per step into `artifacts/e2e/<timestamp>/`, with an `index.html` summary.
 It covers:
@@ -351,6 +386,22 @@ It covers:
 8. Open the graph view, expand to 2 hops, click a node, check its page opens.
 9. Drag a sidebar dashboard to the top, move another with Move up, reload, check the order persisted and colors did not change.
 
+For structured data (`structured-data-plan.md`), it also covers:
+
+10. Series: quotes per 100 units are stored per unit (SGD per MYR on 18 Sep is 0.3128), and indicators as of Run 1 see nothing published later.
+11. A series backfill and the daily fetch after it, replayed from cached responses into a scratch store (`im check series`): no request reaches a source, the fetch adds and revises nothing, and the values match the store.
+12. A past-date run: Run 1, recomputed in a copy of the store from recorded model calls only (`im check past-run`), uses nothing known after its date, not even the Fed funds detection known a day later, and matches the stored run.
+13. Facts in answers: answers cite their series' facts, and facts as of a past date state nothing known later.
+14. A detector firing: the Fed funds rise of 17 Sep becomes a Run 2 development titled by its measured sentence, alerts for a followed subject, and opens in the evidence drawer with the data source first.
+15. Fixture prices (`im check depeg`): 48 hours off the peg fixes the Peg answer at Needs attention and makes the detection a Significant development.
+16. The Indicators section on a bank page and the Fed's page.
+17. The Indicator widget: set by subject, then added from the gallery at Large with developments on its lane.
+18. The drawer's data source item: the sentence, flags in words and the chart with the cited period.
+19. The Trend tab: each run's note with numbered citations on the chart, question states per run, and no note before the first document.
+20. A custom question with a series: the picker, answers citing its facts, and the widget's line at M.
+
+Each structured data step also writes its data as JSON next to the screenshots (for example `series-fetch.json`, `past-run.json`, `trend.json`), so a run can be compared with the next.
+
 ## Risks
 
 | Risk | Mitigation |
@@ -360,4 +411,5 @@ It covers:
 | Claude subscription rate limits during precompute | Capped concurrency, resumable steps, one answer call per subject per run |
 | Jev's 32k context on OpenRouter | Screen long documents on title and leading chunks; Claude reads the full text for extraction |
 | MAS search API is undocumented | Treat as best effort; fall back to Exa limited to `mas.gov.sg` |
+| A series source changes shape, rejects a key or answers with an HTML page | Pydantic models per response; the failure stays with that source's series, is logged once and never cached; `im check series` replays the fetch offline |
 | Entity resolution errors (for example "Singapore" the country vs Singapore banks) | Aliases in the seed file, Jev subject nouls, and the pipeline report spot check |

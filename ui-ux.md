@@ -41,6 +41,7 @@ Primary user: a supervisory or policy analyst who follows a few topics, sectors 
 | --- | --- | --- |
 | Dashboards | A user's own mix of widgets across monitors | Sidebar, top section |
 | Monitor pages | One page per topic, group or entity (events in P1) | Sidebar "Monitors", search, any linked name |
+| Trend view | A subject's series over 12 months, each run's note on why they moved, and question states per run | Trend tab on a monitor page, for subjects with series |
 | Evidence drawer | Sources behind a finding or development | "See evidence" on any item |
 | Graph view | Linked subjects around the current page | "Open graph view" in a page's Links section |
 | New dashboard | Popup with Build and Generate tabs | "New dashboard", first row of the sidebar's Dashboards list |
@@ -100,22 +101,46 @@ Same order on every scope, so users learn it once:
    Mark read, Flag and Dismiss replace a row's date while the pointer is over it or focus is in it; on a touch screen they always show, as 44 px targets.
    All, Unread, Flagged and Dismissed filter the rows, and All leaves out dismissed ones.
    A read row drops its New or Updated badge.
-2. **Standing questions**, one row each: answer, state, change badge. Custom questions sit in the same list with a "Custom" label, followed by "Add a question".
-3. **Links**: linked subjects by type, plus "Open graph view".
-4. **Actions**: Mark reviewed, Add note.
+2. **Indicators**, for subjects with measured series: one row per series with its status, name and latest period, source, value, change with its window, and a line over the 12 months to the run date.
+   Values are as of the page's run date, and each carries its own observation date or period ("23 Sep", "Jul 2026, preliminary").
+   Figures that are not the subject's own say so: "System-wide" for MAS banking tables, "Market-wide" for FX, US rates and total stablecoin supply.
+   A row reads Watch or Needs attention while a detector event on it holds, and opens that event's development in the evidence drawer.
+3. **Standing questions**, one row each: answer, state, change badge. Custom questions sit in the same list with a "Custom" label, followed by "Add a question".
+4. **Links**: linked subjects by type, plus "Open graph view".
+5. **Actions**: Mark reviewed, Add note.
    Mark reviewed moves the subject's review mark to the latest run, so What changed and the sidebar count only later runs' changes; flags and dismissals stay.
    The run's changes then fold behind one line, and the toast offers Undo.
 
 The page head has Follow or Following; alerts cover followed subjects only.
+Subjects with series also get Overview and Trend tabs in the head.
 
 Links and Actions share a rail that sticks under the top bar. A rail taller than the window scrolls with the page until its foot shows, then sticks, so every part of it can be reached.
 Deleting a note or a dashboard shows Undo for 8 s, paused while the pointer is over it or focus is in it; that is the only restore.
 
 Group pages add common issues and outliers. Topic pages add the stage track (signal → consultation → proposed → enacted → enforced) and upcoming dates.
 
+### Trend view
+
+A monitor page's Trend tab, for subjects with measured series.
+It opens on Why it moved: a run selector (runs newest first, then "Before 27 Jul"), the run and the one it compares with, the note's headline, and its body with numbered citations that open the evidence drawer.
+The questions whose state changed in that run follow.
+
+Under it sit the series switcher, the window (12 months, 3 months, 1 month) and the chart.
+The chart draws the series on a fixed time axis, Watch and Needs attention developments as ticks at their event dates, the note's citations as numbered discs, and the selected week as a band.
+The stretch before the first document is shaded and named, since no development can explain a move there.
+Standing questions by run gives each question one mark per run, and the selected run's state and answer in words.
+Cited lists the note's developments.
+The rail shows the facts code gave the note for the charted series, with a link to its source table.
+Before the first document there is no note, and the lead says so.
+
 ### Evidence drawer
 
 Slides in from the right; the page stays visible behind it. Shows the finding, each source (title, date, source type, highlighted passage), confidence, and notes. Keyboard: Esc closes.
+
+Measured series are sources too.
+A series an answer cites, or a detector finding, is a data source block: the series name linking its source table, a meta line (date, Data, source label, scope), the fact sentence, flags in words (Preliminary, Revised), and a chart with the cited period as a band.
+The chart spans 12 months for a daily series, 24 for a monthly one, and the whole history for a quarterly one.
+A development with a detector finding takes the finding's measured sentence as its title, so its block does not repeat it.
 
 The analyst corrects the AI in place.
 Under a built-in standing question answer (in the drawer and in the monitor page row's meta), Mark wrong opens a form under it: which of the state, the summary and the cited developments is wrong, what the state should be, and a reason.
@@ -157,7 +182,7 @@ Both tabs produce the same dashboard spec, and the created dashboard appears in 
 | Medium | 2 × 1 | A short list or a track |
 | Large | 2 × 2 | The main story, or a list users act on |
 
-**Catalog (MVP: 7 widgets)**
+**Catalog (8 widgets)**
 
 | Widget | Sizes | Shows |
 | --- | --- | --- |
@@ -168,6 +193,11 @@ Both tabs produce the same dashboard spec, and the created dashboard appears in 
 | Direction of travel | S, M | Rising / flat / falling, with a small line |
 | Watchlist | M, L | Entities with status; add or remove in place |
 | Upcoming | S, M | Deadlines and effective dates |
+| Indicator | S, M, L | One series' status and a sentence on its latest value; M adds the 12-month line, L marks Watch and Needs attention developments on a lane under it |
+
+**Indicator widget.** Set to a subject, it shows the subject's default series: a peg first, then its other primary series, else a system-wide or market-wide one.
+The gallery suggests it first for any subject with a primary series, with a series picker above the size picker, so Circle offers its peg and then its supply.
+At S, See data opens the subject's Indicators section, or See development when a detector event sets the status.
 
 **No Links widget.** Links are navigation, not an answer, so they live only in the Links section of monitor pages and in the graph view.
 A graph widget earns a place only if it answers a question. The candidate is an **exposure map (P1)**: only the tracked subjects with new developments this run, plus the dependencies they share, to show concentration risk. It needs `DEPENDS_ON` data the MVP only has in hand-curated form.
@@ -177,7 +207,7 @@ A graph widget earns a place only if it answers a question. The candidate is an 
 - Every widget fills with live data from monitors. No empty placeholders.
 - Every widget is tappable and opens the matching page or evidence.
 - One title style: sentence case, grey, top-left. No all-caps labels.
-- Badges are the only color: New (blue), Watch (amber), Needs attention (red), Stable (green).
+- Badges are the only color: New (blue), Watch (amber), Needs attention (red), Stable (green). No data and Stale are neutral.
 - Each widget is a pre-built component with a typed settings schema. The same schema drives the gallery, manual edits and chat mode.
 
 ## Manual editing (iPadOS pattern)
@@ -186,7 +216,7 @@ A graph widget earns a place only if it answers a question. The candidate is an 
 - **Reorder:** drag a widget; others reflow smoothly into place. Order is the only layout state: the grid packs Small, Medium and Large widgets from the top left with no gaps, so dragging changes position in the order. Keyboard: focus a widget and use the arrow keys.
 - **Remove:** tap the minus. An "Undo" toast appears for a few seconds.
 - **Add:** "Add widget" opens a gallery sheet, like the iPadOS widget gallery with subjects in place of apps. Left: topics, groups and entities with search and a count of new developments. Right: the widgets that fit the selected subject, each a live preview with the user's real data, a size picker and an Add button. The first two are tagged "Suggested". Adding closes the sheet and places the widget in the next free slot, outlined briefly.
-- **Configure in place:** tap a widget in edit mode and it flips to its settings (subject, question, time window).
+- **Configure in place:** tap a widget in edit mode and it flips to its settings (subject, question, series, time window).
 - **Inline edits outside edit mode:** watchlists add and remove entities with a search field and × buttons, right in the widget.
 - **Smart stacks (P1):** stack several widgets in one slot and swipe between them.
 
@@ -225,6 +255,7 @@ flowchart LR
 
 **A custom standing question is a question the user writes, answered by the normal pipeline and shown in an existing widget. The LLM writes the question config, never widget code.**
 The question itself is in the POC. The Analysis card and Trend chart displays below are P1.
+A custom question can name up to three of its subject's series: its answers get their facts, and its widget at M draws the first one's line beside the answer.
 
 Use it when no widget covers the angle a user wants. Example: "Track chipmaker price trends."
 
@@ -282,7 +313,7 @@ Example config the LLM produces:
 | Source | Example charts | How to show |
 | --- | --- | --- |
 | Jev tags in the store (category, stage, jurisdiction, adverse, materiality) | Adverse items per bank per week; regulatory stage over time; developments by jurisdiction | Lines and bars. Available from MVP data, so start here |
-| Structured data (MAS statistics, FRED, CoinGecko, DefiLlama) | Stablecoin peg deviation; SG banks loan-to-deposit ratio; SGD/MYR | Lines, with developments marked on the dates they happened |
+| Structured data (MAS statistics, FRED, CoinGecko, DefiLlama) | Stablecoin peg deviation; SG banks loan-to-deposit ratio; SGD per ringgit | Lines, with developments marked on the dates they happened. Built in the Indicators section, the Indicator widget, the Trend view and the drawer's data sources |
 | Figures the LLM extracts from text ("TSMC raised prices 10%") | Timeline of reported data points | Dots with a source link on each, never a smooth line |
 
 The Trend chart also delivers the multi-month trend charts listed as P1 in the main spec.
@@ -294,6 +325,7 @@ The Trend chart also delivers the multi-month trend charts listed as P1 in the m
 - The LLM only fills the config schema. It never writes code or invents a widget type.
 - Every custom question points at existing subjects. If one is missing (e.g. no "chipmakers" group), the agent proposes it with members and topic links, and the user confirms.
 - Numbers are computed by code, never typed by the LLM. They come from Jev tags in the store or from structured data. News and DMS alone support narrative answers ("prices rising, driven by X"), not price lines.
+- Answers and notes may quote a number only from the facts code gave them or from their documents, and name an exchange rate move by the SGD's side ("SGD weakened 0.55% against MYR"), never as a pair. An answer that breaks either is asked again once.
 - Custom questions carry a "Custom" label and show their question, so users can tell them from curated questions.
 - Users edit the question later by flipping the widget to its settings, like any other widget.
 - Each custom question adds an LLM run. The POC caps custom questions at 10 per user and answers them on demand over the stored corpus. Scheduled answering depends on scheduled runs, which are P1.
@@ -350,6 +382,14 @@ Every control has a 44 px hit area, even when it looks smaller.
 Rows are 34 px (8 px above and below 13 px text) with a hairline between them.
 Widgets are inset 12 px, less than the 16 px grid gap, so each widget reads as one group.
 Monitor sections are 32 px apart; the page title sits 24 px above the content; the page gutter is 32 px.
+
+**Charts:** one neutral line, no area fill, on a fixed time axis to the run date, so monthly and quarterly lines end at their last release and the gap shows the reporting lag.
+The drawer's and the Trend view's charts have up to four round ticks on a hairline grid and months on the axis; the drawer's labels the latest value at the line's end.
+Indicators rows and the Medium widget draw the line alone; the Large widget adds its scale's top and bottom values and the axis dates.
+A preliminary tail is lighter with a hollow end; a peg gets its zero rule.
+A cited period is a band in `--mark`, the quote highlight.
+Developments on a chart are ticks or markers in the Watch and Needs attention colors, at their event dates, with the published date in the tooltip.
+The pointer snaps a crosshair to the nearest observation with its value and date.
 
 **Motion:** only in response to the user: reflow on reorder, sheet open, drawer slide, the Generate prompt moving down, a short crossfade into widget settings, and a short fade-in for a widget the user or agent just added.
 No continuous animations (no wiggle, pulse, shimmer or spinners).
