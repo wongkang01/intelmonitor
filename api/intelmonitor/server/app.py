@@ -295,7 +295,7 @@ def get_answer_evidence(q: Q, subject_id: str, question_id: str) -> AnswerEviden
         run=q.run,
         answer=answer,
         developments=[_development_detail(q, i) for i in answer.development_ids],
-        series=series_views.cited_series(q.conn, q.run.id, subject_id, answer.series_ids),
+        series=series_views.cited_series(q.conn, q.run, subject_id, answer.series_ids),
     )
 
 
@@ -323,7 +323,12 @@ def _development_detail(q: Queries, development_id: str) -> DevelopmentDetail:
         subject_confidence=confidence,
         tag_feedback=fb.tag_feedback(q, development_id),
         sources=development_sources(
-            q.conn, q.run.id, development_id, new_documents(q.conn, q.run.id, development_id)
+            q.conn,
+            q.run.id,
+            q.run.as_of,
+            development_id,
+            d.title,
+            new_documents(q.conn, q.run.id, development_id),
         ),
         notes=q.notes(development_id=development_id),
     )

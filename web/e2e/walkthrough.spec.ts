@@ -13,6 +13,7 @@ import {
   changeCounts,
   indicatorChange,
   indicatorSentence,
+  longDate,
   plural,
   seriesPeriod,
   seriesValue,
@@ -45,6 +46,16 @@ async function unwrap<T>(request: Promise<{ data?: T; error?: unknown; response:
 async function deleted(request: Promise<{ response: Response }>) {
   const { response } = await request;
   if (!response.ok && response.status !== 404) throw new Error(`${response.url} answered ${response.status}`);
+}
+
+/** The same day `months` earlier, clamped to its month; a month end maps to a month end (pipeline/indicators.py). */
+function monthsBefore(iso: string, months: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const t = y * 12 + m - 1 - months;
+  const [year, month] = [Math.floor(t / 12), (t % 12) + 1];
+  const last = new Date(year, month, 0).getDate();
+  const day = d === new Date(y, m, 0).getDate() ? last : Math.min(d, last);
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 const grid = (scope: Page | Locator) => scope.locator(".dash-grid [data-widget-id]");
@@ -1253,14 +1264,24 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       expect(dev.collections).toContain("data");
       expect(dev.subjects.map((s) => s.id)).toContain("fed");
       expect(dev.materiality_level).toBeGreaterThanOrEqual(2);
-      if (dev.sources.length === 1) expect(dev).toMatchObject({ title: statement, materiality_label: "Notable", materiality_confidence: 1 });
+      if (dev.sources.length === 1) expect(dev).toMatchObject({ materiality_label: "Notable", materiality_confidence: 1 });
+      // A development with a detection is titled by its measured sentence, merged with news or
+      // not, and the detection leads its sources as the series it measured, the event cited.
+      expect(dev.title).toBe(statement);
+      expect(found.developments.find((d) => d.id === dev.id)?.title, "search shows the measured title").toBe(statement);
+      const changed = await unwrap(api.GET("/what-changed", { params: { query: { subject_id: ["fed"] } } }));
+      expect(changed.developments.find((d) => d.id === dev.id)?.title, "What changed shows the measured title").toBe(statement);
+      expect(dev.sources[0].document_id).toBe(doc.id);
+      expect(source.series).toMatchObject({ series: { id: "fred.fed_funds" }, end: latest.as_of, cited_from: "2026-09-17", cited_to: "2026-09-17", cited: { period: "2026-09-17", value: 3.88 } });
       const followed = new Set((await unwrap(api.GET("/follows"))).map((f) => f.id));
       expect(followed.has("fed") || followed.has("central-banks"), "the Fed is followed, itself or through Central banks").toBe(true);
       const alert = (await unwrap(api.GET("/alerts"))).alerts.find((a) => a.id === dev.id);
       if (!alert) throw new Error("the development does not alert");
       expect(alert.badge).toBe(dev.needs_attention ? "needs_attention" : "watch");
+      expect(alert.title, "alerts show the measured title").toBe(statement);
 
-      // In the app: the alert opens the evidence drawer on the data source, the statement marked.
+      // In the app: the alert opens the evidence drawer on the data source, its event highlighted
+      // on the series' chart; the sentence is the title, so the block does not repeat it.
       const devPath = { params: { path: { development_id: alert.id } } };
       cleanups.push(async () => void (await unwrap(api.PATCH("/developments/{development_id}/triage", { ...devPath, body: { read: alert.read } }))));
       await page.goto("/");
@@ -1270,9 +1291,13 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(page).toHaveURL(new RegExp(`[?&]evidence=${encodeURIComponent(alert.id)}$`));
       const drawer = page.getByTestId("evidence-drawer");
       await expect(drawer.getByRole("heading", { level: 3 })).toHaveText(dev.title);
-      const article = drawer.locator("article.source").filter({ has: page.locator(`a[href="${source.url}"]`) });
-      await expect(article.locator(".meta")).toContainText("Data, Move detector");
-      await expect(article.locator("mark")).toHaveText(statement);
+      const article = drawer.locator('article.series-src[data-series-id="fred.fed_funds"]');
+      await expect(drawer.locator("article.source").first()).toHaveAttribute("data-series-id", "fred.fed_funds");
+      await expect(article.getByRole("link", { name: "Fed funds effective rate" })).toHaveAttribute("href", source.url);
+      await expect(article.locator(".meta")).toContainText("18 Sep 2026 · Data, FRED DFF · fred.stlouisfed.org · new this run");
+      await expect(article.locator(".finding > p")).toHaveCount(0);
+      await expect(article.getByRole("img")).toHaveAccessibleName(/cited: 17 Sep 2026$/);
+      await expect(article.locator(".sc-band")).toHaveCount(1);
       await article.scrollIntoViewIfNeeded();
       await expect.poll(async () => (await unwrap(api.GET("/alerts"))).alerts.find((a) => a.id === alert.id)?.read).toBe(true);
 
@@ -1469,6 +1494,86 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
 
       writeFileSync(path.join(dir, "indicator-widget.json"), JSON.stringify({ run: latest, peg: pegData, supply: supplyData }, null, 2));
       await supply.scrollIntoViewIfNeeded();
+    });
+
+    await step(STEPS[21], async () => {
+      // Each series an answer cites is a source block: its chart ends on the run date, as known
+      // then, over 12 months for a daily series, 24 for a monthly one and the whole stored history
+      // for a quarterly one; it highlights what the sentence cites (a daily series' window to its
+      // latest point, a release's latest period).
+      const answers: Schema<"AnswerEvidence">[] = [];
+      for (const [subjectId, questionId] of [
+        ["dbs", "bank.financial"],
+        ["circle", "issuer.peg"],
+        ["fed", "central-bank.policy-stance"],
+      ]) {
+        const ev = await unwrap(
+          api.GET("/subjects/{subject_id}/answers/{question_id}/evidence", {
+            params: { path: { subject_id: subjectId, question_id: questionId } },
+          }),
+        );
+        answers.push(ev);
+        for (const { series, fact, chart } of ev.series) {
+          const name = `${subjectId} ${series.id}`;
+          expect(chart.end, `${name} ends on the run date`).toBe(ev.run.as_of);
+          if (series.frequency === "quarterly") expect(chart.start, `${name} spans its history`).toBe(chart.line[0].period);
+          else expect(chart.start, `${name} span`).toBe(monthsBefore(ev.run.as_of, series.frequency === "daily" ? 12 : 24));
+          expect(chart.line.every((p) => p.period >= chart.start && p.period <= chart.end), `${name} stays in its span`).toBe(true);
+          if (!fact.latest || !chart.cited) throw new Error(`${name} cites no value`);
+          expect(chart.cited).toEqual(fact.latest);
+          expect(chart.cited_to).toBe(fact.latest.period);
+          expect(chart.cited.available_at.slice(0, 10) <= ev.run.as_of, `${name} was known by the run date`).toBe(true);
+          if (fact.window_start) expect(chart.cited_from && chart.cited_from > fact.window_start, `${name} cites its window`).toBe(true);
+          else expect(chart.cited_from).toBe(fact.latest.period);
+        }
+      }
+      const dbs = answers[0];
+      expect(dbs.series.map((s) => s.series.frequency)).toEqual(expect.arrayContaining(["monthly", "quarterly"]));
+
+      // In the app: after "Based on", each series links its source table; the meta line says when
+      // the value was known, the source, the scope and the release with its flag in words.
+      await page.goto(`/monitors/dbs?answer=${encodeURIComponent("dbs:bank.financial")}`);
+      const drawer = page.getByTestId("evidence-drawer");
+      const counts = [dbs.developments.length && plural(dbs.developments.length, "development"), plural(dbs.series.length, "series", "series")];
+      await expect(drawer.locator("h4.ev-label")).toHaveText(`Based on ${counts.filter(Boolean).join(" and ")}`);
+      const blocks = drawer.locator("section.ev-series article.series-src");
+      await expect(blocks).toHaveCount(dbs.series.length);
+      for (const [i, { series, fact, chart }] of dbs.series.entries()) {
+        const block = blocks.nth(i);
+        if (!chart.cited) throw new Error(`${series.id} cites no value`);
+        await expect(block).toHaveAttribute("data-series-id", series.id);
+        await expect(block.getByRole("link", { name: series.name, exact: true })).toHaveAttribute("href", series.source_url);
+        const flag = chart.revisions.length ? ", revised" : chart.cited.preliminary ? ", preliminary" : "";
+        await expect(block.locator(".meta")).toHaveText(
+          `${longDate(chart.cited.available_at)} · Data, ${series.source_label} · System-wide · mas.gov.sg · ${seriesPeriod(series, chart.cited.period)}${flag}`,
+        );
+        const sentence = fact.text.slice(`${series.name}: `.length);
+        await expect(block.locator(".finding > p")).toHaveText(sentence.charAt(0).toUpperCase() + sentence.slice(1));
+        await expect(block.getByRole("img")).toHaveAccessibleName(new RegExp(`cited: ${seriesPeriod(series, chart.cited.period)}$`));
+      }
+
+      // The cited period is tinted like a quote, and the crosshair on it reads the cited value.
+      const first = blocks.first();
+      const band = first.locator(".sc-band");
+      const tint = await band.evaluate((el) => getComputedStyle(el).fill);
+      const mark = await page.evaluate(() => {
+        const probe = document.createElement("span");
+        probe.style.color = "var(--mark)";
+        document.body.append(probe);
+        const color = getComputedStyle(probe).color;
+        probe.remove();
+        return color;
+      });
+      expect(tint).toBe(mark);
+      await first.scrollIntoViewIfNeeded();
+      const box = await band.boundingBox();
+      if (!box) throw new Error("the cited period is not on screen");
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      const tip = page.getByRole("tooltip");
+      await expect(tip.locator("b")).toHaveText(seriesValue(dbs.series[0].series, dbs.series[0].chart.cited?.value ?? NaN));
+      await expect(tip).toContainText(seriesPeriod(dbs.series[0].series, dbs.series[0].chart.cited?.period ?? ""));
+
+      writeFileSync(path.join(dir, "data-sources.json"), JSON.stringify({ run: latest, answers }, null, 2));
     });
 
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);

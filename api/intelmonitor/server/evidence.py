@@ -3,15 +3,19 @@ verified quotes as offsets into the document text, and a short passage to highli
 
 import json
 import sqlite3
+from datetime import date
 
+from intelmonitor.seed import load_series
 from intelmonitor.server.models import (
     DocumentDetail,
     EvidenceFinding,
     EvidenceSource,
     Passage,
     Quote,
+    SeriesChart,
     Span,
 )
+from intelmonitor.server.series import series_chart
 
 # Characters of context kept on each side of a finding's quotes in its passage.
 PASSAGE_CONTEXT = 280
@@ -38,9 +42,41 @@ def passage(text: str, quotes: list[Quote]) -> Passage:
     )
 
 
+def _detection_charts(
+    conn: sqlite3.Connection, document_ids: list[str], as_of: date
+) -> dict[str, SeriesChart]:
+    """Each detector document's series as of the run date, its event from first to firing period
+    highlighted. A series no longer in the seed has none."""
+    by_id = {s.id: s for s in load_series().series}
+    marks = ",".join("?" for _ in document_ids)
+    return {
+        r["document_id"]: series_chart(
+            conn,
+            by_id[r["series_id"]],
+            as_of,
+            date.fromisoformat(r["start"]),
+            date.fromisoformat(r["period"]),
+        )
+        for r in conn.execute(
+            f"SELECT document_id, series_id, start, period FROM detections "
+            f"WHERE document_id IN ({marks})",
+            document_ids,
+        )
+        if r["series_id"] in by_id
+    }
+
+
 def development_sources(
-    conn: sqlite3.Connection, run_id: str, development_id: str, new_document_ids: set[str]
+    conn: sqlite3.Connection,
+    run_id: str,
+    as_of: date,
+    development_id: str,
+    title: str,
+    new_document_ids: set[str],
 ) -> list[EvidenceSource]:
+    """A development's sources, each with its findings: the source of the finding its title states
+    first, then primary sources first, then earliest. A detector's document carries its series'
+    chart as of the run date."""
     rows = conn.execute(
         "SELECT f.id AS finding_id, f.statement, f.event_date, f.quotes, d.* "
         "FROM development_sources s JOIN findings f ON f.id = s.finding_id "
@@ -48,6 +84,9 @@ def development_sources(
         "WHERE s.run_id = ? AND s.development_id = ? ORDER BY d.published_at, f.id",
         (run_id, development_id),
     ).fetchall()
+    charts = _detection_charts(
+        conn, list({r["id"] for r in rows if r["collection"] == "data"}), as_of
+    )
     sources: dict[str, EvidenceSource] = {}
     for r in rows:
         src = sources.get(r["id"])
@@ -64,6 +103,7 @@ def development_sources(
                 published_at=r["published_at"],
                 new_in_run=r["id"] in new_document_ids,
                 findings=[],
+                series=charts.get(r["id"]),
             )
         quotes = _quotes(r["quotes"])
         src.findings.append(
@@ -76,7 +116,12 @@ def development_sources(
             )
         )
     return sorted(
-        sources.values(), key=lambda s: (_COLLECTION_RANK.get(s.collection, 4), s.published_at)
+        sources.values(),
+        key=lambda s: (
+            all(f.statement != title for f in s.findings),
+            _COLLECTION_RANK.get(s.collection, 4),
+            s.published_at,
+        ),
     )
 
 

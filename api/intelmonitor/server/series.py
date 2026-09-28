@@ -14,7 +14,15 @@ from intelmonitor.pipeline.indicators import Indicator, compute_indicators, mont
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS, NEEDS_ATTENTION_LEVEL, RUN_SPACING_DAYS
 from intelmonitor.pipeline.subjects import questions_for
 from intelmonitor.seed import Deviation, SeriesDef, load_series, providers, source_label
-from intelmonitor.server.models import SeriesFactView, SeriesInfo, SubjectRef
+from intelmonitor.server.models import (
+    CitedSeries,
+    LinePoint,
+    RunRef,
+    SeriesChart,
+    SeriesFactView,
+    SeriesInfo,
+    SubjectRef,
+)
 from intelmonitor.server.queries import NotFoundError, subject, subject_ref
 from intelmonitor.store.series import Observation, Revision, read_observations, read_revisions
 
@@ -37,11 +45,6 @@ class SeriesDetail(BaseModel):
 # From the detector rules on the series (api/seed/detectors.yaml): needs_attention when a live
 # event's rule is Significant or above, watch for a lower one, else stable.
 IndicatorStatus = Literal["stable", "watch", "needs_attention"]
-
-
-class LinePoint(BaseModel):
-    period: date
-    value: float
 
 
 class IndicatorEvent(BaseModel):
@@ -228,7 +231,7 @@ def subject_indicators(
                 status=_status(own),
                 events=own,
                 line=[
-                    LinePoint(period=o.period, value=o.value)
+                    LinePoint(period=o.period, value=o.value, preliminary=o.preliminary)
                     for o in (read_observations(conn, s.id, as_of) if s.listed else [])
                     if o.period >= start
                 ],
@@ -253,20 +256,77 @@ def facts_as_of(conn: sqlite3.Connection, subject_id: str, as_of: date) -> Subje
     )
 
 
+def chart_start(s: SeriesDef, history: list[Observation], as_of: date) -> date:
+    """Where a cited series' chart starts: 12 months before the run date for a daily series, 24
+    for a monthly one, and the start of the stored history for a quarterly one."""
+    if s.frequency == "daily":
+        return months_before(as_of, 12)
+    if s.frequency == "monthly":
+        return months_before(as_of, 24)
+    return history[0].period if history else as_of
+
+
+def series_chart(
+    conn: sqlite3.Connection,
+    s: SeriesDef,
+    as_of: date,
+    cited_from: date | None,
+    cited_to: date | None,
+) -> SeriesChart:
+    """The series over its chart span to `as_of`, as known by the end of that day, with the periods
+    from `cited_from` to `cited_to` highlighted and the value at `cited_to` stated."""
+    history = read_observations(conn, s.id, as_of)
+    start = chart_start(s, history, as_of)
+    cited = next((o for o in history if o.period == cited_to), None)
+    return SeriesChart(
+        series=series_info(s),
+        start=start,
+        end=as_of,
+        line=[
+            LinePoint(period=o.period, value=o.value, preliminary=o.preliminary)
+            for o in history
+            if o.period >= start
+        ],
+        cited_from=cited_from,
+        cited_to=cited_to,
+        cited=cited,
+        revisions=[
+            r for r in read_revisions(conn, s.id, as_of) if cited and r.period == cited.period
+        ],
+    )
+
+
+def fact_chart(
+    conn: sqlite3.Connection, s: SeriesDef, fact: SeriesFact, as_of: date
+) -> SeriesChart:
+    """A fact's chart: a daily series highlights the window its low and high cover, to its latest
+    point; a monthly or quarterly one its latest release."""
+    latest = fact.latest.period if fact.latest else None
+    window = fact.window_start + timedelta(days=1) if fact.window_start else None
+    # A stale series' latest point is older than its window: only the point is cited.
+    cited_from = window if window and latest and window <= latest else latest
+    return series_chart(conn, s, as_of, cited_from, latest)
+
+
 def cited_series(
-    conn: sqlite3.Connection, run_id: str, subject_id: str, series_ids: list[str]
-) -> list[SeriesFactView]:
-    """The series an answer cites, each with the fact its run gave the answer."""
+    conn: sqlite3.Connection, run: RunRef, subject_id: str, series_ids: list[str]
+) -> list[CitedSeries]:
+    """The series an answer cites, each with the fact its run gave the answer and its chart as of
+    the run date."""
     by_id = {s.id: s for s in load_series().series}
     stored = {
         r["series_id"]: SeriesFact.model_validate_json(r["fact"])
         for r in conn.execute(
             "SELECT series_id, fact FROM run_facts WHERE run_id = ? AND subject_id = ?",
-            (run_id, subject_id),
+            (run.id, subject_id),
         )
     }
     return [
-        SeriesFactView(series=series_info(by_id[i]), fact=stored[i])
+        CitedSeries(
+            series=series_info(by_id[i]),
+            fact=stored[i],
+            chart=fact_chart(conn, by_id[i], stored[i], run.as_of),
+        )
         for i in series_ids
         if i in stored and i in by_id
     ]

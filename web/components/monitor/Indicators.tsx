@@ -15,6 +15,7 @@ import {
   indicatorChange,
   INDICATOR_STATE_LABEL,
   longDate,
+  revisionsTitle,
   SCOPE_LABEL,
   seriesPeriod,
   seriesValue,
@@ -93,20 +94,13 @@ export function Indicators({ subjectId, asOf }: { subjectId: string; asOf: strin
   );
 }
 
-/** "Jun 2026 was 69.8%, revised 12 Sep" for each recent revision, for the Revised label's tooltip. */
-function revisedTitle(ind: Indicator): string {
-  return ind.revisions
-    .map((r) => `${seriesPeriod(ind.series, r.period)} was ${seriesValue(ind.series, r.old_value)}, revised ${shortDate(r.revised_at)}`)
-    .join("\n");
-}
-
 function IndicatorRow({ ind, name, asOf }: { ind: Indicator; name: string; asOf: string }) {
   const evidence = useEvidenceHref();
   const s = ind.series;
   const change = indicatorChange(ind);
   const flag =
     ind.state === "revised" ? (
-      <span title={revisedTitle(ind)}>{INDICATOR_STATE_LABEL.revised.toLowerCase()}</span>
+      <span title={revisionsTitle(s, ind.revisions)}>{INDICATOR_STATE_LABEL.revised.toLowerCase()}</span>
     ) : ind.state === "preliminary" ? (
       INDICATOR_STATE_LABEL.preliminary.toLowerCase()
     ) : null;

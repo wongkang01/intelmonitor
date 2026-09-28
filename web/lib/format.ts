@@ -200,6 +200,16 @@ export function seriesValue(s: Series, v: number): string {
   return `${sign}${a.toFixed(s.decimals)}`;
 }
 
+/** An axis tick in the series' unit: money as "$180.0B", other values as bare numbers ("3.50"). */
+export function seriesTick(s: Series, v: number, decimals: number): string {
+  if (s.decimals === 0 && MONEY[s.unit]) return seriesValue(s, v);
+  return `${v < 0 ? MINUS : ""}${Math.abs(v).toFixed(decimals)}`;
+}
+
+/** "Jun 2026 was 69.8%, revised 12 Sep" per revision, for a Revised label's tooltip. */
+export const revisionsTitle = (s: Series, revisions: Schema<"Revision">[]) =>
+  revisions.map((r) => `${seriesPeriod(s, r.period)} was ${seriesValue(s, r.old_value)}, revised ${shortDate(r.revised_at)}`).join("\n");
+
 /** A period as its series is released: "24 Sep" daily, "Jul 2026" monthly, "Q2 2026" quarterly. */
 export function seriesPeriod(s: Series, iso: string): string {
   const d = day(iso);

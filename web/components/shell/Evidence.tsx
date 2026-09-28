@@ -18,6 +18,7 @@ import { DevelopmentBadge } from "@/components/widgets/parts";
 
 import { TagList, useAnswerCorrection } from "./Feedback";
 import { Notes } from "./Notes";
+import { factSentence, SeriesSource } from "./SeriesSource";
 import { SubjectLink } from "./SubjectLink";
 
 type DrawerParam = "evidence" | "answer";
@@ -125,17 +126,27 @@ function AnswerEvidenceView({ evidence }: { evidence: Schema<"AnswerEvidence"> }
         </p>
       )}
       {correction.form}
-      <h4 className="ev-label">
-        {evidence.developments.length ? `Based on ${plural(evidence.developments.length, "development")}` : "Sources"}
-      </h4>
-      {evidence.developments.length === 0 && (
+      <h4 className="ev-label">{basedOn(evidence)}</h4>
+      {evidence.developments.length === 0 && evidence.series.length === 0 && (
         <p className="ev-empty">No developments in the last {a.lookback_days} days bear on this question.</p>
       )}
+      {evidence.series.map((c) => (
+        <section key={c.series.id} className="ev-dev ev-series" aria-label={c.series.name}>
+          <SeriesSource chart={c.chart} known={c.chart.cited?.available_at ?? null} sentence={factSentence(c.series, c.fact.text)} />
+        </section>
+      ))}
       {evidence.developments.map((d) => (
         <DevelopmentEvidence key={d.id} development={d} nested />
       ))}
     </>
   );
+}
+
+/** "Based on 6 developments and 3 series", or "Sources" when nothing is cited. */
+function basedOn({ developments, series }: Schema<"AnswerEvidence">): string {
+  const parts = [developments.length && plural(developments.length, "development"), series.length && plural(series.length, "series", "series")];
+  const cited = parts.filter(Boolean);
+  return cited.length ? `Based on ${cited.join(" and ")}` : "Sources";
 }
 
 /**
@@ -226,7 +237,12 @@ function MaterialityConfidence({ development: d }: { development: Schema<"Develo
   );
 }
 
+/** One source with its findings; a detector's document is its series, with the event highlighted. */
 function Source({ source: s, title }: { source: Schema<"EvidenceSource">; title: string }) {
+  if (s.series) {
+    const sentence = s.findings.find((f) => f.statement !== title)?.statement ?? null;
+    return <SeriesSource chart={s.series} known={s.published_at} sentence={sentence} newInRun={s.new_in_run} />;
+  }
   const kind = s.doc_type.toLowerCase() === s.collection ? COLLECTION_LABEL[s.collection] : `${COLLECTION_LABEL[s.collection]}, ${s.doc_type}`;
   return (
     <article className="source">

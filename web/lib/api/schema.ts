@@ -1018,7 +1018,7 @@ export interface components {
              * Series
              * @description In the order the answer cites them
              */
-            series: components["schemas"]["SeriesFactView"][];
+            series: components["schemas"]["CitedSeries"][];
         };
         /**
          * AnswerFeedback
@@ -1230,6 +1230,12 @@ export interface components {
             flagged: boolean;
             /** Dismissed */
             dismissed: boolean;
+        };
+        /** CitedSeries */
+        CitedSeries: {
+            series: components["schemas"]["SeriesInfo"];
+            fact: components["schemas"]["SeriesFact"];
+            chart: components["schemas"]["SeriesChart"];
         };
         /** CommonIssue */
         CommonIssue: {
@@ -1901,6 +1907,8 @@ export interface components {
             new_in_run: boolean;
             /** Findings */
             findings: components["schemas"]["EvidenceFinding"][];
+            /** @description A detector's document: the series it measured, the event highlighted */
+            series: components["schemas"]["SeriesChart"] | null;
         };
         /** FacetValue */
         FacetValue: {
@@ -2123,7 +2131,7 @@ export interface components {
             documents_from: string;
             /**
              * Developments
-             * @description Large only: the subject's Needs attention and Watch developments dated in the 12 months to the run date, newest first
+             * @description For the Large lane: the subject's Needs attention and Watch developments dated in the 12 months to the run date, newest first
              */
             developments: components["schemas"]["MarkedDevelopment"][];
         };
@@ -2202,6 +2210,8 @@ export interface components {
             period: string;
             /** Value */
             value: number;
+            /** Preliminary */
+            preliminary: boolean;
         };
         /**
          * MarkedDevelopment
@@ -2753,6 +2763,48 @@ export interface components {
              * @description Sources of the latest run's developments, by title and text, best first
              */
             documents: components["schemas"]["DocumentHit"][];
+        };
+        /**
+         * SeriesChart
+         * @description A cited series as the evidence drawer draws it: its values over a span ending on the run
+         *     date, as known by the end of that day, with the period its sentence cites highlighted.
+         */
+        SeriesChart: {
+            series: components["schemas"]["SeriesInfo"];
+            /**
+             * Start
+             * Format: date
+             * @description 12 months before the run date for daily series, 24 months for monthly, the stored history's start for quarterly
+             */
+            start: string;
+            /**
+             * End
+             * Format: date
+             * @description The run date
+             */
+            end: string;
+            /**
+             * Line
+             * @description Observations from start to end, by period
+             */
+            line: components["schemas"]["LinePoint"][];
+            /**
+             * Cited From
+             * @description First period the sentence cites
+             */
+            cited_from: string | null;
+            /**
+             * Cited To
+             * @description Last period the sentence cites
+             */
+            cited_to: string | null;
+            /** @description The value the sentence states */
+            cited: components["schemas"]["Observation"] | null;
+            /**
+             * Revisions
+             * @description Revisions of the cited period made by the run date, in the order made
+             */
+            revisions: components["schemas"]["Revision"][];
         };
         /** SeriesDetail */
         SeriesDetail: {

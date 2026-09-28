@@ -2633,7 +2633,7 @@
           },
           "series": {
             "items": {
-              "$ref": "#/components/schemas/SeriesFactView"
+              "$ref": "#/components/schemas/CitedSeries"
             },
             "type": "array",
             "title": "Series",
@@ -3160,6 +3160,26 @@
         ],
         "title": "ChangedDevelopment",
         "description": "A development with its What changed and triage state. When unreviewed, `change` is its\nchange since the review: new if a run after it added the development, else updated. When\nreviewed, it is the change in the latest run."
+      },
+      "CitedSeries": {
+        "properties": {
+          "series": {
+            "$ref": "#/components/schemas/SeriesInfo"
+          },
+          "fact": {
+            "$ref": "#/components/schemas/SeriesFact"
+          },
+          "chart": {
+            "$ref": "#/components/schemas/SeriesChart"
+          }
+        },
+        "type": "object",
+        "required": [
+          "series",
+          "fact",
+          "chart"
+        ],
+        "title": "CitedSeries"
       },
       "CommonIssue": {
         "properties": {
@@ -4771,6 +4791,17 @@
             },
             "type": "array",
             "title": "Findings"
+          },
+          "series": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SeriesChart"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A detector's document: the series it measured, the event highlighted"
           }
         },
         "type": "object",
@@ -4785,7 +4816,8 @@
           "classification",
           "published_at",
           "new_in_run",
-          "findings"
+          "findings",
+          "series"
         ],
         "title": "EvidenceSource"
       },
@@ -5293,7 +5325,7 @@
             },
             "type": "array",
             "title": "Developments",
-            "description": "Large only: the subject's Needs attention and Watch developments dated in the 12 months to the run date, newest first"
+            "description": "For the Large lane: the subject's Needs attention and Watch developments dated in the 12 months to the run date, newest first"
           }
         },
         "type": "object",
@@ -5433,12 +5465,17 @@
           "value": {
             "type": "number",
             "title": "Value"
+          },
+          "preliminary": {
+            "type": "boolean",
+            "title": "Preliminary"
           }
         },
         "type": "object",
         "required": [
           "period",
-          "value"
+          "value",
+          "preliminary"
         ],
         "title": "LinePoint"
       },
@@ -6798,6 +6835,91 @@
           "documents"
         ],
         "title": "SearchResults"
+      },
+      "SeriesChart": {
+        "properties": {
+          "series": {
+            "$ref": "#/components/schemas/SeriesInfo"
+          },
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start",
+            "description": "12 months before the run date for daily series, 24 months for monthly, the stored history's start for quarterly"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End",
+            "description": "The run date"
+          },
+          "line": {
+            "items": {
+              "$ref": "#/components/schemas/LinePoint"
+            },
+            "type": "array",
+            "title": "Line",
+            "description": "Observations from start to end, by period"
+          },
+          "cited_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cited From",
+            "description": "First period the sentence cites"
+          },
+          "cited_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cited To",
+            "description": "Last period the sentence cites"
+          },
+          "cited": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Observation"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The value the sentence states"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/Revision"
+            },
+            "type": "array",
+            "title": "Revisions",
+            "description": "Revisions of the cited period made by the run date, in the order made"
+          }
+        },
+        "type": "object",
+        "required": [
+          "series",
+          "start",
+          "end",
+          "line",
+          "cited_from",
+          "cited_to",
+          "cited",
+          "revisions"
+        ],
+        "title": "SeriesChart",
+        "description": "A cited series as the evidence drawer draws it: its values over a span ending on the run\ndate, as known by the end of that day, with the period its sentence cites highlighted."
       },
       "SeriesDetail": {
         "properties": {

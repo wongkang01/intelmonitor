@@ -18,6 +18,7 @@ from intelmonitor.seed import (
     SubjectType,
     TopicIcon,
 )
+from intelmonitor.store.series import Observation, Revision
 
 State = Literal["stable", "watch", "needs_attention", "new"]
 Stage = Literal["signal", "consultation", "proposed", "enacted", "enforced"]
@@ -413,6 +414,55 @@ class Passage(BaseModel):
     clipped_end: bool = Field(description="The document continues after `text`")
 
 
+class SeriesInfo(BaseModel):
+    id: str
+    name: str
+    short_name: str = Field(description="The row name under its group heading")
+    group: str | None = Field(description="The heading its rows sit under on monitor pages")
+    scope: SeriesScope | None = Field(
+        description="system: the banking system's figures; market: market-wide"
+    )
+    listed: bool = Field(description="False: an input to a derived series, off the Indicators")
+    unit: str = Field(description='"%" for ratios and rates, else e.g. "USD" or "SGD per MYR"')
+    frequency: Frequency
+    decimals: int
+    bad_direction: BadDirection = Field(description="Which way is worse, if either")
+    baseline: float | None = Field(
+        description="A level its line is read against: 0 for a distance from a peg"
+    )
+    source: SourceName
+    source_label: str = Field(description='Where its values come from: "MAS I.18", "FRED DFF"')
+    providers: list[str] = Field(
+        description='The APIs its values come from, following derived inputs: ["CoinGecko", "MAS"]'
+    )
+    source_url: str
+
+
+class LinePoint(BaseModel):
+    period: date
+    value: float
+    preliminary: bool
+
+
+class SeriesChart(BaseModel):
+    """A cited series as the evidence drawer draws it: its values over a span ending on the run
+    date, as known by the end of that day, with the period its sentence cites highlighted."""
+
+    series: SeriesInfo
+    start: date = Field(
+        description="12 months before the run date for daily series, 24 months for monthly, "
+        "the stored history's start for quarterly"
+    )
+    end: date = Field(description="The run date")
+    line: list[LinePoint] = Field(description="Observations from start to end, by period")
+    cited_from: date | None = Field(description="First period the sentence cites")
+    cited_to: date | None = Field(description="Last period the sentence cites")
+    cited: Observation | None = Field(description="The value the sentence states")
+    revisions: list[Revision] = Field(
+        description="Revisions of the cited period made by the run date, in the order made"
+    )
+
+
 class EvidenceFinding(BaseModel):
     id: str
     statement: str
@@ -433,6 +483,9 @@ class EvidenceSource(BaseModel):
     published_at: datetime
     new_in_run: bool = Field(description="Added to the development since the previous run")
     findings: list[EvidenceFinding]
+    series: SeriesChart | None = Field(
+        description="A detector's document: the series it measured, the event highlighted"
+    )
 
 
 class SubjectConfidence(BaseModel):
@@ -462,35 +515,15 @@ class DevelopmentDetail(DevelopmentSummary):
     notes: list[Note]
 
 
-class SeriesInfo(BaseModel):
-    id: str
-    name: str
-    short_name: str = Field(description="The row name under its group heading")
-    group: str | None = Field(description="The heading its rows sit under on monitor pages")
-    scope: SeriesScope | None = Field(
-        description="system: the banking system's figures; market: market-wide"
-    )
-    listed: bool = Field(description="False: an input to a derived series, off the Indicators")
-    unit: str = Field(description='"%" for ratios and rates, else e.g. "USD" or "SGD per MYR"')
-    frequency: Frequency
-    decimals: int
-    bad_direction: BadDirection = Field(description="Which way is worse, if either")
-    baseline: float | None = Field(
-        description="A level its line is read against: 0 for a distance from a peg"
-    )
-    source: SourceName
-    source_label: str = Field(description='Where its values come from: "MAS I.18", "FRED DFF"')
-    providers: list[str] = Field(
-        description='The APIs its values come from, following derived inputs: ["CoinGecko", "MAS"]'
-    )
-    source_url: str
-
-
 class SeriesFactView(BaseModel):
     """A series and what code stated about it for an answer."""
 
     series: SeriesInfo
     fact: SeriesFact
+
+
+class CitedSeries(SeriesFactView):
+    chart: SeriesChart
 
 
 class AnswerEvidence(BaseModel):
@@ -501,7 +534,7 @@ class AnswerEvidence(BaseModel):
     run: RunRef
     answer: QuestionAnswerView
     developments: list[DevelopmentDetail] = Field(description="In the order the answer cites them")
-    series: list[SeriesFactView] = Field(description="In the order the answer cites them")
+    series: list[CitedSeries] = Field(description="In the order the answer cites them")
 
 
 class DocumentDetail(BaseModel):

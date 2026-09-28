@@ -22,6 +22,7 @@ export const STEPS = [
   "Peg rule and depeg detector on fixture prices: 48 hours off the peg makes Peg Needs attention and the detection a Significant development",
   "Indicators on monitor pages: a bank's system-wide rows as of the run, the Fed funds rise reads Watch and opens its development, the line's readout",
   "Indicator widget: a subject alone shows its peg, the gallery suggests the peg first, supply added at Large marks developments on its lane",
+  "Data as a source: an answer's cited series show their sentence, flags in words and a chart over their span with the cited period highlighted",
 ] as const;
 
 /** Where each run writes its artifacts; playwright.config.ts sets it once per run. */

@@ -2,8 +2,9 @@
 each development's materiality, except where a detector's rule sets it (pipeline/detectors.py).
 Developments are rebuilt per run from the findings in documents
 published on or before the run date; a development's id is its earliest finding's id, so the same
-event keeps its id from one run to the next. A development's subjects are its findings' subjects,
-less the tags the analyst removed from it."""
+event keeps its id from one run to the next. Its title is its lead finding's statement, or a
+detection's sentence when a detector measured the event. A development's subjects are its
+findings' subjects, less the tags the analyst removed from it."""
 
 import asyncio
 import json
@@ -183,6 +184,15 @@ class Development:
         return min(self.findings, key=lambda f: f.rank)
 
     @property
+    def title(self) -> str:
+        """The lead's statement, unless a detector measured the event: then the measured sentence,
+        the most material rule's first, so What changed, search and alerts state the number."""
+        detections = [f for f in self.findings if f.rule_level is not None]
+        if not detections:
+            return self.lead.statement
+        return min(detections, key=lambda f: (-(f.rule_level or 0), f.rank)).statement
+
+    @property
     def category(self) -> str:
         counts = Counter(f.category for f in self.findings)
         return max(counts, key=lambda c: (counts[c], c == self.lead.category))
@@ -351,7 +361,7 @@ def store_developments(conn: sqlite3.Connection, run_id: str, devs: list[Develop
             (
                 run_id,
                 d.id,
-                d.lead.statement,
+                d.title,
                 d.category,
                 d.stage,
                 min(events).isoformat() if events else None,

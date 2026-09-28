@@ -740,6 +740,79 @@ select.input.fb-sel {
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
+/* A series as a source (components/shell/SeriesSource.tsx): an answer's cited series is a block
+   of its own, like a development; the chart's cited period is tinted like a quoted span. */
+.ev-series {
+  padding-top: 0;
+}
+.ev-series > .source {
+  margin-top: 0;
+  border-top: 0;
+  padding-left: 0;
+}
+.series-src .finding p {
+  max-width: none;
+}
+.series-chart {
+  margin: var(--s-2) 0 0;
+}
+.series-chart svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.sc-band {
+  fill: var(--mark);
+}
+.sc-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.sc-ax,
+.sc-end {
+  font-family: var(--font);
+  font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+}
+.sc-ax {
+  fill: var(--ink2);
+}
+.sc-end {
+  fill: var(--ink);
+  font-weight: 500;
+}
+.sc-line {
+  fill: none;
+  stroke: var(--ink2);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.sc-line.pre {
+  stroke: var(--line-field);
+}
+.sc-dot {
+  fill: var(--ink2);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+.sc-dot.pre {
+  fill: var(--surface);
+  stroke: var(--ink2);
+  stroke-width: 1.5;
+}
+.sc-xh {
+  stroke: var(--line-field);
+  stroke-width: 1;
+  pointer-events: none;
+}
+.sc-xd {
+  fill: var(--ink);
+  stroke: var(--surface);
+  stroke-width: 2;
+  pointer-events: none;
+}
 .drawer-body > .notes {
   margin-top: var(--s-3);
 }

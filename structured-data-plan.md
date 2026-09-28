@@ -214,7 +214,7 @@ Built:
 - Store: `question_answers` gained `series_ids` and `state_rules` (JSON), and `run_facts` keeps each run's facts per subject and series, so a cited series shows what the answer saw.
 - API: `QuestionAnswerView` has `series_ids` and `state_rules`; `AnswerEvidence.series` lists the cited series in citation order, each a `SeriesFactView` (the series' catalogue entry and the run's `SeriesFact`).
   `GET /subjects/{id}/facts?as_of=` returns `SubjectFacts`: what a run as of that date would give the subject's answers, with the rules that fire.
-  The evidence drawer's data source item is not built; it waits for its mock.
+  The evidence drawer shows each cited series as a data source (see the data source item under F3).
 - `im report`'s Series section lists each run's facts, answers citing series and states fixed by rules, with a look-ahead check on every stated observation.
 - Runs: 17 Sep, 15 Aug (new, the past-date check) and 24 Sep were recomputed with facts; 25 or 26 of the 200 answers in each cite series, quoting their numbers ("USDC stayed near peg, 0.9996-0.9999 USD over 14 days; supply rose 2.98% weekly to $75.87bn"), and no rule fires on those dates.
   After the FX wording and XSGD fixes the three runs were recomputed (30 to 33 new answer calls each): no answer on FX series names a pair, for example "SGD weaker against the MYR, up 0.55% weekly", and 26 answers in each cite series.
@@ -271,7 +271,7 @@ Built:
   The document text is the sentence, the rule in words, its materiality, and the series; its one finding is the sentence, quoted whole, tagged to the series' primary subjects, with the detector's category and the event date (the value's own date for daily series, the release date for monthly and quarterly ones).
   A `detections` table keeps the detector, series, first period, value, and the adverse flag and direction from the series' bad direction (pegs are always adverse).
 - `compute_run` runs the detectors first, then screens and extracts only the other documents; `load_findings` takes detections without Jev tags and with their rule's level, from the seed as it is now (failure mode 11).
-  Data sources rank after official and DMS documents and before news, in a development's lead and in the evidence drawer.
+  Data sources rank after official and DMS documents and before news, in a development's lead and in the evidence drawer, except that the drawer lists first the source whose finding is the title (see the data source item below).
   `Collection` has `data` (label "Data") in the API and the web app, so the Source facet, the evidence drawer and Data sources list it.
 - `im report`'s Series section lists each run's detections with their development, materiality and sources, and checks no detection is published before its value was available; the inference record check leaves out detections, which make no model calls.
 - Formatting shared with facts moved to `pipeline/wording.py`; the facts text is unchanged, checked against the previous code for every subject.
@@ -282,9 +282,28 @@ Built:
   With 20% under 1bn they fire 181 times: 46 supply moves (25 under 1bn, 17 of them PYUSD's; 21 at 1bn or more, 11 of them PYUSD's since it passed 1bn), and none in the corpus window.
   Its two XSGD firings (26 Jan and 3 May 2026) came from the old weekend pairing of XSGD with an earlier day's MAS rate and are gone.
   The loan-to-deposit and high-yield thresholds never fire in the stored history.
-- The walkthrough's last step finds the Fed funds detection through search, checks its data document (source table URL, doc type, published after Run 1 and by Run 2, event date), that it changed its development in Run 2, tagged to the Fed, at least Notable, and that the development alerts for the followed subject; in the app, the alert opens the evidence drawer on the data source with the sentence highlighted.
+- The walkthrough's last step finds the Fed funds detection through search, checks its data document (source table URL, doc type, published after Run 1 and by Run 2, event date), that it changed its development in Run 2, tagged to the Fed, at least Notable, and that the development alerts for the followed subject; in the app, the alert opens the evidence drawer on the data source with the event highlighted on its chart.
   It writes `detections.json`.
   The real seed fires on cached data in Run 2, so the step needs no test seed.
+
+Built, the data source item in the evidence drawer (direction B "Data as a source" in `mocks/data-source.html`):
+
+- A development that contains a detection is titled by the detection's measured sentence, the most material rule's first; otherwise by its lead finding's statement as before.
+  `Development.title` in `pipeline/developments.py` sets it when the run stores developments, so What changed, search, alerts and the answer prompt all read the same title; materiality is still scored on the lead's statement, so Jev calls stay cached.
+  The FOMC decision's development in Run 2 is now "Fed funds effective rate up 0.25 points to 3.88% on 17 Sep 2026, from 3.63% on 16 Sep 2026."; recomputing the 24 Sep run made 3 new answer calls.
+- A detector's document is drawn as its series, not as a quoted document: `EvidenceSource.series` is a `SeriesChart` (`GET /developments/{id}`), and the drawer lists first the source whose finding is the title, so a detection leads its development's sources.
+  A cited series in an answer is one more source block, before the developments: `AnswerEvidence.series` items are `CitedSeries`, the fact and its `SeriesChart`, and the label reads "Based on 5 developments and 2 series".
+- `SeriesChart` (`series_chart` in `server/series.py`): the series' observations as known by the end of the run date, from 12 months before it for a daily series, 24 months for a monthly one and the start of the stored history for a quarterly one, to the run date; the cited period (`cited_from` to `cited_to`), the cited value, and the revisions of its period made by the run date.
+  A detection cites its event from its first period to the one that fired it; a fact cites a daily series' window after `window_start` to its latest point (the latest point alone when stale) and a release's latest period.
+- `components/shell/SeriesSource.tsx`: the block's link is the series name to its source table; the meta line gives when the value was known, "Data" with the source label, the scope, the domain, and for a release its period with Preliminary or Revised as a word ("Jul 2026, preliminary"; Revised lists the old values in its tooltip), then "new this run".
+  The code sentence follows: the fact's text without the series name it opens with, or the detection's sentence unless the title already states it.
+- The chart is one neutral 2 px line on a fixed time axis to the run date, so MAS monthly and quarterly lines end at their last release; up to four round ticks with a hairline grid, the axis's first and last month (quarter for quarterly series), the latest value labelled at the line's end, a preliminary tail lighter with a hollow end, a peg's zero line, and the cited period as a band in the quote highlight's color.
+  The pointer snaps a crosshair to the nearest observation with a readout of its value and date.
+- Differs from the mock: the meta line uses the scope labels of F4 ("System-wide", "Market-wide") where the mock said "Banking system", and the flag follows a comma as on the Indicators rows.
+  The mock's "Materiality set by rule" line is not built: a merged development's level is the higher of the rule's and Jev's, and the store does not keep which one set it.
+  The sentences are the facts the answers saw, longer than the mock's.
+- The walkthrough's detector step checks the title in the development, search, What changed and alerts, that the detection leads the sources with its chart citing 17 Sep, and the drawer's block (link, meta, no repeated sentence, the cited period in its label).
+  Its last step checks cited series' charts for DBS, Circle and the Fed (span by frequency, the run date, the cited period and value), then DBS's drawer: the label, each block's link, meta and sentence, the band's color, and the readout on the cited period; it writes `data-sources.json`.
 
 ### F4. Indicators on monitor pages
 
