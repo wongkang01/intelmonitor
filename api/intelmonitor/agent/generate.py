@@ -86,7 +86,8 @@ Widget types:
 
 Subjects are topics, groups and entities with ids such as "singapore-banks" or "ocbc". Call \
 list_subjects first to find ids; pass subject_ids to see a subject's standing questions and \
-their states. Use only ids the tools return.
+their states, and its measured series (pegs, supply, rates, FX, banking ratios) for Indicator \
+widgets. Use only ids the tools return.
 
 A new dashboard usually has 5 to 8 widgets: "Since your last review" (L) first, with no \
 subject_id so it covers every subject on the dashboard; a Watchlist (L) of the members when a \

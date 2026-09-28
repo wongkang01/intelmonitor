@@ -1,5 +1,6 @@
 // Pieces shared by widget bodies, monitor pages and the evidence drawer: the widget header, state
-// badges and state words, and development rows in the shared list-row grammar (globals.css `.row`).
+// badges and state words, development rows in the shared list-row grammar (globals.css `.row`), and
+// the series picker of the gallery and settings.
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 
@@ -142,5 +143,40 @@ export function DevelopmentRow({
       </span>
       {end ?? <span className="row-end">{shortDate(d.last_published)}</span>}
     </div>
+  );
+}
+
+/** A subject's listed series, its own (primary) first, then the system-wide or market-wide context. */
+export function SeriesSelect({
+  listed,
+  value,
+  onChange,
+  labelled = false,
+}: {
+  listed: Schema<"SubjectIndicator">[];
+  value: string;
+  onChange: (seriesId: string) => void;
+  /** Settings faces show a visible label; the gallery names it for screen readers only. */
+  labelled?: boolean;
+}) {
+  const groups = [
+    { label: "Primary", items: listed.filter((i) => i.role === "primary") },
+    { label: "Context", items: listed.filter((i) => i.role === "context") },
+  ].filter((g) => g.items.length > 0);
+  return (
+    <label className="series-select">
+      <span className={labelled ? undefined : "sr-only"}>Series</span>
+      <select className="input" value={value} onChange={(e) => onChange(e.target.value)}>
+        {groups.map((g) => (
+          <optgroup key={g.label} label={g.label}>
+            {g.items.map((i) => (
+              <option key={i.series.id} value={i.series.id}>
+                {i.series.name}
+              </option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+    </label>
   );
 }

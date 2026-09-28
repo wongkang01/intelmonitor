@@ -374,6 +374,108 @@ a.qr:hover .ql {
   background: var(--ink);
 }
 
+/* Indicator (components/widgets/IndicatorBody.tsx). The line is the monitor page's `.ind-line`
+   (styles/monitor.css) at widget sizes. M: the sentence beside a 64px line. L: a line that takes
+   the room left, its scale at the left, then the developments lane and the axis dates. */
+.ind-wm {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: var(--s-4);
+  align-items: end;
+  margin-top: var(--s-1);
+}
+.ind-line.ind-wm-line {
+  height: 64px;
+  margin-bottom: 2px;
+}
+.ind-line.ind-wl {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 72px;
+  margin: var(--s-3) 0 var(--s-1) 56px;
+}
+.ind-y {
+  position: absolute;
+  right: calc(100% + var(--s-2));
+  transform: translateY(-50%);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ind-y.top {
+  top: 6%;
+}
+.ind-y.bottom {
+  top: 94%;
+}
+.ind-lane {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  height: 18px;
+  margin: 6px 0 0 56px;
+}
+/* Before the first document: a hairline in the lane, named on the axis below, so an empty
+   stretch never reads as calm. */
+.ind-none {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 18px;
+  border-top: 1px solid var(--line);
+}
+.ind-tk {
+  position: absolute;
+  top: 2px;
+  width: 2px;
+  height: 14px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--ink);
+}
+/* A 20 by 44px hit area; neighbours a few days apart overlap, the later one on top. */
+.ind-tk::after {
+  content: "";
+  position: absolute;
+  inset: -15px -9px;
+}
+.ind-tk:hover,
+.ind-tk:focus-visible,
+.ind-tk.on {
+  background: var(--accent);
+}
+.ind-xa {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  flex-shrink: 0;
+  margin-left: 56px;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+  font-variant-numeric: tabular-nums;
+}
+.ind-none-label {
+  position: absolute;
+  top: 0;
+  padding-right: var(--s-2);
+  white-space: nowrap;
+}
+.ind-wrows {
+  flex-shrink: 0;
+  margin-top: var(--s-2);
+}
+.ind-wrows .row {
+  min-height: 32px;
+  padding: 7px 0;
+}
+.ind-wrows .row.on .row-title {
+  text-decoration: underline;
+  text-decoration-color: var(--line-field);
+}
+
 /* Upcoming: the next date as the lead, then the one after it as a row. */
 .up-next {
   display: flex;

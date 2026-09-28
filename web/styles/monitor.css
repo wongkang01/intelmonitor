@@ -248,16 +248,16 @@
   .ind-cols span:nth-child(5) {
     display: none;
   }
-  .ind-name {
+  .ind-row > .ind-name {
     grid-column: 2 / -1;
   }
-  .ind-line,
-  .ind-val,
-  .ind-chg {
+  .ind-row > .ind-line,
+  .ind-row > .ind-val,
+  .ind-row > .ind-chg {
     grid-row: 2;
     margin-top: var(--s-2);
   }
-  .ind-line {
+  .ind-row > .ind-line {
     grid-column: 2;
     height: 28px;
   }
@@ -339,6 +339,26 @@
 }
 .chart-tip.before {
   transform: translate(calc(-100% - 14px), calc(-100% - 10px));
+}
+/* A tooltip listing titles: they wrap, two lines each, under a hairline between items. */
+.chart-tip.wrap {
+  width: 300px;
+  white-space: normal;
+}
+.chart-tip .tip-item {
+  margin-top: var(--s-1);
+}
+.chart-tip .tip-item + .tip-item {
+  padding-top: var(--s-1);
+  border-top: 1px solid var(--line);
+}
+.chart-tip .tip-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: var(--ink);
+  font-weight: 500;
 }
 .chart-tip > * {
   display: block;

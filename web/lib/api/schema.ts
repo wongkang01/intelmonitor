@@ -1350,7 +1350,7 @@ export interface components {
              */
             subject_ids: string[];
             /** Widgets */
-            widgets: (components["schemas"]["SinceWidget"] | components["schemas"]["QuestionWidget"] | components["schemas"]["SummaryWidget"] | components["schemas"]["DevelopmentsWidget"] | components["schemas"]["DirectionWidget"] | components["schemas"]["WatchlistWidget"] | components["schemas"]["UpcomingWidget"])[];
+            widgets: (components["schemas"]["SinceWidget"] | components["schemas"]["QuestionWidget"] | components["schemas"]["SummaryWidget"] | components["schemas"]["DevelopmentsWidget"] | components["schemas"]["DirectionWidget"] | components["schemas"]["WatchlistWidget"] | components["schemas"]["UpcomingWidget"] | components["schemas"]["IndicatorWidget"])[];
             /**
              * Color
              * @description Sidebar dot; reordering never changes it
@@ -1382,7 +1382,7 @@ export interface components {
              */
             subject_ids: string[];
             /** Widgets */
-            widgets: (components["schemas"]["SinceWidget"] | components["schemas"]["QuestionWidget"] | components["schemas"]["SummaryWidget"] | components["schemas"]["DevelopmentsWidget"] | components["schemas"]["DirectionWidget"] | components["schemas"]["WatchlistWidget"] | components["schemas"]["UpcomingWidget"])[];
+            widgets: (components["schemas"]["SinceWidget"] | components["schemas"]["QuestionWidget"] | components["schemas"]["SummaryWidget"] | components["schemas"]["DevelopmentsWidget"] | components["schemas"]["DirectionWidget"] | components["schemas"]["WatchlistWidget"] | components["schemas"]["UpcomingWidget"] | components["schemas"]["IndicatorWidget"])[];
             /**
              * Color
              * @description Sidebar dot. Unset on create picks the least used color; unset on update keeps the stored one
@@ -2102,6 +2102,31 @@ export interface components {
              */
             change: number | null;
         };
+        /** IndicatorData */
+        IndicatorData: {
+            /** Widget Id */
+            widget_id: string;
+            run: components["schemas"]["RunRef"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "indicator";
+            subject: components["schemas"]["SubjectRef"];
+            /** @description As of the run date */
+            indicator: components["schemas"]["SubjectIndicator"];
+            /**
+             * Documents From
+             * Format: date
+             * @description The first document's day: none before it
+             */
+            documents_from: string;
+            /**
+             * Developments
+             * @description Large only: the subject's Needs attention and Watch developments dated in the 12 months to the run date, newest first
+             */
+            developments: components["schemas"]["MarkedDevelopment"][];
+        };
         /**
          * IndicatorEvent
          * @description A detector event behind an indicator's status.
@@ -2129,6 +2154,44 @@ export interface components {
              */
             development_id: string | null;
         };
+        /**
+         * IndicatorSettings
+         * @description A series id, or a subject id alone for the subject's primary series. A series given
+         *     without a subject is shown for the subject it belongs to.
+         */
+        IndicatorSettings: {
+            /**
+             * Subject Id
+             * @description Alone, the subject's primary series is shown (a peg first); with series_id, the subject it is shown for, which the series must belong to
+             */
+            subject_id?: string | null;
+            /**
+             * Series Id
+             * @description A series id from list_subjects, e.g. "derived.usdc.peg"; empty for the subject's primary series
+             */
+            series_id?: string | null;
+        };
+        /** IndicatorWidget */
+        IndicatorWidget: {
+            /** Id */
+            id: string;
+            /**
+             * Order
+             * @description Position in the dashboard; the layout packs by order
+             */
+            order: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "indicator";
+            /**
+             * Size
+             * @enum {string}
+             */
+            size: "S" | "M" | "L";
+            settings: components["schemas"]["IndicatorSettings"];
+        };
         JsonValue: unknown;
         /** LinePoint */
         LinePoint: {
@@ -2139,6 +2202,24 @@ export interface components {
             period: string;
             /** Value */
             value: number;
+        };
+        /**
+         * MarkedDevelopment
+         * @description A development marked on an indicator's lane.
+         */
+        MarkedDevelopment: {
+            development: components["schemas"]["DevelopmentSummary"];
+            /**
+             * On
+             * Format: date
+             * @description Where it sits: its event date when in the lane's 12 months, else its first publication
+             */
+            on: string;
+            /**
+             * Badge
+             * @enum {string}
+             */
+            badge: "needs_attention" | "watch";
         };
         /**
          * MaterialityLevel
@@ -3652,7 +3733,7 @@ export interface components {
         /** WidgetDataRequest */
         WidgetDataRequest: {
             /** Widget */
-            widget: components["schemas"]["SinceWidget"] | components["schemas"]["QuestionWidget"] | components["schemas"]["SummaryWidget"] | components["schemas"]["DevelopmentsWidget"] | components["schemas"]["DirectionWidget"] | components["schemas"]["WatchlistWidget"] | components["schemas"]["UpcomingWidget"];
+            widget: components["schemas"]["SinceWidget"] | components["schemas"]["QuestionWidget"] | components["schemas"]["SummaryWidget"] | components["schemas"]["DevelopmentsWidget"] | components["schemas"]["DirectionWidget"] | components["schemas"]["WatchlistWidget"] | components["schemas"]["UpcomingWidget"] | components["schemas"]["IndicatorWidget"];
             /**
              * Dashboard Subject Ids
              * @description Scope for widgets whose subject is empty
@@ -3665,7 +3746,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "since" | "question" | "summary" | "developments" | "direction" | "watchlist" | "upcoming";
+            type: "since" | "question" | "summary" | "developments" | "direction" | "watchlist" | "upcoming" | "indicator";
             /** Name */
             name: string;
             /** Description */
@@ -3677,6 +3758,11 @@ export interface components {
              * @description Subject types the gallery offers it for
              */
             fits: ("topic" | "group" | "entity")[];
+            /**
+             * Subject Ids
+             * @description When set, only these subjects of those types have what it shows
+             */
+            subject_ids: string[] | null;
             /** Settings Schema */
             settings_schema: {
                 [key: string]: components["schemas"]["JsonValue"];
@@ -4239,7 +4325,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SinceData"] | components["schemas"]["QuestionData"] | components["schemas"]["SummaryData"] | components["schemas"]["DevelopmentsData"] | components["schemas"]["DirectionData"] | components["schemas"]["WatchlistData"] | components["schemas"]["UpcomingData"];
+                    "application/json": components["schemas"]["SinceData"] | components["schemas"]["QuestionData"] | components["schemas"]["SummaryData"] | components["schemas"]["DevelopmentsData"] | components["schemas"]["DirectionData"] | components["schemas"]["WatchlistData"] | components["schemas"]["UpcomingData"] | components["schemas"]["IndicatorData"];
                 };
             };
             /** @description Validation Error */
@@ -4482,7 +4568,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": (components["schemas"]["SinceData"] | components["schemas"]["QuestionData"] | components["schemas"]["SummaryData"] | components["schemas"]["DevelopmentsData"] | components["schemas"]["DirectionData"] | components["schemas"]["WatchlistData"] | components["schemas"]["UpcomingData"])[];
+                    "application/json": (components["schemas"]["SinceData"] | components["schemas"]["QuestionData"] | components["schemas"]["SummaryData"] | components["schemas"]["DevelopmentsData"] | components["schemas"]["DirectionData"] | components["schemas"]["WatchlistData"] | components["schemas"]["UpcomingData"] | components["schemas"]["IndicatorData"])[];
                 };
             };
             /** @description Validation Error */

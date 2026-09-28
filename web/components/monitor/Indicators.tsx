@@ -167,26 +167,44 @@ const PAD = 6;
 // Room the tooltip needs right of the point; with less, it opens to the left.
 const TIP_ROOM = 260;
 
-/**
- * The series over the 12 months to the run date on a fixed time axis, so a monthly or quarterly
- * line stops at its last release and the gap shows the reporting lag. Shape only: no axes; the
- * pointer snaps a crosshair to the nearest observation and a tooltip gives its value and date.
- * A peg's distance is drawn against its zero line.
- */
-function IndicatorLine({ ind, name, asOf }: { ind: Indicator; name: string; asOf: string }) {
-  const [hover, setHover] = useState<{ i: number; x: number; y: number } | null>(null);
-  const s = ind.series;
-  const pts = ind.line;
-  if (pts.length === 0) return <span className="ind-line" />;
+/** The 12 months to the run date as a time axis: its start, and a date's place on it in percent. */
+export function yearAxis(asOf: string) {
   const end = day(asOf);
   const start = new Date(end.getFullYear() - 1, end.getMonth(), end.getDate());
   const span = end.getTime() - start.getTime();
+  return { start, span, x: (iso: string) => ((day(iso).getTime() - start.getTime()) / span) * 100 };
+}
+
+/**
+ * The series over the 12 months to the run date on a fixed time axis, so a monthly or quarterly
+ * line stops at its last release and the gap shows the reporting lag. No axes unless `labels`
+ * puts the scale's top and bottom values at its left; the pointer snaps a crosshair to the
+ * nearest observation and a tooltip gives its value and date. A peg's distance is drawn against
+ * its zero line. `className` sizes it: `ind-line` alone is the list-row height.
+ */
+export function IndicatorLine({
+  ind,
+  name,
+  asOf,
+  className = "ind-line",
+  labels = false,
+}: {
+  ind: Indicator;
+  name: string;
+  asOf: string;
+  className?: string;
+  labels?: boolean;
+}) {
+  const [hover, setHover] = useState<{ i: number; x: number; y: number } | null>(null);
+  const s = ind.series;
+  const pts = ind.line;
+  if (pts.length === 0) return <span className={className} />;
+  const { start, span, x } = yearAxis(asOf);
   const values = pts.map((p) => p.value);
   if (s.baseline !== null) values.push(s.baseline);
   let lo = Math.min(...values);
   let hi = Math.max(...values);
   if (hi === lo) [lo, hi] = [lo - 1, hi + 1];
-  const x = (iso: string) => ((day(iso).getTime() - start.getTime()) / span) * 100;
   const y = (v: number) => PAD + ((hi - v) / (hi - lo)) * (100 - 2 * PAD);
   const last = pts[pts.length - 1];
   const at = hover ? pts[hover.i] : null;
@@ -207,7 +225,7 @@ function IndicatorLine({ ind, name, asOf }: { ind: Indicator; name: string; asOf
   const range = `${seriesValue(s, Math.min(...pts.map((p) => p.value)))} to ${seriesValue(s, Math.max(...pts.map((p) => p.value)))}`;
   return (
     <span
-      className="ind-line"
+      className={className}
       role="img"
       aria-label={`${s.name}, 12 months to ${shortDate(asOf)}: ${range}, latest ${seriesValue(s, last.value)}`}
       onPointerMove={onMove}
@@ -227,6 +245,12 @@ function IndicatorLine({ ind, name, asOf }: { ind: Indicator; name: string; asOf
           vectorEffect="non-scaling-stroke"
         />
       </svg>
+      {labels && (
+        <>
+          <span className="ind-y top">{seriesValue(s, hi)}</span>
+          <span className="ind-y bottom">{seriesValue(s, lo)}</span>
+        </>
+      )}
       {/* Dots sit outside the stretched SVG so they stay round. */}
       <span className="spark-dot" style={{ left: `${x(last.period)}%`, top: `${y(last.value)}%` }} />
       {hover && at && (

@@ -1,6 +1,6 @@
 "use client";
 
-// The seven widget bodies. Each renders one widget's data from the API at its size, inside a
+// The eight widget bodies (the Indicator's is in IndicatorBody.tsx). Each renders one widget's data from the API at its size, inside a
 // fixed-height face, so each size shows only as many rows as fit without cutting a line.
 import Link from "next/link";
 import { useState, type KeyboardEvent } from "react";
@@ -15,6 +15,7 @@ import { useEvidenceHref } from "@/components/shell/Evidence";
 import { SubjectLink } from "@/components/shell/SubjectLink";
 import { hasUnreviewed } from "@/components/monitor/WhatChanged";
 
+import { IndicatorBody } from "./IndicatorBody";
 import { DevelopmentRow, Head, StateBadge, StateWords, stateText } from "./parts";
 import { SubjectIcon } from "@/components/ui/SubjectIcon";
 
@@ -41,6 +42,8 @@ export function WidgetBody({ data, ...props }: BodyProps & { data: WidgetData })
       return <WatchlistBody data={data} {...props} />;
     case "upcoming":
       return <UpcomingBody data={data} {...props} />;
+    case "indicator":
+      return <IndicatorBody data={data} {...props} />;
   }
 }
 

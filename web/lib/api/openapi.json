@@ -1057,6 +1057,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/UpcomingData"
+                    },
+                    {
+                      "$ref": "#/components/schemas/IndicatorData"
                     }
                   ],
                   "title": "Response Get Widget Data",
@@ -1069,7 +1072,8 @@
                       "developments": "#/components/schemas/DevelopmentsData",
                       "direction": "#/components/schemas/DirectionData",
                       "watchlist": "#/components/schemas/WatchlistData",
-                      "upcoming": "#/components/schemas/UpcomingData"
+                      "upcoming": "#/components/schemas/UpcomingData",
+                      "indicator": "#/components/schemas/IndicatorData"
                     }
                   }
                 }
@@ -1397,6 +1401,9 @@
                       },
                       {
                         "$ref": "#/components/schemas/UpcomingData"
+                      },
+                      {
+                        "$ref": "#/components/schemas/IndicatorData"
                       }
                     ],
                     "discriminator": {
@@ -1408,7 +1415,8 @@
                         "developments": "#/components/schemas/DevelopmentsData",
                         "direction": "#/components/schemas/DirectionData",
                         "watchlist": "#/components/schemas/WatchlistData",
-                        "upcoming": "#/components/schemas/UpcomingData"
+                        "upcoming": "#/components/schemas/UpcomingData",
+                        "indicator": "#/components/schemas/IndicatorData"
                       }
                     }
                   },
@@ -3461,6 +3469,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/UpcomingWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/IndicatorWidget"
                 }
               ],
               "discriminator": {
@@ -3468,6 +3479,7 @@
                 "mapping": {
                   "developments": "#/components/schemas/DevelopmentsWidget",
                   "direction": "#/components/schemas/DirectionWidget",
+                  "indicator": "#/components/schemas/IndicatorWidget",
                   "question": "#/components/schemas/QuestionWidget",
                   "since": "#/components/schemas/SinceWidget",
                   "summary": "#/components/schemas/SummaryWidget",
@@ -3565,6 +3577,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/UpcomingWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/IndicatorWidget"
                 }
               ],
               "discriminator": {
@@ -3572,6 +3587,7 @@
                 "mapping": {
                   "developments": "#/components/schemas/DevelopmentsWidget",
                   "direction": "#/components/schemas/DirectionWidget",
+                  "indicator": "#/components/schemas/IndicatorWidget",
                   "question": "#/components/schemas/QuestionWidget",
                   "since": "#/components/schemas/SinceWidget",
                   "summary": "#/components/schemas/SummaryWidget",
@@ -5244,6 +5260,54 @@
         ],
         "title": "IndicatorChange"
       },
+      "IndicatorData": {
+        "properties": {
+          "widget_id": {
+            "type": "string",
+            "title": "Widget Id"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "type": {
+            "type": "string",
+            "const": "indicator",
+            "title": "Type"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "indicator": {
+            "$ref": "#/components/schemas/SubjectIndicator",
+            "description": "As of the run date"
+          },
+          "documents_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Documents From",
+            "description": "The first document's day: none before it"
+          },
+          "developments": {
+            "items": {
+              "$ref": "#/components/schemas/MarkedDevelopment"
+            },
+            "type": "array",
+            "title": "Developments",
+            "description": "Large only: the subject's Needs attention and Watch developments dated in the 12 months to the run date, newest first"
+          }
+        },
+        "type": "object",
+        "required": [
+          "widget_id",
+          "run",
+          "type",
+          "subject",
+          "indicator",
+          "documents_from",
+          "developments"
+        ],
+        "title": "IndicatorData"
+      },
       "IndicatorEvent": {
         "properties": {
           "statement": {
@@ -5285,6 +5349,79 @@
         "title": "IndicatorEvent",
         "description": "A detector event behind an indicator's status."
       },
+      "IndicatorSettings": {
+        "properties": {
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id",
+            "description": "Alone, the subject's primary series is shown (a peg first); with series_id, the subject it is shown for, which the series must belong to"
+          },
+          "series_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Series Id",
+            "description": "A series id from list_subjects, e.g. \"derived.usdc.peg\"; empty for the subject's primary series"
+          }
+        },
+        "type": "object",
+        "title": "IndicatorSettings",
+        "description": "A series id, or a subject id alone for the subject's primary series. A series given\nwithout a subject is shown for the subject it belongs to."
+      },
+      "IndicatorWidget": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Order",
+            "description": "Position in the dashboard; the layout packs by order"
+          },
+          "type": {
+            "type": "string",
+            "const": "indicator",
+            "title": "Type"
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "S",
+              "M",
+              "L"
+            ],
+            "title": "Size"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/IndicatorSettings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "order",
+          "type",
+          "size",
+          "settings"
+        ],
+        "title": "IndicatorWidget"
+      },
       "JsonValue": {},
       "LinePoint": {
         "properties": {
@@ -5304,6 +5441,35 @@
           "value"
         ],
         "title": "LinePoint"
+      },
+      "MarkedDevelopment": {
+        "properties": {
+          "development": {
+            "$ref": "#/components/schemas/DevelopmentSummary"
+          },
+          "on": {
+            "type": "string",
+            "format": "date",
+            "title": "On",
+            "description": "Where it sits: its event date when in the lane's 12 months, else its first publication"
+          },
+          "badge": {
+            "type": "string",
+            "enum": [
+              "needs_attention",
+              "watch"
+            ],
+            "title": "Badge"
+          }
+        },
+        "type": "object",
+        "required": [
+          "development",
+          "on",
+          "badge"
+        ],
+        "title": "MarkedDevelopment",
+        "description": "A development marked on an indicator's lane."
       },
       "MaterialityLevel": {
         "properties": {
@@ -8997,6 +9163,9 @@
               },
               {
                 "$ref": "#/components/schemas/UpcomingWidget"
+              },
+              {
+                "$ref": "#/components/schemas/IndicatorWidget"
               }
             ],
             "title": "Widget",
@@ -9005,6 +9174,7 @@
               "mapping": {
                 "developments": "#/components/schemas/DevelopmentsWidget",
                 "direction": "#/components/schemas/DirectionWidget",
+                "indicator": "#/components/schemas/IndicatorWidget",
                 "question": "#/components/schemas/QuestionWidget",
                 "since": "#/components/schemas/SinceWidget",
                 "summary": "#/components/schemas/SummaryWidget",
@@ -9039,7 +9209,8 @@
               "developments",
               "direction",
               "watchlist",
-              "upcoming"
+              "upcoming",
+              "indicator"
             ],
             "title": "Type"
           },
@@ -9076,6 +9247,21 @@
             "title": "Fits",
             "description": "Subject types the gallery offers it for"
           },
+          "subject_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Ids",
+            "description": "When set, only these subjects of those types have what it shows"
+          },
           "settings_schema": {
             "additionalProperties": {
               "$ref": "#/components/schemas/JsonValue"
@@ -9091,6 +9277,7 @@
           "description",
           "sizes",
           "fits",
+          "subject_ids",
           "settings_schema"
         ],
         "title": "WidgetTypeInfo"

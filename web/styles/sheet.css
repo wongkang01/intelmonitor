@@ -215,6 +215,15 @@ dialog.panel > form {
 .offer-side .seg + .btn {
   margin-top: var(--s-2);
 }
+/* The indicator's series picker spans the side column above the size picker. */
+.offer-side .series-select {
+  display: block;
+  width: 100%;
+  margin-bottom: var(--s-1);
+}
+.offer-side .series-select select {
+  width: 100%;
+}
 .offer-side h4 {
   margin: 0 0 var(--s-1);
   font-size: var(--fs-body);

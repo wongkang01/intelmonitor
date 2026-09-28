@@ -298,11 +298,12 @@ export const useTrend = (id: string) =>
 /**
  * A subject's measured series, primary then context, each with its latest value, changes over
  * 1w, 1m, 3m and 1y, percentile in its history and state. `asOf` (YYYY-MM-DD) reads only what
- * was available by then; the default is today.
+ * was available by then; the default is today. `enabled: false` leaves it idle.
  */
-export const useIndicators = (id: string, asOf?: string) =>
+export const useIndicators = (id: string, asOf?: string, enabled = true) =>
   useQuery({
     queryKey: keys.indicators(id, asOf),
+    enabled,
     queryFn: () =>
       unwrap(
         api.GET("/subjects/{subject_id}/indicators", {

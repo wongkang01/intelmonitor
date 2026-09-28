@@ -224,3 +224,44 @@ export function indicatorChange(ind: Indicator): { value: string; window: string
   // "Jun 2026" or "Q1 2026" without its year.
   return { value, window: `vs ${seriesPeriod(s, c.since).split(" ")[0]}` };
 }
+
+/** "Sep 2025". */
+export const monthYear = (d: Date) => `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+
+const FX_UNIT = /^SGD per ([A-Z]{3})$/;
+
+/**
+ * The sentence an indicator widget states under its status, written from the indicator as of the
+ * run date. A peg: how far off it is and the widest gap in the week to its latest point. Other
+ * series: the latest value with its date or period and flag, the change `indicatorChange` shows
+ * (an FX change told by the SGD's side, as the answers do), and the range of the 12-month line.
+ */
+export function indicatorSentence(ind: Indicator, asOf: string): string {
+  const s = ind.series;
+  const latest = ind.latest;
+  if (!latest) return `No data by ${shortDate(asOf)}.`;
+  const at = s.frequency === "daily" ? `on ${shortDate(latest.period)}` : `for ${seriesPeriod(s, latest.period)}`;
+  if (s.baseline !== null) {
+    const off = Math.abs(latest.value - s.baseline).toFixed(s.decimals);
+    const where = Number(off) === 0 ? `At its peg ${at}` : `${off}% ${latest.value < s.baseline ? "below" : "above"} its peg ${at}`;
+    const weekStart = day(latest.period).getTime() - 7 * 86_400_000;
+    const week = ind.line.filter((p) => day(p.period).getTime() > weekStart);
+    const widest = Math.max(...week.map((p) => Math.abs(p.value - (s.baseline ?? 0))));
+    return week.length > 1 ? `${where}; the widest gap this week was ${widest.toFixed(s.decimals)}%.` : `${where}.`;
+  }
+  const flag = ind.state === "preliminary" || ind.state === "revised" ? ` (${INDICATOR_STATE_LABEL[ind.state].toLowerCase()})` : "";
+  const currency = FX_UNIT.exec(s.unit)?.[1];
+  const parts = [`${seriesValue(s, latest.value)} ${at}${flag}`];
+  const change = indicatorChange(ind);
+  const c = ind.changes.find((x) => x.window === (s.frequency === "quarterly" ? "3m" : "1m"))?.change;
+  const window = change && (s.frequency === "daily" ? `over ${change.window}` : change.window);
+  if (change && currency && c != null) {
+    const size = Math.abs(c).toFixed(1);
+    parts.push(Number(size) === 0 ? `SGD unchanged against the ${currency} ${window}` : `SGD ${c > 0 ? "weakened" : "strengthened"} ${size}% against the ${currency} ${window}`);
+  } else if (change) {
+    parts.push(`${change.value} ${window}`);
+  }
+  const values = ind.line.map((p) => p.value);
+  const range = values.length > 1 ? `; 12-month range ${seriesValue(s, Math.min(...values))} to ${seriesValue(s, Math.max(...values))}` : "";
+  return `${parts.join(", ")}${range}.`;
+}

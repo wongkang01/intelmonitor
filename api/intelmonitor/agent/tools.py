@@ -15,6 +15,7 @@ from intelmonitor.pipeline.subjects import all_subjects, questions_for
 from intelmonitor.server import custom_questions as cq
 from intelmonitor.server.models import State
 from intelmonitor.server.queries import NoRunError, Queries, subject_links
+from intelmonitor.server.series import default_series, mapped_series
 from intelmonitor.server.widgets import CUSTOM_PREFIX, Widget, WidgetType, catalog
 from intelmonitor.store.db import connect
 
@@ -84,6 +85,9 @@ def describe(widget: Widget) -> str:
         label = _question_label(widget.settings.subject_id, widget.settings.question_id)
         name = f"{name} ({label})" if label else name
         parts.append(subjects[widget.settings.subject_id].name)
+    elif widget.type == "indicator":
+        name = f"{name} ({widget.settings.series().name})"
+        parts.append(subjects[widget.settings.subject_id or ""].name)
     elif widget.type == "watchlist":
         names = [subjects[e].name for e in widget.settings.entity_ids]
         more = f" and {len(names) - 3} more" if len(names) > 3 else ""
@@ -215,7 +219,8 @@ def _dump(widget: Widget) -> dict[str, Any]:
 
 def list_subjects(subject_ids: list[str] | None) -> ToolResult:
     """Every subject with its links and new-development counts; with `subject_ids`, those
-    subjects only, each with its standing questions and their current answer state."""
+    subjects only, each with its standing questions and their current answer state, and its listed
+    series (the default one flagged) for indicator widgets."""
     subjects = all_subjects()
     unknown = [i for i in subject_ids or [] if i not in subjects]
     if unknown:
@@ -249,6 +254,17 @@ def list_subjects(subject_ids: list[str] | None) -> ToolResult:
                     }
                     for a in q.answers(sid)
                 ]
+                default = default_series(sid)
+                row["series"] = [
+                    {
+                        "id": d.id,
+                        "name": d.name,
+                        "role": role,
+                        **({"default": True} if d == default else {}),
+                    }
+                    for d, role in mapped_series(sid)
+                    if d.listed
+                ]
             out.append(row)
         return _ok(json.dumps(out))
     except NoRunError as e:
@@ -264,6 +280,10 @@ _SETTINGS_SCHEMA: dict[str, Any] = {
     "properties": {
         "subject_id": {"type": "string", "description": "A subject id from list_subjects"},
         "question_id": {"type": "string", "description": "Standing question widgets only"},
+        "series_id": {
+            "type": "string",
+            "description": "Indicator widgets only: a series id from list_subjects",
+        },
         "entity_ids": {
             "type": "array",
             "items": {"type": "string"},
@@ -336,7 +356,8 @@ def build_server(editor: DashboardEditor) -> tuple[McpSdkServerConfig, list[str]
     @tool(
         "list_subjects",
         "List topics, groups and entities with their ids, links and new-development counts. "
-        "Pass subject_ids to also get those subjects' standing questions and answer states.",
+        "Pass subject_ids to also get those subjects' standing questions and answer states, "
+        "and their measured series for Indicator widgets.",
         {
             "type": "object",
             "properties": {"subject_ids": {"type": "array", "items": {"type": "string"}}},

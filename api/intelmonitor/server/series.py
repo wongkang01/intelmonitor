@@ -93,6 +93,27 @@ def _members(s: SeriesDef, role: SeriesRole) -> list[str]:
     return s.subjects.primary if role == "primary" else s.subjects.context
 
 
+def mapped_series(subject_id: str) -> list[tuple[SeriesDef, SeriesRole]]:
+    """The series mapped to a subject, primary then context, each in catalogue order."""
+    seed = load_series().series
+    return [(s, role) for role in _ROLES for s in seed if subject_id in _members(s, role)]
+
+
+def default_series(subject_id: str) -> SeriesDef | None:
+    """The series an indicator widget set only to a subject shows: its first listed primary
+    series, a peg before any other, else its first listed context series."""
+    listed = [(s, role) for s, role in mapped_series(subject_id) if s.listed]
+    primary = [s for s, role in listed if role == "primary"]
+    if primary:
+        return next((s for s in primary if isinstance(s.source, Deviation)), primary[0])
+    return listed[0][0] if listed else None
+
+
+def home_subject(s: SeriesDef) -> str:
+    """The subject a series belongs to: its first primary subject, else its first context one."""
+    return (s.subjects.primary or s.subjects.context)[0]
+
+
 def series_info(s: SeriesDef) -> SeriesInfo:
     by_id = {d.id: d for d in load_series().series}
     return SeriesInfo(
@@ -180,14 +201,15 @@ def _status(events: list[IndicatorEvent]) -> IndicatorStatus:
     return "needs_attention" if worst >= NEEDS_ATTENTION_LEVEL else "watch"
 
 
-def subject_indicators(conn: sqlite3.Connection, subject_id: str, as_of: date) -> SubjectIndicators:
-    """The indicators of every series mapped to the subject, from what was available by the end
-    of `as_of`: each with its status from the detector events known since the previous run or
-    still holding, and its line over the 12 months to the date."""
+def subject_indicators(
+    conn: sqlite3.Connection, subject_id: str, as_of: date, series_id: str | None = None
+) -> SubjectIndicators:
+    """The indicators of every series mapped to the subject, or only `series_id`, from what was
+    available by the end of `as_of`: each with its status from the detector events known since
+    the previous run or still holding, and its line over the 12 months to the date."""
     subject(subject_id)
-    seed = load_series().series
     mapped: list[tuple[SeriesDef, SeriesRole]] = [
-        (s, role) for role in _ROLES for s in seed if subject_id in _members(s, role)
+        (s, r) for s, r in mapped_series(subject_id) if series_id in (None, s.id)
     ]
     ids = [s.id for s, _ in mapped]
     computed = compute_indicators(conn, ids, as_of)

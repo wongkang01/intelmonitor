@@ -1,17 +1,20 @@
 "use client";
 
-// The back of a widget in edit mode: subject, question and size, applied as they change.
+// The back of a widget in edit mode: subject, question or series, and size, applied as they change.
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import type { Widget } from "@/lib/api/client";
-import { answersOptions, useAnswers, useCatalog, useSubjects } from "@/lib/api/queries";
+import { answersOptions, useAnswers, useCatalog, useIndicators, useSubjects } from "@/lib/api/queries";
 import { TYPE_PLURAL } from "@/lib/format";
 import { CustomQuestionEditor } from "@/components/custom/CustomQuestion";
+import { SeriesSelect } from "./parts";
 import {
   allowsDashboardScope,
+  defaultSeriesId,
   resize,
   setQuestion,
+  setSeries,
   setSubject,
   settingsSubject,
   SIZE_LABEL,
@@ -37,6 +40,8 @@ export function WidgetSettings({
   const info = catalog.data?.find((t) => t.type === widget.type);
   const subjectId = settingsSubject(widget);
   const answers = useAnswers(widget.type === "question" ? subjectId : null);
+  const indicators = useIndicators(widget.type === "indicator" && subjectId ? subjectId : "", undefined, widget.type === "indicator");
+  const listed = indicators.data?.indicators.filter((i) => i.series.listed) ?? [];
   const sizes: Size[] = SIZES[widget.type];
   const [editing, setEditing] = useState<string | null>(null);
   const custom = widget.type === "question" ? answers.data?.find((a) => a.question_id === widget.settings.question_id && a.custom) : undefined;
@@ -64,7 +69,7 @@ export function WidgetSettings({
             {TYPES.filter((t) => info?.fits.includes(t)).map((t) => (
               <optgroup key={t} label={TYPE_PLURAL[t]}>
                 {subjects.data
-                  ?.filter((s) => s.type === t)
+                  ?.filter((s) => s.type === t && (!info?.subject_ids || info.subject_ids.includes(s.id)))
                   .map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
@@ -90,6 +95,14 @@ export function WidgetSettings({
             ))}
           </select>
         </label>
+      )}
+      {widget.type === "indicator" && (
+        <SeriesSelect
+          listed={listed}
+          value={widget.settings.series_id ?? defaultSeriesId(listed) ?? ""}
+          onChange={(id) => onChange(setSeries(widget, id))}
+          labelled
+        />
       )}
       {custom && (
         <button type="button" className="link self-start" onClick={() => setEditing(custom.question_id)}>

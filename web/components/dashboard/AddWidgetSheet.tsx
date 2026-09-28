@@ -7,10 +7,12 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 import type { Schema, Widget } from "@/lib/api/client";
-import { useAnswers, useCatalog, useSubject, useSubjects } from "@/lib/api/queries";
+import { useAnswers, useCatalog, useIndicators, useSubject, useSubjects } from "@/lib/api/queries";
 import { plural, TYPE_LABEL, TYPE_PLURAL } from "@/lib/format";
 import {
+  defaultSeriesId,
   draftWidget,
+  indicatorOffer,
   newWidgetId,
   OFFERS,
   SIZE_LABEL,
@@ -24,6 +26,7 @@ import { CustomQuestionComposer } from "@/components/custom/CustomQuestion";
 import { PlusIcon, SearchIcon } from "@/components/ui/icons";
 import { CloseButton, Modal } from "@/components/ui/Modal";
 import { WidgetCard } from "@/components/widgets/WidgetCard";
+import { SeriesSelect } from "@/components/widgets/parts";
 import { SubjectIcon } from "@/components/ui/SubjectIcon";
 
 const TYPES: SubjectType[] = ["topic", "group", "entity"];
@@ -161,20 +164,29 @@ function Offers({
   const catalog = useCatalog();
   const detail = useSubject(subject.id);
   const answers = useAnswers(subject.id);
+  const indicators = useIndicators(subject.id);
   const [sizes, setSizes] = useState<Partial<Record<WidgetType, Size>>>({});
+  const [seriesId, setSeriesId] = useState<string | null>(null);
 
-  // Standing question widgets start on the subject's most pressing question.
+  // Standing question widgets start on the subject's most pressing question, indicators on its
+  // primary series.
   const question = answers.data?.find((a) => a.state !== "stable") ?? answers.data?.[0];
+  const listed = indicators.data?.indicators.filter((i) => i.series.listed) ?? [];
   const context: DraftContext = {
     questionId: question?.question_id ?? null,
     entityIds:
       subject.type === "entity" ? [subject.id] : (detail.data?.links.entities.map((e) => e.id) ?? []),
+    seriesId: seriesId ?? defaultSeriesId(listed),
   };
   const offers = OFFERS[subject.type].filter(([type]) =>
     catalog.data?.find((t) => t.type === type)?.fits.includes(subject.type),
   );
+  const indicator: [WidgetType, Size] = ["indicator", "S"];
+  const place = indicatorOffer(listed);
+  const suggested = [...(place === "suggested" ? [indicator] : []), ...offers.slice(0, SUGGESTED)];
+  const more = [...offers.slice(SUGGESTED), ...(place === "more" ? [indicator] : [])];
 
-  const offer = ([type, defaultSize]: (typeof offers)[number]) => {
+  const offer = ([type, defaultSize]: [WidgetType, Size]) => {
     const info = catalog.data?.find((t) => t.type === type);
     const size = sizes[type] ?? defaultSize;
     const draft = draftWidget(type, subject.id, size, context);
@@ -183,6 +195,9 @@ function Offers({
       <section key={type} className="offer" aria-label={info?.name}>
         <div className="offer-side">
           <h4>{info?.name}</h4>
+          {type === "indicator" && (
+            <SeriesSelect listed={listed} value={context.seriesId ?? ""} onChange={setSeriesId} />
+          )}
           <div className="seg" role="group" aria-label={`${info?.name} size`}>
             {allowed.map((s) => (
               <button
@@ -216,9 +231,9 @@ function Offers({
   return (
     <div className="offers">
       <p className="og">Suggested</p>
-      {offers.slice(0, SUGGESTED).map(offer)}
+      {suggested.map(offer)}
       <p className="og">More widgets</p>
-      {offers.slice(SUGGESTED).map(offer)}
+      {more.map(offer)}
       <CustomOffer subject={subject} onAdd={onAdd} />
     </div>
   );

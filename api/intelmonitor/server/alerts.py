@@ -7,7 +7,7 @@ from intelmonitor.server.queries import MATERIAL_LEVEL, Queries
 from intelmonitor.server.triage import followed_ids, mark_read
 
 
-def _watched(q: Queries) -> set[str]:
+def watched_ids(q: Queries) -> set[str]:
     """Developments cited by a standing question answer in the Watch state, built-in or kept."""
     rows = q.conn.execute(
         "SELECT j.value AS id FROM question_answers a, json_each(a.development_ids) j "
@@ -18,6 +18,15 @@ def _watched(q: Queries) -> set[str]:
         (q.run.id, q.run.id),
     )
     return {str(r["id"]) for r in rows}
+
+
+def alert_badge(d: DevelopmentSummary, watched: set[str]) -> AlertBadge | None:
+    """Needs attention, or Watch for a Notable development or one a Watch answer cites."""
+    if d.needs_attention:
+        return "needs_attention"
+    if d.materiality_level == MATERIAL_LEVEL or d.id in watched:
+        return "watch"
+    return None
 
 
 def _meta(d: DevelopmentSummary) -> str:
@@ -31,15 +40,13 @@ def _meta(d: DevelopmentSummary) -> str:
 
 def alerts(q: Queries) -> Alerts:
     followed = followed_ids(q.conn)
-    watched = _watched(q)
+    watched = watched_ids(q)
     flagged: list[tuple[AlertBadge, DevelopmentSummary]] = []
     for d in q.developments_in(followed) if followed else []:
         if d.change is None or q.is_dismissed(d.id):
             continue
-        if d.needs_attention:
-            flagged.append(("needs_attention", d))
-        elif d.materiality_level == MATERIAL_LEVEL or d.id in watched:
-            flagged.append(("watch", d))
+        if badge := alert_badge(d, watched):
+            flagged.append((badge, d))
     # Stable sort keeps display order (most material, most recent) within each badge.
     flagged.sort(key=lambda t: t[0] != "needs_attention")
     items = [

@@ -15,11 +15,15 @@ export const SIZES: { [T in WidgetType]: WidgetOf<T>["size"][] } = {
   direction: ["S", "M"],
   watchlist: ["M", "L"],
   upcoming: ["S", "M"],
+  indicator: ["S", "M", "L"],
 };
 
 export const SIZE_LABEL: Record<Size, string> = { S: "Small", M: "Medium", L: "Large" };
 
-/** Gallery order and default size per subject type; the first two are tagged Suggested. */
+/**
+ * Gallery order and default size per subject type; the first two are tagged Suggested. Indicators
+ * are offered apart from these, by the series a subject has (see `indicatorOffer`).
+ */
 export const OFFERS: Record<SubjectType, [WidgetType, Size][]> = {
   topic: [
     ["since", "L"],
@@ -57,6 +61,30 @@ export const newWidgetId = () => `w-${crypto.randomUUID().slice(0, 8)}`;
 export interface DraftContext {
   questionId: string | null;
   entityIds: string[];
+  /** The series an indicator shows; null when the subject has none. */
+  seriesId: string | null;
+}
+
+type ListedSeries = { role: "primary" | "context"; series: { id: string; baseline: number | null } };
+
+/**
+ * Where the gallery offers an indicator, given the subject's listed series: first among Suggested
+ * for a subject with a primary series of its own, last under More widgets for one with context
+ * series only, else nowhere.
+ */
+export function indicatorOffer(listed: ListedSeries[]): "suggested" | "more" | null {
+  if (listed.some((i) => i.role === "primary")) return "suggested";
+  return listed.length > 0 ? "more" : null;
+}
+
+/**
+ * The series an indicator shows when set only to its subject, as the API resolves it
+ * (`default_series` in api/intelmonitor/server/series.py): the first primary series, a peg (a
+ * series with a baseline) before any other, else the first context series.
+ */
+export function defaultSeriesId(listed: ListedSeries[]): string | null {
+  const primary = listed.filter((i) => i.role === "primary");
+  return (primary.find((i) => i.series.baseline !== null) ?? primary[0] ?? listed[0])?.series.id ?? null;
 }
 
 /**
@@ -102,6 +130,14 @@ export function draftWidget(
       };
     case "upcoming":
       return { ...base, type, size: fit(SIZES.upcoming, size), settings: { subject_id: subjectId } };
+    case "indicator":
+      if (!context.seriesId) return null;
+      return {
+        ...base,
+        type,
+        size: fit(SIZES.indicator, size),
+        settings: { subject_id: subjectId, series_id: context.seriesId },
+      };
   }
 }
 
@@ -121,6 +157,8 @@ export function resize(widget: Widget, size: Size): Widget {
       return { ...widget, size: fit(SIZES.watchlist, size) };
     case "upcoming":
       return { ...widget, size: fit(SIZES.upcoming, size) };
+    case "indicator":
+      return { ...widget, size: fit(SIZES.indicator, size) };
   }
 }
 
@@ -129,7 +167,10 @@ export function settingsSubject(widget: Widget): string | null {
   return widget.type === "watchlist" ? null : (widget.settings.subject_id ?? null);
 }
 
-/** Points a widget at another subject. Question widgets also need the question, so use setQuestion. */
+/**
+ * Points a widget at another subject. Question widgets also need the question, so use setQuestion;
+ * an indicator moves to the new subject's primary series.
+ */
 export function setSubject(widget: Widget, subjectId: string | null): Widget {
   switch (widget.type) {
     case "since":
@@ -139,10 +180,17 @@ export function setSubject(widget: Widget, subjectId: string | null): Widget {
     case "direction":
     case "upcoming":
       return subjectId ? { ...widget, settings: { subject_id: subjectId } } : widget;
+    case "indicator":
+      return subjectId ? { ...widget, settings: { subject_id: subjectId, series_id: null } } : widget;
     case "question":
     case "watchlist":
       return widget;
   }
+}
+
+/** Points an indicator at another of its subject's series. */
+export function setSeries(widget: Widget, seriesId: string): Widget {
+  return widget.type === "indicator" ? { ...widget, settings: { ...widget.settings, series_id: seriesId } } : widget;
 }
 
 export function setQuestion(widget: Widget, subjectId: string, questionId: string): Widget {

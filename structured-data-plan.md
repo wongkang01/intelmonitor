@@ -322,6 +322,33 @@ S shows the value, change and state; M adds a 12-month line; L adds developments
 The widget gallery suggests each subject's primary series; the Generate agent's `add_widget` tool gets the new type through its schema.
 Mocked first, together with F4.
 
+Built (direction B "State first" in `mocks/indicators.html`):
+
+- `IndicatorWidget` in `api/intelmonitor/server/widgets.py`, sizes S, M and L; settings `subject_id` and `series_id`, both optional, at least one set.
+  A subject alone shows its default series: the first listed primary series, a peg before any other, else its first listed context series (DBS shows the system loan-to-deposit ratio).
+  A series alone is shown for its first primary subject, which the settings fill in; a series and a subject must be mapped to each other, and only listed series are accepted.
+- `IndicatorData`: the subject, its `SubjectIndicator` for the series as of the run date (F4's endpoint code, now able to compute one series), `documents_from` (the earliest stored document's day, 27 Jul 2026) and the developments for the lane.
+  The lane's developments are the subject's Needs attention and Watch developments, as the alerts badge them (`alert_badge` in `server/alerts.py`: Significant or above, Notable, or cited by a Watch answer), dismissed ones left out, each at its event date when that falls in the 12 months to the run date, else at its first publication, newest first.
+  Every size gets them, since widget data is cached across resizes.
+- The catalog entry carries `subject_ids`, the subjects with a listed series, so edit mode's subject picker lists only those.
+- `components/widgets/IndicatorBody.tsx`: the head names the series and links its subject; the answer is the status word in its color (Stable, Watch, Needs attention from the detectors, as in F4), or No data and Stale in grey.
+  The sentence is written by `indicatorSentence` in `web/lib/format.ts`: a peg as its distance from the peg with the widest gap in the week to its latest point ("0.01% below its peg on 24 Sep; the widest gap this week was 0.04%"); other series as the latest value with its date or period and flag, F4's change, and the range of the 12-month line ("$183.4B on 23 Sep, +0.1% over 1 month; 12-month range $173.0B to $190.4B").
+  An FX change is told by the SGD's side, as in the answers ("SGD strengthened 0.3% against the MYR over 1 month").
+- S adds a footer: See data opens the subject's Indicators section (`/monitors/<id>#indicators`), or See development when a detector event with a development sets the status; the providers sit right.
+  M puts F4's line beside the sentence; L puts it under the sentence with the scale's top and bottom values at its left, then the lane, the axis dates and the two latest marked developments as rows.
+  The line is F4's `IndicatorLine`, exported with a size class and optional scale labels, with the same crosshair readout.
+- The lane has one marker per day, oldest first so a later day's marker sits on top where the 20 by 44 px hit areas overlap; a marker opens the day's most pressing development in the evidence drawer, and its tooltip lists up to three titles, each with its status and first publication date.
+  Hovering a marker underlines its row and hovering a row lights its marker.
+- Differs from the mock: "No documents before 27 Jul" sits on the axis row, ending where the documents start, not in the lane.
+  Markers at event dates before the first document (events reported later, such as Tether's October 2025 freeze reported on 2 Sep) fall in that stretch and would cross the words.
+  The gallery's series picker lists listed series only (the mock also offered prices and per-chain supplies, which F4 keeps off the rows).
+- Gallery: a subject with a primary series gets Indicator first among Suggested, set to its default series, with a series picker (Primary and Context groups) above the size picker, so Circle offers its peg and then its supply; a subject with context series only gets it last under More widgets; a subject with none (Maybank) gets none.
+  Edit mode's settings face has Subject and Series pickers; a new subject resets the series to its default.
+- Generate: `add_widget` takes the type from `WidgetType` and gains `series_id` in its settings schema; the catalog in the system prompt describes the settings, and `list_subjects` with `subject_ids` lists each subject's listed series with its role, the default flagged.
+  "add a USDC peg widget" adds "Indicator (USDC off its USD peg), small, Circle".
+- The walkthrough's last step adds a dashboard with Tether's indicator set by subject and checks it shows the USDT peg as of the run with the sentence from `indicatorSentence`; in the gallery, Circle's first suggestion is the indicator on its peg with its supply as the second primary option; supply added at Large saves `{subject_id: circle, series_id: llama.usdc.supply}` and shows its scale, the no-documents axis label, one marker per marked day with the tooltip and linked row, and the latest rows; See data opens Tether's Indicators; Maybank has no Indicator offer.
+  It writes `indicator-widget.json`.
+
 ### F6. Trend tab on real series
 
 This replaces the document-count trend mocks.

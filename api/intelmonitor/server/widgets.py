@@ -1,14 +1,18 @@
 """Dashboard spec and widgets. One settings schema per widget type drives the gallery, manual
 edits and the Generate agent; `widget_data` fills a widget from the latest run."""
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated, Literal, Self, get_args
 
 from pydantic import BaseModel, Field, JsonValue, model_validator
 
+from intelmonitor.pipeline.detectors import corpus_start
+from intelmonitor.pipeline.indicators import months_before
 from intelmonitor.pipeline.subjects import all_subjects, questions_for
-from intelmonitor.seed import SubjectType
+from intelmonitor.seed import SeriesDef, SubjectType, load_series
+from intelmonitor.server.alerts import alert_badge, watched_ids
 from intelmonitor.server.models import (
+    AlertBadge,
     DevelopmentSummary,
     EntityId,
     QuestionAnswerView,
@@ -28,6 +32,13 @@ from intelmonitor.server.queries import (
     week_spans,
     weekly_counts,
     worst_state,
+)
+from intelmonitor.server.series import (
+    SubjectIndicator,
+    default_series,
+    home_subject,
+    mapped_series,
+    subject_indicators,
 )
 
 Size = Literal["S", "M", "L"]
@@ -76,6 +87,52 @@ class WatchlistSettings(BaseModel):
 
 class UpcomingSettings(BaseModel):
     subject_id: SubjectId
+
+
+def _listed(subject_id: str) -> list[SeriesDef]:
+    return [s for s, _ in mapped_series(subject_id) if s.listed]
+
+
+class IndicatorSettings(BaseModel):
+    """A series id, or a subject id alone for the subject's primary series. A series given
+    without a subject is shown for the subject it belongs to."""
+
+    subject_id: SubjectId | None = Field(
+        default=None,
+        description="Alone, the subject's primary series is shown (a peg first); with "
+        "series_id, the subject it is shown for, which the series must belong to",
+    )
+    series_id: str | None = Field(
+        default=None,
+        description='A series id from list_subjects, e.g. "derived.usdc.peg"; empty for the '
+        "subject's primary series",
+    )
+
+    @model_validator(mode="after")
+    def _resolve(self) -> Self:
+        if self.series_id is None:
+            if self.subject_id is None:
+                raise ValueError("set series_id, subject_id or both")
+            if default_series(self.subject_id) is None:
+                raise ValueError(f"{self.subject_id!r} has no measured series")
+            return self
+        s = next((s for s in load_series().series if s.id == self.series_id), None)
+        if s is None or not s.listed:
+            raise ValueError(f"{self.series_id!r} is not a listed series")
+        if self.subject_id is None:
+            self.subject_id = home_subject(s)
+        elif s not in _listed(self.subject_id):
+            raise ValueError(f"{self.series_id!r} is not a series of {self.subject_id!r}")
+        return self
+
+    def series(self) -> SeriesDef:
+        """The series shown: the one set, else the subject's default."""
+        if self.series_id is not None:
+            return next(s for s in load_series().series if s.id == self.series_id)
+        assert self.subject_id is not None
+        found = default_series(self.subject_id)
+        assert found is not None
+        return found
 
 
 # ---- widgets
@@ -128,6 +185,12 @@ class UpcomingWidget(_Widget):
     settings: UpcomingSettings
 
 
+class IndicatorWidget(_Widget):
+    type: Literal["indicator"]
+    size: Literal["S", "M", "L"]
+    settings: IndicatorSettings
+
+
 Widget = Annotated[
     SinceWidget
     | QuestionWidget
@@ -135,11 +198,19 @@ Widget = Annotated[
     | DevelopmentsWidget
     | DirectionWidget
     | WatchlistWidget
-    | UpcomingWidget,
+    | UpcomingWidget
+    | IndicatorWidget,
     Field(discriminator="type"),
 ]
 WidgetType = Literal[
-    "since", "question", "summary", "developments", "direction", "watchlist", "upcoming"
+    "since",
+    "question",
+    "summary",
+    "developments",
+    "direction",
+    "watchlist",
+    "upcoming",
+    "indicator",
 ]
 
 
@@ -192,6 +263,9 @@ class WidgetTypeInfo(BaseModel):
     description: str
     sizes: list[Size]
     fits: list[SubjectType] = Field(description="Subject types the gallery offers it for")
+    subject_ids: list[str] | None = Field(
+        description="When set, only these subjects of those types have what it shows"
+    )
     settings_schema: dict[str, JsonValue]
 
 
@@ -210,7 +284,17 @@ _CATALOG: list[tuple[type[_Widget], type[BaseModel], str, str, list[SubjectType]
      ["group", "entity"]),
     (UpcomingWidget, UpcomingSettings, "Upcoming", "Deadlines and effective dates",
      ["topic", "group", "entity"]),
+    (IndicatorWidget, IndicatorSettings, "Indicator",
+     "A measured series: its state, latest value and 12-month line, with developments on a lane "
+     "at L", ["topic", "group", "entity"]),
 ]  # fmt: skip
+
+
+def _subjects_for(widget: type[_Widget]) -> list[str] | None:
+    """The subjects a widget type is limited to: indicators need a listed series."""
+    if widget is IndicatorWidget:
+        return [i for i in all_subjects() if default_series(i) is not None]
+    return None
 
 
 def catalog() -> list[WidgetTypeInfo]:
@@ -222,6 +306,7 @@ def catalog() -> list[WidgetTypeInfo]:
                 "description": desc,
                 "sizes": get_args(widget.model_fields["size"].annotation),
                 "fits": fits,
+                "subject_ids": _subjects_for(widget),
                 "settings_schema": settings.model_json_schema(),
             }
         )
@@ -302,6 +387,28 @@ class UpcomingData(_Data):
     items: list[UpcomingItem]
 
 
+class MarkedDevelopment(BaseModel):
+    """A development marked on an indicator's lane."""
+
+    development: DevelopmentSummary
+    on: date = Field(
+        description="Where it sits: its event date when in the lane's 12 months, else its first "
+        "publication"
+    )
+    badge: AlertBadge
+
+
+class IndicatorData(_Data):
+    type: Literal["indicator"]
+    subject: SubjectRef
+    indicator: SubjectIndicator = Field(description="As of the run date")
+    documents_from: date = Field(description="The first document's day: none before it")
+    developments: list[MarkedDevelopment] = Field(
+        description="For the Large lane: the subject's Needs attention and Watch developments "
+        "dated in the 12 months to the run date, newest first"
+    )
+
+
 WidgetData = Annotated[
     SinceData
     | QuestionData
@@ -309,7 +416,8 @@ WidgetData = Annotated[
     | DevelopmentsData
     | DirectionData
     | WatchlistData
-    | UpcomingData,
+    | UpcomingData
+    | IndicatorData,
     Field(discriminator="type"),
 ]
 
@@ -380,6 +488,8 @@ def widget_data(q: Queries, widget: Widget, dashboard_subject_ids: list[str]) ->
                 subject=subject_ref(s.subject_id),
                 items=q.upcoming([s.subject_id]),
             )
+        case IndicatorWidget(settings=s):
+            return indicator(q, widget.id, s)
 
 
 def direction(q: Queries, widget_id: str, subject_id: str) -> DirectionData:
@@ -415,6 +525,48 @@ def direction(q: Queries, widget_id: str, subject_id: str) -> DirectionData:
             f"{previous:.1f} a week over the three before"
         ),
     )
+
+
+def indicator(q: Queries, widget_id: str, settings: IndicatorSettings) -> IndicatorData:
+    """The series as of the run date and the developments for its lane. Every size gets them,
+    since widget data is cached across resizes."""
+    assert settings.subject_id is not None
+    series = settings.series()
+    as_of = q.run.as_of
+    shown = subject_indicators(q.conn, settings.subject_id, as_of, series.id).indicators[0]
+    return IndicatorData(
+        widget_id=widget_id,
+        run=q.run,
+        type="indicator",
+        subject=subject_ref(settings.subject_id),
+        indicator=shown,
+        documents_from=documents_from(q, as_of),
+        developments=marked(q, settings.subject_id, as_of),
+    )
+
+
+def documents_from(q: Queries, as_of: date) -> date:
+    """The day of the earliest stored document, else the corpus start: the lane is empty before
+    it because nothing was collected, not because nothing happened."""
+    row = q.conn.execute("SELECT min(substr(published_at, 1, 10)) FROM source_documents").fetchone()
+    return date.fromisoformat(row[0]) if row[0] else corpus_start(q.conn, as_of)
+
+
+def marked(q: Queries, subject_id: str, as_of: date) -> list[MarkedDevelopment]:
+    """The subject's developments that need attention or are to watch, as the alerts rank them,
+    each at its event date within the 12 months to `as_of`, else at its first publication.
+    Dismissed ones are left out."""
+    start = months_before(as_of, 12)
+    watched = watched_ids(q)
+    out: list[MarkedDevelopment] = []
+    for d in q.developments_in([subject_id]):
+        badge = alert_badge(d, watched)
+        if badge is None or q.is_dismissed(d.id):
+            continue
+        on = d.event_date if d.event_date and start <= d.event_date <= as_of else d.first_published
+        if start <= on <= as_of:
+            out.append(MarkedDevelopment(development=d, on=on, badge=badge))
+    return sorted(out, key=lambda m: m.on, reverse=True)
 
 
 def watch(q: Queries, entity_id: str) -> WatchlistEntry:

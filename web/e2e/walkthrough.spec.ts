@@ -8,7 +8,17 @@ import path from "node:path";
 
 import { api, API_URL, type Schema } from "../lib/api/client";
 import { listQuery } from "../lib/developments";
-import { answerText, changeCounts, indicatorChange, plural, seriesPeriod, seriesValue, shortDate, STATE_LABEL } from "../lib/format";
+import {
+  answerText,
+  changeCounts,
+  indicatorChange,
+  indicatorSentence,
+  plural,
+  seriesPeriod,
+  seriesValue,
+  shortDate,
+  STATE_LABEL,
+} from "../lib/format";
 
 import { runDir, screenshotName, STEPS } from "./steps";
 
@@ -1366,6 +1376,99 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       writeFileSync(path.join(dir, "monitor-indicators.json"), JSON.stringify({ run: latest, ocbc, fed }, null, 2));
       await page.goto("/monitors/ocbc");
       await page.locator("h2#indicators").scrollIntoViewIfNeeded();
+    });
+
+    await step(STEPS[20], async () => {
+      // An indicator set only to a subject shows its primary series, a peg first
+      // (structured-data-plan.md, F5); values are as of the run date, the sentence written by code.
+      const created = await unwrap(
+        api.POST("/dashboards", {
+          body: {
+            name: `E2E Indicator ${stamp}`,
+            subject_ids: ["tether", "circle"],
+            widgets: [{ id: "peg", order: 0, type: "indicator", size: "S", settings: { subject_id: "tether" } }],
+          },
+        }),
+      );
+      cleanups.push(() => deleted(api.DELETE("/dashboards/{dashboard_id}", { params: { path: { dashboard_id: created.id } } })));
+      const pegData = await unwrap(api.POST("/widgets/data", { body: { widget: created.widgets[0] } }));
+      if (pegData.type !== "indicator") throw new Error("the indicator widget returned other data");
+      expect(pegData.indicator.series.id).toBe("derived.usdt.peg");
+      expect(pegData.run.id).toBe(latest.id);
+      expect(pegData.indicator.latest?.available_at.slice(0, 10) ?? "", "the value was known by the run date").not.toBe("");
+      expect((pegData.indicator.latest?.available_at.slice(0, 10) ?? "") <= latest.as_of).toBe(true);
+      await page.goto(`/dashboards/${created.id}`);
+      const peg = page.locator('[data-widget-id="peg"]');
+      await expect(peg.locator(".wt")).toHaveText("USDT off its USD peg");
+      await expect(peg.locator(".wm")).toHaveText("Tether");
+      await expect(peg.locator(".ans")).toHaveText(STATE_LABEL[pegData.indicator.status]);
+      await expect(peg.locator(".w-text")).toHaveText(indicatorSentence(pegData.indicator, latest.as_of));
+      await expect(peg.locator(".wf .w-meta")).toHaveText(pegData.indicator.series.providers.join(", "));
+
+      // The gallery suggests Circle's own series first, the peg selected and supply beside it.
+      await page.getByRole("button", { name: "Add widget", exact: true }).click();
+      const sheet = page.getByRole("dialog", { name: "Add widget" });
+      await sheet.locator("button.subj", { has: page.getByText("Circle", { exact: true }) }).click();
+      await expect(sheet.getByRole("heading", { level: 3 })).toHaveText("Circle");
+      const offer = sheet.locator("section.offer").first();
+      await expect(offer).toHaveAttribute("aria-label", "Indicator");
+      const series = offer.getByLabel("Series");
+      await expect(series).toHaveValue("derived.usdc.peg");
+      await expect(series.locator('optgroup[label="Primary"] option')).toHaveText(["USDC off its USD peg", "USDC circulating supply"]);
+      await expect(offer.locator(".wt")).toHaveText("USDC off its USD peg");
+      await series.selectOption("llama.usdc.supply");
+      await offer.getByRole("button", { name: "Large" }).click();
+      await expect(offer.locator(".w.L .wt")).toHaveText("USDC circulating supply");
+      const putUrl = new URL(`dashboards/${created.id}`, apiBase).href;
+      const saved = page.waitForResponse(isPut(putUrl));
+      await offer.getByRole("button", { name: "Add Indicator" }).click();
+      expect((await saved).ok()).toBe(true);
+      await expect(sheet).toBeHidden();
+      const after = await unwrap(api.GET("/dashboards/{dashboard_id}", { params: { path: { dashboard_id: created.id } } }));
+      const added = after.widgets.find((w) => w.id !== "peg");
+      if (added?.type !== "indicator") throw new Error("the gallery added no indicator");
+      expect(added.size).toBe("L");
+      expect(added.settings).toEqual({ subject_id: "circle", series_id: "llama.usdc.supply" });
+
+      // Large: the scale at the left, the developments lane under the line, the axis naming the
+      // stretch before the first document, and the latest marked developments as rows.
+      const supplyData = await unwrap(api.POST("/widgets/data", { body: { widget: added } }));
+      if (supplyData.type !== "indicator") throw new Error("the indicator widget returned other data");
+      const supply = page.locator(`[data-widget-id="${added.id}"]`);
+      const ind = supplyData.indicator;
+      const values = ind.line.map((p) => p.value);
+      await expect(supply.locator(".ind-y")).toHaveText([seriesValue(ind.series, Math.max(...values)), seriesValue(ind.series, Math.min(...values))]);
+      await expect(supply.locator(".ind-xa")).toContainText(`No documents before ${shortDate(supplyData.documents_from)}`);
+      await expect(supply.locator(".ind-xa")).toContainText(shortDate(latest.as_of));
+      const marks = supplyData.developments;
+      expect(marks.length, "Circle has developments to mark").toBeGreaterThan(0);
+      expect(marks.every((m) => m.on <= latest.as_of && (m.badge === "watch" || m.development.needs_attention))).toBe(true);
+      await expect(supply.locator(".ind-tk")).toHaveCount(new Set(marks.map((m) => m.on)).size);
+      await expect(supply.locator(".ind-wrows .row")).toHaveCount(Math.min(2, marks.length));
+      await expect(supply.locator(".ind-wrows .row-title").first()).toHaveText(marks[0].development.title);
+      // The latest day's marker, last in the lane so it sits on top of its neighbours.
+      const tick = supply.locator(".ind-tk").last();
+      await tick.hover();
+      const tip = page.getByRole("tooltip");
+      await expect(tip).toBeVisible();
+      await expect(tip.locator(".tip-title").first()).toHaveText(marks.find((m) => m.on === marks[0].on && m.badge === "needs_attention")?.development.title ?? marks[0].development.title);
+      await expect(supply.locator(".ind-wrows .row").first()).toHaveClass(/\bon\b/);
+
+      // See data opens the subject's Indicators section; a subject without series gets no offer.
+      await page.mouse.move(5, 5);
+      await peg.getByRole("link", { name: "See data" }).click();
+      await expect(page).toHaveURL(/\/monitors\/tether#indicators$/);
+      await expect(page.locator('[data-series-id="derived.usdt.peg"]')).toBeVisible();
+      await page.goto(`/dashboards/${created.id}`);
+      await page.getByRole("button", { name: "Add widget", exact: true }).click();
+      await sheet.locator("button.subj", { has: page.getByText("Maybank", { exact: true }) }).click();
+      await expect(sheet.getByRole("heading", { level: 3 })).toHaveText("Maybank");
+      await expect(sheet.locator("section.offer").first()).toBeVisible();
+      await expect(sheet.locator('section.offer[aria-label="Indicator"]')).toHaveCount(0);
+      await sheet.getByRole("button", { name: "Close" }).click();
+
+      writeFileSync(path.join(dir, "indicator-widget.json"), JSON.stringify({ run: latest, peg: pegData, supply: supplyData }, null, 2));
+      await supply.scrollIntoViewIfNeeded();
     });
 
     expect(pageErrors, "no uncaught errors in the page").toEqual([]);
