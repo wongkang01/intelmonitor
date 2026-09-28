@@ -21,8 +21,8 @@ from intelmonitor.store.series import Observation
 class Window:
     floor: date  # earliest period kept (`im series backfill --from`)
     start: date  # earliest period this fetch must cover; per-day requests start here
-    today: date  # the local fetch date; MAS and FRED requests carry it, so a new day is a new key
-    now: datetime  # UTC fetch time: market sources date their points by the UTC day
+    today: date  # the local fetch date; MAS requests carry it, so a new day is a new key
+    now: datetime  # UTC fetch time: FRED and the market sources are keyed by it
 
     @property
     def utc_today(self) -> date:

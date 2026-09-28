@@ -1,8 +1,12 @@
 """FRED (St. Louis Fed): policy rates, Treasury yields, credit spreads and the VIX.
 
-One call per series returns every observation from the floor to the fetch date. FRED marks a
+One call per series returns every observation from the floor to the UTC fetch date. FRED marks a
 missing day with the value "."; those days are gaps, not zeros. FRED gives no publication date, so
 a value is known `lag_days` after its date.
+
+FRED publishes in the US afternoon, the middle of the UTC day and the night in Singapore. The
+current UTC hour goes into the cache key, as CoinGecko's range end does, so a value published after
+a fetch earlier the same day arrives with the next hour's fetch, not the next day's.
 """
 
 from collections.abc import Mapping
@@ -37,6 +41,11 @@ class _Response(BaseModel):
     observations: list[_Point]
 
 
+def _vary(window: Window) -> str:
+    """The cache key's hour, in UTC."""
+    return f"{window.now:%Y-%m-%dT%H} UTC"
+
+
 def fetch(
     http: CachedHttp, settings: Settings, sources: Mapping[str, FredSource], window: Window
 ) -> Fetched:
@@ -55,9 +64,10 @@ def fetch(
                     "series_id": source.series,
                     "file_type": "json",
                     "observation_start": window.floor.isoformat(),
-                    "observation_end": window.today.isoformat(),
+                    "observation_end": window.utc_today.isoformat(),
                 },
                 secret_params={"api_key": settings.fred_api_key},
+                vary=_vary(window),
             )
         except KeyRejected as e:
             done = fetched.observations.keys() | fetched.failures.keys()

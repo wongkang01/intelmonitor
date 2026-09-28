@@ -56,6 +56,7 @@ Rules:
 - Adapters use the existing `CachedHttp`, so every response lands in `data/raw/` and reruns make no network calls.
   Requests for recent data include the fetch date or an explicit end date in the request, so a new day is a new cache key and old days stay cached.
   CoinGecko and DefiLlama date their points by the UTC day, so their requests are keyed by UTC time, not the local (SGT) date.
+  FRED publishes during the US afternoon, so its requests are keyed by the UTC hour.
 - `im series fetch` fetches every series up to today; `im series backfill --from 2021-07-01` fills history once.
   `im ingest` and Run now call the fetch first, so a run always has current data.
 - Backfill cost is small: MAS tables and FRED return full history in one call per table or series, DefiLlama in one call per coin, and CoinGecko in one call per coin for 365 days.
@@ -118,7 +119,7 @@ Built, store and collection:
 - `im series fetch`, `im series backfill --from 2021-07-01`; `im ingest` fetches series before documents, and Run now fetches them before the run, logging a failure and going ahead.
   `im report` has a Series section: the latest fetch, and per source the series, observations, latest period and revisions.
 - Differs from the plan: every FX series comes from MAS, whose unfiltered exchange-rate URL returns the whole daily history in one call, so FRED is not used for FX and nothing needs throttling.
-  `CachedHttp` gained `vary` (keyed, not sent: the fetch date for URLs without a date parameter, the UTC date for DefiLlama), `secret_params` (sent, never keyed or stored: FRED's key) and `cache_errors`.
+  `CachedHttp` gained `vary` (keyed, not sent: the fetch date for URLs without a date parameter, the UTC date for DefiLlama, the UTC hour for FRED), `secret_params` (sent, never keyed or stored: FRED's key) and `cache_errors`.
   Data API requests send the user agent `intelmonitor/0.1`, because FRED stalls the browser user agent used for official pages.
 - Failure modes: (1) a missing key fails that source's series with one log line per reason, and a rejected key (401 or 403, or FRED's 400) stops that source's further calls; error responses are never cached, so a fixed key works on the next fetch.
   (2) An HTML page is retried, then fails its series, and is never cached or parsed.
@@ -129,6 +130,8 @@ Built, store and collection:
   Market fetches follow the UTC day, whatever the local date: CoinGecko's range ends at the end of the current UTC hour, so each hour is a new cache key and a UTC day's 00:00 point arrives with the first fetch after it is published.
   DefiLlama is keyed by the UTC date (`vary` "2026-09-28 UTC") and drops the current UTC day's point, which is still moving.
   Before this, both used the SGT date: a fetch between 00:00 and 08:00 SGT cached CoinGecko without the new UTC day's point for the whole SGT day, so every price and peg read stale from 08:00 SGT, and stored DefiLlama's moving point as final.
+  FRED asks for observations to the UTC date and is keyed by the UTC hour (`vary` "2026-09-28T03 UTC").
+  It was keyed by the SGT date, so a value FRED published in the US afternoon, after that SGT day's first fetch, arrived only the next SGT day.
   (7) The per-100 conversion was checked against FRED cross rates: SGD per MYR on 18 Sep 2026 is 0.3128 from MAS and 0.3132 from `DEXSIUS / DEXMAUS`, SGD per THB 0.038342 and 0.038294; the walkthrough checks both values through `GET /series`.
   (8) `CachedHttp` already retries 429 and never caches it.
   (9) `read_observations` with `as_of`.
