@@ -200,6 +200,7 @@ class QuestionStateChange(BaseModel):
     to_state: State
     summary: str
     development_ids: list[str] = Field(description="The developments the new answer relies on")
+    series_ids: list[str] = Field(description="Series whose facts the new answer cites")
     unreviewed: bool = Field(description="The latest run changed it after the subject's review")
 
 

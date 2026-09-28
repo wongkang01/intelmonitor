@@ -1667,7 +1667,24 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(tip.locator("b")).toHaveText(seriesValue(dbs.series[0].series, dbs.series[0].chart.cited?.value ?? NaN));
       await expect(tip).toContainText(seriesPeriod(dbs.series[0].series, dbs.series[0].chart.cited?.period ?? ""));
 
-      writeFileSync(path.join(dir, "data-sources.json"), JSON.stringify({ run: latest, answers }, null, 2));
+      // An answer change under What changed that cites only series opens its evidence too.
+      let seriesOnly: Schema<"QuestionStateChange"> | undefined;
+      for (const subjectId of ["circle", "tether", "paxos", "straitsx"]) {
+        const wc = await unwrap(api.GET("/what-changed", { params: { query: { subject_id: [subjectId] } } }));
+        seriesOnly = wc.question_changes.find((c) => c.subject.id === subjectId && c.development_ids.length === 0 && c.series_ids.length > 0);
+        if (seriesOnly) break;
+      }
+      if (!seriesOnly) throw new Error("no answer change cites only series");
+      await page.goto(`/monitors/${seriesOnly.subject.id}`);
+      const changes = page.getByRole("region", { name: "What changed since last review" });
+      const earlier = changes.getByRole("button", { name: /^Run of / });
+      if (await earlier.isVisible()) await earlier.click();
+      const changed = changes.locator(".qrow", { hasText: seriesOnly.summary });
+      await expect(changed).not.toContainText("No sources");
+      await changed.getByRole("link", { name: "See evidence" }).click();
+      await expect(drawer.locator("h4.ev-label")).toHaveText(`Based on ${plural(seriesOnly.series_ids.length, "series", "series")}`);
+
+      writeFileSync(path.join(dir, "data-sources.json"), JSON.stringify({ run: latest, answers, series_only: seriesOnly }, null, 2));
     });
 
     await step(STEPS[24], async () => {

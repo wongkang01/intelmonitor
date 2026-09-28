@@ -2532,6 +2532,11 @@ export interface components {
              */
             development_ids: string[];
             /**
+             * Series Ids
+             * @description Series whose facts the new answer cites
+             */
+            series_ids: string[];
+            /**
              * Unreviewed
              * @description The latest run changed it after the subject's review
              */

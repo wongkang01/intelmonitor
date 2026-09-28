@@ -215,7 +215,7 @@ export function AnswerChanges({ changes, subjectId }: { changes: Schema<"Questio
                 <Dotted
                   parts={[
                     <StateChange key="s" state={c.to_state} from={c.from_state} />,
-                    c.development_ids.length > 0 ? (
+                    c.development_ids.length + c.series_ids.length > 0 ? (
                       <Link key="e" href={evidence.answer(c.subject.id, c.question_id)} scroll={false} className="link">
                         See evidence
                       </Link>

@@ -537,6 +537,7 @@ class Queries:
                             to_state=a.state,
                             summary=a.summary,
                             development_ids=a.development_ids,
+                            series_ids=a.series_ids,
                             unreviewed=self.run.id > baseline([sid]),
                         )
                     )

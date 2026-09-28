@@ -91,7 +91,7 @@ export function TrendChart({
     const hi = Math.max(...values);
     // Room above the line for the numbered markers.
     const pad = (hi - lo) * 0.25 || Math.abs(hi) * 0.01 || 1;
-    scale = niceTicks(lo - pad * 0.4, hi + pad);
+    scale = niceTicks(lo - pad * 0.4, hi + pad, true);
   }
   const tick = (v: number) => (peg ? `${seriesTick(s, v, 1)}%` : seriesTick(s, v, scale.decimals));
   const left = Math.ceil(Math.max(...scale.ticks.map((t) => tick(t).length)) * CHAR) + 8;

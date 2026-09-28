@@ -102,21 +102,26 @@ const CHAR = 6.8;
 // Room the tooltip needs right of the point; with less, it opens to the left.
 const TIP_ROOM = 260;
 
-/** At most four round ticks covering `lo` to `hi`, their step's decimals, and the covered range. */
-export function niceTicks(lo: number, hi: number) {
+/**
+ * At most four round ticks, their step's decimals, and the range the chart spans. By default the
+ * ticks cover `lo` to `hi` and the range runs from the first tick to the last; `inside` keeps the
+ * range at `lo` to `hi` and puts the ticks within it, so the line fills the plot.
+ */
+export function niceTicks(lo: number, hi: number, inside = false) {
   const raw = (hi - lo) / 3 || Math.abs(hi) / 3 || 1;
   const mag = 10 ** Math.floor(Math.log10(raw));
-  const span = (m: number) => [Math.floor(lo / m + 1e-9) * m, Math.ceil(hi / m - 1e-9) * m];
+  const span = (m: number) =>
+    inside ? [Math.ceil(lo / m - 1e-9) * m, Math.floor(hi / m + 1e-9) * m] : [Math.floor(lo / m + 1e-9) * m, Math.ceil(hi / m - 1e-9) * m];
   const fits = (m: number) => {
     const [a, b] = span(m);
     return Math.round((b - a) / m) + 1 <= 4;
   };
-  const step = [1, 2, 2.5, 5, 10, 20].map((m) => m * mag).find((m) => m >= raw && fits(m)) ?? 20 * mag;
+  const step = [1, 2, 2.5, 5, 10, 20].map((m) => m * mag).find((m) => (inside || m >= raw) && fits(m)) ?? 20 * mag;
   const [first, last] = span(step);
   const ticks: number[] = [];
   for (let v = first; v <= last + step / 2; v += step) ticks.push(Number(v.toFixed(10)));
   const decimals = Math.max(0, -Math.floor(Math.log10(step) + 1e-9) + (step / mag === 2.5 ? 1 : 0));
-  return { ticks, decimals, lo: first, hi: last };
+  return { ticks, decimals, lo: inside ? lo : first, hi: inside ? hi : last };
 }
 
 /** An axis end: "Sep 2025", or "Q3 2021" for a quarterly series. */

@@ -6179,6 +6179,14 @@
             "title": "Development Ids",
             "description": "The developments the new answer relies on"
           },
+          "series_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Series Ids",
+            "description": "Series whose facts the new answer cites"
+          },
           "unreviewed": {
             "type": "boolean",
             "title": "Unreviewed",
@@ -6195,6 +6203,7 @@
           "to_state",
           "summary",
           "development_ids",
+          "series_ids",
           "unreviewed"
         ],
         "title": "QuestionStateChange"
