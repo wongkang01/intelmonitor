@@ -186,18 +186,25 @@ const MONEY: Record<string, { prefix: string; scale: number }> = {
 const MINUS = "−";
 const signed = (x: number, text: string) => `${x > 0 ? "+" : x < 0 ? MINUS : ""}${text}`;
 
-/** A series value in its unit: "70.3%", "S$16.5M", "$183.4B", "0.3132" (SGD per MYR). */
+/**
+ * A series value in its unit: "70.3%", "S$16.5M", "$183.4B", "0.3132" (SGD per MYR). A distance
+ * from a target (a peg, `baseline` set) is always signed, "+0.04%" above and "−0.01%" below; a
+ * value that rounds to zero takes no sign.
+ */
 export function seriesValue(s: Series, v: number): string {
-  const sign = v < 0 ? MINUS : "";
-  const a = Math.abs(v);
-  if (s.unit === "%") return `${sign}${a.toFixed(s.decimals)}%`;
+  const text = magnitude(s, Math.abs(v));
+  if (!/[1-9]/.test(text)) return text;
+  return s.baseline !== null ? signed(v, text) : `${v < 0 ? MINUS : ""}${text}`;
+}
+
+/** A value's size in the series' unit, unsigned. */
+function magnitude(s: Series, a: number): string {
   const money = s.decimals === 0 ? MONEY[s.unit] : undefined;
-  if (money) {
-    const amount = a * money.scale;
-    const [div, suffix] = amount >= 1e9 ? [1e9, "B"] : amount >= 1e6 ? [1e6, "M"] : [1e3, "K"];
-    return `${sign}${money.prefix}${(amount / div).toFixed(1)}${suffix}`;
-  }
-  return `${sign}${a.toFixed(s.decimals)}`;
+  if (s.unit === "%") return `${a.toFixed(s.decimals)}%`;
+  if (!money) return a.toFixed(s.decimals);
+  const amount = a * money.scale;
+  const [div, suffix] = amount >= 1e9 ? [1e9, "B"] : amount >= 1e6 ? [1e6, "M"] : [1e3, "K"];
+  return `${money.prefix}${(amount / div).toFixed(1)}${suffix}`;
 }
 
 /**
@@ -210,17 +217,22 @@ export function seriesChange(s: Series, from: number, to: number): string {
     const size = Math.abs(diff).toFixed(s.decimals);
     return signed(Number(size) === 0 ? 0 : diff, `${size} pt`);
   }
-  const amount = signed(diff, seriesValue(s, Math.abs(diff)));
+  const amount = signed(diff, magnitude(s, Math.abs(diff)));
   if (!from) return amount;
   const pct = (diff / Math.abs(from)) * 100;
   const size = Math.abs(pct).toFixed(1);
   return `${amount} (${signed(Number(size) === 0 ? 0 : pct, `${size}%`)})`;
 }
 
-/** An axis tick in the series' unit: money as "$180.0B", other values as bare numbers ("3.50"). */
+/**
+ * An axis tick in the series' unit: money as "$180.0B", other values as bare numbers ("3.50"),
+ * signed about a peg ("+0.50").
+ */
 export function seriesTick(s: Series, v: number, decimals: number): string {
   if (s.decimals === 0 && MONEY[s.unit]) return seriesValue(s, v);
-  return `${v < 0 ? MINUS : ""}${Math.abs(v).toFixed(decimals)}`;
+  const text = Math.abs(v).toFixed(decimals);
+  if (Number(text) === 0) return text;
+  return s.baseline !== null ? signed(v, text) : `${v < 0 ? MINUS : ""}${text}`;
 }
 
 /** "Jun 2026 was 69.8%, revised 12 Sep" per revision, for a Revised label's tooltip. */

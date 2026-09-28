@@ -320,6 +320,7 @@ Built (direction A "Rows" in `mocks/indicators.html`):
 - Each row: the status, the name with the latest period ("Jul 2026, preliminary", "23 Sep"), the source label and the scope, the latest value, the change with its window, and the line over the 12 months to the run date.
   The change is over 1 month for daily series ("1 month"), against the previous release for monthly and quarterly ones ("vs Jun", "vs Q1"); series in % change in points ("+0.3 pt"), others in percent.
   Values: "70.3%", "S$16.5M", "$183.4B", "0.3132" for SGD per MYR; S$ million series read as S$ billions.
+  A peg's distance is always signed, "+0.04%" above it and "−0.01%" below, as are its axis ticks ("+0.5%"), in rows, widgets, the drawer and the Trend view (`seriesValue` and `seriesTick` in `web/lib/format.ts`, for any series with a `baseline`); a value that rounds to zero takes no sign.
 - The status column: the data states No data and Stale (neutral badges) come first, else the indicator's status, Stable, Watch or Needs attention.
   Preliminary and Revised sit after the period in the meta line; Revised carries each revision's old value in its tooltip.
 - Differs from the plan: the mock's Watch and Stable came from placeholder rules in the mock script (z-scores of monthly moves, peg bands).

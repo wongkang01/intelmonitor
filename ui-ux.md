@@ -328,6 +328,7 @@ The Trend chart also delivers the multi-month trend charts listed as P1 in the m
 - Numbers are computed by code, never typed by the LLM. They come from Jev tags in the store or from structured data. News and DMS alone support narrative answers ("prices rising, driven by X"), not price lines.
 - Answers and notes may quote a number only from the facts code gave them or from their documents, and name an exchange rate move by the SGD's side ("SGD weakened 0.55% against MYR"), never as a pair (SGD/MYR, SGD-MYR) or as a rate going up or down ("vs MYR, up 0.03%"). An answer that breaks either is asked again once. Generate's replies name exchange rates the same way.
 - Answers name their window plainly ("in the last 14 days"), never "lookback".
+- A distance from a peg is always signed: "+0.04%" above, "−0.01%" below.
 - Custom questions carry a "Custom" label and show their question, so users can tell them from curated questions.
 - Users edit the question later by flipping the widget to its settings, like any other widget.
 - Each custom question adds an LLM run. The POC caps custom questions at 10 per user and answers them on demand over the stored corpus. Scheduled answering depends on scheduled runs, which are P1.
