@@ -106,9 +106,17 @@ def unsupported_numbers(summary: str, allowed: str) -> list[str]:
     return [n for n in dict.fromkeys(_NUMBER.findall(summary)) if n.replace(",", "") not in plain]
 
 
-# Currency pair names such as SGD/MYR or USD/SGD. Readers take either order as a quote in the
-# other direction, so answers name FX rates as the facts do: "SGD per MYR", with the SGD's side.
+# Currency pair names such as SGD/MYR or USD/SGD, and a rate said to go up or down ("SGD per USD
+# up 0.23%", "SGD weaker against the MYR, up 0.55%"). Readers take a pair or a rate's rise either
+# way round, so answers tell FX moves only by the SGD's side, as the facts do: "SGD weakened 0.23%
+# against the USD".
 _FX_PAIR = re.compile(r"\b(?:SGD/[A-Z]{3}|[A-Z]{3}/SGD)\b")
+_FX_RATE_MOVE = re.compile(
+    r"\b(?:[A-Z]{3} per [A-Z]{3}|against the [A-Z]{3})[\s,]+(?:[\d.,]+[\s,]+)?"
+    r"(?:(?:was|is|has|had)\s+)?"
+    r"(?:up|down|rose|fell|rising|falling|higher|lower|gained|lost|climbed|dropped)\b",
+    re.IGNORECASE,
+)
 
 
 def fx_pairs(summary: str) -> list[str]:
@@ -116,16 +124,28 @@ def fx_pairs(summary: str) -> list[str]:
     return list(dict.fromkeys(_FX_PAIR.findall(summary)))
 
 
+def fx_rate_moves(summary: str) -> list[str]:
+    """Phrases in `summary` that move a rate up or down instead of saying how the SGD moved."""
+    return list(dict.fromkeys(m.group(0) for m in _FX_RATE_MOVE.finditer(summary)))
+
+
 def answer_problems(summary: str, allowed: str, fx: bool) -> list[str]:
     """Why an answer is asked again: numbers found in neither the facts nor the developments
-    (`allowed`), and, for a question with FX series (`fx`), currency pair names."""
+    (`allowed`), and, for a question with FX series (`fx`), currency pair names and rates said
+    to go up or down."""
     problems: list[str] = []
     if nums := unsupported_numbers(summary, allowed):
         problems.append(f"numbers in neither the facts nor the developments: {', '.join(nums)}")
     if fx and (pairs := fx_pairs(summary)):
         problems.append(
-            f"currency pairs {', '.join(pairs)}: name each rate as its fact does (SGD per MYR) "
-            "and say which way the SGD moved"
+            f"currency pairs {', '.join(pairs)}: say how the SGD moved against the currency, "
+            'as the facts do ("SGD weakened 0.32% against the MYR")'
+        )
+    if fx and (moves := fx_rate_moves(summary)):
+        quoted = ", ".join(f'"{m}"' for m in moves)
+        problems.append(
+            f"rates said to go up or down ({quoted}): say only how the SGD moved against the "
+            'currency, as the facts do ("SGD weakened 0.32% against the MYR")'
         )
     return problems
 
@@ -225,9 +245,11 @@ def answer_prompt(
   enforcement actions in the last 30 days."
 - Numbers: quote only numbers the facts or developments give, as they give them; never compute,
   convert or estimate new ones. Where a question has series, say what their facts show.
-- Exchange rates: name them as the facts do, "SGD per MYR", and say which way the SGD moved, as
-  in "SGD weaker against the MYR, SGD per MYR up 0.55% on the week". Never write pairs such as
-  SGD/MYR or USD/SGD: readers take them the other way round.
+- Exchange rates: tell every move by the SGD's side, as the facts do: "SGD weakened 0.55%
+  against the MYR on the week". Never say a rate or a pair went up or down ("SGD per MYR up
+  0.55%", "SGD weaker against the MYR, up 0.55%") and never write pairs such as SGD/MYR or
+  USD/SGD: readers take them the other way round. A level may be named as the facts name it,
+  "0.3138 SGD per MYR".
 - state, calm by default. A question with a fixed state takes that state, and its summary says
   why:
   - needs_attention: something could hurt a tracked subject or needs supervisory follow-up now,

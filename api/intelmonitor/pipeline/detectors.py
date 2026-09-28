@@ -22,7 +22,7 @@ from intelmonitor.ingest.models import WINDOW_DAYS, Window
 from intelmonitor.ingest.parse import content_hash, document_id, domain_of
 from intelmonitor.pipeline.indicators import change_basis, compute_indicators, window_start
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS
-from intelmonitor.pipeline.wording import day, fx_side, peg_side, period, value
+from intelmonitor.pipeline.wording import day, fx_move, peg_side, period, value
 from intelmonitor.seed import (
     DetectorDef,
     Deviation,
@@ -259,14 +259,17 @@ def _move(d: MoveDetector, s: SeriesDef, pts: list[Point]) -> list[Detection]:
     for first, _ in _runs(hits):
         p, ref, c, k = pts[first], refs[first], changes[first], sigmas[first]
         assert ref is not None and c is not None  # a hit has both
-        notes = [side] if (side := fx_side(s, c)) else []
-        if k is not None:
-            notes.append(f"{k:.1f} standard deviations of its moves")
-        noted = f" ({'; '.join(notes)})" if notes else ""
-        statement = (
-            f"{s.name} {'up' if c > 0 else 'down'} {_size(s, c)}{_WINDOW_PHRASE[d.window]} to "
-            f"{_stated(s, p)}{noted}, from {_stated(s, ref)}{_released(s, p)}."
-        )
+        noted = f" ({k:.1f} standard deviations of its moves)" if k is not None else ""
+        if moved := fx_move(s, c):
+            statement = (
+                f"{moved}{_WINDOW_PHRASE[d.window]}, to {_stated(s, p)}{noted}, from "
+                f"{_stated(s, ref)}{_released(s, p)}."
+            )
+        else:
+            statement = (
+                f"{s.name} {'up' if c > 0 else 'down'} {_size(s, c)}{_WINDOW_PHRASE[d.window]} to "
+                f"{_stated(s, p)}{noted}, from {_stated(s, ref)}{_released(s, p)}."
+            )
         adverse, direction = _tone(s, c)
         known = max(ref.known_at, p.known_at)
         out.append(Detection(d, s, p.obs.period, p, known, statement, adverse, direction))

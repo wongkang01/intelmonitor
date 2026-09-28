@@ -53,13 +53,17 @@ def fx_currency(s: SeriesDef) -> str | None:
     return quoted.group(1) if quoted else None
 
 
-def fx_side(s: SeriesDef, change: float) -> str | None:
-    """For an FX series, which way a change moved the SGD: "SGD weaker against the USD". Which
-    way is which is easy to get backwards in prose, so every FX change says it."""
+def fx_move(s: SeriesDef, change: float) -> str | None:
+    """For an FX series, a change in percent told only by the SGD's side: "SGD weakened 0.23%
+    against the USD". A rate going up or down is easy to read backwards, so FX changes never say
+    it. The size is the change in SGD per unit, as the indicators give it."""
     currency = fx_currency(s)
-    if currency is None or change == 0:
+    if currency is None:
         return None
-    return f"SGD {'weaker' if change > 0 else 'stronger'} against the {currency}"
+    if round(change, 2) == 0:
+        return f"SGD unchanged against the {currency}"
+    moved = "weakened" if change > 0 else "strengthened"
+    return f"SGD {moved} {abs(change):.2f}% against the {currency}"
 
 
 def peg_side(s: SeriesDef, source: Deviation, by_id: dict[str, SeriesDef], v: float) -> str:

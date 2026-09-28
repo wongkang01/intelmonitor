@@ -20,7 +20,7 @@ from intelmonitor.pipeline.indicators import (
     IndicatorState,
     compute_indicators,
 )
-from intelmonitor.pipeline.wording import day, fx_side, peg_side, period, value
+from intelmonitor.pipeline.wording import day, fx_move, peg_side, period, value
 from intelmonitor.seed import (
     Deviation,
     DeviationRule,
@@ -196,12 +196,12 @@ def _change(s: SeriesDef, ind: Indicator, c: IndicatorChange) -> str | None:
     else:
         size = f"{abs(c.change):.2f}%"
         flat = round(c.change, 2) == 0
-    move = "unchanged" if flat else f"{'up' if c.change > 0 else 'down'} {size}"
-    side = None if flat else fx_side(s, c.change)
-    note = f"{side}; " if side else ""
+    move = fx_move(s, c.change) or (
+        "unchanged" if flat else f"{'up' if c.change > 0 else 'down'} {size}"
+    )
     since = period(c.since, s.frequency)
     at = "on" if s.frequency == "daily" else "for"
-    return f"{move} {_WINDOW_PHRASE[c.window]} ({note}from {value(s, c.from_value)} {at} {since})"
+    return f"{move} {_WINDOW_PHRASE[c.window]} (from {value(s, c.from_value)} {at} {since})"
 
 
 def _rank(s: SeriesDef, history: list[Observation], latest: Observation, start: date) -> str:
