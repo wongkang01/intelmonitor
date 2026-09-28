@@ -86,7 +86,13 @@
   position: sticky;
   top: min(80px, calc(100vh - var(--rail-h, 0px) - var(--s-5)));
 }
-/* A ruled section: 15/600 header over a --line-strong rule, 32px between sections. */
+/* A ruled section: 15/600 header over a --line-strong rule, 32px between sections. A hash link
+   lands its head level with the rail's top: useHashScroll in lib/dom.ts scrolls the section, and
+   the browser, following a link to the page it is on, the heading that carries the id. */
+.mon-sec,
+.mon-sec-head h2 {
+  scroll-margin-top: 80px;
+}
 .mon-sec + .mon-sec {
   margin-top: var(--s-6);
 }

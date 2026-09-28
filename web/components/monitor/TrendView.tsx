@@ -10,7 +10,7 @@ import { Fragment, useState, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useMonitorPage, useTrend } from "@/lib/api/queries";
-import { trackRailHeight } from "@/lib/dom";
+import { trackRailHeight, useHashScroll } from "@/lib/dom";
 import { day, longDate, monthsBefore, plural, seriesChange, seriesPeriod, seriesValue, shortDate, STATE_LABEL, STATE_TONE } from "@/lib/format";
 import { useEvidenceHref } from "@/components/shell/Evidence";
 
@@ -38,6 +38,7 @@ const PRE = "pre";
 export function TrendView({ id }: { id: string }) {
   const page = useMonitorPage(id);
   const trend = useTrend(id);
+  useHashScroll();
   const p = page.data;
   if (page.isError || trend.isError) return <p className="page-message">This trend could not be loaded.</p>;
   if (!p || !trend.data) return null;

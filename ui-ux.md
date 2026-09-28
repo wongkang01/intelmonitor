@@ -198,6 +198,7 @@ Both tabs produce the same dashboard spec, and the created dashboard appears in 
 **Indicator widget.** Set to a subject, it shows the subject's default series: a peg first, then its other primary series, else a system-wide or market-wide one.
 The gallery suggests it first for any subject with a primary series, with a series picker above the size picker, so Circle offers its peg and then its supply.
 At S, See data opens the subject's Indicators section, or See development when a detector event sets the status.
+A link to a monitor page section (`/monitors/tether#indicators`) lands on it once it renders, on a direct load too.
 
 **No Links widget.** Links are navigation, not an answer, so they live only in the Links section of monitor pages and in the graph view.
 A graph widget earns a place only if it answers a question. The candidate is an **exposure map (P1)**: only the tracked subjects with new developments this run, plus the dependencies they share, to show concentration risk. It needs `DEPENDS_ON` data the MVP only has in hand-curated form.

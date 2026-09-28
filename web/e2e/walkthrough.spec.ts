@@ -1578,6 +1578,14 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await peg.getByRole("link", { name: "See data" }).click();
       await expect(page).toHaveURL(/\/monitors\/tether#indicators$/);
       await expect(page.locator('[data-series-id="derived.usdt.peg"]')).toBeVisible();
+      // The section renders after its data loads and still lands level with the rail, on client
+      // navigation and on a direct load.
+      const indicatorsTop = () => page.locator("section:has(> .mon-sec-head #indicators)").evaluate((el) => el.getBoundingClientRect().top);
+      await expect.poll(indicatorsTop).toBe(80);
+      await page.goto("/");
+      await page.goto("/monitors/tether#indicators");
+      await expect(page.locator('[data-series-id="derived.usdt.peg"]')).toBeVisible();
+      await expect.poll(indicatorsTop).toBe(80);
       await page.goto(`/dashboards/${created.id}`);
       await page.getByRole("button", { name: "Add widget", exact: true }).click();
       await sheet.locator("button.subj", { has: page.getByText("Maybank", { exact: true }) }).click();

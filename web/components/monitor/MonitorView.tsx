@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useFollow, useFollows, useMarkReviewed, useMonitorPage, useUndoReview } from "@/lib/api/queries";
-import { trackRailHeight } from "@/lib/dom";
+import { trackRailHeight, useHashScroll } from "@/lib/dom";
 import { answerText, capitalize, daysBetween, inDays, plural, shortDate, TYPE_PLURAL, whenAt } from "@/lib/format";
 import { monitorHref, type SubjectType } from "@/lib/widgets";
 import { CustomQuestionComposer, CustomQuestionEditor } from "@/components/custom/CustomQuestion";
@@ -33,6 +33,7 @@ type Page = Schema<"MonitorPage">;
 
 export function MonitorView({ id }: { id: string }) {
   const page = useMonitorPage(id);
+  useHashScroll();
   const p = page.data;
   if (page.isError) return <p className="page-message">This monitor could not be loaded.</p>;
   if (!p) return null;

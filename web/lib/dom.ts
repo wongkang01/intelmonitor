@@ -1,3 +1,4 @@
+import { usePathname } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useSyncExternalStore } from "react";
 
 /** True when a key press should go to a text field rather than a shortcut. */
@@ -65,4 +66,52 @@ export function useDismiss(open: boolean, onClose: () => void) {
   }, [open]);
 
   return { wrap, trigger };
+}
+
+/** How long a hash waits for its section to render, and keeps it in place while content above loads. */
+const HASH_WAIT_MS = 10_000;
+
+/**
+ * Lands on the section the URL's hash names (`/monitors/circle#indicators`) once it renders, on
+ * direct load and after client navigation: sections that wait on data are not there yet when the
+ * browser or the router looks for them. Until the user scrolls, clicks or types, or 10 s pass, the
+ * section is kept at the top while content above it loads. Section headings carry the ids.
+ */
+export function useHashScroll() {
+  const pathname = usePathname();
+  useEffect(() => {
+    let stop = () => {};
+    const follow = () => {
+      stop();
+      const id = decodeURIComponent(window.location.hash.slice(1));
+      if (!id) return;
+      let landed: number | null = null;
+      const place = () => {
+        const heading = document.getElementById(id);
+        if (!heading) return;
+        const target = heading.closest("section") ?? heading;
+        const top = target.getBoundingClientRect().top;
+        if (landed !== null && Math.abs(top - landed) < 1) return;
+        target.scrollIntoView({ block: "start" });
+        landed = target.getBoundingClientRect().top;
+      };
+      const observer = new MutationObserver(place);
+      observer.observe(document.body, { childList: true, subtree: true });
+      const timer = window.setTimeout(() => stop(), HASH_WAIT_MS);
+      const events = ["wheel", "pointerdown", "keydown", "touchstart"] as const;
+      stop = () => {
+        observer.disconnect();
+        window.clearTimeout(timer);
+        for (const e of events) window.removeEventListener(e, stop, true);
+      };
+      for (const e of events) window.addEventListener(e, stop, true);
+      place();
+    };
+    follow();
+    window.addEventListener("hashchange", follow);
+    return () => {
+      stop();
+      window.removeEventListener("hashchange", follow);
+    };
+  }, [pathname]);
 }
