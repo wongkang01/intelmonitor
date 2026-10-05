@@ -269,7 +269,7 @@ flowchart TD
    Each answer has a one-line summary, a state (Stable, Watch, Needs attention, or a count of new items), and the development ids it relies on.
 8. **Custom question job.** For a new custom question, Jev scores each candidate document tagged to the subject within the lookback ("Does this document help answer: ...?"), and Claude answers from the top matches for both run dates.
 9. **Diff.** Code compares each run with the one before: new developments, updated developments (new sources), and changed question states.
-10. **Graph.** Nodes and edges are written from subjects, links and developments (`MEMBER_OF`, `EXPOSED_TO`, `AFFECTS`), each edge with source and confidence.
+10. **Graph.** Nodes and edges are written from subjects, links and developments (`MEMBER_OF`, `EXPOSED_TO`, `AFFECTS`), each edge with source and confidence. Jev tags each development with one of six themes, which the graph view colours and groups by.
 
 **Measured series.** `im ingest` and Run now fetch the series before anything else (`structured-data-plan.md`, F1).
 A run then adds four steps:
@@ -313,7 +313,7 @@ mocks/              design mocks
 - **Dashboard spec:** a list of widgets with `type`, `size`, `order` and typed `settings` (subject, question). One schema per widget type drives the gallery, manual edits and the Generate agent.
 - **Generate agent:** Claude Agent SDK with in-process tools `add_widget`, `update_widget`, `remove_widget`, `reorder` and `list_subjects`. Tool arguments are validated against the widget schemas. The server maps the agent's stream to AG-UI events (`TEXT_MESSAGE_*`, `TOOL_CALL_*`, `STATE_DELTA`, and a `CUSTOM` "changes" event naming the message that lists the run's changes) over SSE. A prompt whose request fails before the agent starts (a dropped connection, Chrome's network-change abort, a 502 to 504 while the API restarts) is sent again after 1, 2 and 4 seconds; once the agent has written or edited anything it is not.
 - **Web AG-UI client:** bare `@ag-ui/core` and `@ag-ui/client`, no CopilotKit. One hook applies state deltas to the dashboard spec and tracks pending changes for Keep and Undo.
-- **Graph view:** sigma.js with graphology and ForceAtlas2. The layout runs until it settles and then stops.
+- **Graph view:** sigma.js with graphology, laid out by a d3-force simulation that pulls each development toward its theme's sector. Jev tags each development with one theme in the graph step. The simulation runs until it cools and then stops; dragging a node reheats it until it cools again.
 - **Dev servers:** `portless intelmonitor.web pnpm dev` and `portless intelmonitor.api uv run ...`, served at `https://intelmonitor.web.localhost` and `https://intelmonitor.api.localhost`. Run `scripts/proxy-start.sh` first so the Portless proxy listens on 443 without sudo.
 
 **Commands**
@@ -356,7 +356,7 @@ Commit at the end of each phase.
 | 4. App shell and widgets | Sidebar, profile menu, dashboards, 7 widgets, edit mode, Add widget sheet | Starter dashboards render real data; drag and minus persist after reload |
 | 5. Monitor pages and evidence | Topic, group and entity pages, evidence drawer, ⌘K search | Every subject page renders; every "See evidence" opens sources with highlighted quotes |
 | 6. New dashboard | Build (variant B) and Generate over AG-UI | Both tabs create a dashboard that appears in the sidebar; Generate shows outlines, Keep and Undo; follow-up requests edit the same dashboard |
-| 7. Graph view | Obsidian-style graph from any monitor page | Opens at 1 hop, expands to 2, filters work, new developments highlighted, clicking a node opens its page, layout stops when settled |
+| 7. Graph view | Obsidian-style graph from any monitor page | Opens at 1 hop, expands to 2, filters work, new developments highlighted, developments grouped by theme, nodes drag without opening, clicking a node opens its page, layout stops when settled |
 | 8. Custom questions | Add, preview, keep, edit, delete | A custom question shows an answer with citations for both runs and a change badge |
 | 9. E2E | Full walkthrough test | The E2E run passes and writes its artifact (see Verification) |
 | 10. Structured data | F1 to F7 of `structured-data-plan.md`: series store, facts, detectors, Indicators, Indicator widget, data sources in the drawer, Trend tab, custom questions with series | The E2E walkthrough's structured data steps pass |

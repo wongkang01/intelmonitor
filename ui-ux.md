@@ -152,7 +152,7 @@ Custom answers have no Mark wrong, since runs do not recompute them.
 
 ### Graph view
 
-Opens centred on the current page at 1 hop, expandable to 2. Node color = type. Filters: node type, link type, time window. Nodes with new developments are highlighted. Click a node to open its page. Never shows the whole graph by default.
+Opens centred on the current page at 1 hop, expandable to 2. Subject color = type. Each development is colored by its theme (regulation, digital assets, technology and AI, strategy, earnings and markets, macro and geopolitics) and pulled into that theme's labelled sector around the centre. Nodes can be dragged; neighbours follow and the node floats back when released. Filters: node type, link type, time window. Nodes with new developments are highlighted. Click a node to open its page. Never shows the whole graph by default.
 
 ### New dashboard
 

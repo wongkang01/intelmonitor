@@ -4,7 +4,9 @@ The graph view draws one subject's neighbourhood on a canvas and lists the same 
 It opens at 1 hop with every node and link type over all time, and it can expand to 2 hops or filter by node type, link type and how recent developments are.
 Nodes new or updated this run carry a ring on the canvas and `New:` in the list.
 Clicking a subject node opens its monitor page; clicking a development opens its evidence over the graph.
+Each development is coloured by its Jev theme and pulled into that theme's sector, labelled on the canvas; sectors sit clockwise from the top in the order Regulation, Digital assets, Technology and AI, Strategy, Earnings and markets, Macro and geopolitics.
 The layout animates until it settles, then the camera fits the graph.
+Dragging a node carries it and its neighbours; on release it floats back and the layout settles again.
 
 ## Sub-features
 
@@ -13,9 +15,10 @@ The layout animates until it settles, then the camera fits the graph.
 - `nodes-filter` `button "Nodes: All"` opens `group "Nodes shown"` with `checkbox "Topics"`, `"Groups"`, `"Entities"`, `"Developments"`; the last checked box is disabled; the button summarises (`Nodes: 3 of 4`, `Nodes: Topics, Groups`). Escape or an outside click closes it.
 - `links-filter` `button "Links: All"` opens `group "Links shown"` with `checkbox "Member of"`, `"Exposed to"`, `"Affects"`.
 - `window` `group "Developments from"`: `All time`, `7 days`, `14 days`, `30 days`.
-- `canvas` `[data-testid=graph-canvas]`, `image "Graph of <n> nodes and <m> links around <Subject>"`, `data-layout` `running` or `settled`, `data-hovered=<node id>` under the pointer; `button "Fit graph to view"`.
-- `legend` the visible node types, `New or updated this run`, and `<n> lower-priority developments not shown` when the API truncated.
-- `in-view` `region "In view"` (`[data-testid=graph-nodes]`): `<n> nodes, <k> new`, H3s `<Type>, <h> hop(s) <count>`, one link per node (`[data-node=<id>]`, developments `dev:<id>`), `New: ` prefix and `Needs attention` badge. Hovering a row highlights its node and neighbours on the canvas.
+- `canvas` `[data-testid=graph-canvas]`, `image "Graph of <n> nodes and <m> links around <Subject>"`, `data-layout` `running` or `settled`, `data-hovered=<node id>` under the pointer, `data-dragging=<node id>` while a node is dragged (the layout reads `running` until it cools); `button "Fit graph to view"`.
+- `regions` the theme labels over the canvas, `.graph-regions [data-region=<theme>]`, one per theme in view.
+- `legend` the node types in view other than themed developments, `New or updated this run`, and `<n> lower-priority developments not shown` when the API truncated.
+- `in-view` `region "In view"` (`[data-testid=graph-nodes]`): `<n> nodes, <k> new`, H3s `<Type>, <h> hop(s) <count>`, with developments under their theme instead (`Digital assets, 1 hop 7`), one link per node (`[data-node=<id>]`, developments `dev:<id>`), `New: ` prefix and `Needs attention` badge. Hovering a row highlights its node and neighbours on the canvas.
 - `open` subject node or row: `/monitors/<id>`; development node or row: `?evidence=<id>` over the graph.
 
 ## How to get to it (user POV)
@@ -41,6 +44,7 @@ Preconditions:
 - **New developments highlighted.** The legend shows `New or updated this run`; new rows start `New:` (`link "New: Singapore banks"`), and `In view` counts them (`13 new`). The count excludes the centre node, so it is one below the API's `has_new` total when the centre is new.
 - **Click a subject node on the canvas.** Take a screenshot (`S screenshot <file>`) to find a node, then `S mouse move <x> <y>` and read `S eval 'document.querySelector("[data-testid=graph-canvas]").dataset.hovered ?? "none"'` until it names a node other than the centre. Then `S mouse down left` and `S mouse up left`. With OCBC at 1 hop, `singapore-banks` was at (669, 368) in one layout (coordinates vary, so measure each time): the URL became `/monitors/singapore-banks` with `heading "Singapore banks" [level=1]` and `What changed since last review`.
 - **Click from the list.** `S click '.graph-list [data-node="singapore-banks"]'` opens `/monitors/singapore-banks`. `S click '[data-node^="dev:"]'` adds `?evidence=<id>` and opens the drawer over the graph; `S press Escape` returns to `/monitors/ocbc/graph`.
+- **Drag a node.** Find a node as in the click recipe, then `S mouse down left`, two or three `S mouse move` steps more than 3 px away, and read `S get attr '[data-testid=graph-canvas]' data-dragging` (the node id) and `data-layout` (`running`). `S mouse up left` leaves the URL unchanged, clears `data-dragging`, and `data-layout` returns to `settled` within a few seconds. A press that moves 3 px or less is a click.
 - **Hover sync.** `S mouse move` onto a list row sets the canvas's `data-hovered` to that node's id.
 - **Proof.** `pnpm -C web verify shot <run>/<step>` after each settle; the ARIA file carries the canvas label and the list.
 
@@ -54,3 +58,4 @@ Preconditions:
 - `S hover <selector>` on an `In view` row did not set `data-hovered` in one try; `S mouse move` to the row's box did.
 - At 1 hop, an entity's topics are often missing because they link through its group; they appear at 2 hops even though the monitor page's Links lists them.
 - The last checked box in a filter menu is disabled; the API reads an empty filter as all.
+- Themes come from the pipeline's graph step. A run built before themes existed has none: its developments keep the single development colour, no sector labels show, and the list groups them as `Developments`.

@@ -1,8 +1,21 @@
-// Sigma.js canvas for a graph neighbourhood. ForceAtlas2 runs when the data changes and stops once
-// the layout settles, then the camera refits; `data-layout` on the stage reads "running" or "settled".
-// Nodes keep their positions across refetches, so changing a filter only moves what it adds.
+// Sigma.js canvas for a graph neighbourhood, laid out by a d3-force simulation. Each development is
+// pulled toward its theme's sector around the centre, so related news sits together. The
+// simulation cools and stops once the layout settles, then the camera refits. Dragging a node
+// reheats it, so neighbours follow and the node floats back when released. `data-layout` on the
+// stage reads "running" while nodes move and "settled" once they stop; `data-dragging` names the
+// node in hand. Nodes keep their positions across refetches.
+import {
+  forceCollide,
+  forceLink,
+  forceManyBody,
+  forceSimulation,
+  forceX,
+  forceY,
+  type Simulation,
+  type SimulationLinkDatum,
+  type SimulationNodeDatum,
+} from "d3-force";
 import Graph from "graphology";
-import forceAtlas2 from "graphology-layout-forceatlas2";
 import type Sigma from "sigma";
 import type { NodeLabelDrawingFunction } from "sigma/rendering";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -11,8 +24,21 @@ import type { Schema } from "@/lib/api/client";
 import { FitIcon } from "@/components/ui/icons";
 
 type GraphData = Schema<"Graph">;
-type NodeType = Schema<"GraphNode">["type"];
+type GraphNode = Schema<"GraphNode">;
+type NodeType = GraphNode["type"];
 type LinkType = Schema<"GraphEdge">["type"];
+export type Theme = NonNullable<GraphNode["theme"]>;
+
+/** Development themes, in the order their sectors sit clockwise from the top. */
+export const THEME_LABEL: Record<Theme, string> = {
+  regulation: "Regulation",
+  "digital-assets": "Digital assets",
+  technology: "Technology and AI",
+  strategy: "Strategy",
+  markets: "Earnings and markets",
+  macro: "Macro and geopolitics",
+};
+export const THEMES = Object.keys(THEME_LABEL) as Theme[];
 
 type NodeAttrs = {
   x: number;
@@ -21,16 +47,20 @@ type NodeAttrs = {
   color: string;
   label: string;
   forceLabel: boolean;
-  fixed: boolean;
   ringSize: number;
   gapSize: number;
 };
 type EdgeAttrs = { size: number; color: string };
 type Renderer = Sigma<NodeAttrs, EdgeAttrs>;
 
+type SimNode = SimulationNodeDatum & { id: string; theme: Theme | null; size: number };
+type SimLink = SimulationLinkDatum<SimNode> & { type: LinkType };
+type Sim = Simulation<SimNode, SimLink>;
+
 /** Colors read at mount from the `--g-*` tokens in styles/graph.css, resolved to rgba for WebGL. */
 type Palette = {
   node: Record<NodeType, string>;
+  theme: Record<Theme, string>;
   edge: Record<LinkType, string>;
   ring: string;
   gap: string;
@@ -56,6 +86,7 @@ function readPalette(el: HTMLElement): Palette {
   };
   return {
     node: { topic: color("topic"), group: color("group"), entity: color("entity"), development: color("development") },
+    theme: Object.fromEntries(THEMES.map((t) => [t, color(`theme-${t}`)])) as Record<Theme, string>,
     edge: { MEMBER_OF: color("edge"), EXPOSED_TO: color("edge"), AFFECTS: color("edge-weak") },
     ring: color("new"),
     gap: color("gap"),
@@ -64,10 +95,14 @@ function readPalette(el: HTMLElement): Palette {
   };
 }
 
-const MAX_ITERATIONS = 1500;
-const ITERATIONS_PER_FRAME = 10;
-// Settled when nodes move on average less than this share of the layout's extent per iteration.
-const SETTLED = 0.0005;
+// Layout in graph units; sigma scales the result to the stage.
+const SECTOR_RADIUS = 260;
+const RING = 140;
+const LINK_DISTANCE: Record<LinkType, number> = { MEMBER_OF: 120, EXPOSED_TO: 120, AFFECTS: 90 };
+// Ticks the simulation needs to cool from alpha 1 to its minimum at d3's default decay.
+const TICKS = 300;
+// While a node is dragged the simulation stays this warm, so its neighbours keep following.
+const DRAG_HEAT = 0.3;
 
 const shorten = (text: string, max = 64) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
 
@@ -76,6 +111,24 @@ function angleOf(id: string): number {
   let h = 0;
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return (h % 3600) / 3600 * 2 * Math.PI;
+}
+
+/** Where a theme's sector sits: evenly spaced clockwise from the top (sigma's y axis points up). */
+function sectorOf(theme: Theme): { x: number; y: number } {
+  const a = (THEMES.indexOf(theme) / THEMES.length) * 2 * Math.PI;
+  return { x: SECTOR_RADIUS * Math.sin(a), y: SECTOR_RADIUS * Math.cos(a) };
+}
+
+/** A new node's first position: the centre at the origin, a development near its sector, any other
+ *  node on a ring per hop. */
+function startOf(n: GraphNode, center: boolean): { x: number; y: number } {
+  if (center) return { x: 0, y: 0 };
+  const a = angleOf(n.id);
+  if (n.theme) {
+    const s = sectorOf(n.theme);
+    return { x: s.x + 30 * Math.cos(a), y: s.y + 30 * Math.sin(a) };
+  }
+  return { x: RING * n.hop * Math.cos(a), y: RING * n.hop * Math.sin(a) };
 }
 
 function buildGraph(
@@ -87,16 +140,14 @@ function buildGraph(
   graph.clear();
   for (const n of data.nodes) {
     const center = n.id === data.center;
-    const kept = previous.get(n.id);
-    const radius = n.hop * 10 + 2;
+    const { x, y } = previous.get(n.id) ?? startOf(n, center);
     graph.addNode(n.id, {
-      x: center ? 0 : (kept?.x ?? radius * Math.cos(angleOf(n.id))),
-      y: center ? 0 : (kept?.y ?? radius * Math.sin(angleOf(n.id))),
+      x: center ? 0 : x,
+      y: center ? 0 : y,
       size: center ? 16 : SIZE[n.type] + (n.type === "development" ? (n.materiality_level ?? 0) * 0.6 : 0) + (n.has_new ? 2 : 0),
-      color: palette.node[n.type],
+      color: n.theme ? palette.theme[n.theme] : palette.node[n.type],
       label: n.type === "development" ? shorten(n.label) : n.label,
       forceLabel: n.type !== "development",
-      fixed: center,
       ringSize: n.has_new ? 2.5 : 0,
       gapSize: n.has_new ? 1.5 : 0,
     });
@@ -106,43 +157,73 @@ function buildGraph(
   }
 }
 
-/** Runs ForceAtlas2 until nodes stop moving, animated per frame unless motion is reduced. */
-function settle(graph: Graph<NodeAttrs, EdgeAttrs>, animate: boolean, done: () => void): () => void {
-  const settings = { ...forceAtlas2.inferSettings(graph), barnesHutOptimize: false };
-  let iterations = 0;
-  let frame = 0;
-  const step = () => {
-    const before = new Map(graph.mapNodes((id, a) => [id, { x: a.x, y: a.y }] as const));
-    forceAtlas2.assign(graph, { iterations: ITERATIONS_PER_FRAME, settings });
-    iterations += ITERATIONS_PER_FRAME;
-    let moved = 0;
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    graph.forEachNode((id, a) => {
-      const b = before.get(id);
-      if (b) moved += Math.hypot(a.x - b.x, a.y - b.y);
-      minX = Math.min(minX, a.x);
-      maxX = Math.max(maxX, a.x);
-      minY = Math.min(minY, a.y);
-      maxY = Math.max(maxY, a.y);
-    });
-    const extent = Math.max(maxX - minX, maxY - minY, 1);
-    return moved / graph.order / ITERATIONS_PER_FRAME < extent * SETTLED || iterations >= MAX_ITERATIONS;
-  };
-  if (graph.order < 2) {
-    done();
-    return () => {};
-  }
+/** The simulation over the graph's current positions. The centre is pinned at the origin; links
+ *  pull, nodes repel and never overlap, and each themed development is drawn to its sector. */
+function simulationOf(graph: Graph<NodeAttrs, EdgeAttrs>, data: GraphData): Sim {
+  const byId = new Map(data.nodes.map((n) => [n.id, n]));
+  const nodes: SimNode[] = graph.mapNodes((id, a) => ({
+    id,
+    x: a.x,
+    y: a.y,
+    theme: byId.get(id)?.theme ?? null,
+    size: a.size,
+    ...(id === data.center ? { fx: 0, fy: 0 } : {}),
+  }));
+  const links: SimLink[] = data.edges.map((e) => ({ source: e.source, target: e.target, type: e.type }));
+  const sector = (n: SimNode) => (n.theme ? sectorOf(n.theme) : { x: 0, y: 0 });
+  return forceSimulation(nodes)
+    .velocityDecay(0.3)
+    .force("link", forceLink<SimNode, SimLink>(links).id((n) => n.id).distance((l) => LINK_DISTANCE[l.type]))
+    .force("charge", forceManyBody<SimNode>().strength((n) => (n.theme ? -60 : -240)).distanceMax(700))
+    .force("collide", forceCollide<SimNode>((n) => n.size * 1.6 + 6))
+    .force("x", forceX<SimNode>((n) => sector(n).x).strength((n) => (n.theme ? 0.1 : 0.02)))
+    .force("y", forceY<SimNode>((n) => sector(n).y).strength((n) => (n.theme ? 0.1 : 0.02)))
+    .stop();
+}
+
+/** Copies simulation positions onto the graph in one update, so sigma redraws once. */
+function syncPositions(graph: Graph<NodeAttrs, EdgeAttrs>, sim: Sim) {
+  const at = new Map(sim.nodes().map((n) => [n.id, n]));
+  graph.updateEachNodeAttributes((id, a) => {
+    const n = at.get(id);
+    return n ? { ...a, x: n.x ?? a.x, y: n.y ?? a.y } : a;
+  });
+}
+
+/** Runs the simulation until it cools, animated unless motion is reduced. `done` fires each time it
+ *  cools: first here, then after every drag reheats it. */
+function settle(graph: Graph<NodeAttrs, EdgeAttrs>, sim: Sim, animate: boolean, done: () => void) {
   if (!animate) {
-    while (!step());
+    sim.tick(TICKS);
+    syncPositions(graph, sim);
     done();
-    return () => {};
+    return;
   }
-  const tick = () => {
-    if (step()) done();
-    else frame = requestAnimationFrame(tick);
+  sim.on("tick", () => syncPositions(graph, sim)).on("end", done).alpha(1).restart();
+}
+
+/** Where each theme's label goes: just outside its developments, on the line from the centre
+ *  through their middle, in stage pixels. */
+function regionAnchors(renderer: Renderer, sim: Sim, center: string) {
+  const viewport = (id: string) => {
+    const d = renderer.getNodeDisplayData(id);
+    return d ? renderer.framedGraphToViewport(d) : null;
   };
-  frame = requestAnimationFrame(tick);
-  return () => cancelAnimationFrame(frame);
+  const c = viewport(center);
+  const anchors = new Map<Theme, { x: number; y: number; dx: number }>();
+  if (!c) return anchors;
+  for (const theme of THEMES) {
+    const members = sim.nodes().flatMap((n) => (n.theme === theme ? [viewport(n.id)] : [])).filter((p) => p !== null);
+    if (!members.length) continue;
+    const mx = members.reduce((t, m) => t + m.x, 0) / members.length;
+    const my = members.reduce((t, m) => t + m.y, 0) / members.length;
+    const len = Math.hypot(mx - c.x, my - c.y) || 1;
+    const dx = (mx - c.x) / len;
+    const dy = (my - c.y) / len;
+    const reach = Math.max(...members.map((m) => (m.x - c.x) * dx + (m.y - c.y) * dy));
+    anchors.set(theme, { x: c.x + dx * (reach + 20), y: c.y + dy * (reach + 20), dx });
+  }
+  return anchors;
 }
 
 type Box = { x: number; y: number; w: number; h: number };
@@ -158,8 +239,8 @@ function overlap(a: Box, b: Box): number {
 }
 
 /** Draws each label beside its node on the first side (right, left, below, above) where it covers
- *  no other node and no label drawn before it this frame; failing that, on the side that covers
- *  least. Forced labels (topics, groups, entities) always draw; a development label with no clear
+ *  no other node, no label drawn before it this frame and no edge of the stage; failing that, on
+ *  the side that covers least. Forced labels (topics, groups, entities) always draw; a development label with no clear
  *  side is left out. Labels get a halo in the canvas colour so edges never run through the text. */
 function labelPlacer(renderer: Renderer, colors: Palette): NodeLabelDrawingFunction<NodeAttrs, EdgeAttrs> {
   let discs: Disc[] | null = null;
@@ -188,7 +269,11 @@ function labelPlacer(renderer: Renderer, colors: Palette): NodeLabelDrawingFunct
       { x: data.x - w / 2, y: data.y + r, w, h },
       { x: data.x - w / 2, y: data.y - r - h, w, h },
     ];
+    const { width, height } = renderer.getDimensions();
+    // Text that would run off the stage counts against a side, so edge labels turn inward.
+    const offStage = (box: Box) => 4 * (box.w * box.h - overlap(box, { x: 0, y: 0, w: width, h: height }));
     const cost = (box: Box) =>
+      offStage(box) +
       nodeDiscs().reduce(
         // The node's own disc sits at the label's anchor.
         (sum, n) => (!n.r || Math.hypot(n.x - data.x, n.y - data.y) < 0.5 ? sum : sum + overlap(box, { x: n.x - n.r, y: n.y - n.r, w: 2 * n.r, h: 2 * n.r })),
@@ -220,16 +305,23 @@ type Props = {
 
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** Fits every node in view: sigma's default camera frames the whole graph. Resolves once it is there. */
+/** Fits every node in view, then holds that frame so dragging a node to the edge does not rescale
+ *  the rest. Resolves once the camera is there. */
 async function fit(renderer: Renderer) {
+  renderer.setCustomBBox(null);
+  renderer.refresh();
   const camera = renderer.getCamera();
   if (reducedMotion()) camera.setState({ x: 0.5, y: 0.5, ratio: 1, angle: 0 });
   else await camera.animatedReset({ duration: 250 });
+  renderer.setCustomBBox(renderer.getBBox());
 }
 
 export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props) {
   const stage = useRef<HTMLDivElement>(null);
+  const regions = useRef<HTMLDivElement>(null);
   const graph = useRef(new Graph<NodeAttrs, EdgeAttrs>());
+  const sim = useRef<Sim | null>(null);
+  const center = useRef(data.center);
   const positions = useRef(new Map<string, { x: number; y: number }>());
   const palette = useRef<Palette | null>(null);
   const hoveredRef = useRef(hovered);
@@ -237,6 +329,9 @@ export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props)
   const [renderer, setRenderer] = useState<Renderer | null>(null);
   // The data whose layout has settled and been framed; a new neighbourhood reads as running until then.
   const [settledFor, setSettledFor] = useState<GraphData | null>(null);
+  const [dragging, setDragging] = useState<string | null>(null);
+  // A drag reheated the layout, so nodes are moving until it cools again.
+  const [floating, setFloating] = useState(false);
 
   useEffect(() => {
     callbacks.current = { onHover, onOpen };
@@ -261,7 +356,7 @@ export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props)
           { size: { fill: true }, color: { attribute: "color" } },
         ],
       });
-      sigma = new SigmaClass(graph.current, stage.current, {
+      const r: Renderer = new SigmaClass(graph.current, stage.current, {
         defaultNodeType: "ring",
         nodeProgramClasses: { ring },
         labelFont: FONT,
@@ -284,11 +379,94 @@ export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props)
           return { ...attrs, hidden: true };
         },
       });
-      sigma.setSetting("defaultDrawNodeLabel", labelPlacer(sigma, colors));
-      sigma.on("enterNode", ({ node }) => callbacks.current.onHover(node));
-      sigma.on("leaveNode", () => callbacks.current.onHover(null));
-      sigma.on("clickNode", ({ node }) => callbacks.current.onOpen(node));
-      setRenderer(sigma);
+      sigma = r;
+      r.setSetting("defaultDrawNodeLabel", labelPlacer(r, colors));
+
+      // Region labels follow their developments on every frame.
+      r.on("afterRender", () => {
+        const s = sim.current;
+        const layer = regions.current;
+        if (!s || !layer) return;
+        const anchors = regionAnchors(r, s, center.current);
+        for (const el of layer.querySelectorAll<HTMLElement>("[data-region]")) {
+          const a = anchors.get(el.dataset.region as Theme);
+          el.hidden = !a;
+          if (!a) continue;
+          // Right of the anchor on the right side, left of it on the left, centred above and below,
+          // and always inside the stage.
+          const w = el.offsetWidth;
+          const h = el.offsetHeight;
+          const x = a.dx > 0.35 ? a.x : a.dx < -0.35 ? a.x - w : a.x - w / 2;
+          const left = Math.min(Math.max(x, 8), layer.clientWidth - w - 8);
+          const top = Math.min(Math.max(a.y - h / 2, 8), layer.clientHeight - h - 8);
+          el.style.transform = `translate(${left}px, ${top}px)`;
+        }
+      });
+
+      // Drag: the node follows the pointer while the simulation stays warm, then floats free. A
+      // press that moved more than a few pixels is a drag, so its release does not open the node.
+      let dragged: string | null = null;
+      let pressedAt: { x: number; y: number } | null = null;
+      let moved = false;
+      // The node under the pointer by sigma's account. The dragged node stays highlighted while
+      // held, and the highlight catches up with this on release.
+      let under: string | null = null;
+      const simNode = (id: string) => sim.current?.nodes().find((n) => n.id === id);
+      r.on("enterNode", ({ node }) => {
+        under = node;
+        if (!dragged) callbacks.current.onHover(node);
+      });
+      r.on("leaveNode", () => {
+        under = null;
+        if (!dragged) callbacks.current.onHover(null);
+      });
+      r.on("clickNode", ({ node }) => {
+        if (!moved) callbacks.current.onOpen(node);
+      });
+      r.on("downNode", ({ node, event }) => {
+        const n = simNode(node);
+        if (!n) return;
+        dragged = node;
+        pressedAt = { x: event.x, y: event.y };
+        moved = false;
+        n.fx = n.x;
+        n.fy = n.y;
+      });
+      r.on("moveBody", ({ event }) => {
+        if (!dragged) return;
+        const n = simNode(dragged);
+        if (!n) return;
+        event.preventSigmaDefault();
+        event.original.preventDefault();
+        event.original.stopPropagation();
+        // Nothing moves until the press becomes a drag, so a plain click lands where it was aimed.
+        if (!moved) {
+          if (!pressedAt || Math.hypot(event.x - pressedAt.x, event.y - pressedAt.y) <= 3) return;
+          moved = true;
+          setDragging(dragged);
+          if (!reducedMotion()) {
+            setFloating(true);
+            sim.current?.alphaTarget(DRAG_HEAT).restart();
+          }
+        }
+        const p = r.viewportToGraph(event);
+        n.fx = n.x = p.x;
+        n.fy = n.y = p.y;
+        if (reducedMotion()) graph.current.mergeNodeAttributes(dragged, { x: p.x, y: p.y });
+      });
+      const release = () => {
+        if (!dragged) return;
+        const n = simNode(dragged);
+        // The centre stays pinned where it is; with reduced motion a dragged node stays where dropped.
+        if (n && dragged !== center.current && !(moved && reducedMotion())) n.fx = n.fy = null;
+        sim.current?.alphaTarget(0);
+        dragged = null;
+        setDragging(null);
+        callbacks.current.onHover(under);
+      };
+      r.on("upNode", release);
+      r.on("upStage", release);
+      setRenderer(r);
     })();
     return () => {
       cancelled = true;
@@ -302,35 +480,52 @@ export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props)
     const g = graph.current;
     g.forEachNode((id, a) => positions.current.set(id, { x: a.x, y: a.y }));
     buildGraph(g, data, positions.current, palette.current);
+    center.current = data.center;
+    renderer.setCustomBBox(null);
+    const s = simulationOf(g, data);
+    sim.current = s;
     let live = true;
-    const stop = settle(g, !reducedMotion(), () => {
+    let framed = false;
+    settle(g, s, !reducedMotion(), () => {
+      setFloating(false);
+      if (framed) return;
+      framed = true;
       void fit(renderer).then(() => live && setSettledFor(data));
     });
     return () => {
       live = false;
-      stop();
+      s.stop().on("tick", null).on("end", null);
     };
   }, [renderer, data]);
 
   useEffect(() => {
     hoveredRef.current = hovered;
     renderer?.refresh({ skipIndexation: true });
-    if (stage.current) stage.current.style.cursor = hovered ? "pointer" : "";
   }, [renderer, hovered]);
 
+  const themes = THEMES.filter((t) => data.nodes.some((n) => n.theme === t));
   return (
     <div className="graph-canvas">
       <div
         ref={stage}
         className="graph-stage"
         data-testid="graph-canvas"
-        data-layout={settledFor === data ? "settled" : "running"}
+        data-layout={settledFor === data && !floating ? "settled" : "running"}
         data-hovered={hovered ?? undefined}
+        data-dragging={dragging ?? undefined}
         role="img"
         aria-label={`Graph of ${data.nodes.length} nodes and ${data.edges.length} links around ${
           data.nodes.find((n) => n.id === data.center)?.label ?? data.center
         }`}
       />
+      <div ref={regions} className="graph-regions" aria-hidden="true">
+        {themes.map((t) => (
+          <span key={t} data-region={t} hidden>
+            <span className={`gdot t-${t}`} />
+            {THEME_LABEL[t]}
+          </span>
+        ))}
+      </div>
       <button
         type="button"
         className="btn-icon lg graph-fit"

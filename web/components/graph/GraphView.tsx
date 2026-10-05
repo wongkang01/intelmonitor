@@ -1,6 +1,7 @@
 // Graph view around one subject: opens at 1 hop, expands to 2, with filters for node type, link
 // type and time window. Clicking a subject node opens its monitor page; clicking a development
-// opens its evidence over the graph. The In view list shows the same nodes as links.
+// opens its evidence over the graph. Developments are coloured and grouped by theme. The In view
+// list shows the same nodes as links.
 import { Link } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
@@ -12,7 +13,7 @@ import { monitorLink } from "@/lib/widgets";
 import { evidenceLink } from "@/components/shell/Evidence";
 import { ChevronDownIcon } from "@/components/ui/icons";
 
-import { GraphCanvas } from "./GraphCanvas";
+import { GraphCanvas, THEME_LABEL, THEMES } from "./GraphCanvas";
 
 type GraphNode = Schema<"GraphNode">;
 type NodeType = GraphNode["type"];
@@ -114,7 +115,8 @@ export function GraphView({ id }: { id: string }) {
         <div className="graph-region">
           <GraphCanvas data={g} hovered={hovered} onHover={setHovered} onOpen={open}>
             <ul className="graph-legend" aria-label="Legend">
-              {NODE_TYPES.filter((t) => nodeTypes.includes(t.value)).map((t) => (
+              {/* Themed developments are labelled beside their sectors, so only other types are listed. */}
+              {NODE_TYPES.filter((t) => g.nodes.some((n) => n.type === t.value && !n.theme)).map((t) => (
                 <li key={t.value}>
                   <span className={`gdot ${t.value}`} aria-hidden="true" />
                   {t.label}
@@ -233,8 +235,12 @@ const linkOf = (nodeId: string) =>
     ? evidenceLink.development(nodeId.slice(DEV_PREFIX.length))
     : { ...monitorLink(nodeId), resetScroll: false };
 
-/** The In view list: nodes grouped by hop then type, in the shared row grammar. No date column: at
- *  360px it would squeeze titles below 150px. */
+/** The group a node is listed under: its type, or for a development its theme when it has one. */
+const groupOf = (n: GraphNode) => n.theme ?? n.type;
+const groupRank = (n: GraphNode) => ORDER[n.type] + (n.theme ? THEMES.indexOf(n.theme) / THEMES.length : 0);
+
+/** The In view list: nodes grouped by hop, then type or theme, in the shared row grammar. No date
+ *  column: at 360px it would squeeze titles below 150px. */
 function NodeList({
   nodes,
   onHover,
@@ -245,13 +251,13 @@ function NodeList({
   const sorted = [...nodes].sort(
     (a, b) =>
       a.hop - b.hop ||
-      ORDER[a.type] - ORDER[b.type] ||
+      groupRank(a) - groupRank(b) ||
       Number(b.needs_attention) - Number(a.needs_attention) ||
       Number(b.has_new) - Number(a.has_new) ||
       a.label.localeCompare(b.label),
   );
   const newCount = nodes.filter((n) => n.has_new).length;
-  const groupSize = (n: GraphNode) => nodes.filter((m) => m.hop === n.hop && m.type === n.type).length;
+  const groupSize = (n: GraphNode) => nodes.filter((m) => m.hop === n.hop && groupOf(m) === groupOf(n)).length;
   return (
     <section className="graph-list" aria-labelledby="in-view">
       <div className="graph-list-head">
@@ -263,13 +269,13 @@ function NodeList({
       <div className="graph-list-body" data-testid="graph-nodes">
         {sorted.map((n, i) => {
           const prev = sorted[i - 1];
-          const startsGroup = !prev || prev.hop !== n.hop || prev.type !== n.type;
+          const startsGroup = !prev || prev.hop !== n.hop || groupOf(prev) !== groupOf(n);
           return (
             <Fragment key={n.id}>
               {startsGroup && (
                 <h3 className="graph-group">
-                  <span className={`gdot ${n.type}`} aria-hidden="true" />
-                  {GROUP_LABEL[n.type]}, {plural(n.hop, "hop")}
+                  <span className={`gdot ${n.theme ? `t-${n.theme}` : n.type}`} aria-hidden="true" />
+                  {n.theme ? THEME_LABEL[n.theme] : GROUP_LABEL[n.type]}, {plural(n.hop, "hop")}
                   <span className="count">{groupSize(n)}</span>
                 </h3>
               )}

@@ -9,7 +9,7 @@ export const STEPS = [
   "Monitor page from ⌘K: mark reviewed and Undo, add a note, delete and Undo, the rail's foot in reach",
   "Triage: row actions by keyboard, filters, follow, alerts read on open",
   "Custom question with answer and citations",
-  "Graph view: 2 hops, click a node, its page opens",
+  "Graph view: developments under their themes, drag a node without opening it, 2 hops, click a node, its page opens",
   "Sidebar: drag and Move up reorder dashboards, colors stay",
   "⌘K full text: a development and a document open their evidence, snippets are body text",
   "Correct the AI: mark an answer wrong and Undo, remove a tag and Undo",

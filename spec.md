@@ -283,7 +283,7 @@ Topics       AI safety regulation
 **Expanded graph view.** Opened from the links section, not a separate home screen.
 
 - Starts centred on the current page, showing 1 hop. The user can expand to 2 hops.
-- Node colour = type (topic, group, entity, event, development). Edge label = link type.
+- Node colour = type (topic, group, entity, event). Developments are coloured and grouped by theme. Edge label = link type.
 - Filters: node type, link type, time window (e.g. last 30 days).
 - Nodes with new developments since last review are highlighted.
 - Click a node to open its monitor page. Hover to see the latest finding.

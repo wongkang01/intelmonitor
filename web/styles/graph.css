@@ -1,12 +1,21 @@
 /* Graph view: toolbar, one region holding the sigma canvas and the In view list. */
 
 /* Graph-only colors. Type colors exist only in the canvas, its legend and the In view group heads.
-   GraphCanvas reads these at mount (getComputedStyle), so change them here, never in TSX. */
+   GraphCanvas reads these at mount (getComputedStyle), so change them here, never in TSX.
+   Subjects stay low in chroma so the theme colors carry the developments. The six theme colors are
+   the dataviz categorical order checked for color-blind separation between neighbouring sectors;
+   yellow, aqua and pink sit below 3:1 on the surface, so every theme is also labelled. */
 .graph-page {
-  --g-topic: oklch(0.53 0.15 290);
+  --g-topic: oklch(0.47 0.05 60);
   --g-group: oklch(0.5 0.04 230);
   --g-entity: oklch(0.35 0.012 260);
   --g-development: oklch(0.54 0.09 195);
+  --g-theme-regulation: #eb6834;
+  --g-theme-digital-assets: #1baf7a;
+  --g-theme-technology: #eda100;
+  --g-theme-strategy: #008300;
+  --g-theme-markets: #e87ba4;
+  --g-theme-macro: #4a3aa7;
   --g-new: var(--new);
   --g-gap: var(--surface);
   --g-dim: var(--line);
@@ -124,6 +133,24 @@
 .gdot.development {
   background: var(--g-development);
 }
+.gdot.t-regulation {
+  background: var(--g-theme-regulation);
+}
+.gdot.t-digital-assets {
+  background: var(--g-theme-digital-assets);
+}
+.gdot.t-technology {
+  background: var(--g-theme-technology);
+}
+.gdot.t-strategy {
+  background: var(--g-theme-strategy);
+}
+.gdot.t-markets {
+  background: var(--g-theme-markets);
+}
+.gdot.t-macro {
+  background: var(--g-theme-macro);
+}
 .gdot.ring {
   width: 8px;
   height: 8px;
@@ -152,6 +179,34 @@
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
+}
+.graph-stage[data-hovered] {
+  cursor: pointer;
+}
+.graph-stage[data-dragging] {
+  cursor: grabbing;
+}
+/* Theme labels beside each sector; GraphCanvas positions them on every frame. */
+.graph-regions {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.graph-regions > span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 var(--fs-meta) / var(--lh-meta) var(--font);
+  color: var(--ink2);
+  white-space: nowrap;
+  text-shadow: 0 0 3px var(--surface), 0 0 3px var(--surface);
+}
+.graph-stage[data-hovered] ~ .graph-regions {
+  opacity: 0.4;
 }
 .graph-fit {
   position: absolute;

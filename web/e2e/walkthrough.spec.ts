@@ -665,6 +665,23 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       const oneHop = await listed.count();
       expect(oneHop).toBeGreaterThan(0);
 
+      // Developments are listed under their themes.
+      const themeHead = /^(Regulation|Digital assets|Technology and AI|Strategy|Earnings and markets|Macro and geopolitics), 1 hop/;
+      await expect(page.getByTestId("graph-nodes").getByRole("heading", { level: 3, name: themeHead }).first()).toBeVisible();
+
+      // Dragging a node carries it without opening it, and the layout settles again after release.
+      const grab = await findNode(page, stage, entity.id);
+      const grabbed = await stage.getAttribute("data-hovered");
+      if (!grabbed) throw new Error("no node under the pointer to drag");
+      await page.mouse.down();
+      await page.mouse.move(grab.x + 90, grab.y - 70, { steps: 12 });
+      await expect(stage).toHaveAttribute("data-dragging", grabbed);
+      await expect(stage).toHaveAttribute("data-layout", "running");
+      await page.mouse.up();
+      await expect(stage).not.toHaveAttribute("data-dragging");
+      await expect(page).toHaveURL(`/monitors/${entity.id}/graph`);
+      await expect(stage).toHaveAttribute("data-layout", "settled", { timeout: 30_000 });
+
       const hops = page.getByRole("group", { name: "Hops" });
       await hops.getByRole("button", { name: "2 hops" }).click();
       await expect(hops.getByRole("button", { name: "2 hops" })).toHaveAttribute("aria-pressed", "true");
