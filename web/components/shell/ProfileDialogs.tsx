@@ -1,5 +1,3 @@
-"use client";
-
 // The profile menu's dialogs: Settings, Data sources, Run history and Help.
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 

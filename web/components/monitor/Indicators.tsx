@@ -1,11 +1,9 @@
-"use client";
-
 // The Indicators section of a monitor page (structured-data-plan.md, F4): one row per measured
 // series mapped to the subject, as of the page's run date. Status from the detector rules, the
 // latest value with its period, the change with its window, and a line over 12 months. Series
 // that share a group heading in api/seed/series.yaml sit under it when two or more are on the
 // page; the rest lead, under their full names.
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useState, type PointerEvent, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
@@ -21,7 +19,7 @@ import {
   seriesValue,
   shortDate,
 } from "@/lib/format";
-import { useEvidenceHref } from "@/components/shell/Evidence";
+import { evidenceLink } from "@/components/shell/Evidence";
 import { StateBadge } from "@/components/widgets/parts";
 
 import { Dotted } from "./parts";
@@ -95,7 +93,6 @@ export function Indicators({ subjectId, asOf }: { subjectId: string; asOf: strin
 }
 
 function IndicatorRow({ ind, name, asOf }: { ind: Indicator; name: string; asOf: string }) {
-  const evidence = useEvidenceHref();
   const s = ind.series;
   const change = indicatorChange(ind);
   const flag =
@@ -146,7 +143,7 @@ function IndicatorRow({ ind, name, asOf }: { ind: Indicator; name: string; asOf:
   // A row whose status comes from a detector event opens the development that carries it.
   const developmentId = unusable ? null : ind.events.find((e) => e.development_id)?.development_id;
   return developmentId ? (
-    <Link href={evidence.development(developmentId)} scroll={false} className="row ind-row" data-series-id={s.id}>
+    <Link {...evidenceLink.development(developmentId)} className="row ind-row" data-series-id={s.id}>
       {cells}
     </Link>
   ) : (

@@ -1,12 +1,11 @@
-"use client";
-
 // First-run tour (iteration-plan.md B2, mocks/onboarding.html direction A): five coach marks, one at
 // a time, over the dimmed dashboard. It starts once, on the first dashboard shown while the profile's
 // `tour_seen_at` is null, and Replay tour in Help starts it again. Each step rings its target and sets
 // the card beside it; a target missing from the page leaves the card centred over a plain scrim.
 // The tour is a modal <dialog>, so the page is inert behind it: Esc, Skip tour or the close button end
 // it, focus goes to each step's primary button, and returns afterwards to where it was.
-import { usePathname, useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
+import { usePathname } from "@/lib/router";
 import {
   createContext,
   useContext,
@@ -92,7 +91,7 @@ export const useStartTour = () => useContext(StartTour);
 /** Holds the tour over the shell's pages and gives useStartTour to the profile menu. */
 export function TourProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
+  const navigate = useNavigate();
   const profile = useProfile();
   const save = useSaveProfile();
   const [run, setRun] = useState<{ returnFocus: HTMLElement | null } | null>(null);
@@ -113,7 +112,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
 
   const start = (returnFocus: HTMLElement | null = null) => {
     setRun({ returnFocus });
-    if (!isDashboard(pathname)) router.push("/");
+    if (!isDashboard(pathname)) navigate({ to: "/" });
   };
   const end = () => {
     const back = run?.returnFocus;
@@ -173,7 +172,7 @@ const find = (selectors: string[]) =>
   selectors.reduce<HTMLElement | null>((el, s) => el ?? document.querySelector<HTMLElement>(s), null);
 
 function TourOverlay({ onEnd }: { onEnd: () => void }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const [layout, setLayout] = useState<Layout | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -196,9 +195,11 @@ function TourOverlay({ onEnd }: { onEnd: () => void }) {
     const href = find(EVIDENCE_LINKS)?.getAttribute("href");
     if (!href) return;
     const back = window.location.pathname + window.location.search;
-    router.replace(href, { scroll: false });
-    return () => router.replace(back, { scroll: false });
-  }, [step, router]);
+    void navigate({ href, replace: true, resetScroll: false });
+    return () => {
+      void navigate({ href: back, replace: true, resetScroll: false });
+    };
+  }, [step, navigate]);
 
   // Ring and card follow the target as the page loads, scrolls, resizes or animates.
   useLayoutEffect(() => {

@@ -1,10 +1,8 @@
-"use client";
-
 // The dashboard grid. Order is the only layout state: CSS grid packs S, M and L from the top left
 // with no gaps (grid-auto-flow: dense), so dragging or arrow keys only change the order.
 // Pointer gestures: tap opens the widget's page (settings in edit mode), a long press enters edit
 // mode, and in edit mode a drag reorders with the others reflowing into place.
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import {
   useEffect,
   useLayoutEffect,
@@ -101,7 +99,7 @@ export function WidgetGrid({
   onSettings: (id: string | null) => void;
   onLongPress: () => void;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const grid = useRef<HTMLDivElement>(null);
   const lifted = useRef<HTMLDivElement>(null);
   const gesture = useRef<Gesture | null>(null);
@@ -270,7 +268,7 @@ export function WidgetGrid({
     const card = e.target.closest<HTMLElement>("[data-widget-id]");
     if (!card || e.target.closest(CONTROLS) || e.target.closest(".settings")) return;
     if (editing) onSettings(settingsFor === card.dataset.widgetId ? null : (card.dataset.widgetId ?? null));
-    else if (card.dataset.href && !window.getSelection()?.toString()) router.push(card.dataset.href);
+    else if (card.dataset.href && !window.getSelection()?.toString()) navigate({ href: card.dataset.href });
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {

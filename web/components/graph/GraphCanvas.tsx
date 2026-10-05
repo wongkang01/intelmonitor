@@ -1,5 +1,3 @@
-"use client";
-
 // Sigma.js canvas for a graph neighbourhood. ForceAtlas2 runs when the data changes and stops once
 // the layout settles, then the camera refits; `data-layout` on the stage reads "running" or "settled".
 // Nodes keep their positions across refetches, so changing a filter only moves what it adds.

@@ -1,8 +1,7 @@
-"use client";
-
 // A dashboard's identity: its colored dot, and the options popover (name, color, order, delete) that
 // the sidebar row's "more" button opens.
-import { usePathname, useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
+import { usePathname } from "@/lib/router";
 import { useEffect, useRef, useState, type RefObject } from "react";
 
 import type { Schema } from "@/lib/api/client";
@@ -51,7 +50,7 @@ export function DashboardEditPop({
   const remove = useDeleteDashboard();
   const restore = useRestoreDashboard();
   const toast = useToast();
-  const router = useRouter();
+  const navigate = useNavigate();
   const pathname = usePathname();
   const [name, setName] = useState(dashboard.name);
   const [confirming, setConfirming] = useState(false);
@@ -84,11 +83,11 @@ export function DashboardEditPop({
           restore
             .mutateAsync(dashboard.id)
             .then(() => {
-              if (wasOpen) router.push(href);
+              if (wasOpen) void navigate({ to: "/dashboards/$id", params: { id: dashboard.id } });
             })
             .catch(() => toast({ message: "Could not restore the dashboard" }));
         toast({ message: `Deleted ${dashboard.name}`, action: { label: "Undo", run: undo }, duration: DELETE_UNDO_MS });
-        if (wasOpen) router.push("/");
+        if (wasOpen) void navigate({ to: "/" });
       },
       onError: () => toast({ message: "Could not delete the dashboard" }),
     });

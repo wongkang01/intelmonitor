@@ -1,10 +1,8 @@
-"use client";
-
 // The Indicator widget (structured-data-plan.md, F5; mocks/indicators.html, F5 B "State first"):
 // the series' status is the answer and code writes the sentence. S adds the source; M puts a
 // 12-month line beside the sentence; L puts the line under it with its scale, and the subject's
 // Needs attention and Watch developments on a lane under the line, the latest two as rows.
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
@@ -19,8 +17,8 @@ import {
   STATE_LABEL,
   STATE_TONE,
 } from "@/lib/format";
-import { monitorHref } from "@/lib/widgets";
-import { useEvidenceHref } from "@/components/shell/Evidence";
+import { monitorLink } from "@/lib/widgets";
+import { evidenceLink } from "@/components/shell/Evidence";
 import { SubjectLink } from "@/components/shell/SubjectLink";
 import { IndicatorLine, yearAxis } from "@/components/monitor/Indicators";
 
@@ -36,8 +34,7 @@ function Status({ ind }: { ind: Indicator }) {
   return <span className={`c-${STATE_TONE[ind.status]}`}>{STATE_LABEL[ind.status]}</span>;
 }
 
-export function IndicatorBody({ data, widget, href }: BodyProps & { data: DataOf<"indicator"> }) {
-  const evidence = useEvidenceHref();
+export function IndicatorBody({ data, widget, link }: BodyProps & { data: DataOf<"indicator"> }) {
   const [active, setActive] = useState<string | null>(null);
   const ind = data.indicator;
   const s = ind.series;
@@ -45,7 +42,7 @@ export function IndicatorBody({ data, widget, href }: BodyProps & { data: DataOf
   const sentence = indicatorSentence(ind, asOf);
   const head = (
     <>
-      <Head title={s.name} href={href} meta={<SubjectLink subject={data.subject} />} />
+      <Head title={s.name} link={link} meta={<SubjectLink subject={data.subject} />} />
       <p className="ans">
         <Status ind={ind} />
       </p>
@@ -61,11 +58,11 @@ export function IndicatorBody({ data, widget, href }: BodyProps & { data: DataOf
         <p className="w-text summary">{sentence}</p>
         <div className="wf">
           {developmentId ? (
-            <Link href={evidence.development(developmentId)} className="link" scroll={false}>
+            <Link {...evidenceLink.development(developmentId)} className="link">
               See development
             </Link>
           ) : (
-            <Link href={`${monitorHref(data.subject.id)}#indicators`} className="link">
+            <Link {...monitorLink(data.subject.id)} hash="indicators" className="link">
               See data
             </Link>
           )}
@@ -114,8 +111,7 @@ export function IndicatorBody({ data, widget, href }: BodyProps & { data: DataOf
           {rows.map((m) => (
             <Link
               key={m.development.id}
-              href={evidence.development(m.development.id)}
-              scroll={false}
+              {...evidenceLink.development(m.development.id)}
               className={`row no-stat${active === m.on ? " on" : ""}`}
               onPointerEnter={() => setActive(m.on)}
               onPointerLeave={() => setActive(null)}
@@ -154,7 +150,6 @@ function Lane({
   active: string | null;
   onActive: (on: string | null) => void;
 }) {
-  const evidence = useEvidenceHref();
   const [tip, setTip] = useState<{ on: string; x: number; y: number } | null>(null);
   const { x } = yearAxis(asOf);
   const days = new Map<string, Marked[]>();
@@ -180,8 +175,7 @@ function Lane({
       {[...days].reverse().map(([on, list]) => (
         <Link
           key={on}
-          href={evidence.development(list[0].development.id)}
-          scroll={false}
+          {...evidenceLink.development(list[0].development.id)}
           className={`ind-tk${active === on ? " on" : ""}`}
           style={{ left: `${x(on)}%` }}
           aria-label={`${shortDate(on)}: ${plural(list.length, "development")}`}

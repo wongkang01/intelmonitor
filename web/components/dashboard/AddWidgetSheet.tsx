@@ -1,5 +1,3 @@
-"use client";
-
 // Add widget gallery sheet, like the iPadOS widget gallery with subjects in place of apps.
 // Left: subjects with search and new-development counts. Right: the widgets that fit the subject,
 // each a live preview of real data at dashboard size with a size picker and Add; the first two are

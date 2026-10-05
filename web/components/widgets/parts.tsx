@@ -1,31 +1,32 @@
 // Pieces shared by widget bodies, monitor pages and the evidence drawer: the widget header, state
 // badges and state words, development rows in the shared list-row grammar (globals.css `.row`), and
 // the series picker of the gallery and settings.
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { Fragment, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { plural, shortDate, STATE_LABEL, STATE_TONE, type State } from "@/lib/format";
-import { useEvidenceHref } from "@/components/shell/Evidence";
+import type { WidgetLink } from "@/lib/widgets";
+import { evidenceLink } from "@/components/shell/Evidence";
 import { SubjectLinks } from "@/components/shell/SubjectLink";
 import { Dotted } from "@/components/monitor/parts";
 
 /** Widget header: 12px grey title top-left, optional link target, meta on the right. */
 export function Head({
   title,
-  href,
+  link,
   meta,
   children,
 }: {
   title: string;
-  href?: string | null;
+  link?: WidgetLink | null;
   meta?: ReactNode;
   children?: ReactNode;
 }) {
   return (
     <div className="wh">
-      {href ? (
-        <Link href={href} className="wt">
+      {link ? (
+        <Link {...link} className="wt">
           {title}
         </Link>
       ) : (
@@ -103,7 +104,6 @@ export function DevelopmentRow({
   end?: ReactNode;
   className?: string;
 }) {
-  const evidence = useEvidenceHref();
   // Unlinked rows sit in dialogs, where subject links would leave the dialog.
   const named = link ? (subjects ?? d.subjects.slice(0, 2)) : [];
   const more = link && !subjects ? d.subjects.length - named.length : 0;
@@ -117,7 +117,7 @@ export function DevelopmentRow({
       <span>
         <span className={`row-title${lines === 1 ? " one" : ""}`} title={lines === 1 ? d.title : undefined}>
           {link ? (
-            <Link href={evidence.development(d.id)} className="stretch" scroll={false}>
+            <Link {...evidenceLink.development(d.id)} className="stretch">
               {d.title}
             </Link>
           ) : (

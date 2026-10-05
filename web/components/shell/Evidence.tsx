@@ -1,11 +1,8 @@
-"use client";
-
 // Evidence drawer over the current page. `?evidence=<development id>` shows a development's
 // sources; `?answer=<subject id>:<question id>` shows a standing question answer with the
-// developments it relies on. Build links with useEvidenceHref. Esc or Close drops the parameter.
+// developments it relies on. Build links with evidenceLink. Esc or Close drops the parameter.
 // The page's own parameters (the developments view's scope) stay as they are.
-import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Link, linkOptions, useNavigate, useSearch } from "@tanstack/react-router";
 import { Fragment, useEffect, useEffectEvent, useRef, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
@@ -21,48 +18,38 @@ import { Notes } from "./Notes";
 import { factSentence, SeriesSource } from "./SeriesSource";
 import { SubjectLink } from "./SubjectLink";
 
-type DrawerParam = "evidence" | "answer";
+/** The current page with the drawer set to `open`, or closed when `open` is empty. */
+const drawerLink = (open: { evidence?: string; answer?: string }) =>
+  linkOptions({
+    to: ".",
+    search: (prev) => ({ ...prev, evidence: open.evidence, answer: open.answer }),
+    resetScroll: false,
+  });
 
-/** The page's href with the drawer set to `open`, or closed when `open` is omitted. */
-export function drawerHref(pathname: string, params: URLSearchParams, open?: [DrawerParam, string]) {
-  const next = new URLSearchParams(params);
-  next.delete("evidence");
-  next.delete("answer");
-  if (open) next.set(...open);
-  const query = next.toString();
-  return query ? `${pathname}?${query}` : pathname;
-}
+/** Links that open the evidence drawer over the current page; spread into a Link or navigate. */
+export const evidenceLink = {
+  development: (id: string) => drawerLink({ evidence: id }),
+  answer: (subjectId: string, questionId: string) => drawerLink({ answer: `${subjectId}:${questionId}` }),
+};
 
-/** Hrefs that open the evidence drawer over the current page. */
-export function useEvidenceHref() {
-  const pathname = usePathname();
-  const params = useSearchParams();
-  return {
-    development: (id: string) => drawerHref(pathname, params, ["evidence", id]),
-    answer: (subjectId: string, questionId: string) =>
-      drawerHref(pathname, params, ["answer", `${subjectId}:${questionId}`]),
-  };
-}
-
-function answerTarget(param: string | null) {
+function answerTarget(param: string | undefined) {
   const at = param?.indexOf(":") ?? -1;
   if (!param || at < 1) return null;
   return { subjectId: param.slice(0, at), questionId: param.slice(at + 1) };
 }
 
 export function EvidenceDrawer() {
-  const params = useSearchParams();
-  const pathname = usePathname();
-  const router = useRouter();
-  const developmentId = params.get("evidence");
-  const answerParam = params.get("answer");
+  const search = useSearch({ from: "__root__" });
+  const navigate = useNavigate();
+  const developmentId = search.evidence ?? null;
+  const answerParam = search.answer;
   const answer = answerTarget(answerParam);
   const development = useDevelopment(developmentId);
   const answerEvidence = useAnswerEvidence(developmentId ? null : answer);
   const heading = useRef<HTMLHeadingElement>(null);
   const open = developmentId !== null || answer !== null;
   const opened = developmentId ?? answerParam;
-  const close = () => router.replace(drawerHref(pathname, params), { scroll: false });
+  const close = () => void navigate({ ...drawerLink({}), replace: true });
   const closeOnEscape = useEffectEvent(close);
 
   useEffect(() => {
@@ -155,7 +142,6 @@ function basedOn({ developments, series }: Schema<"AnswerEvidence">): string {
  * tag list with Wrong live.
  */
 function DevelopmentEvidence({ development: d, nested = false }: { development: Schema<"DevelopmentDetail">; nested?: boolean }) {
-  const evidence = useEvidenceHref();
   const head = (
     <>
       <p className="ev-facts">
@@ -166,7 +152,7 @@ function DevelopmentEvidence({ development: d, nested = false }: { development: 
       </p>
       {nested ? (
         <h5 className="ev-title">
-          <Link href={evidence.development(d.id)} scroll={false}>
+          <Link {...evidenceLink.development(d.id)}>
             {d.title}
           </Link>
         </h5>

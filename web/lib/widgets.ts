@@ -1,4 +1,6 @@
 // Widget helpers: typed construction and edits of dashboard widgets, and gallery offers.
+import { linkOptions } from "@tanstack/react-router";
+
 import type { Schema, Widget } from "./api/client";
 
 export type WidgetType = Widget["type"];
@@ -212,19 +214,22 @@ export const allowsDashboardScope = (widget: Widget) =>
  * page or, for a widget following every subject on a saved dashboard, that dashboard's developments
  * (the changed ones for Since), so the page counts what the widget counts.
  */
-export function widgetHref(widget: Widget, dashboardSubjectIds: string[], dashboardId?: string): string | null {
+export function widgetLink(widget: Widget, dashboardSubjectIds: string[], dashboardId?: string): WidgetLink | null {
   if (widget.type === "watchlist") return null;
   const id = widget.settings.subject_id;
-  if (id) return monitorHref(id);
-  if (dashboardId) return developmentsHref(dashboardId, widget.type === "since");
-  return dashboardSubjectIds[0] ? monitorHref(dashboardSubjectIds[0]) : null;
+  if (id) return monitorLink(id);
+  if (dashboardId) return developmentsLink(dashboardId, widget.type === "since");
+  return dashboardSubjectIds[0] ? monitorLink(dashboardSubjectIds[0]) : null;
 }
 
-export const monitorHref = (subjectId: string) => `/monitors/${subjectId}`;
+export type WidgetLink = ReturnType<typeof monitorLink> | ReturnType<typeof developmentsLink>;
+
+/** A subject's monitor page; spread into a Link or navigate. */
+export const monitorLink = (subjectId: string) => linkOptions({ to: "/monitors/$id", params: { id: subjectId } });
 
 /** A dashboard's developments, or only those new or updated in the latest run. */
-export const developmentsHref = (dashboardId: string, changed: boolean) =>
-  `/developments?dashboard=${encodeURIComponent(dashboardId)}${changed ? "&changed=1" : ""}`;
+export const developmentsLink = (dashboardId: string, changed: boolean) =>
+  linkOptions({ to: "/developments", search: { dashboard: dashboardId, changed: changed ? "1" : undefined } });
 
 /** The subjects a set of widgets follows, in order: widget subjects, else watchlist entities. */
 export function subjectsUsed(widgets: Widget[]): string[] {

@@ -301,7 +301,7 @@ api/                Python 3.12, uv
     server/         FastAPI app, AG-UI endpoint
     agent/          Generate agent: Claude Agent SDK + dashboard tools
   seed/             subjects.yaml, questions.yaml, series.yaml, detectors.yaml, dashboards.yaml
-web/                Next.js (App Router), TypeScript, pnpm
+web/                Vite, React, TanStack Router (routes/) and Query, TypeScript, pnpm
 data/               gitignored: raw cache, intelmonitor.db
 artifacts/          gitignored: E2E runs and pipeline reports
 mocks/              design mocks

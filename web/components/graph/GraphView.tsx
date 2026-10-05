@@ -1,17 +1,15 @@
-"use client";
-
 // Graph view around one subject: opens at 1 hop, expands to 2, with filters for node type, link
 // type and time window. Clicking a subject node opens its monitor page; clicking a development
 // opens its evidence over the graph. The In view list shows the same nodes as links.
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useGraph, type GraphQuery } from "@/lib/api/queries";
 import { plural } from "@/lib/format";
-import { monitorHref } from "@/lib/widgets";
-import { useEvidenceHref } from "@/components/shell/Evidence";
+import { monitorLink } from "@/lib/widgets";
+import { evidenceLink } from "@/components/shell/Evidence";
 import { ChevronDownIcon } from "@/components/ui/icons";
 
 import { GraphCanvas } from "./GraphCanvas";
@@ -47,8 +45,7 @@ function toggle<T>(list: T[], item: T): T[] {
 }
 
 export function GraphView({ id }: { id: string }) {
-  const router = useRouter();
-  const evidence = useEvidenceHref();
+  const navigate = useNavigate();
   const [hops, setHops] = useState<1 | 2>(1);
   const [nodeTypes, setNodeTypes] = useState<NodeType[]>(NODE_TYPES.map((t) => t.value));
   const [linkTypes, setLinkTypes] = useState<LinkType[]>(LINK_TYPES.map((t) => t.value));
@@ -65,12 +62,7 @@ export function GraphView({ id }: { id: string }) {
   const graph = useGraph(query);
   const g = graph.data;
 
-  const hrefOf = useCallback(
-    (nodeId: string) =>
-      nodeId.startsWith(DEV_PREFIX) ? evidence.development(nodeId.slice(DEV_PREFIX.length)) : monitorHref(nodeId),
-    [evidence],
-  );
-  const open = useCallback((nodeId: string) => router.push(hrefOf(nodeId), { scroll: false }), [router, hrefOf]);
+  const open = useCallback((nodeId: string) => void navigate(linkOf(nodeId)), [navigate]);
 
   if (graph.isError) return <p className="page-message">This graph could not be loaded.</p>;
   if (!g) return null;
@@ -83,7 +75,7 @@ export function GraphView({ id }: { id: string }) {
           <h1>{center?.label ?? id}</h1>
           <p>
             Graph view.{" "}
-            <Link href={monitorHref(id)} className="subject-link">
+            <Link {...monitorLink(id)} className="subject-link">
               Open monitor page
             </Link>
           </p>
@@ -137,7 +129,7 @@ export function GraphView({ id }: { id: string }) {
               )}
             </ul>
           </GraphCanvas>
-          <NodeList nodes={g.nodes.filter((n) => n.id !== g.center)} hrefOf={hrefOf} onHover={setHovered} />
+          <NodeList nodes={g.nodes.filter((n) => n.id !== g.center)} onHover={setHovered} />
         </div>
       </div>
     </>
@@ -235,15 +227,19 @@ const GROUP_LABEL: Record<NodeType, string> = {
   development: "Developments",
 };
 
+/** A node's link: a development opens the evidence drawer over the graph, a subject its monitor page. */
+const linkOf = (nodeId: string) =>
+  nodeId.startsWith(DEV_PREFIX)
+    ? evidenceLink.development(nodeId.slice(DEV_PREFIX.length))
+    : { ...monitorLink(nodeId), resetScroll: false };
+
 /** The In view list: nodes grouped by hop then type, in the shared row grammar. No date column: at
  *  360px it would squeeze titles below 150px. */
 function NodeList({
   nodes,
-  hrefOf,
   onHover,
 }: {
   nodes: GraphNode[];
-  hrefOf: (id: string) => string;
   onHover: (id: string | null) => void;
 }) {
   const sorted = [...nodes].sort(
@@ -278,8 +274,7 @@ function NodeList({
                 </h3>
               )}
               <Link
-                href={hrefOf(n.id)}
-                scroll={false}
+                {...linkOf(n.id)}
                 className="row no-stat"
                 data-node={n.id}
                 onMouseEnter={() => onHover(n.id)}

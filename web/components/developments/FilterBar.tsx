@@ -1,5 +1,3 @@
-"use client";
-
 // The developments list's filter bar: a words filter, a button per facet whose popover lists the
 // facet's values with counts, and the switch between every development and What changed. One
 // popover is open at a time; Esc, a click outside or tabbing out of it closes it. The bar wraps when

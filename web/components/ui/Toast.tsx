@@ -1,5 +1,3 @@
-"use client";
-
 // One toast at a time, optionally with an action such as Undo. It sits at the bottom-left of the
 // content column, or inside the open modal dialog when there is one: everything outside a modal
 // <dialog> is inert, so a toast there could not be clicked. Its timer pauses while the pointer is

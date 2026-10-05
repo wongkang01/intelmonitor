@@ -1,16 +1,14 @@
-"use client";
-
 // What changed since the last review, on monitor pages. Rows carry read, flag and dismiss actions
 // that replace the date while the pointer is over the row or focus is in it; a segmented control
 // filters them. After Mark reviewed the list folds away behind a disclosure of the run's changes,
 // which keeps the triage controls. A dashboard's developments list reuses the triage pieces.
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type Ref } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useSetTriage } from "@/lib/api/queries";
 import { answerText, changeCounts, plural, runMeta, shortDate, whenAt } from "@/lib/format";
-import { useEvidenceHref } from "@/components/shell/Evidence";
+import { evidenceLink } from "@/components/shell/Evidence";
 import { SubjectLink } from "@/components/shell/SubjectLink";
 import { ChevronIcon, DismissIcon, FlagIcon, ReadIcon, UnreadIcon } from "@/components/ui/icons";
 import { DevelopmentRow, StateBadge } from "@/components/widgets/parts";
@@ -188,7 +186,6 @@ export function WhatChanged({ wc, subjectId }: { wc: WhatChangedData; subjectId?
 
 /** Answers whose state changed, under a count; nothing when there are none. */
 export function AnswerChanges({ changes, subjectId }: { changes: Schema<"QuestionStateChange">[]; subjectId?: string }) {
-  const evidence = useEvidenceHref();
   if (changes.length === 0) return null;
   return (
     <>
@@ -216,7 +213,7 @@ export function AnswerChanges({ changes, subjectId }: { changes: Schema<"Questio
                   parts={[
                     <StateChange key="s" state={c.to_state} from={c.from_state} />,
                     c.development_ids.length + c.series_ids.length > 0 ? (
-                      <Link key="e" href={evidence.answer(c.subject.id, c.question_id)} scroll={false} className="link">
+                      <Link key="e" {...evidenceLink.answer(c.subject.id, c.question_id)} className="link">
                         See evidence
                       </Link>
                     ) : (

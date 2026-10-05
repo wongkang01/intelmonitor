@@ -20,6 +20,7 @@ const escape = (text: string) =>
   text.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] ?? c);
 
 // Playwright error messages carry ANSI colour codes.
+// eslint-disable-next-line no-control-regex
 const plain = (text: string) => text.replace(/\u001b\[[0-9;]*m/g, "");
 
 export default class WalkthroughReporter implements Reporter {

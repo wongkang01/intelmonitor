@@ -1,5 +1,3 @@
-"use client";
-
 // The back of a widget in edit mode: subject, question or series, and size, applied as they change.
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";

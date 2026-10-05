@@ -1,5 +1,3 @@
-"use client";
-
 // Custom standing questions. CustomQuestionComposer is the write, preview, Keep or Discard flow
 // under "Add a question" on monitor pages and in the widget gallery. CustomQuestionEditor is the
 // dialog that edits or deletes a kept question, opened from its row or its widget's settings.

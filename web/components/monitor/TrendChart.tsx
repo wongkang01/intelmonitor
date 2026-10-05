@@ -1,5 +1,3 @@
-"use client";
-
 // The Trend view's chart (structured-data-plan.md, F6; mocks/trend-series.html, B "Brief"): one
 // series on a fixed time axis ending on the window's last day, so a monthly or quarterly line
 // stops at its last release. The stretch before the first document is shaded and named, the
@@ -7,12 +5,12 @@
 // their event dates along the bottom, and the note's cited developments are numbered markers on
 // the line. The pointer snaps a crosshair to the nearest observation with its value, date and
 // the developments marked that day.
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useCallback, useState, type PointerEvent } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { day, longDate, plural, seriesPeriod, seriesTick, seriesValue, shortDate } from "@/lib/format";
-import { useEvidenceHref } from "@/components/shell/Evidence";
+import { evidenceLink } from "@/components/shell/Evidence";
 import { niceTicks } from "@/components/shell/SeriesSource";
 
 type Series = Schema<"TrendSeries">;
@@ -67,7 +65,6 @@ export function TrendChart({
   marks: Marked[];
   cited: Dated[];
 }) {
-  const evidence = useEvidenceHref();
   const [width, setWidth] = useState(0);
   const [hover, setHover] = useState<{ i: number; x: number; y: number } | null>(null);
   const measure = useCallback((el: HTMLDivElement | null) => {
@@ -227,8 +224,7 @@ export function TrendChart({
           {[...days].sort(([a], [b]) => a.localeCompare(b)).map(([on, list]) => (
             <Link
               key={on}
-              href={evidence.development(list[0].development.id)}
-              scroll={false}
+              {...evidenceLink.development(list[0].development.id)}
               className={`tr-tk${list[0].badge === "needs_attention" ? " attn" : ""}`}
               style={{ left: x(on), bottom: BOTTOM + 1, height: Math.min(4 + list.length * 3, 14) }}
               aria-label={`${shortDate(on)}: ${plural(list.length, "development")}, ${list.map((m) => BADGE_LABEL[m.badge]).join(", ")}`}
@@ -239,8 +235,7 @@ export function TrendChart({
             g.items.map(({ n, d }, k) => (
               <Link
                 key={n}
-                href={evidence.development(d.development.id)}
-                scroll={false}
+                {...evidenceLink.development(d.development.id)}
                 className={`tr-mk${d.development.needs_attention ? " attn" : ""}`}
                 style={{ left: g.at, top: Math.max(8, g.top - 22 - k * 20) }}
                 aria-label={`Cited ${n}: ${d.development.title}`}

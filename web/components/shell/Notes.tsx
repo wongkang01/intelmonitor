@@ -1,5 +1,3 @@
-"use client";
-
 // Analyst notes on a subject (monitor pages) or a development (evidence drawer), saved through
 // the notes API.
 import { useLayoutEffect, useRef, useState, type FormEvent } from "react";

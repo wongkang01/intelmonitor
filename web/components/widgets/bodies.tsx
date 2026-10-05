@@ -1,17 +1,15 @@
-"use client";
-
 // The eight widget bodies (the Indicator's is in IndicatorBody.tsx). Each renders one widget's data from the API at its size, inside a
 // fixed-height face, so each size shows only as many rows as fit without cutting a line.
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useState, type KeyboardEvent } from "react";
 
 import type { Schema, Widget, WidgetData } from "@/lib/api/client";
 import { useMarkReviewed, useSubjects, type DataOf } from "@/lib/api/queries";
 import { answerText, daysBetween, inDays, plural, runMeta, shortDate, whenAt } from "@/lib/format";
 import { useCoarsePointer } from "@/lib/dom";
-import { monitorHref, setEntities } from "@/lib/widgets";
+import { monitorLink, setEntities, type WidgetLink } from "@/lib/widgets";
 import { PlusIcon, XIcon } from "@/components/ui/icons";
-import { useEvidenceHref } from "@/components/shell/Evidence";
+import { evidenceLink } from "@/components/shell/Evidence";
 import { SubjectLink } from "@/components/shell/SubjectLink";
 import { hasUnreviewed } from "@/components/monitor/WhatChanged";
 import { IndicatorLine } from "@/components/monitor/Indicators";
@@ -22,7 +20,7 @@ import { SubjectIcon } from "@/components/ui/SubjectIcon";
 
 export interface BodyProps {
   widget: Widget;
-  href: string | null;
+  link: WidgetLink | null;
   /** Saves a changed widget; watchlists edit their entities in place. */
   onChange: (widget: Widget) => void;
 }
@@ -64,7 +62,7 @@ const SINCE_ROWS = {
  * Counts and rows since the review of the widget's subjects, as on their monitor pages: dismissed
  * developments leave, and read ones leave New.
  */
-function SinceBody({ data, widget, href }: BodyProps & { data: DataOf<"since"> }) {
+function SinceBody({ data, widget, link }: BodyProps & { data: DataOf<"since"> }) {
   const wc = data.what_changed;
   const review = useMarkReviewed();
   const size = widget.size === "L" ? "L" : "M";
@@ -88,9 +86,9 @@ function SinceBody({ data, widget, href }: BodyProps & { data: DataOf<"since"> }
     wc.updated_count ? `${wc.updated_count} updated` : null,
     `${plural(wc.question_changes.filter((c) => c.unreviewed).length, "answer")} changed`,
   ].filter(Boolean);
-  // Previews and edit mode have no href but keep the layout.
-  const showAll = href ? (
-    <Link href={href} className="link">
+  // Previews and edit mode have no link but keep the layout.
+  const showAll = link ? (
+    <Link {...link} className="link">
       Show all
     </Link>
   ) : (
@@ -98,7 +96,7 @@ function SinceBody({ data, widget, href }: BodyProps & { data: DataOf<"since"> }
   );
   return (
     <>
-      <Head title="Since your last review" href={href} meta={runMeta(wc.run)} />
+      <Head title="Since your last review" link={link} meta={runMeta(wc.run)} />
       <p className="hero">{hero}</p>
       {attentionShown.length > 0 && (
         <>
@@ -150,14 +148,13 @@ function SinceBody({ data, widget, href }: BodyProps & { data: DataOf<"since"> }
 
 /** A question's state and answer. A custom question with series shows its first series' line
  *  beside the answer at M, as the Indicator widget does. */
-function QuestionBody({ data, widget, href }: BodyProps & { data: DataOf<"question"> }) {
+function QuestionBody({ data, widget, link }: BodyProps & { data: DataOf<"question"> }) {
   const a = data.answer;
-  const evidence = useEvidenceHref();
   const summary = <p className="w-text summary">{answerText(a.summary)}</p>;
   const ind = widget.size === "M" ? data.indicator : null;
   return (
     <>
-      <Head title={a.label} href={href} meta={<SubjectLink subject={data.subject} />}>
+      <Head title={a.label} link={link} meta={<SubjectLink subject={data.subject} />}>
         {a.custom && <span className="badge b-neutral">Custom</span>}
       </Head>
       <p className="ans">
@@ -173,7 +170,7 @@ function QuestionBody({ data, widget, href }: BodyProps & { data: DataOf<"questi
       )}
       <div className="wf">
         {a.development_ids.length + a.series_ids.length > 0 ? (
-          <Link href={evidence.answer(data.subject.id, a.question_id)} className="link" scroll={false}>
+          <Link {...evidenceLink.answer(data.subject.id, a.question_id)} className="link">
             See evidence
           </Link>
         ) : (
@@ -186,8 +183,7 @@ function QuestionBody({ data, widget, href }: BodyProps & { data: DataOf<"questi
 
 const SEVERITY = { needs_attention: 0, watch: 1, new: 2, stable: 3 } as const;
 
-function SummaryBody({ data, widget, href }: BodyProps & { data: DataOf<"summary"> }) {
-  const evidence = useEvidenceHref();
+function SummaryBody({ data, widget, link }: BodyProps & { data: DataOf<"summary"> }) {
   // Most severe first, two columns of 34px rows: three rows at Medium, nine at Large.
   const answers = [...data.answers].sort((x, y) => SEVERITY[x.state] - SEVERITY[y.state]);
   const shown = answers.slice(0, widget.size === "L" ? 18 : 6);
@@ -196,7 +192,7 @@ function SummaryBody({ data, widget, href }: BodyProps & { data: DataOf<"summary
     <>
       <Head
         title="Standing questions"
-        href={href}
+        link={link}
         meta={
           <>
             <SubjectLink subject={data.subject} />
@@ -218,8 +214,7 @@ function SummaryBody({ data, widget, href }: BodyProps & { data: DataOf<"summary
           return a.development_ids.length + a.series_ids.length > 0 ? (
             <Link
               key={a.question_id}
-              href={evidence.answer(data.subject.id, a.question_id)}
-              scroll={false}
+              {...evidenceLink.answer(data.subject.id, a.question_id)}
               className="qr"
               aria-label={`${a.label}: ${stateText(a)}. See evidence`}
             >
@@ -236,7 +231,7 @@ function SummaryBody({ data, widget, href }: BodyProps & { data: DataOf<"summary
   );
 }
 
-function DevelopmentsBody({ data, widget, href }: BodyProps & { data: DataOf<"developments"> }) {
+function DevelopmentsBody({ data, widget, link }: BodyProps & { data: DataOf<"developments"> }) {
   // Medium fits three one-line rows; Large shows five with two-line titles.
   const large = widget.size === "L";
   const count = large ? 5 : 3;
@@ -245,8 +240,8 @@ function DevelopmentsBody({ data, widget, href }: BodyProps & { data: DataOf<"de
   const meta =
     data.scope.length === 1 ? (
       <SubjectLink subject={data.scope[0]} />
-    ) : href ? (
-      <Link href={href} className="scope-count">
+    ) : link ? (
+      <Link {...link} className="scope-count">
         {inScope}
       </Link>
     ) : (
@@ -254,7 +249,7 @@ function DevelopmentsBody({ data, widget, href }: BodyProps & { data: DataOf<"de
     );
   return (
     <>
-      <Head title="Developments" href={href} meta={meta} />
+      <Head title="Developments" link={link} meta={meta} />
       <div className="rows">
         {data.developments.slice(0, count).map((d) => (
           <DevelopmentRow key={d.id} development={d} meta={false} lines={large ? 2 : 1} />
@@ -268,7 +263,7 @@ function DevelopmentsBody({ data, widget, href }: BodyProps & { data: DataOf<"de
 const TREND = { rising: "Rising", flat: "Flat", falling: "Falling" } as const;
 const SPARK = { width: 240, height: 40, pad: 3 };
 
-function DirectionBody({ data, widget, href }: BodyProps & { data: DataOf<"direction"> }) {
+function DirectionBody({ data, widget, link }: BodyProps & { data: DataOf<"direction"> }) {
   const counts = data.weeks.map((w) => w.count);
   const max = Math.max(...counts);
   const min = Math.min(...counts);
@@ -281,7 +276,7 @@ function DirectionBody({ data, widget, href }: BodyProps & { data: DataOf<"direc
   const first = data.weeks[0];
   return (
     <>
-      <Head title="Direction of travel" href={href} meta={<SubjectLink subject={data.subject} />} />
+      <Head title="Direction of travel" link={link} meta={<SubjectLink subject={data.subject} />} />
       <p className="ans">{TREND[data.trend]}</p>
       {/* The latest week's dot sits outside the stretched SVG so it stays round. */}
       <span className="spark">
@@ -315,14 +310,13 @@ function DirectionBody({ data, widget, href }: BodyProps & { data: DataOf<"direc
   );
 }
 
-function UpcomingBody({ data, href }: BodyProps & { data: DataOf<"upcoming"> }) {
-  const evidence = useEvidenceHref();
+function UpcomingBody({ data, link }: BodyProps & { data: DataOf<"upcoming"> }) {
   const asOf = data.run.as_of;
   const [next, then] = data.items;
   const head = (
     <Head
       title="Upcoming"
-      href={href}
+      link={link}
       meta={
         <>
           <SubjectLink subject={data.subject} />
@@ -341,7 +335,7 @@ function UpcomingBody({ data, href }: BodyProps & { data: DataOf<"upcoming"> }) 
   return (
     <>
       {head}
-      <Link href={evidence.development(next.development_id)} scroll={false} className="up-next">
+      <Link {...evidenceLink.development(next.development_id)} className="up-next">
         <span className="ans">
           {shortDate(next.date)} <span className="w-meta">· {lower(inDays(daysBetween(asOf, next.date)))}</span>
         </span>
@@ -350,7 +344,7 @@ function UpcomingBody({ data, href }: BodyProps & { data: DataOf<"upcoming"> }) 
       </Link>
       {then && (
         <div className="rows up-then">
-          <Link href={evidence.development(then.development_id)} scroll={false} className="row no-stat">
+          <Link {...evidenceLink.development(then.development_id)} className="row no-stat">
             <span className="row-title one">{then.label}</span>
             <span className="row-end">{shortDate(then.date)}</span>
           </Link>
@@ -469,7 +463,7 @@ function WatchRow({
       <span className="ent-body">
         <span className="ent-name">
           <SubjectIcon subject={e.entity} size={20} />
-          <Link href={monitorHref(e.entity.id)} className="stretch">
+          <Link {...monitorLink(e.entity.id)} className="stretch">
             {e.entity.name}
           </Link>
           {counts && <span className="w-meta">{counts}</span>}

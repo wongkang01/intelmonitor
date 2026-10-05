@@ -1,5 +1,3 @@
-"use client";
-
 // The New dashboard draft, shared by the Build and Generate tabs. Generate runs the agent over
 // AG-UI (bare @ag-ui/client): each prompt sends the conversation and the current draft as state,
 // so manual edits flow back to the agent; the agent's STATE_DELTA events land in the draft as they

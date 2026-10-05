@@ -1,5 +1,3 @@
-"use client";
-
 // Correct the AI, inline per claim. "Mark wrong" under a standing question answer (monitor page
 // rows and the evidence drawer) opens a form under it: what is wrong, what the state should be, and
 // a reason. Each subject tag in a development's drawer has a Wrong link that removes the tag.

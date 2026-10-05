@@ -1,5 +1,3 @@
-"use client";
-
 // Profile button pinned to the sidebar bottom; its menu opens upward and leads to four dialogs.
 // Help, last after a separator, replaces the old Keyboard shortcuts item; `?` opens it anywhere.
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";

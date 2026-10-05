@@ -1,5 +1,3 @@
-"use client";
-
 // A dashboard: title, the subjects it covers, Add widget and Edit, then the widget grid. The last
 // run time lives in the top bar chip. Every layout change is saved through the dashboards API as it happens.
 import { useEffect, useRef, useState } from "react";

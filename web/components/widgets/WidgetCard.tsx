@@ -1,11 +1,10 @@
-"use client";
-
 // One widget on the grid: fetches its data and renders the body, or its settings in edit mode.
+import { useRouter } from "@tanstack/react-router";
 import { useState, type CSSProperties, type Ref } from "react";
 
 import type { Widget } from "@/lib/api/client";
 import { useCatalog, useWidgetData } from "@/lib/api/queries";
-import { widgetHref } from "@/lib/widgets";
+import { widgetLink } from "@/lib/widgets";
 import { MinusIcon } from "@/components/ui/icons";
 
 import { WidgetBody } from "./bodies";
@@ -48,7 +47,8 @@ export function WidgetCard({
   const catalog = useCatalog();
   const query = useWidgetData(widget, dashboardSubjectIds);
   const name = catalog.data?.find((t) => t.type === widget.type)?.name ?? "";
-  const href = widgetHref(widget, dashboardSubjectIds, dashboardId);
+  const router = useRouter();
+  const link = widgetLink(widget, dashboardSubjectIds, dashboardId);
   const interactive = variant === "grid" && !editing;
 
   // Only faces that appear after a toggle play the flip.
@@ -66,7 +66,7 @@ export function WidgetCard({
     dragging ? "dragging" : "",
     variant === "lifted" ? "lifted" : "",
     highlighted ? "changed enter" : "",
-    interactive && href ? "tappable" : "",
+    interactive && link ? "tappable" : "",
   ];
 
   return (
@@ -76,7 +76,7 @@ export function WidgetCard({
       style={style}
       data-widget-id={variant === "grid" ? widget.id : undefined}
       data-widget-type={variant === "grid" ? widget.type : undefined}
-      data-href={interactive && href ? href : undefined}
+      data-href={interactive && link ? router.buildLocation(link).href : undefined}
       role="group"
       aria-label={name}
       aria-roledescription={editing && variant === "grid" ? "Movable widget" : undefined}
@@ -102,7 +102,7 @@ export function WidgetCard({
       ) : (
         <div className={`face${flip ? " flip" : ""}`} inert={!interactive}>
           {query.data ? (
-            <WidgetBody data={query.data} widget={widget} href={interactive ? href : null} onChange={onChange} />
+            <WidgetBody data={query.data} widget={widget} link={interactive ? link : null} onChange={onChange} />
           ) : (
             <>
               <Head title={name} />

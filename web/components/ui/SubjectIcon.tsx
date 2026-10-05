@@ -30,7 +30,6 @@ export function SubjectIcon({ subject, size = 16 }: { subject: Ref; size?: 16 | 
     <span className={`ent-icon s${size}${flag}`} aria-hidden="true">
       {subject.logo ? (
         // Local logo files need no image optimization.
-        // eslint-disable-next-line @next/next/no-img-element
         <img src={subject.logo} alt="" />
       ) : (
         initials(subject.name).slice(0, 2)

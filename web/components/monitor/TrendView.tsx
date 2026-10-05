@@ -1,18 +1,16 @@
-"use client";
-
 // A monitor page's Trend tab (structured-data-plan.md, F6; mocks/trend-series.html, B "Brief"):
 // the selected run's note on why the subject's series moved leads, its citations numbered on
 // the chart of the 12 months to the latest run, with the facts the note was given in the rail.
 // Standing questions' states per run and the cited developments follow. "Before <first document>"
 // shows the series where no document, run or note exists.
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { Fragment, useState, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useMonitorPage, useTrend } from "@/lib/api/queries";
 import { trackRailHeight, useHashScroll } from "@/lib/dom";
 import { day, longDate, monthsBefore, plural, seriesChange, seriesPeriod, seriesValue, shortDate, STATE_LABEL, STATE_TONE } from "@/lib/format";
-import { useEvidenceHref } from "@/components/shell/Evidence";
+import { evidenceLink } from "@/components/shell/Evidence";
 
 import { Actions, MonitorHead } from "./MonitorView";
 import { Section, StateChange } from "./parts";
@@ -193,7 +191,6 @@ function Brief({ t, actions }: { t: Trend; actions: ReactNode }) {
 
 /** The note's body with its [n] citations as numbered links to the developments they cite. */
 function NoteBody({ body, cited }: { body: string; cited: Dated[] }) {
-  const evidence = useEvidenceHref();
   const parts = body.split(/(\[\d+\])/);
   return (
     <p className="tr-prose">
@@ -205,7 +202,7 @@ function NoteBody({ body, cited }: { body: string; cited: Dated[] }) {
         return (
           <Fragment key={i}>
             {/^\[\d+\]$/.test(parts[i - 2] ?? "") && parts[i - 1] === "" && <sup className="cite-sep">,</sup>}
-            <Link href={evidence.development(d.development.id)} scroll={false} className="cite" title={d.development.title}>
+            <Link {...evidenceLink.development(d.development.id)} className="cite" title={d.development.title}>
               {n}
             </Link>
           </Fragment>
@@ -322,7 +319,6 @@ function runSlots(runs: TrendRun[]): { week: string; run: TrendRun | null }[] {
 }
 
 function Cited({ cited }: { cited: Dated[] }) {
-  const evidence = useEvidenceHref();
   return (
     <div className="rows">
       {cited.map(({ development: d, on }, i) => (
@@ -331,7 +327,7 @@ function Cited({ cited }: { cited: Dated[] }) {
           <span className="stat">{d.needs_attention && <span className="badge b-attn">Needs attention</span>}</span>
           <span>
             <span className="row-title">
-              <Link href={evidence.development(d.id)} className="stretch" scroll={false}>
+              <Link {...evidenceLink.development(d.id)} className="stretch">
                 {d.title}
               </Link>
             </span>

@@ -1,5 +1,3 @@
-"use client";
-
 // Topic stage track: signal → consultation → proposed → enacted → enforced, as one segmented track
 // with the count of recent developments at each stage. Picking a stage lists its most material
 // developments; it opens on the furthest stage that has any.

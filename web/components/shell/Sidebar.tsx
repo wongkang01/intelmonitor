@@ -1,24 +1,24 @@
-"use client";
-
 // Sidebar: brand, Dashboards (New dashboard first), Monitors by type with counts, profile menu.
 // The Monitors section holding the current subject opens itself, so the current page is always marked.
 // A dashboard's developments list marks its dashboard.
 // Dashboards reorder by dragging a row with a mouse or pen, or with Move up and Move down in the
 // row's options popover.
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense, useRef, useState, type MouseEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { Link } from "@tanstack/react-router";
+import { lazy, Suspense, useRef, useState, type MouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 
 import { useDashboards, useReorderDashboards, useSubjects, type Dashboard } from "@/lib/api/queries";
 import { TYPE_PLURAL } from "@/lib/format";
-import { monitorHref, type SubjectType } from "@/lib/widgets";
+import { usePathname, useSearchParams } from "@/lib/router";
+import { monitorLink, type SubjectType } from "@/lib/widgets";
 import { ChevronIcon, MoreIcon, PlusIcon } from "@/components/ui/icons";
 import { SubjectIcon } from "@/components/ui/SubjectIcon";
 import { DashboardDot, DashboardEditPop, useRenameDashboard } from "@/components/dashboard/DashboardIdentity";
 
-import { NewDashboard } from "@/components/dashboard/NewDashboard";
 
 import { ProfileMenu } from "./ProfileMenu";
+
+// The New dashboard sheet carries the AG-UI client for Generate, so it loads on first open.
+const NewDashboard = lazy(() => import("@/components/dashboard/NewDashboard").then((m) => ({ default: m.NewDashboard })));
 
 const TYPES: SubjectType[] = ["topic", "group", "entity"];
 const DRAG_THRESHOLD = 6;
@@ -37,9 +37,12 @@ export function Sidebar() {
   const [expanded, setExpanded] = useState<Set<SubjectType>>(new Set());
   const [openedFor, setOpenedFor] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  // Once opened, the sheet stays mounted so it can animate closed.
+  const [sheetLoaded, setSheetLoaded] = useState(false);
+  if (creating && !sheetLoaded) setSheetLoaded(true);
 
   // On arriving at a monitor page, open its type's section once; the user can still collapse it.
-  const currentType = subjects.data?.find((s) => monitorHref(s.id) === pathname)?.type;
+  const currentType = subjects.data?.find((s) => `/monitors/${s.id}` === pathname)?.type;
   if (currentType && openedFor !== pathname) {
     setOpenedFor(pathname);
     setExpanded((prev) => new Set(prev).add(currentType));
@@ -55,7 +58,7 @@ export function Sidebar() {
 
   return (
     <nav className="side" aria-label="Main">
-      <Link href="/" className="brand">
+      <Link to="/" activeOptions={{ exact: true }} className="brand">
         IntelMonitor
       </Link>
       <div className="side-scroll" data-tour="sidebar">
@@ -67,9 +70,7 @@ export function Sidebar() {
           <span>New dashboard</span>
         </button>
         {dashboards.data && (
-          <Suspense>
-            <DashboardList dashboards={dashboards.data} pathname={pathname} />
-          </Suspense>
+          <DashboardList dashboards={dashboards.data} pathname={pathname} />
         )}
         <div className="navhead">Monitors</div>
         {TYPES.map((type) => {
@@ -89,32 +90,33 @@ export function Sidebar() {
                 <span className="count">{subjects.data ? list.length : ""}</span>
               </button>
               <div id={`nav-${type}`} className="navgroup" hidden={!open}>
-                {list.map((s) => {
-                  const href = monitorHref(s.id);
-                  return (
-                    <Link
-                      key={s.id}
-                      href={href}
-                      className="navitem sub"
-                      aria-current={pathname === href ? "page" : undefined}
-                    >
-                      <SubjectIcon subject={s} />
-                      <span>{s.name}</span>
-                      {s.new_developments > 0 && (
-                        <span className="count" aria-label={`${s.new_developments} new`}>
-                          {s.new_developments}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
+                {list.map((s) => (
+                  <Link
+                    key={s.id}
+                    {...monitorLink(s.id)}
+                    activeOptions={{ exact: true }}
+                    className="navitem sub"
+                  >
+                    <SubjectIcon subject={s} />
+                    <span>{s.name}</span>
+                    {s.new_developments > 0 && (
+                      <span className="count" aria-label={`${s.new_developments} new`}>
+                        {s.new_developments}
+                      </span>
+                    )}
+                  </Link>
+                ))}
               </div>
             </div>
           );
         })}
       </div>
       <ProfileMenu />
-      <NewDashboard open={creating} onClose={() => setCreating(false)} />
+      {sheetLoaded && (
+        <Suspense>
+          <NewDashboard open={creating} onClose={() => setCreating(false)} />
+        </Suspense>
+      )}
     </nav>
   );
 }
@@ -295,7 +297,8 @@ function DashboardRow({
       ) : (
         <Link
           ref={linkRef}
-          href={`/dashboards/${d.id}`}
+          to="/dashboards/$id"
+          params={{ id: d.id }}
           className="navitem"
           aria-current={current ? "page" : undefined}
           title="Double-click to rename"

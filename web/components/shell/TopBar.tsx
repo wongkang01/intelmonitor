@@ -1,11 +1,9 @@
-"use client";
-
 // Top bar: the search field, the run status chip with its Runs popover, and the alerts bell with its
 // Alerts popover. One popover is open at a time; Esc or a click outside closes it and returns focus
 // to its trigger.
 import { useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
@@ -23,7 +21,7 @@ import {
 } from "@/lib/api/queries";
 import { useDismiss } from "@/lib/dom";
 import { duration, plural, relativeTime, shortDate, shortTime, TYPE_LABEL } from "@/lib/format";
-import { monitorHref } from "@/lib/widgets";
+import { monitorLink } from "@/lib/widgets";
 import {
   BellIcon,
   CheckIcon,
@@ -37,7 +35,7 @@ import {
 } from "@/components/ui/icons";
 import { CloseButton, Modal } from "@/components/ui/Modal";
 
-import { drawerHref, useEvidenceHref } from "./Evidence";
+import { evidenceLink } from "./Evidence";
 import { SubjectIcon } from "@/components/ui/SubjectIcon";
 
 type PopName = "runs" | "alerts";
@@ -89,7 +87,7 @@ function flatten(results: Results | undefined): Hit[] {
  *  Enter opens the highlighted one (a monitor's page, or evidence in the drawer), Esc clears. */
 function Search() {
   const input = useRef<HTMLInputElement>(null);
-  const router = useRouter();
+  const navigate = useNavigate();
   const client = useQueryClient();
   const [text, setText] = useState("");
   const [open, setOpen] = useState(false);
@@ -111,14 +109,8 @@ function Search() {
   }, []);
 
   const go = (hit: Hit) => {
-    if (hit.kind === "subject") router.push(monitorHref(hit.hit.subject.id));
-    else {
-      // Read at the click rather than with useSearchParams, which would keep static pages from
-      // prerendering the top bar.
-      const id = hit.kind === "development" ? hit.development.id : hit.document.development_id;
-      const { pathname, search } = window.location;
-      router.push(drawerHref(pathname, new URLSearchParams(search), ["evidence", id]), { scroll: false });
-    }
+    if (hit.kind === "subject") void navigate(monitorLink(hit.hit.subject.id));
+    else void navigate(evidenceLink.development(hit.kind === "development" ? hit.development.id : hit.document.development_id));
     setText("");
     setOpen(false);
     input.current?.blur();
@@ -527,7 +519,6 @@ function AlertsPopover({
 }) {
   const markRead = useMarkAlertsRead();
   const setTriage = useSetTriage();
-  const evidence = useEvidenceHref();
   const count = data?.unread.total ?? 0;
   const groups = ALERT_GROUPS.map((g) => ({ ...g, alerts: data?.alerts.filter((a) => a.badge === g.badge) ?? [] }));
 
@@ -576,8 +567,7 @@ function AlertsPopover({
                     <span className={`badge b-${g.tone}`}>{g.label}</span>
                   </span>
                   <Link
-                    href={evidence.development(a.id)}
-                    scroll={false}
+                    {...evidenceLink.development(a.id)}
                     className="alert-body"
                     onClick={() => {
                       if (!a.read) setTriage.mutate({ id: a.id, change: { read: true } });
@@ -635,7 +625,7 @@ function FollowingDialog({ open, onClose }: { open: boolean; onClose: () => void
                 <span className="following-icon">
                   <SubjectIcon subject={s} />
                 </span>
-                <Link href={monitorHref(s.id)} className="subject-link" onClick={onClose}>
+                <Link {...monitorLink(s.id)} className="subject-link" onClick={onClose}>
                   {s.name}
                 </Link>
                 <span className="meta">{TYPE_LABEL[s.type]}</span>

@@ -1,21 +1,19 @@
-"use client";
-
 // A monitor page for a topic, group or entity. Every scope has the same order: What changed,
 // Indicators (where series are mapped), Standing questions, Links, Actions. Topics add the stage
 // track and upcoming dates; groups add common issues and outliers. The main panel holds the first
 // three and the scope extras; a sticky rail panel holds Links and Actions. The head's Follow button
 // decides whether the subject alerts; a subject with measured series gets Overview and Trend tabs
 // beside it (TrendView.tsx).
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useFollow, useFollows, useMarkReviewed, useMonitorPage, useUndoReview } from "@/lib/api/queries";
 import { trackRailHeight, useHashScroll } from "@/lib/dom";
 import { answerText, capitalize, daysBetween, inDays, plural, shortDate, TYPE_PLURAL, whenAt } from "@/lib/format";
-import { monitorHref, type SubjectType } from "@/lib/widgets";
+import type { SubjectType } from "@/lib/widgets";
 import { CustomQuestionComposer, CustomQuestionEditor } from "@/components/custom/CustomQuestion";
-import { useEvidenceHref } from "@/components/shell/Evidence";
+import { evidenceLink } from "@/components/shell/Evidence";
 import { useAnswerCorrection } from "@/components/shell/Feedback";
 import { Notes } from "@/components/shell/Notes";
 import { SubjectLink, SubjectLinks } from "@/components/shell/SubjectLink";
@@ -63,13 +61,12 @@ export function MonitorView({ id }: { id: string }) {
  * measured series, and Follow.
  */
 export function MonitorHead({ page: p, view }: { page: Page; view: "overview" | "trend" }) {
-  const href = monitorHref(p.subject.id);
+  const params = { id: p.subject.id };
   return (
     <div className="mon-head">
       <div className="mon-head-main">
         {p.subject.logo_full && (
           // Local logo files need no image optimization; the name below carries the meaning.
-          // eslint-disable-next-line @next/next/no-img-element
           <img className={`mon-logo${p.subject.kind === "country" ? " flag" : ""}`} src={p.subject.logo_full} alt="" />
         )}
         <h1>
@@ -82,10 +79,10 @@ export function MonitorHead({ page: p, view }: { page: Page; view: "overview" | 
       </div>
       {p.trend && (
         <nav className="seg mon-tabs" aria-label="View">
-          <Link href={href} aria-current={view === "overview" ? "page" : undefined}>
+          <Link to="/monitors/$id" params={params} activeOptions={{ exact: true }} aria-current={view === "overview" ? "page" : undefined}>
             Overview
           </Link>
-          <Link href={`${href}/trend`} aria-current={view === "trend" ? "page" : undefined}>
+          <Link to="/monitors/$id/trend" params={params} aria-current={view === "trend" ? "page" : undefined}>
             Trend
           </Link>
         </nav>
@@ -196,7 +193,6 @@ function Questions({ page }: { page: Page }) {
 
 /** One standing question: state, label, question, answer, then meta with See evidence and Mark wrong. */
 function QuestionRow({ subjectId, answer: a, onEdit }: { subjectId: string; answer: Schema<"QuestionAnswerView">; onEdit: () => void }) {
-  const evidence = useEvidenceHref();
   const correction = useAnswerCorrection(subjectId, a);
   const before = a.change.kind === "state_changed" ? a.change.previous_state : null;
   return (
@@ -226,7 +222,7 @@ function QuestionRow({ subjectId, answer: a, onEdit }: { subjectId: string; answ
               before && <StateChange key="s" state={a.state} from={before} />,
               `Last ${a.lookback_days} days`,
               a.development_ids.length + a.series_ids.length > 0 ? (
-                <Link key="e" href={evidence.answer(subjectId, a.question_id)} scroll={false} className="link">
+                <Link key="e" {...evidenceLink.answer(subjectId, a.question_id)} className="link">
                   See evidence
                 </Link>
               ) : (
@@ -244,14 +240,13 @@ function QuestionRow({ subjectId, answer: a, onEdit }: { subjectId: string; answ
 }
 
 function Upcoming({ page }: { page: Page }) {
-  const evidence = useEvidenceHref();
   const asOf = page.run.as_of;
   return (
     <Section id="upcoming" title="Upcoming dates" meta="Next 90 days">
       {page.upcoming.length === 0 && <p className="mon-empty">No dates in the next 90 days.</p>}
       <div className="rows">
         {page.upcoming.map((item) => (
-          <Link key={`${item.development_id}-${item.date}`} href={evidence.development(item.development_id)} className="row" scroll={false}>
+          <Link key={`${item.development_id}-${item.date}`} {...evidenceLink.development(item.development_id)} className="row">
             <span className="stat date">{shortDate(item.date)}</span>
             <span>
               <span className="row-title">{item.label}</span>
@@ -321,7 +316,7 @@ function Links({ subject }: { subject: Schema<"SubjectDetail"> }) {
       ) : (
         <p className="mon-empty">No linked subjects.</p>
       )}
-      <Link href={`${monitorHref(subject.id)}/graph`} className="link">
+      <Link to="/monitors/$id/graph" params={{ id: subject.id }} className="link">
         Open graph view
       </Link>
     </Section>

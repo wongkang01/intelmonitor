@@ -1,17 +1,15 @@
-"use client";
-
 // A dashboard's developments in the latest run, across all its subjects: what a dashboard-wide
 // Since or Developments widget opens, counting what the widget counts. A filter bar narrows the
 // list by facets and the table sorts by its columns; both live in the URL. What changed
 // (`changed=1`) lists the developments changed since the review with the monitor page's triage.
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useState, type Ref } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useDashboard, useDevelopments, useSubjects, useWhatChanged } from "@/lib/api/queries";
 import { filtered as isFiltered, listQuery, sortList, sortOf, withoutFilters, withSort, type SortKey } from "@/lib/developments";
 import { capitalize, changeCounts, plural, shortDate } from "@/lib/format";
+import { usePathname, useSearchParams } from "@/lib/router";
 import { Dotted } from "@/components/monitor/parts";
 import {
   AnswerChanges,
@@ -25,7 +23,7 @@ import {
   type Triage,
   type TriageFilterId,
 } from "@/components/monitor/WhatChanged";
-import { useEvidenceHref } from "@/components/shell/Evidence";
+import { evidenceLink } from "@/components/shell/Evidence";
 import { SubjectLinks } from "@/components/shell/SubjectLink";
 import { ChevronDownIcon, ChevronIcon, ChevronUpIcon } from "@/components/ui/icons";
 import { DevelopmentBadge } from "@/components/widgets/parts";
@@ -47,8 +45,12 @@ export function DevelopmentsView({ dashboardId }: { dashboardId: string }) {
     listQuery(dashboardId, params, changed ? (folded ? "run" : "review") : undefined),
     !changed || wc.data !== undefined,
   );
-  // The native history API updates useSearchParams without a server round trip.
-  const onParams = useCallback((next: URLSearchParams) => window.history.replaceState(null, "", `${pathname}?${next}`), [pathname]);
+  const navigate = useNavigate();
+  // Filters replace the history entry, so Back leaves the page rather than undoing a filter.
+  const onParams = useCallback(
+    (next: URLSearchParams) => void navigate({ href: `${pathname}?${next}`, replace: true, resetScroll: false }),
+    [navigate, pathname],
+  );
 
   const d = dashboard.data;
   if (dashboard.isError) return <p className="page-message">These developments could not be loaded.</p>;
@@ -63,7 +65,7 @@ export function DevelopmentsView({ dashboardId }: { dashboardId: string }) {
         <div className="grow">
           <h1>Developments</h1>
           <p>
-            <Link href={`/dashboards/${d.id}`} className="subject-link">
+            <Link to="/dashboards/$id" params={{ id: d.id }} className="subject-link">
               {d.name}
             </Link>{" "}
             dashboard: <SubjectLinks subjects={scope} />
@@ -205,7 +207,6 @@ function Table({
   bodyRef?: Ref<HTMLTableSectionElement>;
   onTriage?: (d: Listed, index: number, action: number, change: Triage) => void;
 }) {
-  const evidence = useEvidenceHref();
   const sort = sortOf(params);
   const rows = sortList(developments, sort);
   if (rows.length === 0) return <NoMatch params={params} onParams={onParams} />;
@@ -242,7 +243,7 @@ function Table({
               <DevelopmentBadge development={d.read ? { ...d, change: null } : d} />
             </td>
             <td className="tt">
-              <Link href={evidence.development(d.id)} scroll={false}>
+              <Link {...evidenceLink.development(d.id)}>
                 {d.title}
               </Link>
             </td>

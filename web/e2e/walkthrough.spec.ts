@@ -74,7 +74,7 @@ interface DepegCheck {
 
 /** Runs `uv run im check <name>` in api/ and returns what it prints. */
 const imCheck = (name: string) =>
-  execFileSync("uv", ["run", "im", "check", name], { cwd: path.resolve(__dirname, "../../api"), encoding: "utf8" });
+  execFileSync("uv", ["run", "im", "check", name], { cwd: path.resolve(import.meta.dirname, "../../api"), encoding: "utf8" });
 
 /** Shows a check's JSON as the step's page, so its screenshot records the result. */
 const showJson = (page: Page, value: unknown) =>

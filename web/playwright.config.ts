@@ -6,7 +6,7 @@ import path from "node:path";
 
 const stamp = new Date().toISOString().replace(/[-:]/g, "").replace("T", "-").slice(0, 15);
 // Workers inherit this, so every process of one run writes to the same directory.
-process.env.E2E_RUN_DIR ??= path.resolve(__dirname, "../artifacts/e2e", stamp);
+process.env.E2E_RUN_DIR ??= path.resolve(import.meta.dirname, "../artifacts/e2e", stamp);
 
 export default defineConfig({
   testDir: "e2e",

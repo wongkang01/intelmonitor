@@ -1,5 +1,3 @@
-"use client";
-
 // A measured series as a source in the evidence drawer (structured-data-plan.md, F2 and F3):
 // the series names the block and links its source table, the meta line gives when the value was
 // known, the source, scope and domain, and flags the cited value Preliminary or Revised in words.

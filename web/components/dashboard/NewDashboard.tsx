@@ -1,10 +1,8 @@
-"use client";
-
 // The New dashboard popup: about 80% of the screen, Build and Generate tabs, Esc or a backdrop
 // click closes it. Both tabs edit one draft (lib/agent.ts), so users can switch at any time, and
 // both create the same dashboard spec, which then appears in the sidebar and opens. The draft, tab
 // and name live outside the dialog, so closing and reopening picks up where the user left off.
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 
 import type { Widget } from "@/lib/api/client";
@@ -98,7 +96,7 @@ function NewDashboardBody({
   onReset: () => void;
   dismissRef: React.RefObject<(reason: CloseReason) => boolean>;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const toast = useToast();
   const subjects = useSubjects();
   const catalog = useCatalog();
@@ -142,7 +140,7 @@ function NewDashboardBody({
         onSuccess: (created) => {
           onClose();
           onReset();
-          router.push(`/dashboards/${created.id}`);
+          navigate({ to: "/dashboards/$id", params: { id: created.id } });
           toast({ message: `Created ${created.name}` });
         },
         onError: (e) => toast({ message: errorMessage(e, "Could not create the dashboard") }),

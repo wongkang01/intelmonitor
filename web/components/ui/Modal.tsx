@@ -1,5 +1,3 @@
-"use client";
-
 // A native modal <dialog>: focus stays inside, Esc and a backdrop click close it, and focus
 // returns to the opener. `className` picks the shape: "sheet" (80% of the screen) or "panel" (a 560px
 // dialog). Styles live in app/globals.css: 14px radius, --shadow-modal, --scrim backdrop, and a 48px

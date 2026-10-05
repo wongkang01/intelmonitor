@@ -1,4 +1,4 @@
-import { usePathname } from "next/navigation";
+import { usePathname } from "./router";
 import { useEffect, useEffectEvent, useRef, useSyncExternalStore } from "react";
 
 /** True when a key press should go to a text field rather than a shortcut. */

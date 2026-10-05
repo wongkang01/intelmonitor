@@ -1,16 +1,16 @@
 // Subject names link to their monitor page wherever they appear.
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { Fragment } from "react";
 
 import type { Schema } from "@/lib/api/client";
-import { monitorHref } from "@/lib/widgets";
+import { monitorLink } from "@/lib/widgets";
 
 type SubjectRef = Schema<"SubjectRef">;
 
 /** A subject name as a link; `tag` renders it as a type-colored tag. */
 export function SubjectLink({ subject, tag = false }: { subject: SubjectRef; tag?: boolean }) {
   return (
-    <Link href={monitorHref(subject.id)} className={tag ? `tag ${subject.type}` : "subject-link"}>
+    <Link {...monitorLink(subject.id)} className={tag ? `tag ${subject.type}` : "subject-link"}>
       {subject.name}
     </Link>
   );

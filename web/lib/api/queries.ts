@@ -1,5 +1,3 @@
-"use client";
-
 // TanStack Query hooks over the typed API client. Components read API data only through these.
 import {
   keepPreviousData,
@@ -83,12 +81,14 @@ export const useSubject = (id: string) =>
 export const useDashboards = () =>
   useQuery({ queryKey: keys.dashboards, queryFn: () => unwrap(api.GET("/dashboards")) });
 
-export const useDashboard = (id: string) =>
-  useQuery({
+export const dashboardOptions = (id: string) =>
+  queryOptions({
     queryKey: keys.dashboard(id),
     queryFn: () =>
       unwrap(api.GET("/dashboards/{dashboard_id}", { params: { path: { dashboard_id: id } } })),
   });
+
+export const useDashboard = (id: string) => useQuery(dashboardOptions(id));
 
 export const useCatalog = () =>
   useQuery({
@@ -277,23 +277,27 @@ export const useAnswerEvidence = (target: { subjectId: string; questionId: strin
     enabled: target !== null,
   });
 
-export const useMonitorPage = (id: string) =>
-  useQuery({
+export const monitorPageOptions = (id: string) =>
+  queryOptions({
     queryKey: keys.monitorPage(id),
     queryFn: () =>
       unwrap(api.GET("/subjects/{subject_id}/page", { params: { path: { subject_id: id } } })),
   });
 
+export const useMonitorPage = (id: string) => useQuery(monitorPageOptions(id));
+
 /**
  * A subject's Trend view: its series over the 12 months to the latest run with its marked
  * developments, each run's note on why they moved, and its questions' states per run.
  */
-export const useTrend = (id: string) =>
-  useQuery({
+export const trendOptions = (id: string) =>
+  queryOptions({
     queryKey: keys.trend(id),
     queryFn: () =>
       unwrap(api.GET("/subjects/{subject_id}/trend", { params: { path: { subject_id: id } } })),
   });
+
+export const useTrend = (id: string) => useQuery(trendOptions(id));
 
 /**
  * A subject's measured series, primary then context, each with its latest value, changes over
