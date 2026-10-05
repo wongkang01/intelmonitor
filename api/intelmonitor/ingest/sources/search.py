@@ -2,17 +2,23 @@
 
 News searches are limited to NEWS_DOMAINS. Gap searches for thinly covered subjects add the
 subject's own domains, whose results are stored as official disclosures.
+
+Some sites print today's date in the page header, and the search APIs take it as the publication
+date, so an article from 2014 comes back dated this week. For those sites (PAGE_DATES) the date
+is read from the article page instead, and a result whose page date is missing is dropped.
 """
 
+import json
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, Field
 
-from intelmonitor.ingest.http import CachedHttp, JSONValue
+from intelmonitor.ingest.http import CachedHttp, FetchError, JSONValue
 from intelmonitor.ingest.models import MIN_TEXT_CHARS, RawDocument, Window
 from intelmonitor.ingest.parse import domain_of
 from intelmonitor.seed import Entity, SubjectsSeed
@@ -50,6 +56,39 @@ _NOT_ARTICLE = re.compile(
     r"|/(tag|tags|search|blog-category|category|author)(/|$)"
     r"|/markets/companies/|/presented/"
 )
+
+
+_NEXT_DATA = re.compile(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', re.S)
+
+
+def _edge_created(html: str) -> datetime | None:
+    """The Edge Malaysia: the article's `created` epoch (ms) in its Next.js page data."""
+    match = _NEXT_DATA.search(html)
+    if not match:
+        return None
+    try:
+        created = json.loads(match.group(1))["props"]["pageProps"]["data"]["created"]
+    except (KeyError, TypeError, json.JSONDecodeError):
+        return None
+    return datetime.fromtimestamp(created / 1000, UTC) if isinstance(created, int) else None
+
+
+# Domains whose search-API dates are unreliable, with how to read the date from the page.
+PAGE_DATES: dict[str, Callable[[str], datetime | None]] = {"theedgemalaysia.com": _edge_created}
+
+
+def _with_page_date(http: CachedHttp, doc: RawDocument) -> RawDocument | None:
+    """The document dated from its own page when its domain is in PAGE_DATES; None when that
+    date cannot be read."""
+    read = PAGE_DATES.get(domain_of(doc.url))
+    if read is None:
+        return doc
+    try:
+        response = http.get("pages", doc.url)
+    except FetchError:
+        return None
+    published = read(response.text()) if response.ok else None
+    return doc.model_copy(update={"published_at": published}) if published else None
 
 
 @dataclass(frozen=True)
@@ -138,6 +177,7 @@ def exa_search(
             doc = _search_doc(
                 "exa", r.url, r.title, datetime.fromisoformat(r.published_date), r.text, own_domains
             )
+            doc = doc and _with_page_date(http, doc)
             if doc and window.contains(doc.published_at):
                 docs.append(doc)
     return docs
@@ -190,6 +230,7 @@ def tavily_search(
         if r.published_date and text:
             published = parsedate_to_datetime(r.published_date)
             doc = _search_doc("tavily", r.url, r.title, published, text, own_domains)
+            doc = doc and _with_page_date(http, doc)
             if doc and window.contains(doc.published_at):
                 docs.append(doc)
     return docs
