@@ -168,6 +168,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Titles wrap so the whole finding reads. */
+.dtable td.tt {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .dtable tr:first-child td {
   border-top: 0;
 }
@@ -187,66 +192,19 @@
   font-size: var(--fs-meta);
   color: var(--ink2);
 }
-.dtable td .subject-link {
-  color: var(--ink2);
-}
-.dtable td .subject-link:hover {
-  color: var(--ink);
-}
-/* Column widths from the mock at 1440px, set on the heads. A narrower table narrows them, then drops
-   Sources (7th), Jurisdiction (6th) and Category (4th) so titles keep about 260px. Triage actions
+/* Column widths from the mock at 1440px, set on the heads; the title takes the rest. Triage actions
    need a wider date column. */
 .c-status {
   width: 124px;
 }
-.c-subjects {
-  width: 104px;
-}
 .c-category {
   width: 100px;
-}
-.c-materiality {
-  width: 88px;
-}
-.c-jurisdiction {
-  width: 132px;
-}
-.c-sources {
-  width: 112px;
 }
 .c-date {
   width: 64px;
 }
 .triaged .c-date {
   width: 104px;
-}
-@container (width < 1100px) {
-  .c-subjects,
-  .c-category {
-    width: 92px;
-  }
-  .c-materiality {
-    width: 84px;
-  }
-  .c-jurisdiction,
-  .c-sources {
-    width: 104px;
-  }
-}
-@container (width < 960px) {
-  .dtable :is(th, td):nth-child(7) {
-    display: none;
-  }
-}
-@container (width < 860px) {
-  .dtable :is(th, td):nth-child(6) {
-    display: none;
-  }
-}
-@container (width < 760px) {
-  .dtable :is(th, td):nth-child(4) {
-    display: none;
-  }
 }
 .dtable .num {
   padding-right: 0;

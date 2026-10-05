@@ -6,12 +6,12 @@
 // (`changed=1`) lists the developments changed since the review with the monitor page's triage.
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useState, type ReactNode, type Ref } from "react";
+import { useCallback, useState, type Ref } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useDashboard, useDevelopments, useSubjects, useWhatChanged } from "@/lib/api/queries";
 import { filtered as isFiltered, listQuery, sortList, sortOf, withoutFilters, withSort, type SortKey } from "@/lib/developments";
-import { capitalize, changeCounts, COLLECTION_LABEL, plural, shortDate } from "@/lib/format";
+import { capitalize, changeCounts, plural, shortDate } from "@/lib/format";
 import { Dotted } from "@/components/monitor/parts";
 import {
   AnswerChanges,
@@ -26,7 +26,7 @@ import {
   type TriageFilterId,
 } from "@/components/monitor/WhatChanged";
 import { useEvidenceHref } from "@/components/shell/Evidence";
-import { SubjectLink, SubjectLinks } from "@/components/shell/SubjectLink";
+import { SubjectLinks } from "@/components/shell/SubjectLink";
 import { ChevronDownIcon, ChevronIcon, ChevronUpIcon } from "@/components/ui/icons";
 import { DevelopmentBadge } from "@/components/widgets/parts";
 
@@ -178,16 +178,12 @@ function ClearFilters({ params, onParams }: ParamsProps) {
   );
 }
 
-// Column widths are in styles/developments.css (`.c-<key>` on the heads); the title takes the rest,
-// and a narrow table drops Sources, Jurisdiction and Category, which the filter bar still covers.
+// Column widths are in styles/developments.css (`.c-<key>` on the heads); the title takes the rest
+// and wraps, so it reads in full. The filter bar covers what the table leaves out.
 const COLUMNS: { key: SortKey | null; label: string; num?: boolean }[] = [
   { key: "status", label: "Status" },
   { key: null, label: "" },
-  { key: "subjects", label: "Subjects" },
   { key: "category", label: "Category" },
-  { key: "materiality", label: "Materiality" },
-  { key: "jurisdiction", label: "Jurisdiction" },
-  { key: "sources", label: "Sources" },
   { key: "date", label: "Date", num: true },
 ];
 
@@ -246,19 +242,11 @@ function Table({
               <DevelopmentBadge development={d.read ? { ...d, change: null } : d} />
             </td>
             <td className="tt">
-              <Link href={evidence.development(d.id)} scroll={false} title={d.title}>
+              <Link href={evidence.development(d.id)} scroll={false}>
                 {d.title}
               </Link>
             </td>
-            <td>
-              <Subjects development={d} />
-            </td>
             <td>{capitalize(d.category)}</td>
-            <td>{d.materiality_label}</td>
-            <td title={d.jurisdictions.join(", ")}>{d.jurisdictions.join(", ")}</td>
-            <td title={d.collections.map((c) => COLLECTION_LABEL[c]).join(", ")}>
-              {[d.collections.map((c) => COLLECTION_LABEL[c]).join(", "), d.source_count].join(" · ")}
-            </td>
             <td className="num">
               {onTriage ? (
                 <TriageEnd development={d} onChange={(action, change) => onTriage(d, i, action, change)} />
@@ -270,17 +258,5 @@ function Table({
         ))}
       </tbody>
     </table>
-  );
-}
-
-/** The first subject as a link, then how many more. */
-function Subjects({ development: d }: { development: Listed }): ReactNode {
-  const [first, ...rest] = d.subjects;
-  if (!first) return null;
-  return (
-    <>
-      <SubjectLink subject={first} />
-      {rest.length > 0 && ` +${rest.length}`}
-    </>
   );
 }
