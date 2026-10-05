@@ -1,0 +1,55 @@
+{
+ "group": "judge-coverage",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "mentions": [
+   {
+    "answer": "A",
+    "item": "G1",
+    "mentioned": false,
+    "reason": "Says no common adverse issue was found and does not mention CIMB's expected rise in gross impaired loans."
+   },
+   {
+    "answer": "A",
+    "item": "G2",
+    "mentioned": false,
+    "reason": "Does not mention rising bond yields, deposit competition or NIM compression at Malaysian banks."
+   },
+   {
+    "answer": "B",
+    "item": "G1",
+    "mentioned": false,
+    "reason": "Covers only the BNM tokenised-deposit trial and says nothing about CIMB's impaired-loan outlook."
+   },
+   {
+    "answer": "B",
+    "item": "G2",
+    "mentioned": false,
+    "reason": "Says there is no shared adverse issue and does not mention NIM compression from bond yields or deposit competition."
+   },
+   {
+    "answer": "C",
+    "item": "G1",
+    "mentioned": false,
+    "reason": "Does not mention CIMB's expected rise in commercial-segment impaired loans linked to Middle East costs."
+   },
+   {
+    "answer": "C",
+    "item": "G2",
+    "mentioned": false,
+    "reason": "Q3 fair-value losses for CIMB and Maybank are a different point. The answer does not mention NIM compression, deposit competition or rising MGS yields, so a reader could not tie it to G2."
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.033863000000000004,
+  "input_tokens": 1910,
+  "output_tokens": 865,
+  "duration_ms": 9614,
+  "turns": 2
+ }
+}

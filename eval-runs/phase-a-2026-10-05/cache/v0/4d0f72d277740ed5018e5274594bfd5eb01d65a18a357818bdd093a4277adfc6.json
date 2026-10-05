@@ -1,0 +1,39 @@
+{
+ "group": "v0",
+ "model": "claude-sonnet-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-5-5"
+ ],
+ "output": {
+  "summary": "DBS, OCBC and UOB jointly completed first live SGD tokenised-deposit interbank transactions on Swift's ledger on 10 Sep; no unilateral move peers must follow found.",
+  "state": "new",
+  "sources": [
+   {
+    "url": "https://www.ocbc.com/group/media/release/2026/dbs-ocbc-uob-complete-first-live-blockchain-enabled-sgd-transactions.page",
+    "title": "First blockchain-enabled SGD transactions (DBS, OCBC, UOB)",
+    "published": "2026-09-10",
+    "quote": "DBS, OCBC and UOB completed live domestic Singapore dollar interbank transactions using tokenised deposits on Swift's blockchain-based ledger."
+   },
+   {
+    "url": "https://thekopinotes.com/articles/news/singapore-banks-dbs-ocbc-uob-fed-rate-hike-q4-2026/",
+    "title": "Singapore Banks After the Fed Rate Hike: DBS, OCBC & UOB in Q4 2026",
+    "published": "2026-09-19",
+    "quote": "DBS has explicitly quantified its rate sensitivity at approximately S$11 million in net interest income per basis point of SGD rate movement."
+   },
+   {
+    "url": "https://www.minichart.com.sg/2026/09/23/jefferies-starts-singapore-banks-with-buy-on-dbs-and-uob-hold-on-ocbc/",
+    "title": "Jefferies Starts Singapore Banks With Buy on DBS and UOB, Hold on OCBC",
+    "published": "2026-09-23",
+    "quote": "Jefferies Starts Singapore Banks With Buy on DBS and UOB, Hold on OCBC"
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.2142614,
+  "input_tokens": 20355,
+  "output_tokens": 1315,
+  "duration_ms": 23374,
+  "turns": 8
+ }
+}

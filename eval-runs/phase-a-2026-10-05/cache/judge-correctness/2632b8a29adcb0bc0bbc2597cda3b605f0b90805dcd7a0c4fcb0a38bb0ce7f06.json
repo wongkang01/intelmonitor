@@ -1,0 +1,73 @@
+{
+ "group": "judge-correctness",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "claims": [
+   {
+    "claim": "MAS published its Financial Stability Review on 22 Sep",
+    "kind": "fact",
+    "supported": false,
+    "after_run_date": false,
+    "source_labels": [
+     "S1",
+     "S2"
+    ],
+    "reason": "Neither S1 nor S2 could be retrieved, so there is no source text for the review or its date. Only the URLs hint at a 2026 FSR and a 2026-09-22 article, and a URL is not content."
+   },
+   {
+    "claim": "The MAS Financial Stability Review found banks well-capitalised",
+    "kind": "fact",
+    "supported": false,
+    "after_run_date": false,
+    "source_labels": [
+     "S1",
+     "S2"
+    ],
+    "reason": "No retrieved source text says anything about bank capitalisation in the review."
+   },
+   {
+    "claim": "The MAS Financial Stability Review ranked AI-driven cyber risk as the top concern",
+    "kind": "fact",
+    "supported": false,
+    "after_run_date": false,
+    "source_labels": [
+     "S1",
+     "S2"
+    ],
+    "reason": "S1 could not be retrieved. Its URL slug ('ai-cyber-emerge-as-top-singapore-financials-concerns') hints that AI and cyber were among the top concerns, but that is not source text. It also doesn't establish a single 'AI-driven cyber risk' ranked first."
+   },
+   {
+    "claim": "EBA finalised third-party risk guidelines",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S3",
+     "S4"
+    ],
+    "reason": "S3 reports that on 18 September 2026 the EBA published its final report and guidelines (EBA/GL/2026/09) on managing third-party risk for non-ICT services. S4 could not be retrieved."
+   },
+   {
+    "claim": "FCA opened an AML probe into Euro Exchange Securities",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S5"
+    ],
+    "reason": "S5 states that on 17 September 2026 the FCA opened a formal investigation into Euro Exchange Securities UK Ltd for suspected breaches of the Money Laundering Regulations 2017."
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.09768860000000001,
+  "input_tokens": 9730,
+  "output_tokens": 990,
+  "duration_ms": 10404,
+  "turns": 2
+ }
+}

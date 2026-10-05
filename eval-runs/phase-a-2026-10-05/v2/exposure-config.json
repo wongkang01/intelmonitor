@@ -1,0 +1,7 @@
+{
+  "subject_id": "uob",
+  "question": "Which markets where UOB has significant lending exposure (such as Greater China commercial real estate and ASEAN) had adverse developments recently, and what might they mean for UOB?",
+  "label": "Market exposure risks",
+  "lookback_days": 14,
+  "series_ids": []
+}

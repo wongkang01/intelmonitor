@@ -1,0 +1,42 @@
+[
+  {
+    "eval_id": "banking-regulation/topic.new-developments",
+    "documents": 29,
+    "in_out_agreement": 1.0,
+    "kappa": 1.0,
+    "kept": [
+      14,
+      14
+    ],
+    "state": [
+      "new",
+      "watch"
+    ],
+    "state_agrees": false,
+    "must_mention_events": [
+      3,
+      3
+    ],
+    "must_mention_matched": 3
+  },
+  {
+    "eval_id": "singapore-banks/group.peer-moves",
+    "documents": 32,
+    "in_out_agreement": 0.969,
+    "kappa": 0.84,
+    "kept": [
+      3,
+      4
+    ],
+    "state": [
+      "new",
+      "new"
+    ],
+    "state_agrees": true,
+    "must_mention_events": [
+      2,
+      2
+    ],
+    "must_mention_matched": 2
+  }
+]

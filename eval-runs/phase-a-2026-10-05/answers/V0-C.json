@@ -1,0 +1,231 @@
+[
+  {
+    "variant": "V0-C",
+    "eval_id": "banking-regulation/topic.new-developments",
+    "question_id": "topic.new-developments",
+    "subject_id": "banking-regulation",
+    "run_id": "2026-09-24",
+    "summary": "MAS Financial Stability Review (22 Sep) found banks well-capitalised but ranked AI-driven cyber risk top concern; EBA finalised third-party risk guidelines; FCA opened AML probe into Euro Exchange Securities.",
+    "state": "watch",
+    "citations": [
+      {
+        "document_id": null,
+        "url": "https://www.bloomberg.com/news/articles/2026-09-22/ai-cyber-emerge-as-top-singapore-financials-concerns-mas-says",
+        "quote": "80% of chief risk officers surveyed by MAS cited cyber and operational dangers as their top worry, compared with 77% for geopolitical risks.",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.mas.gov.sg/-/media/mas-media-library/publications/financial-stability-review/2026/financial-stability-review-2026.pdf",
+        "quote": "Results of MAS top-down stress tests affirm that banks and insurers are well-capitalised and able to withstand severe macrofinancial shocks.",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.slaughterandmay.com/insights/financial-regulation-weekly-bulletin/financial-regulation-weekly-bulletin-24-september-2026/",
+        "quote": "EBA publishes final guidelines on sound management of third-party risk related to non-ICT services (EBA/GL/2026/09), replacing 2019 outsourcing guidelines.",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.regulationtomorrow.com/2026/09/eba-finalises-guidelines-on-third-party-risk-for-non-ict-services-a-more-proportionate-framework-aligned-with-dora/",
+        "quote": "The guidelines are final but awaiting translation into all EU official languages. The date of application has not yet been fixed.",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.finscan.com/post/regulatory-roundup-september-2026-aml-enforcement-sanctions-expansion-and-heightened-crypto-a",
+        "quote": "The FCA shuttered EES in June, citing 'significant risks of financial crime' after the firm reportedly moved over \u00a32 billion for a small set of high-risk clients.",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  },
+  {
+    "variant": "V0-C",
+    "eval_id": "geopolitics/geopolitics.financial-channels",
+    "question_id": "geopolitics.financial-channels",
+    "subject_id": "geopolitics",
+    "run_id": "2026-09-24",
+    "summary": "US Treasury's Iran sanctions campaign threatens mid-tier Chinese banks; China tightened outbound capital rules; PBOC steadied the yuan before the 24 September Trump-Xi summit.",
+    "state": "watch",
+    "citations": [
+      {
+        "document_id": null,
+        "url": "https://foreignpolicy.com/2026/09/22/operation-economic-outcast-trump-united-states-iran-china-sanctions-oil-markets-bessent/",
+        "quote": "Treasury warned of plans to \"expansively target Iran's business partners\"; the initial phase designated nearly 60 entities, individuals and vessels, including many in China and Hong Kong, but spared major Chinese banks.",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.ibtimes.co.in/china-tightens-exit-rules-capital-controls-tech-curbs-september-15-amid-security-concerns-905510",
+        "quote": "Beijing is increasing scrutiny of overseas investments, capital outflows and technology transfers; the $50,000 annual personal foreign-exchange cap is untouched.",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://moderndiplomacy.eu/2026/09/15/china-capital-controls-yuan-internationalisation-hong-kong-five-year-plan/",
+        "quote": "China tightens capital controls the same week it calls the yuan's rise \"irreversible\".",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.bloomberg.com/news/articles/2026-09-15/china-s-pboc-strengthens-yuan-fix-ahead-of-trump-xi-summit",
+        "quote": "PBOC strengthens yuan fix ahead of Trump-Xi summit (fifth straight day, reference rate 6.7670 per dollar).",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.home.saxo/en-sg/content/articles/forex/trump-xi-summit-yuan-22092026",
+        "quote": "\"yuan strength already reflected in prices\"; a disappointing outcome could push USD/CNH toward 6.80 and beyond.",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.investing.com/news/forex-news/asia-fx-flat-dollar-creeps-higher-ahead-of-uschina-summit-4912043",
+        "quote": "Most Asian currencies moved in a tight band while the dollar firmed ahead of a U.S.-China summit that week.",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  },
+  {
+    "variant": "V0-C",
+    "eval_id": "singapore-banks/group.peer-moves",
+    "question_id": "group.peer-moves",
+    "subject_id": "singapore-banks",
+    "run_id": "2026-09-24",
+    "summary": "DBS, OCBC and UOB jointly completed first live SGD tokenised-deposit interbank transactions on Swift's ledger on 10 Sep; no unilateral move peers must follow found.",
+    "state": "new",
+    "citations": [
+      {
+        "document_id": null,
+        "url": "https://www.ocbc.com/group/media/release/2026/dbs-ocbc-uob-complete-first-live-blockchain-enabled-sgd-transactions.page",
+        "quote": "DBS, OCBC and UOB completed live domestic Singapore dollar interbank transactions using tokenised deposits on Swift's blockchain-based ledger.",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://thekopinotes.com/articles/news/singapore-banks-dbs-ocbc-uob-fed-rate-hike-q4-2026/",
+        "quote": "DBS has explicitly quantified its rate sensitivity at approximately S$11 million in net interest income per basis point of SGD rate movement.",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.minichart.com.sg/2026/09/23/jefferies-starts-singapore-banks-with-buy-on-dbs-and-uob-hold-on-ocbc/",
+        "quote": "Jefferies Starts Singapore Banks With Buy on DBS and UOB, Hold on OCBC",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  },
+  {
+    "variant": "V0-C",
+    "eval_id": "sea-regional-banks/group.common-issues",
+    "question_id": "group.common-issues",
+    "subject_id": "sea-regional-banks",
+    "run_id": "2026-09-24",
+    "summary": "No common adverse issue found across Maybank, CIMB and Bangkok Bank for 17\u201324 Sep 2026; Thai flood relief measures came after the window.",
+    "state": "stable",
+    "citations": [
+      {
+        "document_id": null,
+        "url": "https://www.theglobaleconomics.com/2026/09/23/malaysia-banking-innovation/",
+        "quote": "Maybank and CIMB are participating in BNM's Digital Asset Innovation Hub (general sector commentary, no shared adverse issue)",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.kaohooninternational.com/markets/591801",
+        "quote": "Bangkok Bank (BBL): down 1.85% (published after the window, so excluded)",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  },
+  {
+    "variant": "V0-C",
+    "eval_id": "mas/central-bank.regulation",
+    "question_id": "central-bank.regulation",
+    "subject_id": "mas",
+    "run_id": "2026-09-24",
+    "summary": "MAS opened a stablecoin consultation on 1 Sept (closes 16 Oct) with clarifications for banks; its bank corporate governance paper came 30 Sept, outside the period.",
+    "state": "new",
+    "citations": [
+      {
+        "document_id": null,
+        "url": "https://www.mas.gov.sg/news/media-releases/2026/mas-consults-on-legislative-amendments-to-implement-stablecoin-regulatory-framework",
+        "quote": "MAS consults on legislative amendments to implement stablecoin regulatory framework; feedback due 16 October 2026",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.bakermckenzie.com/en/insight/publications/2026/09/singapore-mas-introduces-stablecoins-framework-under-payments-legislation",
+        "quote": "clarifications for banks, merchant banks and wholesale banks that intend to issue stablecoins",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.trmlabs.com/resources/blog/singapores-proposed-stablecoin-rules-what-the-mas-consultation-means-for-issuers-exchanges-and-banks",
+        "quote": "Banks may only issue a MAS-regulated stablecoin through a separate non-bank entity.",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  },
+  {
+    "variant": "V0-C",
+    "eval_id": "ocbc/bank.incidents",
+    "question_id": "bank.incidents",
+    "subject_id": "ocbc",
+    "run_id": "2026-09-24",
+    "summary": "No material OCBC operational or technology incidents found for 17\u201324 September 2026; only routine scheduled iOCBC maintenance notices (26\u201327 September) surfaced, with no reported outages, breaches or MAS action.",
+    "state": "stable",
+    "citations": [
+      {
+        "document_id": null,
+        "url": "https://www.ocbc.com/personal-banking/notices",
+        "quote": "iOCBC online trading platform and iOCBC Mobile Trading app underwent scheduled maintenance on 26-27 September 2026.",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  },
+  {
+    "variant": "V0-C",
+    "eval_id": "uob/custom.exposure",
+    "question_id": "custom.exposure",
+    "subject_id": "uob",
+    "run_id": "2026-09-24",
+    "summary": "Little new UOB-specific adverse news 10\u201324 Sep: Indonesia's rupiah and capital outflows pressure ASEAN credit; Jefferies' 23 Sep initiation flags Greater China CRE asset quality. Unverified snippets.",
+    "state": "watch",
+    "citations": [
+      {
+        "document_id": null,
+        "url": "https://www.bloomberg.com/news/articles/2026-09-21/rupiah-s-advance-at-risk-as-fiscal-rate-pressures-linger",
+        "quote": "Indonesia's Rupiah May Weaken as Spending, Oil Prices Cloud Outlook (page not opened; 403 error; headline and search snippet only)",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.kenanga.com.my/wp-content/uploads/2026/09/EV_ID_Bank-Indonesia_BOG10_260924-Kenanga.pdf",
+        "quote": "Search snippet: rupiah down about 0.9% m/m to Rp17,872/USD on 22 Sep; net securities outflow Rp13.1tn. PDF text could not be read.",
+        "development_id": null
+      },
+      {
+        "document_id": null,
+        "url": "https://www.minichart.com.sg/2026/09/23/jefferies-starts-singapore-banks-with-buy-on-dbs-and-uob-hold-on-ocbc/",
+        "quote": "Jefferies Starts Singapore Banks With Buy on DBS and UOB, Hold on OCBC (page not opened; 403 error; headline only)",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  }
+]

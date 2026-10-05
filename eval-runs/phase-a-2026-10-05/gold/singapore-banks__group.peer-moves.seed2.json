@@ -1,0 +1,456 @@
+{
+  "eval_id": "singapore-banks/group.peer-moves",
+  "question": "Did any member make a move its peers are likely to follow?",
+  "lookback_days": 30,
+  "seed": 2,
+  "pool": [
+    {
+      "document_id": "06beecc41a329236",
+      "published": "2026-08-31",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "0bcf9d2a967ec327",
+      "published": "2026-09-20",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "1530c1f6f8a5346d",
+      "published": "2026-09-20",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "15318a0fa093f5ba",
+      "published": "2026-09-17",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "164175b6db0ab488",
+      "published": "2026-09-06",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "1c5f03888832ab30",
+      "published": "2026-09-23",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "2c611c200ee18f97",
+      "published": "2026-09-16",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "2d09f48fa93fe40c",
+      "published": "2026-09-06",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "2d9dc9023ba31c9f",
+      "published": "2026-09-22",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "3225dec9e6c9bac5",
+      "published": "2026-09-07",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "4f1503a04f9fc46f",
+      "published": "2026-09-22",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "57a9a7a4e0372d3a",
+      "published": "2026-09-16",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "5c11a21ea2c0ef12",
+      "published": "2026-09-23",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "63fbabd74544b5f2",
+      "published": "2026-09-16",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "67383db0815d2524",
+      "published": "2026-09-18",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "8038ed30a717ce9f",
+      "published": "2026-09-20",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "82888b8e97f5262d",
+      "published": "2026-09-22",
+      "sources": [
+        "cited:V2",
+        "screen"
+      ]
+    },
+    {
+      "document_id": "854f4c2dcfc4573a",
+      "published": "2026-09-22",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "8a3ae517d4e1e649",
+      "published": "2026-09-17",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "9e51fd9cea11cfef",
+      "published": "2026-09-07",
+      "sources": [
+        "cited:V2",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "a085dad241d4f7aa",
+      "published": "2026-09-17",
+      "sources": [
+        "cited:V1",
+        "cited:V2",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "a418dcf8896cfbe4",
+      "published": "2026-09-16",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "abd6e2d571cf9530",
+      "published": "2026-09-09",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "aee7c5c6ba298ea1",
+      "published": "2026-09-19",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "ba57a6c2d5290faf",
+      "published": "2026-09-18",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "bce9f8efcef7c4c4",
+      "published": "2026-09-23",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "c0f84703382a285f",
+      "published": "2026-09-22",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "c2835e2c35b4435c",
+      "published": "2026-09-07",
+      "sources": [
+        "cited:V2",
+        "screen"
+      ]
+    },
+    {
+      "document_id": "c3b83b7361879c88",
+      "published": "2026-09-16",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "dc6c7f9434fbdfc8",
+      "published": "2026-09-12",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "e558b126131ded1e",
+      "published": "2026-09-23",
+      "sources": [
+        "cited:V2",
+        "screen"
+      ]
+    },
+    {
+      "document_id": "ff14eccdf5b920d3",
+      "published": "2026-09-23",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    }
+  ],
+  "gold": {
+    "decisions": [
+      {
+        "document_id": "a085dad241d4f7aa",
+        "include": true,
+        "reason": "DBS expanded gold vault capacity; OCBC reportedly seeking more storage space, so a peer is following explicitly."
+      },
+      {
+        "document_id": "9e51fd9cea11cfef",
+        "include": true,
+        "reason": "DBS and Citi did a weekend cross-border tokenised deposit payment on Swift ledger. This is a first-mover step peers may copy."
+      },
+      {
+        "document_id": "c2835e2c35b4435c",
+        "include": true,
+        "reason": "Same DBS–Citi tokenised deposit payment, which it describes as the first weekend cross-border payment of its kind."
+      },
+      {
+        "document_id": "82888b8e97f5262d",
+        "include": true,
+        "reason": "UOB is positioning in AI infrastructure financing (US$3.1bn GPU facility syndicate), a possible niche peers could enter."
+      },
+      {
+        "document_id": "1530c1f6f8a5346d",
+        "include": false,
+        "reason": "Weekly share price wrap after the Fed hike. No member move."
+      },
+      {
+        "document_id": "0bcf9d2a967ec327",
+        "include": false,
+        "reason": "Duplicate weekly market wrap. No member move."
+      },
+      {
+        "document_id": "57a9a7a4e0372d3a",
+        "include": false,
+        "reason": "DBS co-authored a macro research report. This is not a strategic move peers would follow."
+      },
+      {
+        "document_id": "2d9dc9023ba31c9f",
+        "include": false,
+        "reason": "Republished copy of the DBS co-authored macro report."
+      },
+      {
+        "document_id": "c3b83b7361879c88",
+        "include": false,
+        "reason": "Coverage of the same DBS macro report. Research, not a move."
+      },
+      {
+        "document_id": "4f1503a04f9fc46f",
+        "include": false,
+        "reason": "Broker coverage initiation, not a bank's move."
+      },
+      {
+        "document_id": "164175b6db0ab488",
+        "include": false,
+        "reason": "Old recycled story (Piyush Gupta era, dateline Oct 15). Not a current development."
+      },
+      {
+        "document_id": "e558b126131ded1e",
+        "include": false,
+        "reason": "Dateline July 15 means the AUM target announcement predates the lookback; republished only."
+      },
+      {
+        "document_id": "2c611c200ee18f97",
+        "include": false,
+        "reason": "Brokerage downgrade of the sector. Not a member move."
+      },
+      {
+        "document_id": "06beecc41a329236",
+        "include": false,
+        "reason": "MAS/BI framework announcement. The appointed dealers are chosen by central banks, not a member-initiated move."
+      },
+      {
+        "document_id": "aee7c5c6ba298ea1",
+        "include": false,
+        "reason": "Routine OCBC Malaysia branch opening, likely a recycled old story. Not peer-leading."
+      },
+      {
+        "document_id": "bce9f8efcef7c4c4",
+        "include": false,
+        "reason": "OCBC Malaysia staff training spend is routine and has an older dateline (Sept 11, before publication). Not a move peers would follow."
+      },
+      {
+        "document_id": "8a3ae517d4e1e649",
+        "include": false,
+        "reason": "Analyst commentary on Fed hike impact. No member move."
+      },
+      {
+        "document_id": "15318a0fa093f5ba",
+        "include": false,
+        "reason": "Duplicate Fed hike analysis."
+      },
+      {
+        "document_id": "ba57a6c2d5290faf",
+        "include": false,
+        "reason": "Feature on an existing OCBC product. No new move."
+      },
+      {
+        "document_id": "a418dcf8896cfbe4",
+        "include": false,
+        "reason": "Dateline May 22, before the lookback. OCBC joined an existing BNM scheme as a follower."
+      },
+      {
+        "document_id": "854f4c2dcfc4573a",
+        "include": false,
+        "reason": "Old recycled Apple Pay story (dateline May 25, old devices)."
+      },
+      {
+        "document_id": "dc6c7f9434fbdfc8",
+        "include": false,
+        "reason": "Old recycled investment outlook (pre-2020 references)."
+      },
+      {
+        "document_id": "1c5f03888832ab30",
+        "include": false,
+        "reason": "Old recycled OCBC outage story (CEO David Conner era)."
+      },
+      {
+        "document_id": "67383db0815d2524",
+        "include": false,
+        "reason": "Broker upgrade of UOB, not a bank move."
+      },
+      {
+        "document_id": "2d09f48fa93fe40c",
+        "include": false,
+        "reason": "UOB AI results refer to 2024. A rollout story, not a new peer-leading move."
+      },
+      {
+        "document_id": "5c11a21ea2c0ef12",
+        "include": false,
+        "reason": "UOB Thailand executive speech on existing sustainable finance. Not a new move."
+      },
+      {
+        "document_id": "8038ed30a717ce9f",
+        "include": false,
+        "reason": "Old recycled Lehman notes lawsuit. Not a move."
+      },
+      {
+        "document_id": "c0f84703382a285f",
+        "include": false,
+        "reason": "Old Malaysian bank merger story, outside the subject group."
+      },
+      {
+        "document_id": "3225dec9e6c9bac5",
+        "include": false,
+        "reason": "Broker sector outlook. No member move."
+      },
+      {
+        "document_id": "abd6e2d571cf9530",
+        "include": false,
+        "reason": "1MDB-linked lawsuit against DBS is a legal risk, not a strategic move peers would follow."
+      },
+      {
+        "document_id": "63fbabd74544b5f2",
+        "include": false,
+        "reason": "OCBC sustainability report and commentary. Not a peer-leading business move."
+      },
+      {
+        "document_id": "ff14eccdf5b920d3",
+        "include": false,
+        "reason": "Daily market wrap."
+      }
+    ],
+    "events": [
+      {
+        "title": "DBS expanded its gold vaulting capacity for wealth and institutional clients, and OCBC has reportedly approached storage providers to do the same.",
+        "document_ids": [
+          "a085dad241d4f7aa"
+        ],
+        "must_mention": true,
+        "reason": "This is the clearest case of a member move that a peer is already reportedly following."
+      },
+      {
+        "title": "DBS and Citi completed the first weekend cross-border USD payment using tokenised deposits on Swift's Digital Ledger.",
+        "document_ids": [
+          "9e51fd9cea11cfef",
+          "c2835e2c35b4435c"
+        ],
+        "must_mention": true,
+        "reason": "A first-mover 24/7 settlement milestone that local peers are likely to try to match."
+      },
+      {
+        "title": "UOB is building a niche in AI infrastructure financing, joining a US$3.1bn GPU credit facility syndicate for ZanKore.",
+        "document_ids": [
+          "82888b8e97f5262d"
+        ],
+        "must_mention": false,
+        "reason": "A possible lead in a new segment, but there is no evidence peers are following, so it is secondary."
+      }
+    ],
+    "series": [],
+    "expected_state": "new",
+    "state_reason": "There were relevant new first-mover developments: DBS's gold vault expansion, with OCBC reportedly following, and DBS's tokenised weekend payment. Both are positive or neutral business moves, not adverse developments."
+  },
+  "changes": {
+    "0": "unchanged",
+    "1": "unchanged",
+    "2": "new"
+  }
+}

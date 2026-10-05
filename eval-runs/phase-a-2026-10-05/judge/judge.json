@@ -1,0 +1,1650 @@
+{
+ "correctness": [
+  {
+   "variant": "V0-C",
+   "eval_id": "banking-regulation/topic.new-developments",
+   "sources": [
+    "https://www.bloomberg.com/news/articles/2026-09-22/ai-cyber-emerge-as-top-singapore-financials-concerns-mas-says (published date unknown)",
+    "https://www.mas.gov.sg/-/media/mas-media-library/publications/financial-stability-review/2026/financial-stability-review-2026.pdf (published date unknown)",
+    "https://www.slaughterandmay.com/insights/financial-regulation-weekly-bulletin/financial-regulation-weekly-bulletin-24-september-2026/ (published 2026-09-24)",
+    "https://www.regulationtomorrow.com/2026/09/eba-finalises-guidelines-on-third-party-risk-for-non-ict-services-a-more-proportionate-framework-aligned-with-dora/ (published date unknown)",
+    "https://www.finscan.com/post/regulatory-roundup-september-2026-aml-enforcement-sanctions-expansion-and-heightened-crypto-a (published 2026-09-22)"
+   ],
+   "claims": [
+    {
+     "claim": "MAS published its Financial Stability Review on 22 Sep",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S1",
+      "S2"
+     ],
+     "reason": "Neither S1 nor S2 could be retrieved, so there is no source text for the review or its date. Only the URLs hint at a 2026 FSR and a 2026-09-22 article, and a URL is not content."
+    },
+    {
+     "claim": "The MAS Financial Stability Review found banks well-capitalised",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S1",
+      "S2"
+     ],
+     "reason": "No retrieved source text says anything about bank capitalisation in the review."
+    },
+    {
+     "claim": "The MAS Financial Stability Review ranked AI-driven cyber risk as the top concern",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S1",
+      "S2"
+     ],
+     "reason": "S1 could not be retrieved. Its URL slug ('ai-cyber-emerge-as-top-singapore-financials-concerns') hints that AI and cyber were among the top concerns, but that is not source text. It also doesn't establish a single 'AI-driven cyber risk' ranked first."
+    },
+    {
+     "claim": "EBA finalised third-party risk guidelines",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S3",
+      "S4"
+     ],
+     "reason": "S3 reports that on 18 September 2026 the EBA published its final report and guidelines (EBA/GL/2026/09) on managing third-party risk for non-ICT services. S4 could not be retrieved."
+    },
+    {
+     "claim": "FCA opened an AML probe into Euro Exchange Securities",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S5"
+     ],
+     "reason": "S5 states that on 17 September 2026 the FCA opened a formal investigation into Euro Exchange Securities UK Ltd for suspected breaches of the Money Laundering Regulations 2017."
+    }
+   ]
+  },
+  {
+   "variant": "V0-C",
+   "eval_id": "geopolitics/geopolitics.financial-channels",
+   "sources": [
+    "https://foreignpolicy.com/2026/09/22/operation-economic-outcast-trump-united-states-iran-china-sanctions-oil-markets-bessent/ (published 2026-09-22)",
+    "https://www.ibtimes.co.in/china-tightens-exit-rules-capital-controls-tech-curbs-september-15-amid-security-concerns-905510 (published 2026-09-06)",
+    "https://moderndiplomacy.eu/2026/09/15/china-capital-controls-yuan-internationalisation-hong-kong-five-year-plan/ (published 2026-09-15)",
+    "https://www.bloomberg.com/news/articles/2026-09-15/china-s-pboc-strengthens-yuan-fix-ahead-of-trump-xi-summit (published date unknown)",
+    "https://www.home.saxo/en-sg/content/articles/forex/trump-xi-summit-yuan-22092026 (published 2026-09-22)",
+    "https://www.investing.com/news/forex-news/asia-fx-flat-dollar-creeps-higher-ahead-of-uschina-summit-4912043 (published date unknown)"
+   ],
+   "claims": [
+    {
+     "claim": "US Treasury's Iran sanctions campaign threatens mid-tier Chinese banks",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 says the Treasury actions (proposed cutoff of an Emirati bank, sanctions on Turkey's Golden Global bank) 'establish a potential template for targeting mid-tier Chinese banks linked to Iranian oil sales in the future'. That supports 'threatens' as a risk. S1 also says the August round spared significant Chinese banks."
+    },
+    {
+     "claim": "China tightened outbound capital rules",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S2",
+      "S3"
+     ],
+     "reason": "S2 says China is 'tightening scrutiny of capital outflows' and has increased checks on overseas investment, effective September 15. S3 says the package tightens scrutiny of outbound tech-linked investment. S3 also notes the $50,000 personal FX cap was left unchanged, so this was tighter scrutiny rather than a lower cap."
+    },
+    {
+     "claim": "PBOC steadied the yuan before the Trump-Xi summit",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S4",
+      "S5",
+      "S6"
+     ],
+     "reason": "The only source that may cover this, S4 (Bloomberg), could not be retrieved, so there is no text to check. S6 also could not be retrieved. S5 only says, looking ahead, that 'PBOC policy action ... could limit yuan depreciation'; it does not say the PBOC actually acted to steady the yuan."
+    },
+    {
+     "claim": "The Trump-Xi summit was on 24 September",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S5",
+      "S1"
+     ],
+     "reason": "S5 states 'The Trump\u2013Xi summit on 24 September'. S1 is consistent: Xi arrives Wednesday and talks are on Thursday."
+    }
+   ]
+  },
+  {
+   "variant": "V0-C",
+   "eval_id": "singapore-banks/group.peer-moves",
+   "sources": [
+    "https://www.ocbc.com/group/media/release/2026/dbs-ocbc-uob-complete-first-live-blockchain-enabled-sgd-transactions.page (published 2026-09-10)",
+    "https://thekopinotes.com/articles/news/singapore-banks-dbs-ocbc-uob-fed-rate-hike-q4-2026/ (published 2026-09-19)",
+    "https://www.minichart.com.sg/2026/09/23/jefferies-starts-singapore-banks-with-buy-on-dbs-and-uob-hold-on-ocbc/ (published 2026-09-23)"
+   ],
+   "claims": [
+    {
+     "claim": "DBS, OCBC and UOB jointly completed first live SGD tokenised-deposit interbank transactions on Swift's ledger",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 says DBS, OCBC and UOB completed live domestic SGD transactions using tokenised deposits on Swift's blockchain-based ledger. It calls this the first time the three banks have executed live interbank transactions using tokenised deposits."
+    },
+    {
+     "claim": "The transactions were completed on 10 Sep",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 is a press release dated 10 September 2026. It says the banks 'have successfully completed' the transactions but does not give the date they were carried out. 10 Sep is the announcement date, not a stated transaction date."
+    },
+    {
+     "claim": "No unilateral move by a member that peers must follow was found",
+     "kind": "absence",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1",
+      "S2",
+      "S3"
+     ],
+     "reason": "None of the cited sources describes a single bank making a move that peers are likely to follow. S1 covers a joint action. S2 covers the Fed rate hike's effect on all three banks. S3 is a Jefferies coverage initiation. Nothing contradicts the absence claim."
+    }
+   ]
+  },
+  {
+   "variant": "V0-C",
+   "eval_id": "sea-regional-banks/group.common-issues",
+   "sources": [
+    "https://www.theglobaleconomics.com/2026/09/23/malaysia-banking-innovation/ (published 2026-09-23)",
+    "https://www.kaohooninternational.com/markets/591801 (published 2026-09-30)"
+   ],
+   "claims": [
+    {
+     "claim": "No common adverse issue found across Maybank, CIMB and Bangkok Bank for 17\u201324 Sep 2026",
+     "kind": "absence",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1",
+      "S2"
+     ],
+     "reason": "No cited source shows a shared adverse issue at these three banks in the window. S1 (23 Sep) mentions Maybank and CIMB only in a positive context: tokenisation pilots in BNM's Digital Asset Innovation Hub. S2 was published 30 Sep, after the window and the run date, so it cannot contradict a claim about 17\u201324 Sep."
+    },
+    {
+     "claim": "Thai flood relief measures came after the window",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": true,
+     "source_labels": [
+      "S2"
+     ],
+     "reason": "The only source for this is S2, published 2026-09-30, which is after the 2026-09-24 run date. S2 also never says when the relief measures were introduced. It only says banks introduced them 'in response to the recent flooding', so their timing relative to 17\u201324 Sep cannot be confirmed."
+    }
+   ]
+  },
+  {
+   "variant": "V0-C",
+   "eval_id": "mas/central-bank.regulation",
+   "sources": [
+    "https://www.mas.gov.sg/news/media-releases/2026/mas-consults-on-legislative-amendments-to-implement-stablecoin-regulatory-framework (published 2026-06-25)",
+    "https://www.bakermckenzie.com/en/insight/publications/2026/09/singapore-mas-introduces-stablecoins-framework-under-payments-legislation (published 2026-09-08)",
+    "https://www.trmlabs.com/resources/blog/singapores-proposed-stablecoin-rules-what-the-mas-consultation-means-for-issuers-exchanges-and-banks (published 2026-09-08)"
+   ],
+   "claims": [
+    {
+     "claim": "MAS opened a stablecoin consultation on 1 Sept",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1",
+      "S2",
+      "S3"
+     ],
+     "reason": "All three sources say MAS published the stablecoin consultation paper on 1 September 2026."
+    },
+    {
+     "claim": "The stablecoin consultation closes 16 Oct",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1",
+      "S2",
+      "S3"
+     ],
+     "reason": "The sources give 16 October 2026 as the deadline for comments. This is a scheduled date, not an event that happened after the run date."
+    },
+    {
+     "claim": "The stablecoin consultation includes clarifications for banks",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S2",
+      "S3"
+     ],
+     "reason": "S2 says the paper covers clarifications for banks, merchant banks and wholesale banks that intend to issue stablecoins. S3 adds that banks must issue through a separate non-bank entity."
+    },
+    {
+     "claim": "MAS's bank corporate governance paper came 30 Sept, outside the period",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": true,
+     "source_labels": [],
+     "reason": "None of the cited sources mentions a bank corporate governance paper. Its stated date, 30 Sept 2026, is also after the 2026-09-24 run date."
+    }
+   ]
+  },
+  {
+   "variant": "V0-C",
+   "eval_id": "ocbc/bank.incidents",
+   "sources": [
+    "https://www.ocbc.com/personal-banking/notices (published 2023-10-06)"
+   ],
+   "claims": [
+    {
+     "claim": "No material OCBC operational or technology incidents found for 17\u201324 September 2026",
+     "kind": "absence",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 is a list of customer notices (product changes, branch closures, service discontinuations). None of them describes an operational or technology incident, so nothing in the cited source contradicts the claim."
+    },
+    {
+     "claim": "Only routine scheduled iOCBC maintenance notices (26\u201327 September) surfaced",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "The S1 text shown does not mention iOCBC or any maintenance scheduled for 26\u201327 September 2026. Nothing in the cited text backs up this notice, its dates or the claim that it was the only item found. The claim describes notices found before the run date, so it is not marked after_run_date, even though the maintenance itself falls after it."
+    },
+    {
+     "claim": "No reported outages, breaches or MAS action",
+     "kind": "absence",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 reports no outages, breaches or MAS enforcement. Its only mention of MAS is a consultation on the industry-wide move away from cheques, which is not enforcement action, so nothing in the cited source contradicts the claim."
+    }
+   ]
+  },
+  {
+   "variant": "V0-C",
+   "eval_id": "uob/custom.exposure",
+   "sources": [
+    "https://www.bloomberg.com/news/articles/2026-09-21/rupiah-s-advance-at-risk-as-fiscal-rate-pressures-linger (published date unknown)",
+    "https://www.kenanga.com.my/wp-content/uploads/2026/09/EV_ID_Bank-Indonesia_BOG10_260924-Kenanga.pdf (published date unknown)",
+    "https://www.minichart.com.sg/2026/09/23/jefferies-starts-singapore-banks-with-buy-on-dbs-and-uob-hold-on-ocbc/ (published 2026-09-23)"
+   ],
+   "claims": [
+    {
+     "claim": "Little new UOB-specific adverse news 10\u201324 Sep",
+     "kind": "absence",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S3"
+     ],
+     "reason": "No cited source reports UOB-specific adverse news in this window. S3 is positive (Jefferies Buy on UOB), so nothing contradicts the claim."
+    },
+    {
+     "claim": "Indonesia's rupiah and capital outflows pressure ASEAN credit",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S1",
+      "S2"
+     ],
+     "reason": "S1 and S2 could not be retrieved, so no source text backs this. The S1 URL only hints at rupiah pressure; it says nothing about capital outflows or ASEAN credit."
+    },
+    {
+     "claim": "Jefferies' 23 Sep initiation flags Greater China CRE asset quality",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S3"
+     ],
+     "reason": "S3 does not mention Greater China, commercial real estate or asset quality. It is upbeat on resilience and capital, and the report itself is dated 22 Sep, with the excerpt published 23 Sep."
+    }
+   ]
+  },
+  {
+   "variant": "V1",
+   "eval_id": "banking-regulation/topic.new-developments",
+   "sources": [
+    "Basel III risk-based capital and leverage ratios are stable while liquidity indicators show limited movements for large internationally active banks, latest Basel III monitoring exercise shows (bis.org, published 2026-09-23)",
+    "Bowman, The Final Chapter on Modernizing Bank Regulatory Stress Testing (federalreserve.gov, published 2026-09-18)",
+    "Swiss finance minister and UBS boss face off ahead of capital decision | Reuters (reuters.com, published 2026-09-22)"
+   ],
+   "claims": [
+    {
+     "claim": "BCBS's Basel III monitoring shows stable capital",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 says Basel III risk-based capital and leverage ratios stayed stable for large internationally active banks as of end-2025."
+    },
+    {
+     "claim": "Group 1 LCR 136.6%",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1: the weighted average LCR rose to 136.6% for Group 1 banks."
+    },
+    {
+     "claim": "NSFR 123.3%",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1: the weighted average NSFR fell slightly to 123.3% for Group 1 banks."
+    },
+    {
+     "claim": "Fed's Bowman flags final stress-test revisions soon",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S2"
+     ],
+     "reason": "In her 18 Sept 2026 speech, Bowman said: 'In the coming weeks, the Federal Reserve Board will consider final revisions to the Board's stress testing framework.'"
+    },
+    {
+     "claim": "UBS capital dispute with Swiss minister continues",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S3"
+     ],
+     "reason": "S3 (22 Sept 2026) reports that Finance Minister Keller-Sutter and UBS CEO Ermotti defended their opposing views ahead of the capital decision, which clearly implies the dispute is still going on."
+    }
+   ]
+  },
+  {
+   "variant": "V1",
+   "eval_id": "geopolitics/geopolitics.financial-channels",
+   "sources": [
+    "U.S. seeks crypto, saying it's from Iran oil sales to Chinese buyers (cnbc.com, published 2026-09-15)",
+    "Russia sanctions bill gives Trump sweeping new tariff powers (reuters.com, published 2026-09-18)",
+    "MAS warns of fresh global shocks and AI pullback, but says Singapore firms and households well-buffered - CNA (channelnewsasia.com, published 2026-09-22)",
+    "US, China trade teams set to huddle on AI, tariffs and Iran | The Straits Times (straitstimes.com, published 2026-09-19)"
+   ],
+   "claims": [
+    {
+     "claim": "US seeks $61 million crypto forfeiture",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 says the U.S. filed a civil forfeiture complaint against $61 million in cryptocurrency."
+    },
+    {
+     "claim": "The crypto forfeiture is over Chinese-linked Iran oil payments",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 says the funds are alleged proceeds of Iranian oil sales to Chinese buyers, laundered through two Chinese companies (Blessed Trust, Hexa Whale)."
+    },
+    {
+     "claim": "There is a new Russia sanctions law",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S2"
+     ],
+     "reason": "S2 calls it a bill that passed, with 'Trump to sign bill later Friday'. The text cuts off and never confirms it was signed, so calling it a law is stronger than the source."
+    },
+    {
+     "claim": "The Russia sanctions measure threatens tariffs up to 100% on top buyers",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S2"
+     ],
+     "reason": "S2's summary says the top five buyers of Russian oil and gas face tariffs of up to 100%."
+    }
+   ]
+  },
+  {
+   "variant": "V1",
+   "eval_id": "singapore-banks/group.peer-moves",
+   "sources": [
+    "Singapore\u2019s Gold Hub Ambition Gets Lift With DBS Vault Expansion - Bloomberg (bloomberg.com, published 2026-09-17)"
+   ],
+   "claims": [
+    {
+     "claim": "DBS expanded gold vaulting capacity this year",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1: DBS 'increased its vaulting space this year' and is 'adding bullion storage capacity'."
+    },
+    {
+     "claim": "OCBC has approached storage providers for more space",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1: OCBC 'has also approached precious metal storage providers about securing more space', per people familiar."
+    },
+    {
+     "claim": "Other banks are considering similar moves, per Bloomberg",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1, a Bloomberg article published 2026-09-17, says 'other banks considering similar moves'."
+    }
+   ]
+  },
+  {
+   "variant": "V1",
+   "eval_id": "sea-regional-banks/group.common-issues",
+   "sources": [
+    "BNM onboards three projects to test ringgit stablecoins, tokenised deposits for payments (theedgemalaysia.com, published 2026-09-19)",
+    "Rising bond yield poser for banks | The Star (thestar.com.my, published 2026-09-23)"
+   ],
+   "claims": [
+    {
+     "claim": "BNM onboarded both Maybank and CIMB to test tokenised deposits for payments.",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 says BNM's DAIH onboarded tokenised deposits for payments by Malayan Banking Bhd (Maybank) and by CIMB Group Holdings Bhd."
+    },
+    {
+     "claim": "The overlap between members is only a routine one (the tokenised-deposit testing).",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S1",
+      "S2"
+     ],
+     "reason": "S2 names a second overlap that is adverse: an analyst says CIMB and Maybank (along with AMMB) 'look more exposed' to mark-to-market fair-value losses as MGS yields rise. That is more than a routine overlap."
+    },
+    {
+     "claim": "No shared adverse issue is evident.",
+     "kind": "absence",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S2"
+     ],
+     "reason": "S2 contradicts this. It names CIMB and Maybank as more exposed to Q3 fair-value losses from rising bond yields, and describes sector-wide NIM pressure from higher wholesale funding costs and deposit competition."
+    },
+    {
+     "claim": "Bangkok Bank isn't involved.",
+     "kind": "absence",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1",
+      "S2"
+     ],
+     "reason": "Neither source mentions Bangkok Bank, so nothing contradicts this."
+    }
+   ]
+  },
+  {
+   "variant": "V1",
+   "eval_id": "mas/central-bank.regulation",
+   "sources": [
+    "Notice 656 Exposures to Single Counterparty Groups for Banks Incorporated in Singapore (mas.gov.sg, published 2026-09-04)",
+    "Notice 643 Transactions with Related Parties (mas.gov.sg, published 2026-09-04)",
+    "Notice 643A Exposures and Credit Facilities to Related Concerns (mas.gov.sg, published 2026-09-04)",
+    "Explanatory Brief: Financial Services and Markets (Amendment) Bill 2026 (mas.gov.sg, published 2026-09-08)",
+    "Consultation on Proposed Amendments to the Payment Services Act 2019 for Stablecoins Regulation (mas.gov.sg, published 2026-09-01)",
+    "MAS Consults on Legislative Amendments to Implement Stablecoin Regulatory Framework (mas.gov.sg, published 2026-09-01)"
+   ],
+   "claims": [
+    {
+     "claim": "MAS issued revised Notice 656 for banks on 4 Sep",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 lists MAS Notice 656 and MAS Notice 656 (Amendment No.2) 2026, both dated 4 September 2026. The amendment takes effect on 4 Sep 2027. The notice is addressed to banks incorporated in Singapore."
+    },
+    {
+     "claim": "MAS issued revised Notice 643 for banks on 4 Sep",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S2"
+     ],
+     "reason": "S2 says MAS Notice 643 (Amendment) 2026 was issued on 4 Sep 2026 as a Notice to Banks. It takes effect on 4 Sep 2027."
+    },
+    {
+     "claim": "MAS issued revised Notice 643A for banks on 4 Sep",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S3"
+     ],
+     "reason": "S3 says MAS Notice 643A (Amendment) 2026 was issued on 4 September 2026 as a Notice to Banks. It is effective 4 Sep 2027."
+    },
+    {
+     "claim": "MAS opened a stablecoin consultation",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S5",
+      "S6"
+     ],
+     "reason": "Consultation P015-2026 on amending the Payment Services Act for stablecoins was published on 1 Sep 2026."
+    },
+    {
+     "claim": "The stablecoin consultation closes 16 Oct",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S5",
+      "S6"
+     ],
+     "reason": "Both sources give 16 October 2026 as the closing date. This is a deadline stated in a source published before the run date, not an event reported after it."
+    },
+    {
+     "claim": "The Bill introduced TLAC powers",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S4"
+     ],
+     "reason": "S4: the Financial Services and Markets (Amendment) Bill 2026 was moved for First Reading. It inserts a new Division 3 empowering MAS to impose TLAC requirements on systemically important FIs. The answer's wording fits a bill that has been introduced, not enacted."
+    }
+   ]
+  },
+  {
+   "variant": "V1",
+   "eval_id": "ocbc/bank.incidents",
+   "sources": [
+    "OCBC says all customer data protected during today\u2019s disruption (theedgemalaysia.com, published 2026-09-23)",
+    "Singapore stocks dip 0.2% as OCBC, Seatrium weigh on STI - The Business Times (businesstimes.com.sg, published 2026-09-23)"
+   ],
+   "claims": [
+    {
+     "claim": "An article dated Sept 23 reports an OCBC ATM, internet and mobile banking disruption",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1, published 2026-09-23, reports a disruption to OCBC's ATM, Internet and mobile-phone banking services that day."
+    },
+    {
+     "claim": "with data protected",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 says all customer data was protected with 'appropriate security measures'."
+    },
+    {
+     "claim": "Its CEO quote looks dated",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 presents the David Conner quote as a current statement. Neither source says or implies that the quote or the CEO attribution is out of date. This judgment comes from outside the cited text."
+    },
+    {
+     "claim": "nothing corroborates it",
+     "kind": "absence",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S2"
+     ],
+     "reason": "S2 reports OCBC shares fell 1.5% on Sep 23 but does not mention any disruption. No cited source contradicts the claim that nothing corroborates it."
+    }
+   ]
+  },
+  {
+   "variant": "V1",
+   "eval_id": "uob/custom.exposure",
+   "sources": [
+    "Macquarie Capital upgrades UOB after deep dive into AQ and on valuation (theedgesingapore.com, published 2026-09-18)",
+    "UOBKH cuts STI target, downgrades banks on prolonged Middle East conflict - The Business Times (businesstimes.com.sg, published 2026-09-16)",
+    "Bangkok Post - Fitch outlook revision seen lifting Thai bank sentiment (bangkokpost.com, published 2026-09-22)"
+   ],
+   "claims": [
+    {
+     "claim": "There is no fresh Greater China commercial real estate shock.",
+     "kind": "absence",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "None of the cited sources reports a new adverse Greater China CRE development. S1 talks about UOB's disclosed CRE exposure and 'stabilising asset quality', which does not contradict the claim."
+    },
+    {
+     "claim": "There is no fresh ASEAN shock.",
+     "kind": "absence",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1",
+      "S3"
+     ],
+     "reason": "No cited source reports a new adverse ASEAN development. S3 reports good news: Fitch revised Thailand's outlook to stable. S1 mentions only structural sub-scale operations in Asean-4, not a fresh shock."
+    },
+    {
+     "claim": "Macquarie upgraded UOB citing a CRE provision buffer.",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 says Macquarie upgraded UOB to outperform on Sept 16 after a deep dive into its CRE exposure. It also notes the bank has $345 million in excess provisions it can shift to cover these risks."
+    },
+    {
+     "claim": "UOBKH flags Middle East conflict risk to loan growth.",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S2"
+     ],
+     "reason": "S2 quotes UOBKH: 'The economy and loan growth could slow down due to weak business sentiment aggravated by a prolonged Middle East conflict.'"
+    }
+   ]
+  },
+  {
+   "variant": "V2",
+   "eval_id": "banking-regulation/topic.new-developments",
+   "sources": [
+    "Swiss upper house votes for 90% CET1 capital backing plan, in blow to UBS | Reuters (reuters.com, published 2026-09-23)",
+    "Fed's Bowman says overhaul of bank stress test will make ... - Reuters (reuters.com, published 2026-09-18)",
+    "Bowman, The Final Chapter on Modernizing Bank Regulatory Stress Testing (federalreserve.gov, published 2026-09-18)",
+    "Bowman, Initial Findings from Independent Review of Silicon Valley Bank (federalreserve.gov, published 2026-09-18)",
+    "Singapore publishes national anti-money laundering strategy (theedgemalaysia.com, published 2026-09-23)",
+    "Basel III risk-based capital and leverage ratios are stable while liquidity indicators show limited movements for large internationally active banks, latest Basel III monitoring exercise shows (bis.org, published 2026-09-23)",
+    "Over 280 supervisory, enforcement actions imposed against financial institutions in 2025, BNM says (theedgemalaysia.com, published 2026-09-23)",
+    "BNM imposes million-ringgit fine on Bank Rakyat for inadequate cybersecurity and incident response (theedgemalaysia.com, published 2026-09-18)",
+    "BNM identifies Maybank, CIMB, Public Bank as domestic systemically important banks (theedgemalaysia.com, published 2026-09-18)"
+   ],
+   "claims": [
+    {
+     "claim": "Swiss upper house backed 90% CET1 cover for UBS foreign units",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 (23 Sep 2026) says Switzerland's upper house voted for rules requiring UBS to back its foreign units with 90% CET1 capital."
+    },
+    {
+     "claim": "Fed flagged stress-test finalisation",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S2",
+      "S3"
+     ],
+     "reason": "In S3, Bowman says the Board will consider final revisions to the stress testing framework in the coming weeks. S2 reports that stress test changes are coming soon."
+    },
+    {
+     "claim": "Fed flagged capital finalisation",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S3"
+     ],
+     "reason": "In S3, Bowman expects the Board to finalise risk-based capital requirement reforms and G-SIB surcharge improvements before year-end."
+    },
+    {
+     "claim": "SVB review faulted Fed supervisors",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S4"
+     ],
+     "reason": "S4 reports the independent review found supervisors knew, or should have known, about SVB's vulnerabilities from March 2022 and failed to take prompt, decisive action."
+    },
+    {
+     "claim": "Singapore published national AML strategy",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S5"
+     ],
+     "reason": "S5 says Singapore published its 32-page national AML strategy, produced by MHA, MOF and MAS. The page is dated 23 Sep 2026, but its body dateline reads 'Oct 30', so the event date is uncertain. It may be an older story."
+    }
+   ]
+  },
+  {
+   "variant": "V2",
+   "eval_id": "geopolitics/geopolitics.financial-channels",
+   "sources": [
+    "MAS warns of fresh global shocks and AI pullback, but says Singapore firms and households well-buffered - CNA (channelnewsasia.com, published 2026-09-22)",
+    "US, China trade teams set to huddle on AI, tariffs and Iran | The Straits Times (straitstimes.com, published 2026-09-19)",
+    "CIMB flags uptick in gross impaired loan ratio if Mideast conflict drags on (theedgemalaysia.com, published 2026-09-21)",
+    "Yuan hits fresh multi-year peak as PBOC eases curb ... - Reuters (reuters.com, published 2026-09-21)",
+    "Facts computed by code from official statistics and market data"
+   ],
+   "claims": [
+    {
+     "claim": "US 10-year 5.11%",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S5"
+     ],
+     "reason": "S5: US 10-year Treasury yield 5.11% on 23 Sep 2026."
+    },
+    {
+     "claim": "US 10-year at series high",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S5"
+     ],
+     "reason": "S5: the highest of the 1,307 values since 1 Jul 2021, which is the series start."
+    },
+    {
+     "claim": "VIX 14.21",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S5"
+     ],
+     "reason": "S5: VIX 14.21 on 22 Sep 2026."
+    },
+    {
+     "claim": "SGD weakened 0.23% against the USD on the week",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S5"
+     ],
+     "reason": "S5: SGD weakened 0.23% against the USD on the week (1.2733 to 1.2762)."
+    },
+    {
+     "claim": "SGD weakened 0.26% against the CNY on the week",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S5"
+     ],
+     "reason": "S5: SGD weakened 0.26% against the CNY on the week (0.1898 to 0.1903)."
+    }
+   ]
+  },
+  {
+   "variant": "V2",
+   "eval_id": "singapore-banks/group.peer-moves",
+   "sources": [
+    "Singapore's DBS targets over US$774 bil in wealth assets by 2030 (theedgemalaysia.com, published 2026-09-23)",
+    "DBS, Citi bypass traditional banking hours with weekend tokenised deposit payment | The Straits Times (straitstimes.com, published 2026-09-07)",
+    "DBS and Citi execute first weekend cross-border payment on Swift ... (coindesk.com, published 2026-09-07)",
+    "Singapore\u2019s Gold Hub Ambition Gets Lift With DBS Vault Expansion - Bloomberg (bloomberg.com, published 2026-09-17)",
+    "UOB sees niche in financing AI growth - The Business Times (businesstimes.com.sg, published 2026-09-22)"
+   ],
+   "claims": [
+    {
+     "claim": "DBS has a wealth push with an S$1 trillion AUM target",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 says DBS aims to grow wealth AUM to more than S$1 trillion by 2030."
+    },
+    {
+     "claim": "DBS's wealth push includes 18 new centres",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 says DBS will open 18 new wealth centres across Asia by the end of 2027."
+    },
+    {
+     "claim": "DBS's wealth push may draw followers",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 says global banks are already expanding wealth offerings in Asia. It never suggests peers will follow DBS's move."
+    },
+    {
+     "claim": "DBS's tokenised deposits may draw followers",
+     "kind": "fact",
+     "supported": false,
+     "after_run_date": false,
+     "source_labels": [
+      "S2",
+      "S3"
+     ],
+     "reason": "S3 says HSBC and Standard Chartered made the first live Swift ledger transfer before DBS and Citi, so DBS was not the leader here. Neither source says peers will follow DBS."
+    },
+    {
+     "claim": "OCBC is already chasing bullion storage after DBS's gold vaulting",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S4"
+     ],
+     "reason": "S4 says DBS expanded its vaulting space and, according to people familiar with the matter, OCBC has approached storage providers about more space, with other banks considering similar moves."
+    }
+   ]
+  },
+  {
+   "variant": "V2",
+   "eval_id": "sea-regional-banks/group.common-issues",
+   "sources": [
+    "Rising bond yield poser for banks | The Star (thestar.com.my, published 2026-09-23)",
+    "Indonesia drops plan on foreign cap (theedgemalaysia.com, published 2026-09-23)",
+    "BNM onboards three projects to test ringgit stablecoins, tokenised deposits for payments (theedgemalaysia.com, published 2026-09-19)"
+   ],
+   "claims": [
+    {
+     "claim": "Tradeview flagged CIMB and Maybank for third-quarter fair-value losses",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "Tradeview Capital's Ng said CIMB, Maybank and AMMB 'look more exposed' to third-quarter fair-value/mark-to-market losses."
+    },
+    {
+     "claim": "CIMB and Maybank are both Indonesia foreign-cap beneficiaries",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S2"
+     ],
+     "reason": "S2 names CIMB as the biggest beneficiary and Maybank as another beneficiary of the withdrawn foreign-cap policy."
+    },
+    {
+     "claim": "CIMB and Maybank both joined BNM's tokenised-deposit trial",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S3"
+     ],
+     "reason": "S3 says BNM's DAIH onboarded separate tokenised-deposit initiatives from Maybank and CIMB for testing."
+    },
+    {
+     "claim": "Bangkok Bank absent",
+     "kind": "absence",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1",
+      "S2",
+      "S3"
+     ],
+     "reason": "None of the cited sources mentions Bangkok Bank, so nothing contradicts this."
+    }
+   ]
+  },
+  {
+   "variant": "V2",
+   "eval_id": "mas/central-bank.regulation",
+   "sources": [
+    "Building the financial system of the future - trusted, connected and resilient (bis.org, published 2026-09-21)",
+    "\"Building the Financial System of the Future: Trusted, Connected and Resilient\" \u2013 Special Address by Mr Chia Der Jiun, Managing Director, Monetary Authority of Singapore, at the Global FinTech Fest 2026 on 11 September 2026 (mas.gov.sg, published 2026-09-11)",
+    "MAS seeks feedback on proposals regulating value, user protection for stablecoins - The Business Times (businesstimes.com.sg, published 2026-09-01)",
+    "Singapore Stablecoin License Leaves Issuers Weighing Benefits - Bloomberg (bloomberg.com, published 2026-09-05)",
+    "MAS seeks feedback on proposals regulating value, user protection for stablecoins | The Straits Times (straitstimes.com, published 2026-09-01)",
+    "Consultation on Proposed Amendments to the Payment Services Act 2019 for Stablecoins Regulation (mas.gov.sg, published 2026-09-01)",
+    "Singapore\u2019s new stablecoin proposal bans yield and mandates 100% reserves (coindesk.com, published 2026-09-01)",
+    "MAS Consults on Legislative Amendments to Implement Stablecoin Regulatory Framework (mas.gov.sg, published 2026-09-01)",
+    "Explanatory Brief: Financial Services and Markets (Amendment) Bill 2026 (mas.gov.sg, published 2026-09-08)",
+    "Notice 643A Exposures and Credit Facilities to Related Concerns (mas.gov.sg, published 2026-09-04)",
+    "Notice 656 Exposures to Single Counterparty Groups for Banks Incorporated in Singapore (mas.gov.sg, published 2026-09-04)",
+    "Notice 643 Transactions with Related Parties (mas.gov.sg, published 2026-09-04)",
+    "Singapore publishes national anti-money laundering strategy (theedgemalaysia.com, published 2026-09-23)",
+    "MAS Commits S$220 Million to Support Next Phase of FinTech Innovation (mas.gov.sg, published 2026-08-31)",
+    "ID 10/26 MAS Response to the Consultation Paper on Changes to the Group Capital Framework for Designated Financial Holding Companies (Licensed Insurer) (mas.gov.sg, published 2026-09-04)"
+   ],
+   "claims": [
+    {
+     "claim": "MAS issued draft AI Risk Management Guidelines",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1",
+      "S2"
+     ],
+     "reason": "S1/S2 say MAS has issued Guidelines for AI Risk Management for public consultation, which means they are a draft. Neither source says when they were issued."
+    },
+    {
+     "claim": "MAS issued stablecoin consultation P015-2026",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S6",
+      "S8"
+     ],
+     "reason": "S6 lists consultation number P015-2026, starting 1 September 2026, on amendments to the PS Act for stablecoins. S8 confirms MAS published it."
+    },
+    {
+     "claim": "The stablecoin consultation closes 16 October 2026",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S6",
+      "S8",
+      "S3",
+      "S5",
+      "S7"
+     ],
+     "reason": "S6 gives the closing date as 16 October 2026, and the other sources say Oct 16."
+    },
+    {
+     "claim": "MAS issued a TLAC bill",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S9"
+     ],
+     "reason": "S9 says the Financial Services and Markets (Amendment) Bill 2026, which empowers MAS to impose TLAC requirements, was moved for First Reading. A minister moved it on behalf of the Minister-in-charge of MAS. MAS published the explanatory brief."
+    },
+    {
+     "claim": "MAS issued a Notice 643A amendment",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S10"
+     ],
+     "reason": "S10 says MAS Notice 643A (Amendment) 2026 was issued on 4 September 2026 and takes effect on 4 September 2027."
+    },
+    {
+     "claim": "MAS issued a national AML strategy",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S13"
+     ],
+     "reason": "S13, published 23 September 2026 (before the run date), says Singapore published a national AML strategy produced jointly by MHA, MOF and MAS. MAS is one of the co-authors, but it did not issue the strategy alone. The article also carries an inconsistent 'Oct 30' dateline."
+    }
+   ]
+  },
+  {
+   "variant": "V2",
+   "eval_id": "ocbc/bank.incidents",
+   "sources": [
+    "OCBC says all customer data protected during today\u2019s disruption (theedgemalaysia.com, published 2026-09-23)"
+   ],
+   "claims": [
+    {
+     "claim": "OCBC's ATM, Internet and mobile banking services were disrupted on 23 September",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 is dated Wednesday 23 Sep 2026. It refers to 'today's disruption of automated-teller machine, Internet and mobile-phone banking services' at OCBC."
+    },
+    {
+     "claim": "CEO David Conner said all customer data remained protected",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 says David Conner, OCBC's chief executive officer, stated in an e-mailed statement that all customer data was protected with 'appropriate security measures'."
+    }
+   ]
+  },
+  {
+   "variant": "V2",
+   "eval_id": "uob/custom.exposure",
+   "sources": [
+    "Macquarie Capital upgrades UOB after deep dive into AQ and on valuation (theedgesingapore.com, published 2026-09-18)"
+   ],
+   "claims": [
+    {
+     "claim": "Since 10 Sep, no adverse market developments reported",
+     "kind": "absence",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 doesn't report any specific adverse market development in Greater China CRE or ASEAN. It talks about CRE exposure and sensitivity estimates, and calls asset quality 'stabilising', so nothing in it contradicts the claim."
+    },
+    {
+     "claim": "Macquarie upgraded UOB on 16 Sep",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 states: 'On Sept 16, Macquarie Capital upgraded UOB to outperform'."
+    },
+    {
+     "claim": "Macquarie's upgrade followed a CRE review",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 says the upgrade came 'following a deep dive into the banking group's commercial real estate (CRE) exposure'."
+    },
+    {
+     "claim": "Macquarie estimated $181m extra provisions per 10% collateral drop",
+     "kind": "fact",
+     "supported": true,
+     "after_run_date": false,
+     "source_labels": [
+      "S1"
+     ],
+     "reason": "S1 quotes Macquarie: 'each 10% collateral value reduction drives $181 million higher provisions'."
+    }
+   ]
+  }
+ ],
+ "coverage": [
+  {
+   "eval_id": "banking-regulation/topic.new-developments",
+   "seed": 1,
+   "items": 3,
+   "mentions": [
+    {
+     "variant": "V0-C",
+     "item": "event:1",
+     "mentioned": false,
+     "reason": "Answer A covers the MAS FSR, the EBA guidelines and the FCA probe. It says nothing about Bowman or the Fed's stress-test overhaul."
+    },
+    {
+     "variant": "V0-C",
+     "item": "event:0",
+     "mentioned": false,
+     "reason": "Answer A does not mention the Swiss upper house vote or UBS capital."
+    },
+    {
+     "variant": "V0-C",
+     "item": "event:2",
+     "mentioned": false,
+     "reason": "Answer A does not mention the SVB review."
+    },
+    {
+     "variant": "V2",
+     "item": "event:1",
+     "mentioned": true,
+     "reason": "'Fed flagged stress-test and capital finalisation' refers to the Fed finalising its stress-test and capital framework overhaul."
+    },
+    {
+     "variant": "V2",
+     "item": "event:0",
+     "mentioned": true,
+     "reason": "'Swiss upper house backed 90% CET1 cover for UBS foreign units' names the vote directly."
+    },
+    {
+     "variant": "V2",
+     "item": "event:2",
+     "mentioned": true,
+     "reason": "'SVB review faulted Fed supervisors' matches the review findings that criticise the Fed's own supervision."
+    },
+    {
+     "variant": "V1",
+     "item": "event:1",
+     "mentioned": true,
+     "reason": "'Fed's Bowman flags final stress-test revisions soon' matches G1."
+    },
+    {
+     "variant": "V1",
+     "item": "event:0",
+     "mentioned": false,
+     "reason": "Answer C only says a UBS capital dispute with a Swiss minister continues. It does not mention the upper house vote or the 90% CET1 requirement, so a reader could not tie it to the vote."
+    },
+    {
+     "variant": "V1",
+     "item": "event:2",
+     "mentioned": false,
+     "reason": "Answer C does not mention the SVB review."
+    }
+   ]
+  },
+  {
+   "eval_id": "geopolitics/geopolitics.financial-channels",
+   "seed": 1,
+   "items": 2,
+   "mentions": [
+    {
+     "variant": "V2",
+     "item": "event:1",
+     "mentioned": false,
+     "reason": "Answer A only gives market figures (US 10-year yield, VIX, SGD moves). It says nothing about the $61m crypto forfeiture or Iranian oil money laundered through Binance."
+    },
+    {
+     "variant": "V2",
+     "item": "event:0",
+     "mentioned": false,
+     "reason": "Answer A gives SGD/CNY weekly moves but does not mention PBOC guidance, firmer fixings, the yuan's 3.5-year high or the Trump-Xi summit."
+    },
+    {
+     "variant": "V0-C",
+     "item": "event:1",
+     "mentioned": false,
+     "reason": "Answer B mentions a US Iran sanctions campaign threatening Chinese banks. That is a separate, more general development, not the $61m crypto forfeiture through Binance."
+    },
+    {
+     "variant": "V0-C",
+     "item": "event:0",
+     "mentioned": true,
+     "reason": "'PBOC steadied the yuan before the 24 September Trump-Xi summit' points to the same PBOC yuan management ahead of the summit. However, 'steadied' understates the move: the PBOC guided the yuan stronger to a 3.5-year high."
+    },
+    {
+     "variant": "V1",
+     "item": "event:1",
+     "mentioned": true,
+     "reason": "Answer C directly names the US bid to seize $61 million in crypto over Chinese-linked Iran oil payments."
+    },
+    {
+     "variant": "V1",
+     "item": "event:0",
+     "mentioned": false,
+     "reason": "Answer C does not mention the PBOC, yuan fixings, the yuan's rise or the summit."
+    }
+   ]
+  },
+  {
+   "eval_id": "singapore-banks/group.peer-moves",
+   "seed": 1,
+   "items": 2,
+   "mentions": [
+    {
+     "variant": "V1",
+     "item": "event:1",
+     "mentioned": false,
+     "reason": "Answer A only talks about gold vaulting. It says nothing about the DBS\u2013Citi tokenised-deposit payment."
+    },
+    {
+     "variant": "V1",
+     "item": "event:0",
+     "mentioned": true,
+     "reason": "Answer A says DBS expanded its gold vaulting capacity and OCBC approached storage providers for more space."
+    },
+    {
+     "variant": "V0-C",
+     "item": "event:1",
+     "mentioned": false,
+     "reason": "Answer B describes a different event: DBS, OCBC and UOB doing SGD interbank transactions. G1 is DBS and Citi making a weekend cross-border USD payment."
+    },
+    {
+     "variant": "V0-C",
+     "item": "event:0",
+     "mentioned": false,
+     "reason": "Answer B does not mention gold vaulting or bullion storage."
+    },
+    {
+     "variant": "V2",
+     "item": "event:1",
+     "mentioned": false,
+     "reason": "Answer C only says 'tokenised deposits may draw followers'. That is too vague to tie to the DBS\u2013Citi weekend cross-border USD payment on Swift's ledger."
+    },
+    {
+     "variant": "V2",
+     "item": "event:0",
+     "mentioned": true,
+     "reason": "Answer C says OCBC is chasing bullion storage after DBS's gold vaulting move."
+    }
+   ]
+  },
+  {
+   "eval_id": "sea-regional-banks/group.common-issues",
+   "seed": 1,
+   "items": 2,
+   "mentions": [
+    {
+     "variant": "V0-C",
+     "item": "event:1",
+     "mentioned": false,
+     "reason": "Says no common adverse issue was found and does not mention CIMB's expected rise in gross impaired loans."
+    },
+    {
+     "variant": "V0-C",
+     "item": "event:0",
+     "mentioned": false,
+     "reason": "Does not mention rising bond yields, deposit competition or NIM compression at Malaysian banks."
+    },
+    {
+     "variant": "V1",
+     "item": "event:1",
+     "mentioned": false,
+     "reason": "Covers only the BNM tokenised-deposit trial and says nothing about CIMB's impaired-loan outlook."
+    },
+    {
+     "variant": "V1",
+     "item": "event:0",
+     "mentioned": false,
+     "reason": "Says there is no shared adverse issue and does not mention NIM compression from bond yields or deposit competition."
+    },
+    {
+     "variant": "V2",
+     "item": "event:1",
+     "mentioned": false,
+     "reason": "Does not mention CIMB's expected rise in commercial-segment impaired loans linked to Middle East costs."
+    },
+    {
+     "variant": "V2",
+     "item": "event:0",
+     "mentioned": false,
+     "reason": "Q3 fair-value losses for CIMB and Maybank are a different point. The answer does not mention NIM compression, deposit competition or rising MGS yields, so a reader could not tie it to G2."
+    }
+   ]
+  },
+  {
+   "eval_id": "mas/central-bank.regulation",
+   "seed": 1,
+   "items": 2,
+   "mentions": [
+    {
+     "variant": "V2",
+     "item": "event:0",
+     "mentioned": true,
+     "reason": "It mentions a 'Notice 643A amendment', which is part of the 4 Sep amendment package. It doesn't name 643 or 656 or give dates, but a reader can still tie it to that event."
+    },
+    {
+     "variant": "V2",
+     "item": "event:1",
+     "mentioned": true,
+     "reason": "It mentions 'a TLAC bill', which points to the bill giving MAS TLAC powers."
+    },
+    {
+     "variant": "V1",
+     "item": "event:0",
+     "mentioned": true,
+     "reason": "It names revised Notices 656, 643 and 643A for banks issued on 4 Sep."
+    },
+    {
+     "variant": "V1",
+     "item": "event:1",
+     "mentioned": true,
+     "reason": "It says 'the Bill introduced TLAC powers', which matches the TLAC bill."
+    },
+    {
+     "variant": "V0-C",
+     "item": "event:0",
+     "mentioned": false,
+     "reason": "It mentions only the stablecoin consultation and the corporate governance paper. It says nothing about the amendments to Notices 643, 643A or 656."
+    },
+    {
+     "variant": "V0-C",
+     "item": "event:1",
+     "mentioned": false,
+     "reason": "It doesn't mention a TLAC bill."
+    }
+   ]
+  },
+  {
+   "eval_id": "ocbc/bank.incidents",
+   "seed": 1,
+   "items": 1,
+   "mentions": [
+    {
+     "variant": "V1",
+     "item": "event:0",
+     "mentioned": true,
+     "reason": "Names the OCBC ATM, internet and mobile banking disruption and says data was protected, and mentions the CEO quote. It adds doubts (the quote 'looks dated' and is uncorroborated), but it still clearly identifies the same event."
+    },
+    {
+     "variant": "V0-C",
+     "item": "event:0",
+     "mentioned": false,
+     "reason": "Says no material incidents were found and mentions only routine scheduled iOCBC maintenance. It does not mention the disruption or the CEO's data-protection statement."
+    },
+    {
+     "variant": "V2",
+     "item": "event:0",
+     "mentioned": true,
+     "reason": "States that OCBC's ATM, internet and mobile banking services were disrupted and that the CEO said all customer data remained protected. Note: it names the CEO as David Conner, who left OCBC around 2012. That suggests the source may be a recycled older story, but the answer still mentions the development."
+    }
+   ]
+  },
+  {
+   "eval_id": "uob/custom.exposure",
+   "seed": 1,
+   "items": 3,
+   "mentions": [
+    {
+     "variant": "V2",
+     "item": "event:2",
+     "mentioned": false,
+     "reason": "Says no adverse market developments; says nothing about ASEAN funding tightening."
+    },
+    {
+     "variant": "V2",
+     "item": "event:1",
+     "mentioned": false,
+     "reason": "Doesn't mention China's credit slump or the PBOC."
+    },
+    {
+     "variant": "V2",
+     "item": "event:0",
+     "mentioned": false,
+     "reason": "Doesn't mention the HKMA rate hike."
+    },
+    {
+     "variant": "V0-C",
+     "item": "event:2",
+     "mentioned": false,
+     "reason": "Rupiah weakness and capital outflows are a different event. It doesn't mention interbank rates, LDRs, Malaysian bond yields or margin pressure."
+    },
+    {
+     "variant": "V0-C",
+     "item": "event:1",
+     "mentioned": false,
+     "reason": "Doesn't mention China's credit data or the PBOC governor."
+    },
+    {
+     "variant": "V0-C",
+     "item": "event:0",
+     "mentioned": false,
+     "reason": "Doesn't mention the HKMA hike or Hong Kong property."
+    },
+    {
+     "variant": "V1",
+     "item": "event:2",
+     "mentioned": false,
+     "reason": "Says there is no ASEAN shock; doesn't mention funding tightening."
+    },
+    {
+     "variant": "V1",
+     "item": "event:1",
+     "mentioned": false,
+     "reason": "Doesn't mention China's credit slump."
+    },
+    {
+     "variant": "V1",
+     "item": "event:0",
+     "mentioned": false,
+     "reason": "Doesn't mention the HKMA hike."
+    }
+   ]
+  }
+ ],
+ "rejudge": {
+  "correctness": [
+   {
+    "variant": "V1",
+    "eval_id": "singapore-banks/group.peer-moves",
+    "pairs": [
+     [
+      true,
+      true
+     ],
+     [
+      true,
+      true
+     ],
+     [
+      true,
+      true
+     ]
+    ]
+   },
+   {
+    "variant": "V2",
+    "eval_id": "singapore-banks/group.peer-moves",
+    "pairs": [
+     [
+      true,
+      true
+     ],
+     [
+      true,
+      true
+     ],
+     [
+      false,
+      false
+     ],
+     [
+      false,
+      false
+     ],
+     [
+      true,
+      true
+     ]
+    ]
+   },
+   {
+    "variant": "V2",
+    "eval_id": "mas/central-bank.regulation",
+    "pairs": [
+     [
+      true,
+      true
+     ],
+     [
+      true,
+      true
+     ],
+     [
+      true,
+      true
+     ],
+     [
+      true,
+      false
+     ],
+     [
+      true,
+      true
+     ],
+     [
+      true,
+      true
+     ]
+    ]
+   },
+   {
+    "variant": "V0-C",
+    "eval_id": "singapore-banks/group.peer-moves",
+    "pairs": [
+     [
+      true,
+      true
+     ],
+     [
+      false,
+      false
+     ]
+    ]
+   },
+   {
+    "variant": "V2",
+    "eval_id": "ocbc/bank.incidents",
+    "pairs": [
+     [
+      true,
+      true
+     ],
+     [
+      true,
+      true
+     ]
+    ]
+   }
+  ],
+  "coverage": [
+   {
+    "eval_id": "sea-regional-banks/group.common-issues",
+    "seed": 2,
+    "items": 2,
+    "mentions": [
+     {
+      "variant": "V2",
+      "item": "event:0",
+      "mentioned": false,
+      "reason": "Says Tradeview flagged Q3 fair-value losses at CIMB and Maybank. That shares the banks and points to weaker earnings, but it never mentions rising Malaysian government bond yields, deposit competition or NIM compression. The cause and mechanism differ from G1, so a reader could not clearly tie it to that development."
+     },
+     {
+      "variant": "V2",
+      "item": "event:1",
+      "mentioned": false,
+      "reason": "No mention of CIMB expecting higher gross impaired loans, the commercial segment, or Middle East cost pressures."
+     },
+     {
+      "variant": "V0-C",
+      "item": "event:0",
+      "mentioned": false,
+      "reason": "Says no common adverse issue was found and refers only to Thai flood relief. Nothing on bond yields, NIMs or earnings pressure."
+     },
+     {
+      "variant": "V0-C",
+      "item": "event:1",
+      "mentioned": false,
+      "reason": "No mention of CIMB's impaired-loan outlook."
+     },
+     {
+      "variant": "V1",
+      "item": "event:0",
+      "mentioned": false,
+      "reason": "Mentions only the BNM tokenised-deposit trial and says there is no shared adverse issue. That denies the G1 development rather than mentioning it."
+     },
+     {
+      "variant": "V1",
+      "item": "event:1",
+      "mentioned": false,
+      "reason": "No mention of CIMB's gross impaired loans or Middle East cost pressures."
+     }
+    ]
+   },
+   {
+    "eval_id": "geopolitics/geopolitics.financial-channels",
+    "seed": 2,
+    "items": 2,
+    "mentions": [
+     {
+      "variant": "V1",
+      "item": "event:1",
+      "mentioned": true,
+      "reason": "Names the US $61m crypto forfeiture over Chinese-linked Iranian oil payments. It leaves out Binance and the $1.5bn network, but the event is clearly the same."
+     },
+     {
+      "variant": "V1",
+      "item": "event:0",
+      "mentioned": false,
+      "reason": "Nothing about the PBOC, yuan fixings or the yuan's 3.5-year high. The other item is a Russia sanctions/tariff law."
+     },
+     {
+      "variant": "V0-C",
+      "item": "event:1",
+      "mentioned": false,
+      "reason": "Refers only in general terms to a US Iran sanctions campaign threatening mid-tier Chinese banks. It does not mention the $61m crypto forfeiture, Binance or the laundering network, so a reader could not tie it to this event."
+     },
+     {
+      "variant": "V0-C",
+      "item": "event:0",
+      "mentioned": true,
+      "reason": "Refers to the PBOC managing the yuan before the 24 September Trump-Xi summit, which is the same event. 'Steadied' understates it: the PBOC actually guided the yuan stronger, to a 3.5-year high, with five straight firmer fixings."
+     },
+     {
+      "variant": "V2",
+      "item": "event:1",
+      "mentioned": false,
+      "reason": "Gives only market figures (UST 10y, VIX, SGD). Nothing about the crypto forfeiture."
+     },
+     {
+      "variant": "V2",
+      "item": "event:0",
+      "mentioned": false,
+      "reason": "Mentions SGD moves against CNY but nothing about PBOC fixings or the yuan's 3.5-year high against the dollar."
+     }
+    ]
+   }
+  ]
+ }
+}

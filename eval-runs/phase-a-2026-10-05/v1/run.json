@@ -1,0 +1,45 @@
+{
+  "singapore-banks/group.peer-moves": {
+    "retrieved": 30,
+    "cited": 2,
+    "cited_outside_retrieved": 0,
+    "quotes_verbatim": 2
+  },
+  "banking-regulation/topic.new-developments": {
+    "retrieved": 15,
+    "cited": 4,
+    "cited_outside_retrieved": 0,
+    "quotes_verbatim": 4
+  },
+  "sea-regional-banks/group.common-issues": {
+    "retrieved": 20,
+    "cited": 2,
+    "cited_outside_retrieved": 0,
+    "quotes_verbatim": 2
+  },
+  "geopolitics/geopolitics.financial-channels": {
+    "retrieved": 30,
+    "cited": 4,
+    "cited_outside_retrieved": 0,
+    "quotes_verbatim": 4
+  },
+  "mas/central-bank.regulation": {
+    "retrieved": 30,
+    "cited": 6,
+    "cited_outside_retrieved": 0,
+    "quotes_verbatim": 6
+  },
+  "ocbc/bank.incidents": {
+    "retrieved": 13,
+    "cited": 2,
+    "cited_outside_retrieved": 0,
+    "quotes_verbatim": 2
+  },
+  "uob/custom.exposure": {
+    "retrieved": 14,
+    "cited": 3,
+    "cited_outside_retrieved": 0,
+    "quotes_verbatim": 3
+  },
+  "wall_seconds": 17.7
+}

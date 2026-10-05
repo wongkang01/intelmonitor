@@ -1,0 +1,45 @@
+{
+ "group": "v1",
+ "model": "claude-sonnet-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-5-5"
+ ],
+ "output": {
+  "summary": "MAS issued revised Notices 656, 643 and 643A for banks on 4 Sep, opened a stablecoin consultation (closes 16 Oct), and the Bill introduced TLAC powers.",
+  "state": "new",
+  "citations": [
+   {
+    "document_id": "4df958f06a407676",
+    "quote": "MAS Notice 656 (Amendment No.2) 2026 (565.3 KB) dated 4 September 2026 takes effect."
+   },
+   {
+    "document_id": "da28361d25b49441",
+    "quote": "The amendments reflected in this document take effect on 4 September 2027."
+   },
+   {
+    "document_id": "3394a3e1424a6978",
+    "quote": "MAS Notice 643A (521.3 KB) (including Appendix 9 Reporting Statement (45.2 KB)) dated 4 September 2026 and effective 4 September 2027."
+   },
+   {
+    "document_id": "5acb03fef2960e31",
+    "quote": "The Bill seeks to empower MAS to impose on systemically important financial institutions (\u201cFIs\u201d) the requirement to maintain a minimum level of total loss-absorbing capacity (\u201cTLAC\u201d)."
+   },
+   {
+    "document_id": "92ab1750b83a161e",
+    "quote": "Start Date: - 01 September 2026 - Closing Date: - 16 October 2026"
+   },
+   {
+    "document_id": "a06e4aa018165f63",
+    "quote": "The Monetary Authority of Singapore (MAS) today published a consultation paper on proposed legislative amendments to the Payment Services Act 2019"
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.26211460000000003,
+  "input_tokens": 29535,
+  "output_tokens": 572,
+  "duration_ms": 5602,
+  "turns": 2
+ }
+}

@@ -1,0 +1,360 @@
+{
+  "eval_id": "uob/custom.exposure",
+  "question": "Which markets where UOB has significant lending exposure (such as Greater China commercial real estate and ASEAN) had adverse developments recently, and what might they mean for UOB?",
+  "lookback_days": 14,
+  "seed": 1,
+  "pool": [
+    {
+      "document_id": "0992fe865722b0e5",
+      "published": "2026-09-22",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "0bcf9d2a967ec327",
+      "published": "2026-09-20",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "1530c1f6f8a5346d",
+      "published": "2026-09-20",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "15318a0fa093f5ba",
+      "published": "2026-09-17",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "16cf1ecb555ce96d",
+      "published": "2026-09-16",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "264e8a11b2c64636",
+      "published": "2026-09-16",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "2ae99a73bb65e645",
+      "published": "2026-09-23",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "2c611c200ee18f97",
+      "published": "2026-09-16",
+      "sources": [
+        "cited:V1",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "3be3977c57cb633f",
+      "published": "2026-09-22",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "4f1503a04f9fc46f",
+      "published": "2026-09-22",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "5c11a21ea2c0ef12",
+      "published": "2026-09-23",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "657e6e93ead4ae13",
+      "published": "2026-09-22",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "67383db0815d2524",
+      "published": "2026-09-18",
+      "sources": [
+        "cited:V1",
+        "cited:V2",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "82888b8e97f5262d",
+      "published": "2026-09-22",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "88d21828a74f0ed7",
+      "published": "2026-09-17",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "8a3ae517d4e1e649",
+      "published": "2026-09-17",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "a20d8aefaec96607",
+      "published": "2026-09-22",
+      "sources": [
+        "cited:V1",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "b09d437d99c68bb8",
+      "published": "2026-09-22",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "b9d28d968412048a",
+      "published": "2026-09-23",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "ba57a6c2d5290faf",
+      "published": "2026-09-18",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "dc6c7f9434fbdfc8",
+      "published": "2026-09-12",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "ff14eccdf5b920d3",
+      "published": "2026-09-23",
+      "sources": [
+        "keyword"
+      ]
+    }
+  ],
+  "gold": {
+    "decisions": [
+      {
+        "document_id": "b09d437d99c68bb8",
+        "include": true,
+        "reason": "Indonesian bank liquidity tightening (INDONIA up to 6.6%, LDR rising): an adverse development in a core ASEAN market for UOB."
+      },
+      {
+        "document_id": "8a3ae517d4e1e649",
+        "include": false,
+        "reason": "Covers the NIM boost to Singapore banks from the Fed hike. That is positive for earnings, not an adverse development in a lending market."
+      },
+      {
+        "document_id": "4f1503a04f9fc46f",
+        "include": false,
+        "reason": "Broker coverage initiation, which says nothing about adverse market developments."
+      },
+      {
+        "document_id": "88d21828a74f0ed7",
+        "include": false,
+        "reason": "Generic explainer on the Fed hike for consumers, with no UOB exposure angle."
+      },
+      {
+        "document_id": "ba57a6c2d5290faf",
+        "include": false,
+        "reason": "About an OCBC retail investment product. Not relevant."
+      },
+      {
+        "document_id": "0992fe865722b0e5",
+        "include": true,
+        "reason": "MAS stress test finds about a third of SGX-listed firms (16% of corporate debt) at risk in a severe AI downturn. This is a risk to UOB's home-market corporate book."
+      },
+      {
+        "document_id": "657e6e93ead4ae13",
+        "include": true,
+        "reason": "Same MAS Financial Stability Review: it flags AI pullback, higher rates and strain on leveraged firms in Singapore."
+      },
+      {
+        "document_id": "3be3977c57cb633f",
+        "include": true,
+        "reason": "Same MAS FSR: warns of fresh global shocks and an AI pullback affecting Singapore borrowers."
+      },
+      {
+        "document_id": "dc6c7f9434fbdfc8",
+        "include": false,
+        "reason": "Republished old (2019-era) UOB investment-strategy piece, with nothing current on lending markets."
+      },
+      {
+        "document_id": "16cf1ecb555ce96d",
+        "include": true,
+        "reason": "The HKMA's first rate hike since 2023 could threaten Hong Kong's property recovery. This bears directly on UOB's Greater China CRE exposure."
+      },
+      {
+        "document_id": "82888b8e97f5262d",
+        "include": false,
+        "reason": "UOB business development in AI financing. Not an adverse market development."
+      },
+      {
+        "document_id": "67383db0815d2524",
+        "include": true,
+        "reason": "Macquarie's deep dive on UOB's US and Greater China CRE estimates S$181m in extra provisions per 10% fall in collateral value, plus S$345m of excess buffers. This gives the implication for UOB."
+      },
+      {
+        "document_id": "1530c1f6f8a5346d",
+        "include": false,
+        "reason": "Weekly share-price and Fed recap, positive for NIMs, with no adverse lending-market development."
+      },
+      {
+        "document_id": "2ae99a73bb65e645",
+        "include": true,
+        "reason": "BMI cuts the Philippines' 2026 GDP forecast to 3.3% amid the corruption scandal: an adverse ASEAN macro development."
+      },
+      {
+        "document_id": "264e8a11b2c64636",
+        "include": true,
+        "reason": "China's loan growth slowed far more than expected in August and the PBOC signals the era of surging credit is over. An adverse Greater China development."
+      },
+      {
+        "document_id": "a20d8aefaec96607",
+        "include": false,
+        "reason": "Fitch raises Thailand's outlook to stable. That is positive, not adverse."
+      },
+      {
+        "document_id": "2c611c20ee18f97",
+        "include": true,
+        "reason": "UOB Kay Hian downgrades Singapore banks on the escalating Middle East conflict, which risks slower loan growth and weaker business sentiment in Singapore."
+      },
+      {
+        "document_id": "ff14eccdf5b920d3",
+        "include": false,
+        "reason": "Daily market wrap, nothing material."
+      },
+      {
+        "document_id": "0bcf9d2a967ec327",
+        "include": false,
+        "reason": "Duplicate of the weekly markets column, positive for NIMs, not adverse."
+      },
+      {
+        "document_id": "15318a0fa093f5ba",
+        "include": false,
+        "reason": "Duplicate of the Fed-hike NIM uplift story. Positive, not adverse."
+      },
+      {
+        "document_id": "b9d28d968412048a",
+        "include": true,
+        "reason": "Rising Malaysian government bond yields, political uncertainty and credit tightening squeeze Malaysian bank margins and loan growth. Adverse for UOB Malaysia."
+      },
+      {
+        "document_id": "5c11a21ea2c0ef12",
+        "include": false,
+        "reason": "UOB Thailand sustainable-finance PR. Not adverse."
+      }
+    ],
+    "events": [
+      {
+        "title": "The HKMA raised its base rate 25bp to 4.25%, its first hike since 2023, which threatens Hong Kong's nascent property recovery.",
+        "document_ids": [
+          "16cf1ecb555ce96d"
+        ],
+        "must_mention": true,
+        "reason": "This is the most direct adverse development for UOB's Greater China CRE exposure, the market the question names."
+      },
+      {
+        "title": "China's credit growth slumped far more than expected in August, and the PBOC governor signalled the end of the era of surging loans.",
+        "document_ids": [
+          "264e8a11b2c64636"
+        ],
+        "must_mention": true,
+        "reason": "Weaker borrowing and demand in mainland China add to Greater China credit and CRE asset-quality risk."
+      },
+      {
+        "title": "Funding is tightening in key ASEAN markets: Indonesian interbank rates and LDRs are rising, and in Malaysia higher government bond yields and credit tightening are pressuring bank margins and loan growth.",
+        "document_ids": [
+          "b09d437d99c68bb8",
+          "b9d28d968412048a"
+        ],
+        "must_mention": true,
+        "reason": "These are adverse conditions in UOB's core ASEAN subsidiaries (Indonesia, Malaysia) that could weigh on margins and loan quality."
+      },
+      {
+        "title": "Macquarie's analysis of UOB's CRE book estimates each 10% fall in collateral value adds about S$181m in provisions, with S$345m of excess provisions available as a buffer.",
+        "document_ids": [
+          "67383db0815d2524"
+        ],
+        "must_mention": false,
+        "reason": "Useful for showing what the CRE stress could mean for UOB, but it is analysis rather than a new adverse event."
+      },
+      {
+        "title": "The MAS Financial Stability Review stress test shows about a third of SGX-listed firms (16% of corporate debt) at risk under a severe AI downturn, though it judges banks and borrowers well-buffered.",
+        "document_ids": [
+          "0992fe865722b0e5",
+          "657e6e93ead4ae13",
+          "3be3977c57cb633f"
+        ],
+        "must_mention": false,
+        "reason": "A hypothetical home-market risk with an overall reassuring conclusion. Secondary to the realised adverse moves."
+      },
+      {
+        "title": "UOB Kay Hian downgraded Singapore banks and cut its STI target as the Middle East conflict escalation threatens loan growth and business sentiment.",
+        "document_ids": [],
+        "must_mention": false,
+        "reason": "A sector-level sentiment downgrade, not a lending-market deterioration specific to UOB."
+      },
+      {
+        "title": "BMI cut the Philippines' 2026 GDP forecast to 3.3% from 4.7% amid the flood-control corruption scandal.",
+        "document_ids": [
+          "2ae99a73bb65e645"
+        ],
+        "must_mention": false,
+        "reason": "An adverse ASEAN development, but the Philippines is a smaller market for UOB."
+      }
+    ],
+    "series": [],
+    "expected_state": "watch",
+    "state_reason": "Several adverse developments are building in UOB's key lending markets: Hong Kong's rate hike threatens the property recovery, China's credit is slumping, and Indonesian and Malaysian funding is tightening. These could pressure asset quality and CRE provisions. There are no realised losses or acute stress yet, and analysts see UOB's buffers as adequate."
+  },
+  "changes": {
+    "0": "unchanged",
+    "1": "unchanged",
+    "2": "new",
+    "3": "new",
+    "4": "new",
+    "6": "new"
+  }
+}

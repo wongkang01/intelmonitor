@@ -1,0 +1,70 @@
+{
+ "group": "judge-correctness",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "claims": [
+   {
+    "claim": "Swiss upper house backed 90% CET1 cover for UBS foreign units",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S1"
+    ],
+    "reason": "S1 (23 Sep 2026) says Switzerland's upper house voted for rules requiring UBS to back its foreign units with 90% CET1 capital."
+   },
+   {
+    "claim": "Fed flagged stress-test finalisation",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S2",
+     "S3"
+    ],
+    "reason": "In S3, Bowman says the Board will consider final revisions to the stress testing framework in the coming weeks. S2 reports that stress test changes are coming soon."
+   },
+   {
+    "claim": "Fed flagged capital finalisation",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S3"
+    ],
+    "reason": "In S3, Bowman expects the Board to finalise risk-based capital requirement reforms and G-SIB surcharge improvements before year-end."
+   },
+   {
+    "claim": "SVB review faulted Fed supervisors",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S4"
+    ],
+    "reason": "S4 reports the independent review found supervisors knew, or should have known, about SVB's vulnerabilities from March 2022 and failed to take prompt, decisive action."
+   },
+   {
+    "claim": "Singapore published national AML strategy",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S5"
+    ],
+    "reason": "S5 says Singapore published its 32-page national AML strategy, produced by MHA, MOF and MAS. The page is dated 23 Sep 2026, but its body dateline reads 'Oct 30', so the event date is uncertain. It may be an older story."
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.1232486,
+  "input_tokens": 12423,
+  "output_tokens": 1100,
+  "duration_ms": 11229,
+  "turns": 2
+ }
+}

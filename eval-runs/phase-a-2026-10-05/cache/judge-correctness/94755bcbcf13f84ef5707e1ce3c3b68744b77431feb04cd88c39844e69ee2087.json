@@ -1,0 +1,49 @@
+{
+ "group": "judge-correctness",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "claims": [
+   {
+    "claim": "No material OCBC operational or technology incidents found for 17\u201324 September 2026",
+    "kind": "absence",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S1"
+    ],
+    "reason": "S1 is a list of customer notices (product changes, branch closures, service discontinuations). None of them describes an operational or technology incident, so nothing in the cited source contradicts the claim."
+   },
+   {
+    "claim": "Only routine scheduled iOCBC maintenance notices (26\u201327 September) surfaced",
+    "kind": "fact",
+    "supported": false,
+    "after_run_date": false,
+    "source_labels": [
+     "S1"
+    ],
+    "reason": "The S1 text shown does not mention iOCBC or any maintenance scheduled for 26\u201327 September 2026. Nothing in the cited text backs up this notice, its dates or the claim that it was the only item found. The claim describes notices found before the run date, so it is not marked after_run_date, even though the maintenance itself falls after it."
+   },
+   {
+    "claim": "No reported outages, breaches or MAS action",
+    "kind": "absence",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S1"
+    ],
+    "reason": "S1 reports no outages, breaches or MAS enforcement. Its only mention of MAS is a consultation on the industry-wide move away from cheques, which is not enforcement action, so nothing in the cited source contradicts the claim."
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.06874859999999999,
+  "input_tokens": 6761,
+  "output_tokens": 815,
+  "duration_ms": 8964,
+  "turns": 2
+ }
+}

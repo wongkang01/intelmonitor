@@ -1,0 +1,69 @@
+{
+ "group": "judge-correctness",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "claims": [
+   {
+    "claim": "BCBS's Basel III monitoring shows stable capital",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S1"
+    ],
+    "reason": "S1 says Basel III risk-based capital and leverage ratios stayed stable for large internationally active banks as of end-2025."
+   },
+   {
+    "claim": "Group 1 LCR 136.6%",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S1"
+    ],
+    "reason": "S1: the weighted average LCR rose to 136.6% for Group 1 banks."
+   },
+   {
+    "claim": "NSFR 123.3%",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S1"
+    ],
+    "reason": "S1: the weighted average NSFR fell slightly to 123.3% for Group 1 banks."
+   },
+   {
+    "claim": "Fed's Bowman flags final stress-test revisions soon",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S2"
+    ],
+    "reason": "In her 18 Sept 2026 speech, Bowman said: 'In the coming weeks, the Federal Reserve Board will consider final revisions to the Board's stress testing framework.'"
+   },
+   {
+    "claim": "UBS capital dispute with Swiss minister continues",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S3"
+    ],
+    "reason": "S3 (22 Sept 2026) reports that Finance Minister Keller-Sutter and UBS CEO Ermotti defended their opposing views ahead of the capital decision, which clearly implies the dispute is still going on."
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.07363260000000002,
+  "input_tokens": 7302,
+  "output_tokens": 836,
+  "duration_ms": 8239,
+  "turns": 2
+ }
+}

@@ -1,0 +1,33 @@
+{
+ "group": "v0",
+ "model": "claude-sonnet-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-5-5"
+ ],
+ "output": {
+  "summary": "No common adverse issue found across Maybank, CIMB and Bangkok Bank for 17\u201324 Sep 2026; Thai flood relief measures came after the window.",
+  "state": "stable",
+  "sources": [
+   {
+    "url": "https://www.theglobaleconomics.com/2026/09/23/malaysia-banking-innovation/",
+    "title": "Malaysia's Banking Innovation Race: When Governance Becomes the New Fintech Advantage",
+    "published": "2026-09-23",
+    "quote": "Maybank and CIMB are participating in BNM's Digital Asset Innovation Hub (general sector commentary, no shared adverse issue)"
+   },
+   {
+    "url": "https://www.kaohooninternational.com/markets/591801",
+    "title": "Thai Banking Stocks Plunge Amid Potential Impacts From Flood Relief Measures",
+    "published": "2026-09-30",
+    "quote": "Bangkok Bank (BBL): down 1.85% (published after the window, so excluded)"
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.3205114,
+  "input_tokens": 43736,
+  "output_tokens": 1709,
+  "duration_ms": 92745,
+  "turns": 13
+ }
+}

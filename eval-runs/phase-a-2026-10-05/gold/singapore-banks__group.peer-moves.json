@@ -1,0 +1,452 @@
+{
+  "eval_id": "singapore-banks/group.peer-moves",
+  "question": "Did any member make a move its peers are likely to follow?",
+  "lookback_days": 30,
+  "seed": 1,
+  "pool": [
+    {
+      "document_id": "06beecc41a329236",
+      "published": "2026-08-31",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "0bcf9d2a967ec327",
+      "published": "2026-09-20",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "1530c1f6f8a5346d",
+      "published": "2026-09-20",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "15318a0fa093f5ba",
+      "published": "2026-09-17",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "164175b6db0ab488",
+      "published": "2026-09-06",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "1c5f03888832ab30",
+      "published": "2026-09-23",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "2c611c200ee18f97",
+      "published": "2026-09-16",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "2d09f48fa93fe40c",
+      "published": "2026-09-06",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "2d9dc9023ba31c9f",
+      "published": "2026-09-22",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "3225dec9e6c9bac5",
+      "published": "2026-09-07",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "4f1503a04f9fc46f",
+      "published": "2026-09-22",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "57a9a7a4e0372d3a",
+      "published": "2026-09-16",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "5c11a21ea2c0ef12",
+      "published": "2026-09-23",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "63fbabd74544b5f2",
+      "published": "2026-09-16",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "67383db0815d2524",
+      "published": "2026-09-18",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "8038ed30a717ce9f",
+      "published": "2026-09-20",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "82888b8e97f5262d",
+      "published": "2026-09-22",
+      "sources": [
+        "cited:V2",
+        "screen"
+      ]
+    },
+    {
+      "document_id": "854f4c2dcfc4573a",
+      "published": "2026-09-22",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "8a3ae517d4e1e649",
+      "published": "2026-09-17",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "9e51fd9cea11cfef",
+      "published": "2026-09-07",
+      "sources": [
+        "cited:V2",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "a085dad241d4f7aa",
+      "published": "2026-09-17",
+      "sources": [
+        "cited:V1",
+        "cited:V2",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "a418dcf8896cfbe4",
+      "published": "2026-09-16",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "abd6e2d571cf9530",
+      "published": "2026-09-09",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "aee7c5c6ba298ea1",
+      "published": "2026-09-19",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "ba57a6c2d5290faf",
+      "published": "2026-09-18",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "bce9f8efcef7c4c4",
+      "published": "2026-09-23",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "c0f84703382a285f",
+      "published": "2026-09-22",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "c2835e2c35b4435c",
+      "published": "2026-09-07",
+      "sources": [
+        "cited:V2",
+        "screen"
+      ]
+    },
+    {
+      "document_id": "c3b83b7361879c88",
+      "published": "2026-09-16",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "dc6c7f9434fbdfc8",
+      "published": "2026-09-12",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "e558b126131ded1e",
+      "published": "2026-09-23",
+      "sources": [
+        "cited:V2",
+        "screen"
+      ]
+    },
+    {
+      "document_id": "ff14eccdf5b920d3",
+      "published": "2026-09-23",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    }
+  ],
+  "gold": {
+    "decisions": [
+      {
+        "document_id": "a085dad241d4f7aa",
+        "include": true,
+        "reason": "DBS expanded gold vaulting capacity and OCBC is already seeking more storage space, so a peer is directly following the move."
+      },
+      {
+        "document_id": "c2835e2c35b4435c",
+        "include": true,
+        "reason": "DBS and Citi made the first weekend cross-border payment with tokenised deposits on Swift's ledger, a first-mover step in 24/7 settlement that peers could copy."
+      },
+      {
+        "document_id": "9e51fd9cea11cfef",
+        "include": true,
+        "reason": "Reports the same DBS-Citi weekend tokenised deposit payment."
+      },
+      {
+        "document_id": "c0f84703382a285f",
+        "include": false,
+        "reason": "Concerns a Malaysian bank merger, not DBS, OCBC or UOB."
+      },
+      {
+        "document_id": "ff14eccdf5b920d3",
+        "include": false,
+        "reason": "Daily share price report, not a strategic move."
+      },
+      {
+        "document_id": "dc6c7f9434fbdfc8",
+        "include": false,
+        "reason": "Stale republished UOB investment view that refers to 2020, and not a peer-relevant move."
+      },
+      {
+        "document_id": "aee7c5c6ba298ea1",
+        "include": false,
+        "reason": "Republished OCBC Malaysia branch opening with dated, local content."
+      },
+      {
+        "document_id": "3225dec9e6c9bac5",
+        "include": false,
+        "reason": "Broker sector outlook, not a move by a member."
+      },
+      {
+        "document_id": "8038ed30a717ce9f",
+        "include": false,
+        "reason": "Stale Lehman-era lawsuit against DBS, and not a peer-following move."
+      },
+      {
+        "document_id": "854f4c2dcfc4573a",
+        "include": false,
+        "reason": "Stale republished Apple Pay launch, dated May with old device references."
+      },
+      {
+        "document_id": "67383db0815d2524",
+        "include": false,
+        "reason": "Analyst upgrade of UOB, not a bank move."
+      },
+      {
+        "document_id": "1c5f03888832ab30",
+        "include": false,
+        "reason": "Stale republished OCBC disruption item that names a former CEO, and not a peer move."
+      },
+      {
+        "document_id": "57a9a7a4e0372d3a",
+        "include": false,
+        "reason": "Economic research report co-authored by DBS, not a strategic move."
+      },
+      {
+        "document_id": "82888b8e97f5262d",
+        "include": false,
+        "reason": "UOB taking part in AI infrastructure financing is ordinary business positioning, with no sign peers will follow."
+      },
+      {
+        "document_id": "164175b6db0ab488",
+        "include": false,
+        "reason": "Stale republished DBS compliance hire from an earlier year."
+      },
+      {
+        "document_id": "2c611c200ee18f97",
+        "include": false,
+        "reason": "Broker downgrade of the sector, not a move by a member."
+      },
+      {
+        "document_id": "06beecc41a329236",
+        "include": false,
+        "reason": "Central bank framework for local currency settlement, not a move initiated by a member."
+      },
+      {
+        "document_id": "9e51fd9cea11cfef_dup_guard",
+        "include": false,
+        "reason": "Not a candidate; ignore."
+      },
+      {
+        "document_id": "15318a0fa093f5ba",
+        "include": false,
+        "reason": "Analysis of how the Fed rate hike affects bank margins, not a bank move."
+      },
+      {
+        "document_id": "2d09f48fa93fe40c",
+        "include": false,
+        "reason": "UOB AI use case with 2024 data, internal and not presented as a move peers will follow."
+      },
+      {
+        "document_id": "2d9dc9023ba31c9f",
+        "include": false,
+        "reason": "Economic research report, not a strategic move."
+      },
+      {
+        "document_id": "5c11a21ea2c0ef12",
+        "include": false,
+        "reason": "UOB Thailand commentary on sustainable financing, an ongoing programme."
+      },
+      {
+        "document_id": "63fbabd74544b5f2",
+        "include": false,
+        "reason": "OCBC research report on the Asean Power Grid, not a competitive move."
+      },
+      {
+        "document_id": "e558b126131ded1e",
+        "include": false,
+        "reason": "Republished DBS wealth AUM target first announced in July, outside the lookback."
+      },
+      {
+        "document_id": "1530c1f6f8a5346d",
+        "include": false,
+        "reason": "Weekly market column."
+      },
+      {
+        "document_id": "8a3ae517d4e1e649",
+        "include": false,
+        "reason": "Analysis of how the Fed rate hike affects bank margins, not a bank move."
+      },
+      {
+        "document_id": "c3b83b7361879c88",
+        "include": false,
+        "reason": "Economic research report, not a strategic move."
+      },
+      {
+        "document_id": "a418dcf8896cfbe4",
+        "include": false,
+        "reason": "Republished item dated May in which OCBC Malaysia joins a relief scheme as a follower, so stale and not a lead move."
+      },
+      {
+        "document_id": "ba57a6c2d5290faf",
+        "include": false,
+        "reason": "Feature on an existing OCBC product."
+      },
+      {
+        "document_id": "0bcf9d2a967ec327",
+        "include": false,
+        "reason": "Weekly market column."
+      },
+      {
+        "document_id": "abd6e2d571cf9530",
+        "include": false,
+        "reason": "1MDB-linked lawsuit against DBS is an adverse legal matter, not a move peers would follow."
+      },
+      {
+        "document_id": "bce9f8efcef7c4c4",
+        "include": false,
+        "reason": "OCBC Malaysia staff AI training, an internal and ongoing commitment."
+      },
+      {
+        "document_id": "4f1503a04f9fc46f",
+        "include": false,
+        "reason": "Broker initiating coverage, not a bank move."
+      }
+    ],
+    "events": [
+      {
+        "title": "DBS expanded its gold vaulting capacity for wealth and institutional clients, and OCBC has approached storage providers to secure more space.",
+        "document_ids": [
+          "a085dad241d4f7aa"
+        ],
+        "must_mention": true,
+        "reason": "This is the clearest case of a member's move that a peer is already following, which answers the question directly."
+      },
+      {
+        "title": "DBS and Citi completed the first weekend cross-border USD payment using tokenised deposits on Swift's Digital Ledger.",
+        "document_ids": [
+          "c2835e2c35b4435c",
+          "9e51fd9cea11cfef"
+        ],
+        "must_mention": true,
+        "reason": "DBS set a first-mover precedent in 24/7 tokenised settlement that OCBC and UOB are likely to face pressure to match."
+      }
+    ],
+    "series": [],
+    "expected_state": "new",
+    "state_reason": "There were relevant first-mover moves by DBS (the gold vault expansion, which OCBC is following, and the weekend tokenised payment). Both are routine or positive strategic developments rather than adverse ones."
+  },
+  "changes": {
+    "0": "unchanged",
+    "1": "unchanged"
+  }
+}

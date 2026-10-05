@@ -1,0 +1,34 @@
+{
+ "group": "judge-recheck",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "verdicts": [
+   {
+    "claim_id": "C3",
+    "supported": true,
+    "reason": "S1 (Bloomberg) says DBS is adding bullion storage capacity 'and other banks considering similar moves.'"
+   },
+   {
+    "claim_id": "C1",
+    "supported": true,
+    "reason": "S1 says DBS 'increased its vaulting space this year' and describes this as bullion storage capacity, so the gold vaulting framing is accurate."
+   },
+   {
+    "claim_id": "C2",
+    "supported": true,
+    "reason": "S1 says OCBC 'has also approached precious metal storage providers about securing more space,' according to people with knowledge of the matter."
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.025857,
+  "input_tokens": 2143,
+  "output_tokens": 364,
+  "duration_ms": 5847,
+  "turns": 2
+ }
+}

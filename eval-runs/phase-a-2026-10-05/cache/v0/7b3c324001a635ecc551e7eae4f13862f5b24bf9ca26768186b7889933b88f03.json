@@ -1,0 +1,27 @@
+{
+ "group": "v0",
+ "model": "claude-sonnet-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-5-5"
+ ],
+ "output": {
+  "summary": "No material OCBC operational or technology incidents found for 17\u201324 September 2026; only routine scheduled iOCBC maintenance notices (26\u201327 September) surfaced, with no reported outages, breaches or MAS action.",
+  "state": "stable",
+  "sources": [
+   {
+    "url": "https://www.ocbc.com/personal-banking/notices",
+    "title": "Personal Banking Notices",
+    "published": "",
+    "quote": "iOCBC online trading platform and iOCBC Mobile Trading app underwent scheduled maintenance on 26-27 September 2026."
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.23319099999999998,
+  "input_tokens": 29825,
+  "output_tokens": 793,
+  "duration_ms": 26364,
+  "turns": 9
+ }
+}

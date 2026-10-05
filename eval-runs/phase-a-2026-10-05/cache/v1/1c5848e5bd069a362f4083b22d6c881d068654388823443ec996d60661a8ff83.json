@@ -1,0 +1,37 @@
+{
+ "group": "v1",
+ "model": "claude-sonnet-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-5-5"
+ ],
+ "output": {
+  "summary": "BCBS's Basel III monitoring shows stable capital, Group 1 LCR 136.6%, NSFR 123.3%; Fed's Bowman flags final stress-test revisions soon; UBS capital dispute with Swiss minister continues.",
+  "state": "new",
+  "citations": [
+   {
+    "document_id": "c6293c2fa9eddb4a",
+    "quote": "The weighted average LCR increased compared with the previous reporting period to 136.6% for Group 1 banks. The weighted average NSFR decreased slightly to 123.3% for Group 1 banks."
+   },
+   {
+    "document_id": "c6293c2fa9eddb4a",
+    "quote": "the average impact of the fully phased-in final Basel III framework on the Tier 1 minimum required capital (MRC) of Group 1 banks was +2.2%"
+   },
+   {
+    "document_id": "4a7d8fb5c30ac562",
+    "quote": "In the coming weeks, the Federal Reserve Board will consider final revisions to the Board's stress testing framework."
+   },
+   {
+    "document_id": "cec165afd2edc412",
+    "quote": "Swiss Finance Minister Karin Keller-Sutter and UBS (UBSG.S), opens new tab CEO Sergio Ermotti on Tuesday \u200bdefended their opposing vie"
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.135897,
+  "input_tokens": 13578,
+  "output_tokens": 904,
+  "duration_ms": 7706,
+  "turns": 2
+ }
+}

@@ -1,0 +1,51 @@
+{
+ "group": "v0",
+ "model": "claude-sonnet-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-5-5"
+ ],
+ "output": {
+  "summary": "MAS Financial Stability Review (22 Sep) found banks well-capitalised but ranked AI-driven cyber risk top concern; EBA finalised third-party risk guidelines; FCA opened AML probe into Euro Exchange Securities.",
+  "state": "watch",
+  "sources": [
+   {
+    "url": "https://www.bloomberg.com/news/articles/2026-09-22/ai-cyber-emerge-as-top-singapore-financials-concerns-mas-says",
+    "title": "AI, Cyber Emerge as Top Singapore Financials Concerns, MAS Says - Bloomberg",
+    "published": "2026-09-22",
+    "quote": "80% of chief risk officers surveyed by MAS cited cyber and operational dangers as their top worry, compared with 77% for geopolitical risks."
+   },
+   {
+    "url": "https://www.mas.gov.sg/-/media/mas-media-library/publications/financial-stability-review/2026/financial-stability-review-2026.pdf",
+    "title": "MAS Financial Stability Review 2026",
+    "published": "2026-09-22",
+    "quote": "Results of MAS top-down stress tests affirm that banks and insurers are well-capitalised and able to withstand severe macrofinancial shocks."
+   },
+   {
+    "url": "https://www.slaughterandmay.com/insights/financial-regulation-weekly-bulletin/financial-regulation-weekly-bulletin-24-september-2026/",
+    "title": "Financial Regulation Weekly Bulletin - 24 September 2026",
+    "published": "2026-09-24",
+    "quote": "EBA publishes final guidelines on sound management of third-party risk related to non-ICT services (EBA/GL/2026/09), replacing 2019 outsourcing guidelines."
+   },
+   {
+    "url": "https://www.regulationtomorrow.com/2026/09/eba-finalises-guidelines-on-third-party-risk-for-non-ict-services-a-more-proportionate-framework-aligned-with-dora/",
+    "title": "EBA Finalises Guidelines on Third-Party Risk for Non-ICT Services: A More Proportionate Framework Aligned with DORA",
+    "published": "2026-09-18",
+    "quote": "The guidelines are final but awaiting translation into all EU official languages. The date of application has not yet been fixed."
+   },
+   {
+    "url": "https://www.finscan.com/post/regulatory-roundup-september-2026-aml-enforcement-sanctions-expansion-and-heightened-crypto-a",
+    "title": "Regulatory Roundup \u2014 September 2026: AML Enforcement, Sanctions Expansion, and Heightened Crypto & AI Oversight",
+    "published": "2026-09-17",
+    "quote": "The FCA shuttered EES in June, citing 'significant risks of financial crime' after the firm reportedly moved over \u00a32 billion for a small set of high-risk clients."
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.6157316,
+  "input_tokens": 106793,
+  "output_tokens": 3435,
+  "duration_ms": 66540,
+  "turns": 22
+ }
+}

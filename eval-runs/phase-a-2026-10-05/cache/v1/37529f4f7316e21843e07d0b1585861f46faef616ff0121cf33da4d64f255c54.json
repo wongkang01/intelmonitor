@@ -1,0 +1,33 @@
+{
+ "group": "v1",
+ "model": "claude-sonnet-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-5-5"
+ ],
+ "output": {
+  "summary": "No fresh Greater China CRE or ASEAN shock; Macquarie upgraded UOB citing CRE provision buffer, while UOBKH flags Middle East conflict risk to loan growth.",
+  "state": "watch",
+  "citations": [
+   {
+    "document_id": "67383db0815d2524",
+    "quote": "each 10% collateral value reduction drives $181 million higher provisions, and any slippage from special mention to NPL drives $100 million provisions"
+   },
+   {
+    "document_id": "2c611c200ee18f97",
+    "quote": "The economy and loan growth could slow down due to weak business sentiment aggravated by a prolonged Middle East conflict"
+   },
+   {
+    "document_id": "a20d8aefaec96607",
+    "quote": "Fitch Ratings' revision of Thailand's sovereign credit outlook to stable from negative, while maintaining the country's BBB+ rating"
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.1308856,
+  "input_tokens": 13505,
+  "output_tokens": 944,
+  "duration_ms": 9373,
+  "turns": 2
+ }
+}

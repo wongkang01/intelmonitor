@@ -1,0 +1,475 @@
+{
+  "eval_id": "banking-regulation/topic.new-developments",
+  "question": "What material developments happened on this topic?",
+  "lookback_days": 7,
+  "seed": 1,
+  "pool": [
+    {
+      "document_id": "01e736463285d60c",
+      "published": "2026-09-18",
+      "sources": [
+        "cited:V2",
+        "screen"
+      ]
+    },
+    {
+      "document_id": "1c5f03888832ab30",
+      "published": "2026-09-23",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "2029cf90436be0bf",
+      "published": "2026-09-21",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "2bd2d5d9a38dcd02",
+      "published": "2026-09-18",
+      "sources": [
+        "cited:V2",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "32af602fc2cb1a60",
+      "published": "2026-09-18",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "3ca5afe2e022706b",
+      "published": "2026-09-23",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "4a7d8fb5c30ac562",
+      "published": "2026-09-18",
+      "sources": [
+        "cited:V1",
+        "cited:V2",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "5b3753cd2b41e758",
+      "published": "2026-09-18",
+      "sources": [
+        "cited:V2",
+        "screen"
+      ]
+    },
+    {
+      "document_id": "76c512f31e51c5fe",
+      "published": "2026-09-21",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "8a5e3b8587edc1ac",
+      "published": "2026-09-22",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "8fc94d556c6cf992",
+      "published": "2026-09-21",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "9402e23e12d5dd84",
+      "published": "2026-09-21",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "9724fb50f5b197e1",
+      "published": "2026-09-23",
+      "sources": [
+        "cited:V2",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "9ac4aa2e8067cc95",
+      "published": "2026-09-22",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "a2d86767f3974cfb",
+      "published": "2026-09-18",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "b34dc379433787cb",
+      "published": "2026-09-22",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "bea54e6a0b4a0e6d",
+      "published": "2026-09-23",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "c4bc37b00cda5ad7",
+      "published": "2026-09-23",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "c4d4dbb5e2bcd389",
+      "published": "2026-09-21",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "c6293c2fa9eddb4a",
+      "published": "2026-09-23",
+      "sources": [
+        "cited:V1",
+        "cited:V2",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "cec165afd2edc412",
+      "published": "2026-09-22",
+      "sources": [
+        "cited:V1",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "cf8b56eac5871fcb",
+      "published": "2026-09-22",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "d10c75158d8efd25",
+      "published": "2026-09-23",
+      "sources": [
+        "cited:V2",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "d2d5af3117771e42",
+      "published": "2026-09-18",
+      "sources": [
+        "cited:V2",
+        "screen"
+      ]
+    },
+    {
+      "document_id": "d5ab381941eb31ab",
+      "published": "2026-09-18",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "d7f79e07e4bfda31",
+      "published": "2026-09-21",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "ed7d0023d140a394",
+      "published": "2026-09-23",
+      "sources": [
+        "cited:V2",
+        "screen"
+      ]
+    },
+    {
+      "document_id": "f70ea7fea0ddfd3a",
+      "published": "2026-09-18",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "fcb5a1966f0619c9",
+      "published": "2026-09-18",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    }
+  ],
+  "gold": {
+    "decisions": [
+      {
+        "document_id": "32af602fc2cb1a60",
+        "include": true,
+        "reason": "Fed consent prohibition orders against three former bank employees: routine enforcement within the window."
+      },
+      {
+        "document_id": "c6293c2fa9eddb4a",
+        "include": true,
+        "reason": "BIS/Basel Committee Basel III monitoring results on capital and liquidity ratios: core to the topic."
+      },
+      {
+        "document_id": "01e736463285d60c",
+        "include": true,
+        "reason": "Reuters report on Bowman saying the Fed stress-test overhaul is coming soon."
+      },
+      {
+        "document_id": "f70ea7fea0ddfd3a",
+        "include": false,
+        "reason": "ECB monetary policy and energy-price interview, not banking regulation."
+      },
+      {
+        "document_id": "9724fb50f5b197e1",
+        "include": false,
+        "reason": "Stale republished story (Oct 30 dateline) about Singapore's AML strategy, not a new development in the window."
+      },
+      {
+        "document_id": "d10c75158d8efd25",
+        "include": false,
+        "reason": "Republication of BNM's 2025 annual report enforcement statistics (March dateline): stale, not new."
+      },
+      {
+        "document_id": "1c5f03888832ab30",
+        "include": false,
+        "reason": "Republished old OCBC outage story (former CEO David Conner): not a current incident."
+      },
+      {
+        "document_id": "a2d86767f3974cfb",
+        "include": true,
+        "reason": "Fed terminates its written agreement with SNB Bancshares/Bank of Eufaula: routine enforcement update."
+      },
+      {
+        "document_id": "8a5e3b8587edc1ac",
+        "include": false,
+        "reason": "RBA statement about monetary policy and payments, not banking prudential regulation."
+      },
+      {
+        "document_id": "d2d5af3117771e42",
+        "include": false,
+        "reason": "Stale republication of a BNM fine on Bank Rakyat imposed in January (April dateline)."
+      },
+      {
+        "document_id": "4a7d8fb5c30ac562",
+        "include": true,
+        "reason": "Bowman speech on the final overhaul of the Fed's regulatory stress-testing and capital framework."
+      },
+      {
+        "document_id": "9ac4aa2e8067cc95",
+        "include": true,
+        "reason": "Speech on simplifying the EU prudential framework and completing Banking Union: bears on capital regulation policy."
+      },
+      {
+        "document_id": "76c512f31e51c5fe",
+        "include": false,
+        "reason": "Stale republished banker opinion (Feb dateline), not a regulatory development."
+      },
+      {
+        "document_id": "cec165afd2edc412",
+        "include": true,
+        "reason": "Swiss finance minister and UBS CEO clash ahead of the parliamentary capital decision."
+      },
+      {
+        "document_id": "2bd2d5d9a38dcd02",
+        "include": false,
+        "reason": "Stale republication of BNM's inaugural D-SIB list (based on 2018 data)."
+      },
+      {
+        "document_id": "b34dc379433787cb",
+        "include": false,
+        "reason": "ECB research paper on monetary transmission, not a regulatory development."
+      },
+      {
+        "document_id": "3ca5afe2e022706b",
+        "include": false,
+        "reason": "About EU company law (EU Inc.), not banking regulation."
+      },
+      {
+        "document_id": "fcb5a1966f0619c9",
+        "include": false,
+        "reason": "Academic working paper on SSM supervision effects; research, not a development."
+      },
+      {
+        "document_id": "2029cf90436be0bf",
+        "include": true,
+        "reason": "HKMA plans tougher bank climate-finance disclosures and supervisory use of its taxonomy."
+      },
+      {
+        "document_id": "d7f79e07e4bfda31",
+        "include": true,
+        "reason": "Swiss business groups lobby parliament against the UBS capital rules before the vote."
+      },
+      {
+        "document_id": "cf8b56eac5871fcb",
+        "include": true,
+        "reason": "Fed Vice Chair Jefferson on discount window modernization: bank liquidity framework."
+      },
+      {
+        "document_id": "d5ab381941eb31ab",
+        "include": false,
+        "reason": "Academic working paper on competition and capital; research only."
+      },
+      {
+        "document_id": "ed7d0023d140a394",
+        "include": true,
+        "reason": "Swiss upper house votes for a rule requiring UBS to back its foreign units with 90% CET1: major capital rule step."
+      },
+      {
+        "document_id": "c4bc37b00cda5ad7",
+        "include": false,
+        "reason": "Stale republished story (Dec dateline, 2020 data) on BNM's digital bank licensing."
+      },
+      {
+        "document_id": "5b3753cd2b41e758",
+        "include": true,
+        "reason": "Bowman announces the initial findings of an independent review of SVB's failure and Fed supervisory shortcomings."
+      },
+      {
+        "document_id": "bea54e6a0b4a0e6d",
+        "include": true,
+        "reason": "FATF assessment of Turkey's AML/CFT regime: AML/CFT development."
+      },
+      {
+        "document_id": "c4d4dbb5e2bcd389",
+        "include": true,
+        "reason": "Same HKMA climate-finance disclosure story (The Star)."
+      },
+      {
+        "document_id": "8fc94d556c6cf992",
+        "include": false,
+        "reason": "Academic working paper on macroprudential buffer fragmentation; research only."
+      },
+      {
+        "document_id": "9402e23e12d5dd84",
+        "include": false,
+        "reason": "RBI fintech/innovation speech, general and not a regulatory development on the topic."
+      }
+    ],
+    "events": [
+      {
+        "title": "Swiss upper house voted to require UBS to back its foreign units with 90% CET1 capital, after the government and UBS clashed and business groups lobbied against it.",
+        "document_ids": [
+          "ed7d0023d140a394",
+          "cec165afd2edc412",
+          "d7f79e07e4bfda31"
+        ],
+        "must_mention": true,
+        "reason": "A concrete legislative step on capital requirements for a G-SIB: the most material capital-rule development of the week."
+      },
+      {
+        "title": "Fed Vice Chair Bowman outlined the final overhaul of the Fed's bank stress-testing and capital-setting framework, with changes coming soon.",
+        "document_ids": [
+          "4a7d8fb5c30ac562",
+          "01e736463285d60c"
+        ],
+        "must_mention": true,
+        "reason": "A major US change to how capital requirements are set for large banks."
+      },
+      {
+        "title": "Bowman released initial findings of an independent review of SVB's failure that criticise the Fed's own supervisory process.",
+        "document_ids": [
+          "5b3753cd2b41e758"
+        ],
+        "must_mention": true,
+        "reason": "Significant supervisory accountability finding with implications for how supervision is done."
+      },
+      {
+        "title": "The Basel III monitoring exercise shows stable capital and leverage ratios, LCR slightly up and NSFR slightly down, with a +2.2% Tier 1 MRC impact for Group 1 banks.",
+        "document_ids": [
+          "c6293c2fa9eddb4a"
+        ],
+        "must_mention": false,
+        "reason": "Relevant but routine, reassuring periodic data."
+      },
+      {
+        "title": "FATF assessed Turkey as having strengthened its AML/CFT regime but urged better asset recovery.",
+        "document_ids": [
+          "bea54e6a0b4a0e6d"
+        ],
+        "must_mention": false,
+        "reason": "A relevant AML/CFT evaluation but of secondary importance."
+      },
+      {
+        "title": "Fed issued prohibition orders against three former bank employees and terminated the SNB Bancshares written agreement.",
+        "document_ids": [
+          "32af602fc2cb1a60",
+          "a2d86767f3974cfb"
+        ],
+        "must_mention": false,
+        "reason": "Routine, small-scale enforcement."
+      },
+      {
+        "title": "HKMA plans to explore climate-finance disclosure requirements for banks and to survey their use of its taxonomy in 2027.",
+        "document_ids": [
+          "2029cf90436be0bf",
+          "c4d4dbb5e2bcd389"
+        ],
+        "must_mention": false,
+        "reason": "An exploratory supervisory plan, peripheral to the core topic."
+      },
+      {
+        "title": "Fed Vice Chair Jefferson discussed discount window modernization for bank liquidity.",
+        "document_ids": [
+          "cf8b56eac5871fcb"
+        ],
+        "must_mention": false,
+        "reason": "A speech update with no new rule."
+      },
+      {
+        "title": "A European speech called for simplifying the EU prudential framework and completing Banking Union.",
+        "document_ids": [
+          "9ac4aa2e8067cc95"
+        ],
+        "must_mention": false,
+        "reason": "A policy speech with no concrete action."
+      }
+    ],
+    "series": [],
+    "expected_state": "new",
+    "state_reason": "There were significant regulatory developments: the Swiss UBS capital vote, the Fed stress-test overhaul, SVB review findings and stable Basel III monitoring results. Enforcement was routine and small-scale, and no current incident or stress was reported, because the Malaysian and OCBC items are stale republications."
+  },
+  "changes": {
+    "0": "new",
+    "1": "new",
+    "2": "new",
+    "3": "new",
+    "4": "new",
+    "5": "new",
+    "6": "new",
+    "7": "new",
+    "8": "new"
+  }
+}

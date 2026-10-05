@@ -1,0 +1,244 @@
+{
+ "group": "gold-screen",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "documents": [
+   {
+    "document_id": "eb955ac1ba0cb5b4",
+    "subjects": []
+   },
+   {
+    "document_id": "55000d2c8beb73ce",
+    "subjects": []
+   },
+   {
+    "document_id": "15318a0fa093f5ba",
+    "subjects": [
+     "singapore-banks",
+     "uob",
+     "ocbc"
+    ]
+   },
+   {
+    "document_id": "431b0dd4a7d14073",
+    "subjects": []
+   },
+   {
+    "document_id": "1432def442a2f963",
+    "subjects": []
+   },
+   {
+    "document_id": "2bd2d5d9a38dcd02",
+    "subjects": [
+     "banking-regulation",
+     "sea-regional-banks"
+    ]
+   },
+   {
+    "document_id": "476118fe481f9fc1",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "7f5eada9f472b34c",
+    "subjects": []
+   },
+   {
+    "document_id": "9bdde9c4bce1429b",
+    "subjects": []
+   },
+   {
+    "document_id": "c764aebee72e9a5e",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "d2d5af3117771e42",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "db34f8f18c05a435",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "e3bf05f7784b6758",
+    "subjects": []
+   },
+   {
+    "document_id": "fd3533d41b260f18",
+    "subjects": []
+   },
+   {
+    "document_id": "f70ea7fea0ddfd3a",
+    "subjects": []
+   },
+   {
+    "document_id": "02b30d32bbfffa00",
+    "subjects": []
+   },
+   {
+    "document_id": "187c6d56ff9ebbb0",
+    "subjects": [
+     "mas"
+    ]
+   },
+   {
+    "document_id": "d5ab381941eb31ab",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "fcb5a1966f0619c9",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "67383db0815d2524",
+    "subjects": [
+     "uob",
+     "singapore-banks",
+     "uob-exposure-markets"
+    ]
+   },
+   {
+    "document_id": "4a7d8fb5c30ac562",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "5b3753cd2b41e758",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "32af602fc2cb1a60",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "a2d86767f3974cfb",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "bda49fa1374a3b15",
+    "subjects": []
+   },
+   {
+    "document_id": "0e30be6413e98278",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "01e736463285d60c",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "ba57a6c2d5290faf",
+    "subjects": [
+     "ocbc",
+     "singapore-banks"
+    ]
+   },
+   {
+    "document_id": "6919bfc55a872eca",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "aee7c5c6ba298ea1",
+    "subjects": [
+     "ocbc",
+     "singapore-banks"
+    ]
+   },
+   {
+    "document_id": "c1f62067d2a38d2e",
+    "subjects": [
+     "sea-regional-banks"
+    ]
+   },
+   {
+    "document_id": "d09ebfbeb18b1672",
+    "subjects": []
+   },
+   {
+    "document_id": "0bcf9d2a967ec327",
+    "subjects": [
+     "uob",
+     "singapore-banks",
+     "ocbc"
+    ]
+   },
+   {
+    "document_id": "8038ed30a717ce9f",
+    "subjects": [
+     "singapore-banks"
+    ]
+   },
+   {
+    "document_id": "a16a1ff764a1f964",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "c026d164f554d007",
+    "subjects": []
+   },
+   {
+    "document_id": "1530c1f6f8a5346d",
+    "subjects": [
+     "uob",
+     "singapore-banks",
+     "ocbc"
+    ]
+   },
+   {
+    "document_id": "06df6182ca560f48",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "119f68de67ef9a7f",
+    "subjects": [
+     "sea-regional-banks"
+    ]
+   },
+   {
+    "document_id": "2029cf90436be0bf",
+    "subjects": [
+     "banking-regulation"
+    ]
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.2028316,
+  "input_tokens": 16172,
+  "output_tokens": 3392,
+  "duration_ms": 29529,
+  "turns": 2
+ }
+}

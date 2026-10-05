@@ -1,0 +1,208 @@
+{
+ "group": "gold",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "decisions": [
+   {
+    "document_id": "3394a3e1424a6978",
+    "include": true,
+    "reason": "MAS issued an amendment to Notice 643A on bank exposures and credit facilities to related concerns on 4 Sep 2026. It takes effect on 4 Sep 2027."
+   },
+   {
+    "document_id": "da28361d25b49441",
+    "include": true,
+    "reason": "MAS issued an amendment to Notice 643 on banks' transactions with related parties on 4 Sep 2026. It takes effect on 4 Sep 2027."
+   },
+   {
+    "document_id": "4df958f06a407676",
+    "include": true,
+    "reason": "MAS issued Amendment No.2 to Notice 656 on 4 Sep 2026. It sets limits on exposures to single counterparty groups for Singapore-incorporated banks and takes effect on 4 Sep 2027."
+   },
+   {
+    "document_id": "5acb03fef2960e31",
+    "include": true,
+    "reason": "The Financial Services and Markets (Amendment) Bill 2026 had its first reading on 8 Sep. It would let MAS impose minimum total loss-absorbing capacity (TLAC) requirements on systemically important financial institutions, which include the major banks."
+   },
+   {
+    "document_id": "92ab1750b83a161e",
+    "include": true,
+    "reason": "MAS consultation P015-2026, opened 1 Sep, proposes amendments to the Payment Services Act to regulate stablecoins. It closes on 16 Oct."
+   },
+   {
+    "document_id": "a06e4aa018165f63",
+    "include": true,
+    "reason": "MAS media release announcing the stablecoin consultation."
+   },
+   {
+    "document_id": "957500a2b904c731",
+    "include": true,
+    "reason": "News report on the stablecoin consultation, covering the 100% reserve requirement and the ban on paying yield."
+   },
+   {
+    "document_id": "7ba8abe7f48968a6",
+    "include": true,
+    "reason": "News report on the stablecoin consultation."
+   },
+   {
+    "document_id": "36f16bb2b0932e48",
+    "include": true,
+    "reason": "News report on the stablecoin consultation."
+   },
+   {
+    "document_id": "56c9fa2014ab0540",
+    "include": true,
+    "reason": "Analysis of the proposed stablecoin licence regime."
+   },
+   {
+    "document_id": "9724fb50f5b197e1",
+    "include": true,
+    "reason": "MHA, MOF and MAS jointly published a national anti-money laundering strategy, which is policy guidance that affects banks. The article is dated 23 Sep, but its text carries an 'Oct 30' dateline, so the publication date is uncertain."
+   },
+   {
+    "document_id": "14d39303de7fb5b9",
+    "include": false,
+    "reason": "This is MAS's response on the group capital framework for licensed insurers, so it covers insurers rather than banks."
+   },
+   {
+    "document_id": "06beecc41a329236",
+    "include": false,
+    "reason": "A bilateral framework with Bank Indonesia for settling trade in local currencies. It is a cooperation arrangement, not a rule or guidance for banks."
+   },
+   {
+    "document_id": "4ea1e0428bc037e0",
+    "include": false,
+    "reason": "A S$220m FinTech funding scheme (FSTI 4.0), which is not regulation."
+   },
+   {
+    "document_id": "a4c423a0acdc2b9f",
+    "include": false,
+    "reason": "Announcement of the Singapore FinTech Festival, an event."
+   },
+   {
+    "document_id": "87799a21bfcfb3d6",
+    "include": false,
+    "reason": "Prohibition orders against securities representatives. This is enforcement, not rules for banks."
+   },
+   {
+    "document_id": "0992fe865722b0e5",
+    "include": false,
+    "reason": "Coverage of the Financial Stability Review, which is a risk assessment and not a rule or guidance."
+   },
+   {
+    "document_id": "657e6e93ead4ae13",
+    "include": false,
+    "reason": "Coverage of the Financial Stability Review, which is not a rule or guidance."
+   },
+   {
+    "document_id": "3be3977c57cb633f",
+    "include": false,
+    "reason": "Coverage of the Financial Stability Review, which is not a rule or guidance."
+   },
+   {
+    "document_id": "034b5f184a320151",
+    "include": false,
+    "reason": "Inflation data, which is not bank regulation."
+   },
+   {
+    "document_id": "c5d9fda31500f154",
+    "include": false,
+    "reason": "Inflation data and monetary policy commentary."
+   },
+   {
+    "document_id": "2a7f20a18598f3ba",
+    "include": false,
+    "reason": "Commentary on the US Fed rate hike."
+   },
+   {
+    "document_id": "88d21828a74f0ed7",
+    "include": false,
+    "reason": "Explainer on the US Fed rate hike."
+   },
+   {
+    "document_id": "fdc672eda778e632",
+    "include": false,
+    "reason": "Investment commentary, not about MAS rules."
+   },
+   {
+    "document_id": "b53a154e745bb1a3",
+    "include": false,
+    "reason": "About Chinese property rules, not MAS."
+   },
+   {
+    "document_id": "187c6d56ff9ebbb0",
+    "include": false,
+    "reason": "Green finance cooperation meeting with the People's Bank of China. No rules or guidance came out of it."
+   },
+   {
+    "document_id": "7cd732232b2caf10",
+    "include": false,
+    "reason": "Speech on insurance, with no rules or guidance."
+   },
+   {
+    "document_id": "a08acf6f980bfad3",
+    "include": false,
+    "reason": "MD speech on AI and fintech, with no new rules or guidance."
+   },
+   {
+    "document_id": "30c6454b3295f845",
+    "include": false,
+    "reason": "BIS repost of the MD speech, with no new rules or guidance."
+   }
+  ],
+  "events": [
+   {
+    "title": "MAS amended bank Notices 643 (related-party transactions), 643A (exposures to related concerns) and 656 (single counterparty group limits) on 4 Sep 2026, effective 4 Sep 2027.",
+    "document_ids": [
+     "da28361d25b49441",
+     "3394a3e1424a6978",
+     "4df958f06a407676"
+    ],
+    "must_mention": true,
+    "reason": "These are binding rule changes aimed directly at banks, which is exactly what the question asks about."
+   },
+   {
+    "title": "A bill giving MAS power to impose minimum TLAC requirements on systemically important financial institutions had its first reading in Parliament on 8 Sep.",
+    "document_ids": [
+     "5acb03fef2960e31"
+    ],
+    "must_mention": true,
+    "reason": "This is a major new resolution-related prudential requirement for systemically important banks."
+   },
+   {
+    "title": "MAS opened a consultation (closing 16 Oct) on Payment Services Act amendments to put its stablecoin framework into law, including 100% reserves and a ban on paying yield.",
+    "document_ids": [
+     "92ab1750b83a161e",
+     "a06e4aa018165f63",
+     "957500a2b904c731",
+     "7ba8abe7f48968a6",
+     "36f16bb2b0932e48",
+     "56c9fa2014ab0540"
+    ],
+    "must_mention": false,
+    "reason": "This is the period's major consultation, but it targets stablecoin issuers under the Payment Services Act rather than banks. It is worth adding only if space allows."
+   },
+   {
+    "title": "Singapore published a national AML strategy produced jointly by MHA, MOF and MAS.",
+    "document_ids": [
+     "9724fb50f5b197e1"
+    ],
+    "must_mention": false,
+    "reason": "High-level national strategy rather than a specific rule for banks. The article's date is also inconsistent."
+   }
+  ],
+  "series": [],
+  "expected_state": "new",
+  "state_reason": "There were several new regulatory items for banks: amended exposure and related-party notices, the TLAC bill and the stablecoin consultation. All are routine rule-making, with no adverse event that needs follow-up."
+ },
+ "usage": {
+  "cost_usd": 0.2269706,
+  "input_tokens": 19978,
+  "output_tokens": 3158,
+  "duration_ms": 31490,
+  "turns": 2
+ }
+}

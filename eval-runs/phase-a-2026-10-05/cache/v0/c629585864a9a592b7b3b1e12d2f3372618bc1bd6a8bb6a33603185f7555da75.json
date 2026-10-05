@@ -1,0 +1,57 @@
+{
+ "group": "v0",
+ "model": "claude-sonnet-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-5-5"
+ ],
+ "output": {
+  "summary": "US Treasury's Iran sanctions campaign threatens mid-tier Chinese banks; China tightened outbound capital rules; PBOC steadied the yuan before the 24 September Trump-Xi summit.",
+  "state": "watch",
+  "sources": [
+   {
+    "url": "https://foreignpolicy.com/2026/09/22/operation-economic-outcast-trump-united-states-iran-china-sanctions-oil-markets-bessent/",
+    "title": "Trump's 'Economic D-Day' Against Iran Risks U.S. Ties With China",
+    "published": "2026-09-22",
+    "quote": "Treasury warned of plans to \"expansively target Iran's business partners\"; the initial phase designated nearly 60 entities, individuals and vessels, including many in China and Hong Kong, but spared major Chinese banks."
+   },
+   {
+    "url": "https://www.ibtimes.co.in/china-tightens-exit-rules-capital-controls-tech-curbs-september-15-amid-security-concerns-905510",
+    "title": "China tightens exit rules, capital controls and tech curbs from September 15 amid security concerns",
+    "published": "2026-09-15",
+    "quote": "Beijing is increasing scrutiny of overseas investments, capital outflows and technology transfers; the $50,000 annual personal foreign-exchange cap is untouched."
+   },
+   {
+    "url": "https://moderndiplomacy.eu/2026/09/15/china-capital-controls-yuan-internationalisation-hong-kong-five-year-plan/",
+    "title": "China Tightens Capital Controls the Same Week It Calls the Yuan's Rise \"Irreversible\"",
+    "published": "2026-09-15",
+    "quote": "China tightens capital controls the same week it calls the yuan's rise \"irreversible\"."
+   },
+   {
+    "url": "https://www.bloomberg.com/news/articles/2026-09-15/china-s-pboc-strengthens-yuan-fix-ahead-of-trump-xi-summit",
+    "title": "China's PBOC Strengthens Yuan Fix Ahead of Trump-Xi Summit",
+    "published": "2026-09-15",
+    "quote": "PBOC strengthens yuan fix ahead of Trump-Xi summit (fifth straight day, reference rate 6.7670 per dollar)."
+   },
+   {
+    "url": "https://www.home.saxo/en-sg/content/articles/forex/trump-xi-summit-yuan-22092026",
+    "title": "Trump Xi summit yuan (Saxo)",
+    "published": "2026-09-22",
+    "quote": "\"yuan strength already reflected in prices\"; a disappointing outcome could push USD/CNH toward 6.80 and beyond."
+   },
+   {
+    "url": "https://www.investing.com/news/forex-news/asia-fx-flat-dollar-creeps-higher-ahead-of-uschina-summit-4912043",
+    "title": "Asia FX flat, dollar creeps higher ahead of U.S.-China summit",
+    "published": "2026-09-22",
+    "quote": "Most Asian currencies moved in a tight band while the dollar firmed ahead of a U.S.-China summit that week."
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.43453240000000015,
+  "input_tokens": 81141,
+  "output_tokens": 3142,
+  "duration_ms": 120535,
+  "turns": 18
+ }
+}

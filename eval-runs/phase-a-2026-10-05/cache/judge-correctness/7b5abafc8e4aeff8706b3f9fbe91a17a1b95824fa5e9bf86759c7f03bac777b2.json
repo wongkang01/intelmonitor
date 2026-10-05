@@ -1,0 +1,69 @@
+{
+ "group": "judge-correctness",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "claims": [
+   {
+    "claim": "US 10-year 5.11%",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S5"
+    ],
+    "reason": "S5: US 10-year Treasury yield 5.11% on 23 Sep 2026."
+   },
+   {
+    "claim": "US 10-year at series high",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S5"
+    ],
+    "reason": "S5: the highest of the 1,307 values since 1 Jul 2021, which is the series start."
+   },
+   {
+    "claim": "VIX 14.21",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S5"
+    ],
+    "reason": "S5: VIX 14.21 on 22 Sep 2026."
+   },
+   {
+    "claim": "SGD weakened 0.23% against the USD on the week",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S5"
+    ],
+    "reason": "S5: SGD weakened 0.23% against the USD on the week (1.2733 to 1.2762)."
+   },
+   {
+    "claim": "SGD weakened 0.26% against the CNY on the week",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S5"
+    ],
+    "reason": "S5: SGD weakened 0.26% against the CNY on the week (0.1898 to 0.1903)."
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.0841086,
+  "input_tokens": 9016,
+  "output_tokens": 607,
+  "duration_ms": 6415,
+  "turns": 2
+ }
+}

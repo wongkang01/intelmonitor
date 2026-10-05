@@ -1,0 +1,70 @@
+{
+ "group": "judge-correctness",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "claims": [
+   {
+    "claim": "DBS has a wealth push with an S$1 trillion AUM target",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S1"
+    ],
+    "reason": "S1 says DBS aims to grow wealth AUM to more than S$1 trillion by 2030."
+   },
+   {
+    "claim": "DBS's wealth push includes 18 new centres",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S1"
+    ],
+    "reason": "S1 says DBS will open 18 new wealth centres across Asia by the end of 2027."
+   },
+   {
+    "claim": "DBS's wealth push may draw followers",
+    "kind": "fact",
+    "supported": false,
+    "after_run_date": false,
+    "source_labels": [
+     "S1"
+    ],
+    "reason": "S1 says global banks are already expanding wealth offerings in Asia. It never suggests peers will follow DBS's move."
+   },
+   {
+    "claim": "DBS's tokenised deposits may draw followers",
+    "kind": "fact",
+    "supported": false,
+    "after_run_date": false,
+    "source_labels": [
+     "S2",
+     "S3"
+    ],
+    "reason": "S3 says HSBC and Standard Chartered made the first live Swift ledger transfer before DBS and Citi, so DBS was not the leader here. Neither source says peers will follow DBS."
+   },
+   {
+    "claim": "OCBC is already chasing bullion storage after DBS's gold vaulting",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S4"
+    ],
+    "reason": "S4 says DBS expanded its vaulting space and, according to people familiar with the matter, OCBC has approached storage providers about more space, with other banks considering similar moves."
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.06108960000000001,
+  "input_tokens": 5662,
+  "output_tokens": 916,
+  "duration_ms": 9282,
+  "turns": 2
+ }
+}

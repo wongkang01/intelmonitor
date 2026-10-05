@@ -1,0 +1,231 @@
+[
+  {
+    "variant": "V1",
+    "eval_id": "banking-regulation/topic.new-developments",
+    "question_id": "topic.new-developments",
+    "subject_id": "banking-regulation",
+    "run_id": "2026-09-24",
+    "summary": "BCBS's Basel III monitoring shows stable capital, Group 1 LCR 136.6%, NSFR 123.3%; Fed's Bowman flags final stress-test revisions soon; UBS capital dispute with Swiss minister continues.",
+    "state": "new",
+    "citations": [
+      {
+        "document_id": "c6293c2fa9eddb4a",
+        "url": null,
+        "quote": "The weighted average LCR increased compared with the previous reporting period to 136.6% for Group 1 banks. The weighted average NSFR decreased slightly to 123.3% for Group 1 banks.",
+        "development_id": null
+      },
+      {
+        "document_id": "c6293c2fa9eddb4a",
+        "url": null,
+        "quote": "the average impact of the fully phased-in final Basel III framework on the Tier 1 minimum required capital (MRC) of Group 1 banks was +2.2%",
+        "development_id": null
+      },
+      {
+        "document_id": "4a7d8fb5c30ac562",
+        "url": null,
+        "quote": "In the coming weeks, the Federal Reserve Board will consider final revisions to the Board's stress testing framework.",
+        "development_id": null
+      },
+      {
+        "document_id": "cec165afd2edc412",
+        "url": null,
+        "quote": "Swiss Finance Minister Karin Keller-Sutter and UBS (UBSG.S), opens new tab CEO Sergio Ermotti on Tuesday \u200bdefended their opposing vie",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  },
+  {
+    "variant": "V1",
+    "eval_id": "geopolitics/geopolitics.financial-channels",
+    "question_id": "geopolitics.financial-channels",
+    "subject_id": "geopolitics",
+    "run_id": "2026-09-24",
+    "summary": "US seeks $61 million crypto forfeiture over Chinese-linked Iran oil payments; new Russia sanctions law threatens tariffs up to 100% on top buyers.",
+    "state": "watch",
+    "citations": [
+      {
+        "document_id": "6c0c4719c23e301a",
+        "url": null,
+        "quote": "The U.S. has filed a civil forfeiture complaint against $61 million in cryptocurrency that it alleges proceeds from black-market sales of sanctioned Iranian crude oil",
+        "development_id": null
+      },
+      {
+        "document_id": "0e30be6413e98278",
+        "url": null,
+        "quote": "Top five buyers of Russian oil, gas face tariffs of up to 100%",
+        "development_id": null
+      },
+      {
+        "document_id": "3be3977c57cb633f",
+        "url": null,
+        "quote": "heightened geopolitical tensions in the Middle East, further trade restrictions, or a correction in the artificial intelligence cycle could lead to volatility",
+        "development_id": null
+      },
+      {
+        "document_id": "6919bfc55a872eca",
+        "url": null,
+        "quote": "maintain stability in a tariff truce that expires in November",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  },
+  {
+    "variant": "V1",
+    "eval_id": "singapore-banks/group.peer-moves",
+    "question_id": "group.peer-moves",
+    "subject_id": "singapore-banks",
+    "run_id": "2026-09-24",
+    "summary": "DBS expanded gold vaulting capacity this year; OCBC has approached storage providers for more space, and other banks are considering similar moves, per Bloomberg.",
+    "state": "new",
+    "citations": [
+      {
+        "document_id": "a085dad241d4f7aa",
+        "url": null,
+        "quote": "DBS Group Holdings Ltd. adding bullion storage capacity and other banks considering similar moves.",
+        "development_id": null
+      },
+      {
+        "document_id": "a085dad241d4f7aa",
+        "url": null,
+        "quote": "Oversea-Chinese Banking Corp. Ltd. has also approached precious metal storage providers about securing more space",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  },
+  {
+    "variant": "V1",
+    "eval_id": "sea-regional-banks/group.common-issues",
+    "question_id": "group.common-issues",
+    "subject_id": "sea-regional-banks",
+    "run_id": "2026-09-24",
+    "summary": "Only a routine overlap: BNM onboarded both Maybank and CIMB to test tokenised deposits for payments. No shared adverse issue is evident; Bangkok Bank isn't involved.",
+    "state": "new",
+    "citations": [
+      {
+        "document_id": "c1f62067d2a38d2e",
+        "url": null,
+        "quote": "tokenised deposits for payments by Malayan Banking Bhd (KL: MAYBANK) and tokenised deposits for payments by CIMB Group Holdings Bhd (KL: CIMB)",
+        "development_id": null
+      },
+      {
+        "document_id": "b9d28d968412048a",
+        "url": null,
+        "quote": "The rise in MGS yields makes wholesale funding more expensive for banks, and this is likely to translate into slight NIM compression",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  },
+  {
+    "variant": "V1",
+    "eval_id": "mas/central-bank.regulation",
+    "question_id": "central-bank.regulation",
+    "subject_id": "mas",
+    "run_id": "2026-09-24",
+    "summary": "MAS issued revised Notices 656, 643 and 643A for banks on 4 Sep, opened a stablecoin consultation (closes 16 Oct), and the Bill introduced TLAC powers.",
+    "state": "new",
+    "citations": [
+      {
+        "document_id": "4df958f06a407676",
+        "url": null,
+        "quote": "MAS Notice 656 (Amendment No.2) 2026 (565.3 KB) dated 4 September 2026 takes effect.",
+        "development_id": null
+      },
+      {
+        "document_id": "da28361d25b49441",
+        "url": null,
+        "quote": "The amendments reflected in this document take effect on 4 September 2027.",
+        "development_id": null
+      },
+      {
+        "document_id": "3394a3e1424a6978",
+        "url": null,
+        "quote": "MAS Notice 643A (521.3 KB) (including Appendix 9 Reporting Statement (45.2 KB)) dated 4 September 2026 and effective 4 September 2027.",
+        "development_id": null
+      },
+      {
+        "document_id": "5acb03fef2960e31",
+        "url": null,
+        "quote": "The Bill seeks to empower MAS to impose on systemically important financial institutions (\u201cFIs\u201d) the requirement to maintain a minimum level of total loss-absorbing capacity (\u201cTLAC\u201d).",
+        "development_id": null
+      },
+      {
+        "document_id": "92ab1750b83a161e",
+        "url": null,
+        "quote": "Start Date: - 01 September 2026 - Closing Date: - 16 October 2026",
+        "development_id": null
+      },
+      {
+        "document_id": "a06e4aa018165f63",
+        "url": null,
+        "quote": "The Monetary Authority of Singapore (MAS) today published a consultation paper on proposed legislative amendments to the Payment Services Act 2019",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  },
+  {
+    "variant": "V1",
+    "eval_id": "ocbc/bank.incidents",
+    "question_id": "bank.incidents",
+    "subject_id": "ocbc",
+    "run_id": "2026-09-24",
+    "summary": "An article dated Sept 23 reports an OCBC ATM, internet and mobile banking disruption with data protected. Its CEO quote looks dated, and nothing corroborates it.",
+    "state": "watch",
+    "citations": [
+      {
+        "document_id": "1c5f03888832ab30",
+        "url": null,
+        "quote": "All customer data was protected with \u201cappropriate security measures\u201d during today\u2019s disruption of automated-teller machine, Internet and mobile-phone banking services",
+        "development_id": null
+      },
+      {
+        "document_id": "ff14eccdf5b920d3",
+        "url": null,
+        "quote": "OCBC declined 1.5 per cent or S$0.49 to S$31.65.",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  },
+  {
+    "variant": "V1",
+    "eval_id": "uob/custom.exposure",
+    "question_id": "custom.exposure",
+    "subject_id": "uob",
+    "run_id": "2026-09-24",
+    "summary": "No fresh Greater China CRE or ASEAN shock; Macquarie upgraded UOB citing CRE provision buffer, while UOBKH flags Middle East conflict risk to loan growth.",
+    "state": "watch",
+    "citations": [
+      {
+        "document_id": "67383db0815d2524",
+        "url": null,
+        "quote": "each 10% collateral value reduction drives $181 million higher provisions, and any slippage from special mention to NPL drives $100 million provisions",
+        "development_id": null
+      },
+      {
+        "document_id": "2c611c200ee18f97",
+        "url": null,
+        "quote": "The economy and loan growth could slow down due to weak business sentiment aggravated by a prolonged Middle East conflict",
+        "development_id": null
+      },
+      {
+        "document_id": "a20d8aefaec96607",
+        "url": null,
+        "quote": "Fitch Ratings' revision of Thailand's sovereign credit outlook to stable from negative, while maintaining the country's BBB+ rating",
+        "development_id": null
+      }
+    ],
+    "changes": [],
+    "facts": []
+  }
+]

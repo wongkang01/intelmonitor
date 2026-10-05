@@ -1,0 +1,29 @@
+{
+ "group": "v1",
+ "model": "claude-sonnet-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-5-5"
+ ],
+ "output": {
+  "summary": "An article dated Sept 23 reports an OCBC ATM, internet and mobile banking disruption with data protected. Its CEO quote looks dated, and nothing corroborates it.",
+  "state": "watch",
+  "citations": [
+   {
+    "document_id": "1c5f03888832ab30",
+    "quote": "All customer data was protected with \u201cappropriate security measures\u201d during today\u2019s disruption of automated-teller machine, Internet and mobile-phone banking services"
+   },
+   {
+    "document_id": "ff14eccdf5b920d3",
+    "quote": "OCBC declined 1.5 per cent or S$0.49 to S$31.65."
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.1094976,
+  "input_tokens": 11437,
+  "output_tokens": 770,
+  "duration_ms": 8898,
+  "turns": 2
+ }
+}

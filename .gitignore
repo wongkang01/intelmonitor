@@ -21,3 +21,7 @@ dist/
 
 # impeccable critique snapshots
 .impeccable/
+
+# Eval DB copies (rebuilt from data/) and agent worktrees
+eval-runs/*/db/
+.claude/worktrees/

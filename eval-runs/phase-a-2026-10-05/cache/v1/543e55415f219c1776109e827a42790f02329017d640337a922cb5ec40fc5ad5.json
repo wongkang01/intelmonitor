@@ -1,0 +1,29 @@
+{
+ "group": "v1",
+ "model": "claude-sonnet-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-5-5"
+ ],
+ "output": {
+  "summary": "DBS expanded gold vaulting capacity this year; OCBC has approached storage providers for more space, and other banks are considering similar moves, per Bloomberg.",
+  "state": "new",
+  "citations": [
+   {
+    "document_id": "a085dad241d4f7aa",
+    "quote": "DBS Group Holdings Ltd. adding bullion storage capacity and other banks considering similar moves."
+   },
+   {
+    "document_id": "a085dad241d4f7aa",
+    "quote": "Oversea-Chinese Banking Corp. Ltd. has also approached precious metal storage providers about securing more space"
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.222369,
+  "input_tokens": 24513,
+  "output_tokens": 474,
+  "duration_ms": 6326,
+  "turns": 2
+ }
+}

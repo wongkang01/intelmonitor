@@ -1,0 +1,39 @@
+{
+ "group": "v0",
+ "model": "claude-sonnet-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-5-5"
+ ],
+ "output": {
+  "summary": "Little new UOB-specific adverse news 10\u201324 Sep: Indonesia's rupiah and capital outflows pressure ASEAN credit; Jefferies' 23 Sep initiation flags Greater China CRE asset quality. Unverified snippets.",
+  "state": "watch",
+  "sources": [
+   {
+    "url": "https://www.bloomberg.com/news/articles/2026-09-21/rupiah-s-advance-at-risk-as-fiscal-rate-pressures-linger",
+    "title": "Indonesia's Rupiah May Weaken as Spending, Oil Prices Cloud Outlook - Bloomberg",
+    "published": "2026-09-21",
+    "quote": "Indonesia's Rupiah May Weaken as Spending, Oil Prices Cloud Outlook (page not opened; 403 error; headline and search snippet only)"
+   },
+   {
+    "url": "https://www.kenanga.com.my/wp-content/uploads/2026/09/EV_ID_Bank-Indonesia_BOG10_260924-Kenanga.pdf",
+    "title": "Economic Viewpoint 24 September 2026 (Bank Indonesia BOG) - Kenanga",
+    "published": "2026-09-24",
+    "quote": "Search snippet: rupiah down about 0.9% m/m to Rp17,872/USD on 22 Sep; net securities outflow Rp13.1tn. PDF text could not be read."
+   },
+   {
+    "url": "https://www.minichart.com.sg/2026/09/23/jefferies-starts-singapore-banks-with-buy-on-dbs-and-uob-hold-on-ocbc/",
+    "title": "Jefferies Starts Singapore Banks With Buy on DBS and UOB, Hold on OCBC",
+    "published": "2026-09-23",
+    "quote": "Jefferies Starts Singapore Banks With Buy on DBS and UOB, Hold on OCBC (page not opened; 403 error; headline only)"
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.5055234000000001,
+  "input_tokens": 73340,
+  "output_tokens": 2901,
+  "duration_ms": 79244,
+  "turns": 18
+ }
+}

@@ -1,0 +1,223 @@
+{
+ "group": "gold-screen",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "documents": [
+   {
+    "document_id": "1798f2178a16220e",
+    "subjects": []
+   },
+   {
+    "document_id": "7c9b48f92b7048b6",
+    "subjects": [
+     "geopolitics",
+     "uob-exposure-markets"
+    ]
+   },
+   {
+    "document_id": "f8f4c033994052f4",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "fdc672eda778e632",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "a4c423a0acdc2b9f",
+    "subjects": [
+     "mas"
+    ]
+   },
+   {
+    "document_id": "27a2b37bd33ff240",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "6dd95f8a0f1eb4c4",
+    "subjects": []
+   },
+   {
+    "document_id": "6e4ee4d77b486d68",
+    "subjects": []
+   },
+   {
+    "document_id": "c271332c70f3648b",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "d1f565cab6ff653f",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "e9cff6213ccc899e",
+    "subjects": [
+     "sea-regional-banks"
+    ]
+   },
+   {
+    "document_id": "623828aa51016186",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "3ee24941a7c7e08e",
+    "subjects": []
+   },
+   {
+    "document_id": "43dc360726a2e886",
+    "subjects": []
+   },
+   {
+    "document_id": "eac0bef08b7d9d6c",
+    "subjects": [
+     "uob-exposure-markets"
+    ]
+   },
+   {
+    "document_id": "a35e6283361960f6",
+    "subjects": []
+   },
+   {
+    "document_id": "a5324724fce840f4",
+    "subjects": []
+   },
+   {
+    "document_id": "a7ab93227aa7bcfb",
+    "subjects": []
+   },
+   {
+    "document_id": "3c2837fdf9cfac28",
+    "subjects": []
+   },
+   {
+    "document_id": "0767c923ec8e1156",
+    "subjects": []
+   },
+   {
+    "document_id": "0bde0a07850fe34c",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "0f8882fd2b97c62a",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "9a287eac90ed58a1",
+    "subjects": []
+   },
+   {
+    "document_id": "b53a154e745bb1a3",
+    "subjects": [
+     "uob-exposure-markets"
+    ]
+   },
+   {
+    "document_id": "e2b4da43344e63bd",
+    "subjects": []
+   },
+   {
+    "document_id": "f5be24fafbfa9d8e",
+    "subjects": []
+   },
+   {
+    "document_id": "fe9eaab59daf966b",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "4b0df98ada97993b",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "06beecc41a329236",
+    "subjects": [
+     "mas"
+    ]
+   },
+   {
+    "document_id": "4ea1e0428bc037e0",
+    "subjects": [
+     "mas"
+    ]
+   },
+   {
+    "document_id": "87799a21bfcfb3d6",
+    "subjects": [
+     "mas",
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "011b0d70b5434acd",
+    "subjects": []
+   },
+   {
+    "document_id": "36f16bb2b0932e48",
+    "subjects": [
+     "mas"
+    ]
+   },
+   {
+    "document_id": "5494ed60467b84e9",
+    "subjects": []
+   },
+   {
+    "document_id": "6f355740a9708a4d",
+    "subjects": []
+   },
+   {
+    "document_id": "73f3e25a96638a61",
+    "subjects": []
+   },
+   {
+    "document_id": "744c5468aefaa5b4",
+    "subjects": []
+   },
+   {
+    "document_id": "7ba8abe7f48968a6",
+    "subjects": [
+     "mas"
+    ]
+   },
+   {
+    "document_id": "957500a2b904c731",
+    "subjects": [
+     "mas"
+    ]
+   },
+   {
+    "document_id": "d075367f4500e140",
+    "subjects": []
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.192586,
+  "input_tokens": 16321,
+  "output_tokens": 2534,
+  "duration_ms": 22863,
+  "turns": 2
+ }
+}

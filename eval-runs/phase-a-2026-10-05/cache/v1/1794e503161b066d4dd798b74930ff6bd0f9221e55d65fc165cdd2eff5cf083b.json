@@ -1,0 +1,37 @@
+{
+ "group": "v1",
+ "model": "claude-sonnet-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-5-5"
+ ],
+ "output": {
+  "summary": "US seeks $61 million crypto forfeiture over Chinese-linked Iran oil payments; new Russia sanctions law threatens tariffs up to 100% on top buyers.",
+  "state": "watch",
+  "citations": [
+   {
+    "document_id": "6c0c4719c23e301a",
+    "quote": "The U.S. has filed a civil forfeiture complaint against $61 million in cryptocurrency that it alleges proceeds from black-market sales of sanctioned Iranian crude oil"
+   },
+   {
+    "document_id": "0e30be6413e98278",
+    "quote": "Top five buyers of Russian oil, gas face tariffs of up to 100%"
+   },
+   {
+    "document_id": "3be3977c57cb633f",
+    "quote": "heightened geopolitical tensions in the Middle East, further trade restrictions, or a correction in the artificial intelligence cycle could lead to volatility"
+   },
+   {
+    "document_id": "6919bfc55a872eca",
+    "quote": "maintain stability in a tariff truce that expires in November"
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.21710600000000002,
+  "input_tokens": 22715,
+  "output_tokens": 1021,
+  "duration_ms": 8402,
+  "turns": 2
+ }
+}

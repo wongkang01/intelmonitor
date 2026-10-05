@@ -1,0 +1,621 @@
+{
+  "eval_id": "geopolitics/geopolitics.financial-channels",
+  "question": "Are there effects on capital flows, FX, payments or trade finance?",
+  "lookback_days": 14,
+  "seed": 1,
+  "pool": [
+    {
+      "document_id": "006849bd8010e598",
+      "published": "2026-09-23",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "007196c184d4713c",
+      "published": "2026-09-17",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "06df6182ca560f48",
+      "published": "2026-09-21",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "0e30be6413e98278",
+      "published": "2026-09-18",
+      "sources": [
+        "cited:V1",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "1afd6c1ca21b256d",
+      "published": "2026-09-16",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "2aadacf6f2ccdcda",
+      "published": "2026-09-23",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "2c611c200ee18f97",
+      "published": "2026-09-16",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "32600d0590ed819f",
+      "published": "2026-09-16",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "337e08ab052edc84",
+      "published": "2026-09-21",
+      "sources": [
+        "cited:V2",
+        "screen"
+      ]
+    },
+    {
+      "document_id": "34a70133cf340d28",
+      "published": "2026-09-22",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "36dde342080a4b4e",
+      "published": "2026-09-16",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "3be3977c57cb633f",
+      "published": "2026-09-22",
+      "sources": [
+        "cited:V1",
+        "cited:V2",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "476118fe481f9fc1",
+      "published": "2026-09-18",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "4b3e56c86f945abe",
+      "published": "2026-09-11",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "4d291901be7e2eab",
+      "published": "2026-09-15",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "608c4dbeeb10ef65",
+      "published": "2026-09-17",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "6919bfc55a872eca",
+      "published": "2026-09-19",
+      "sources": [
+        "cited:V1",
+        "cited:V2",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "6bd1d2b1d95ffffb",
+      "published": "2026-09-16",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "6c0c4719c23e301a",
+      "published": "2026-09-15",
+      "sources": [
+        "cited:V1",
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "7049ea28ef5fb464",
+      "published": "2026-09-22",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "76f9aa53db22afd0",
+      "published": "2026-09-23",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "849165639d39b253",
+      "published": "2026-09-21",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "8de6bd73aa8610e6",
+      "published": "2026-09-23",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "917c12089ac848cd",
+      "published": "2026-09-15",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "a16a1ff764a1f964",
+      "published": "2026-09-20",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "b8d524628516b829",
+      "published": "2026-09-15",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "c49f5853132f7b79",
+      "published": "2026-09-17",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "c764aebee72e9a5e",
+      "published": "2026-09-18",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "c7b8ef7ae197664b",
+      "published": "2026-09-16",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "cf8631f024a1ec1d",
+      "published": "2026-09-16",
+      "sources": [
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "d6fb5cf7ecbfc9ea",
+      "published": "2026-09-23",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "db34f8f18c05a435",
+      "published": "2026-09-18",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "dc6c7f9434fbdfc8",
+      "published": "2026-09-12",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "dff906bff1da8449",
+      "published": "2026-09-22",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "e4513ef7f0d04823",
+      "published": "2026-09-21",
+      "sources": [
+        "cited:V2"
+      ]
+    },
+    {
+      "document_id": "f279c2bba35e69f3",
+      "published": "2026-09-16",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "f3fab8bb57e38604",
+      "published": "2026-09-15",
+      "sources": [
+        "screen"
+      ]
+    },
+    {
+      "document_id": "f6d8dd6683e17512",
+      "published": "2026-09-15",
+      "sources": [
+        "cited:V0-C",
+        "screen"
+      ]
+    },
+    {
+      "document_id": "fd242f1ee6d2af64",
+      "published": "2026-09-23",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    },
+    {
+      "document_id": "fddb89c545e90490",
+      "published": "2026-09-23",
+      "sources": [
+        "screen",
+        "keyword"
+      ]
+    }
+  ],
+  "gold": {
+    "decisions": [
+      {
+        "document_id": "337e08ab052edc84",
+        "include": true,
+        "reason": "Yuan hits 3.5-year high vs USD as PBOC eases its curb on appreciation ahead of the Trump-Xi summit. This is a direct FX effect."
+      },
+      {
+        "document_id": "f6d8dd6683e17512",
+        "include": true,
+        "reason": "PBOC strengthens the yuan fixing for a fifth straight day ahead of the summit. This is a direct FX policy signal."
+      },
+      {
+        "document_id": "6c0c4719c23e301a",
+        "include": true,
+        "reason": "US civil forfeiture of $61m in crypto said to come from Iranian oil sales to Chinese buyers, laundered through Binance accounts. Payments and sanctions-evasion channel."
+      },
+      {
+        "document_id": "0e30be6413e98278",
+        "include": true,
+        "reason": "Russia sanctions bill lets the President impose tariffs of up to 100% on top buyers of Russian energy and on facilitators of sanctions evasion. Bears on trade and payment flows."
+      },
+      {
+        "document_id": "6bd1d2b1d95ffffb",
+        "include": true,
+        "reason": "House passes the Russia sanctions and secondary-tariff bill. Same development."
+      },
+      {
+        "document_id": "476118fe481f9fc1",
+        "include": true,
+        "reason": "Trump signs the Russia sanctions bill into law, including tariffs on Russia's biggest trading partners. Same development."
+      },
+      {
+        "document_id": "3be3977c57cb633f",
+        "include": true,
+        "reason": "MAS review: Singapore financial stress index spiked at the onset of the Middle East conflict and recently edged higher with global yields, with a warning of renewed stress from risk-sentiment shifts. Bears on capital-flow and market stress."
+      },
+      {
+        "document_id": "32600d0590ed819f",
+        "include": false,
+        "reason": "Generic Sri Lanka speech on reserve management. No specific development tied to the subject."
+      },
+      {
+        "document_id": "8de6bd73aa8610e6",
+        "include": false,
+        "reason": "Bessent-He pre-summit meeting on trade. No FX, capital-flow or payments content in the opening."
+      },
+      {
+        "document_id": "06df6182ca560f48",
+        "include": false,
+        "reason": "China's trade surplus ahead of the summit. About trade volumes, not finance or FX."
+      },
+      {
+        "document_id": "dc6c7f9434fbdfc8",
+        "include": false,
+        "reason": "Stale content (references 2019/2020). Investment advice, not a development."
+      },
+      {
+        "document_id": "76f9aa53db22afd0",
+        "include": false,
+        "reason": "Republished April 2025 commentary. Stale and outside the lookback in substance."
+      },
+      {
+        "document_id": "006849bd8010e598",
+        "include": false,
+        "reason": "Summit preview with no financial-flow content."
+      },
+      {
+        "document_id": "fddb89c545e90490",
+        "include": false,
+        "reason": "Summit preview with no financial-flow content."
+      },
+      {
+        "document_id": "608c4dbeeb10ef65",
+        "include": false,
+        "reason": "Summit agenda preview. Not about FX or payments."
+      },
+      {
+        "document_id": "6919bfc55a872eca",
+        "include": false,
+        "reason": "Trade-talks preview. Mentions Iran sanctions pressure but reports no financial-flow effect."
+      },
+      {
+        "document_id": "849165639d39b253",
+        "include": false,
+        "reason": "Historical timeline of the trade war."
+      },
+      {
+        "document_id": "fd242f1ee6d2af64",
+        "include": false,
+        "reason": "Covers trade-truce commodity commitments, not finance."
+      },
+      {
+        "document_id": "34a70133cf340d28",
+        "include": false,
+        "reason": "Export controls on drug precursors. No financial-flow effect."
+      },
+      {
+        "document_id": "4d291901be7e2eab",
+        "include": false,
+        "reason": "Export-control pressure on AI hardware. Not about FX or payments."
+      },
+      {
+        "document_id": "4b3e56c86f945abe",
+        "include": false,
+        "reason": "US fuel export controls and prices. Not capital flows or FX."
+      },
+      {
+        "document_id": "c49f5853132f7b79",
+        "include": false,
+        "reason": "Cuba sanctions, which fall outside the subject."
+      },
+      {
+        "document_id": "dff906bff1da8449",
+        "include": false,
+        "reason": "Routine EU Russia sanctions renewal with delistings. No flow effect described."
+      },
+      {
+        "document_id": "2c611c200ee18f97",
+        "include": false,
+        "reason": "Equity-target cut due to the Middle East conflict. Not FX or capital flows."
+      },
+      {
+        "document_id": "e4513ef7f0d04823",
+        "include": false,
+        "reason": "Stale August credit-quality commentary. Not FX or flows."
+      },
+      {
+        "document_id": "36dde342080a4b4e",
+        "include": false,
+        "reason": "Stale equity trading note."
+      },
+      {
+        "document_id": "f279c2bba35e69f3",
+        "include": false,
+        "reason": "Stale aviation equity note."
+      },
+      {
+        "document_id": "7049ea28ef5fb464",
+        "include": false,
+        "reason": "Kazakhstan rate decision, unrelated to the subject."
+      },
+      {
+        "document_id": "1afd6c1ca21b256d",
+        "include": false,
+        "reason": "Bank of Canada decision on US-Canada tariffs. Outside the subject's financial-flow focus."
+      },
+      {
+        "document_id": "cf8631f024a1ec1d",
+        "include": false,
+        "reason": "Fed official's outlook. Not geopolitical financial-flow effects."
+      },
+      {
+        "document_id": "917c12089ac848cd",
+        "include": false,
+        "reason": "Central Bank of Ireland outlook. Not relevant to the question."
+      },
+      {
+        "document_id": "d6fb5cf7ecbfc9ea",
+        "include": false,
+        "reason": "Canada tariffs article dated Sept 8, before the lookback. Trade, not finance."
+      },
+      {
+        "document_id": "2aadacf6f2ccdcda",
+        "include": false,
+        "reason": "Tariffs index page."
+      },
+      {
+        "document_id": "f3fab8bb57e38604",
+        "include": false,
+        "reason": "Maritime conciliation with no financial effect."
+      },
+      {
+        "document_id": "b8d524628516b829",
+        "include": false,
+        "reason": "Maritime conciliation with no financial effect."
+      },
+      {
+        "document_id": "a16a1ff764a1f964",
+        "include": false,
+        "reason": "AUKUS diplomacy. No financial effect."
+      },
+      {
+        "document_id": "c764aebee72e9a5e",
+        "include": false,
+        "reason": "South China Sea collision. No reported financial effect."
+      },
+      {
+        "document_id": "db34f8f18c05a435",
+        "include": false,
+        "reason": "South China Sea collision. No reported financial effect."
+      },
+      {
+        "document_id": "007196c184d4713c",
+        "include": false,
+        "reason": "Shipping security. No FX or payments content."
+      },
+      {
+        "document_id": "c7b8ef7ae197664b",
+        "include": false,
+        "reason": "Houthi military developments. No financial-flow content."
+      }
+    ],
+    "events": [
+      {
+        "title": "PBOC guided the yuan stronger with five straight firmer fixings and an eased appreciation curb, lifting it to a 3.5-year high against the dollar ahead of the Sept 24 Trump-Xi summit.",
+        "document_ids": [
+          "337e08ab052edc84",
+          "f6d8dd6683e17512"
+        ],
+        "must_mention": true,
+        "reason": "This is the clearest direct FX effect of US-China diplomacy in the window."
+      },
+      {
+        "title": "US filed to forfeit $61m in crypto it says came from Iranian oil sales to Chinese buyers, laundered by Chinese firms through Binance as part of a network moving over $1.5bn.",
+        "document_ids": [
+          "6c0c4719c23e301a"
+        ],
+        "must_mention": true,
+        "reason": "Sanctions enforcement against a China-linked crypto payment channel bears directly on payments integrity."
+      },
+      {
+        "title": "US enacted a Russia sanctions law allowing tariffs of up to 100% on the top buyers of Russian energy and on facilitators of sanctions evasion.",
+        "document_ids": [
+          "0e30be6413e98278",
+          "6bd1d2b1d95ffffb",
+          "476118fe481f9fc1"
+        ],
+        "must_mention": false,
+        "reason": "Secondary-tariff powers could hit China-linked trade and payment flows, but nothing has been applied yet."
+      },
+      {
+        "title": "MAS said Singapore's financial stress index spiked briefly at the Middle East conflict's onset and has edged up with global yields, and warned of renewed stress from shifts in risk sentiment.",
+        "document_ids": [
+          "3be3977c57cb633f"
+        ],
+        "must_mention": false,
+        "reason": "Useful context on market stress, but secondary to the US-China financial effects."
+      }
+    ],
+    "series": [
+      {
+        "series_id": "fx.sgd.cny",
+        "must_mention": false,
+        "reason": "SGD eased only 0.26% against CNY on the week. This reflects yuan strength already captured by the news event."
+      },
+      {
+        "series_id": "fx.sgd.usd",
+        "must_mention": false,
+        "reason": "Small weekly move within the normal range."
+      },
+      {
+        "series_id": "fx.sgd.myr",
+        "must_mention": false,
+        "reason": "Minor move."
+      },
+      {
+        "series_id": "fx.sgd.thb",
+        "must_mention": false,
+        "reason": "Minor move."
+      },
+      {
+        "series_id": "fx.sgd.idr",
+        "must_mention": false,
+        "reason": "Minor move."
+      },
+      {
+        "series_id": "fx.sgd.php",
+        "must_mention": false,
+        "reason": "Minor move. Not linked to the South China Sea incidents."
+      },
+      {
+        "series_id": "fx.sgd.vnd",
+        "must_mention": false,
+        "reason": "Minor move."
+      },
+      {
+        "series_id": "fx.sgd.hkd",
+        "must_mention": false,
+        "reason": "Minor move."
+      },
+      {
+        "series_id": "fred.us10y",
+        "must_mention": false,
+        "reason": "At a record 5.11%, but driven by US macro rather than US-China geopolitics."
+      },
+      {
+        "series_id": "fred.us_hy_spread",
+        "must_mention": false,
+        "reason": "Essentially flat."
+      },
+      {
+        "series_id": "fred.vix",
+        "must_mention": false,
+        "reason": "Falling, so no stress signal."
+      }
+    ],
+    "expected_state": "watch",
+    "state_reason": "The yuan is strengthening in a managed way ahead of the summit, which is benign. Adverse items are developing, though: US enforcement against China-linked crypto channels laundering sanctioned Iranian oil money, and new US secondary-tariff powers against facilitators of Russia sanctions evasion. Both could become material for payments and trade finance. Neither shows realised stress yet."
+  },
+  "changes": {
+    "0": "updated",
+    "1": "unchanged",
+    "2": "updated",
+    "3": "new"
+  }
+}

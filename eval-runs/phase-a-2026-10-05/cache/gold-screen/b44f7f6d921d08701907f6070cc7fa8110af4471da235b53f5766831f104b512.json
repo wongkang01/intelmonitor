@@ -1,0 +1,230 @@
+{
+ "group": "gold-screen",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "documents": [
+   {
+    "document_id": "a06e4aa018165f63",
+    "subjects": [
+     "mas"
+    ]
+   },
+   {
+    "document_id": "92ab1750b83a161e",
+    "subjects": [
+     "mas"
+    ]
+   },
+   {
+    "document_id": "8f4c9eef9322ad4a",
+    "subjects": []
+   },
+   {
+    "document_id": "13ff6ee6e48c14f8",
+    "subjects": [
+     "banking-regulation",
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "1613a36e7a8fe2e1",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "28f89980d86ec3ca",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "457571227a804034",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "830839233f3a0561",
+    "subjects": []
+   },
+   {
+    "document_id": "da59b9beb8e6ee29",
+    "subjects": []
+   },
+   {
+    "document_id": "eedf1fc9ab96577f",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "64b33a2c234d098b",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "6b865df218c8f21b",
+    "subjects": []
+   },
+   {
+    "document_id": "a14b0327b4f08b47",
+    "subjects": []
+   },
+   {
+    "document_id": "b25c95347de8be0f",
+    "subjects": []
+   },
+   {
+    "document_id": "b7705dc218904e83",
+    "subjects": []
+   },
+   {
+    "document_id": "4b11dea9bf4b3e77",
+    "subjects": []
+   },
+   {
+    "document_id": "cd4478f3580be4a2",
+    "subjects": []
+   },
+   {
+    "document_id": "48500134399194b8",
+    "subjects": []
+   },
+   {
+    "document_id": "076aab4e4ac45b36",
+    "subjects": []
+   },
+   {
+    "document_id": "510f5d21c3eea5d6",
+    "subjects": [
+     "uob-exposure-markets",
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "c25f116cb1fec389",
+    "subjects": []
+   },
+   {
+    "document_id": "d6525a24e4fc4cf2",
+    "subjects": []
+   },
+   {
+    "document_id": "4df958f06a407676",
+    "subjects": [
+     "mas",
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "3394a3e1424a6978",
+    "subjects": [
+     "mas",
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "da28361d25b49441",
+    "subjects": [
+     "mas",
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "647ec9ebb1974dba",
+    "subjects": []
+   },
+   {
+    "document_id": "eabda038a0e561b5",
+    "subjects": []
+   },
+   {
+    "document_id": "14d39303de7fb5b9",
+    "subjects": [
+     "mas"
+    ]
+   },
+   {
+    "document_id": "b7618671c4390355",
+    "subjects": [
+     "banking-regulation"
+    ]
+   },
+   {
+    "document_id": "56c9fa2014ab0540",
+    "subjects": [
+     "mas"
+    ]
+   },
+   {
+    "document_id": "164175b6db0ab488",
+    "subjects": [
+     "singapore-banks"
+    ]
+   },
+   {
+    "document_id": "2d09f48fa93fe40c",
+    "subjects": [
+     "uob",
+     "singapore-banks"
+    ]
+   },
+   {
+    "document_id": "6cca5cedc64ab77f",
+    "subjects": []
+   },
+   {
+    "document_id": "8ee6ab6c4a8aacf2",
+    "subjects": []
+   },
+   {
+    "document_id": "e1e37b2bb5d3ac07",
+    "subjects": [
+     "uob-exposure-markets"
+    ]
+   },
+   {
+    "document_id": "2462c2e4570b16bc",
+    "subjects": [
+     "uob-exposure-markets"
+    ]
+   },
+   {
+    "document_id": "3225dec9e6c9bac5",
+    "subjects": [
+     "singapore-banks"
+    ]
+   },
+   {
+    "document_id": "3642143749c8a6e8",
+    "subjects": [
+     "sea-regional-banks",
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "38e8f663a461eb04",
+    "subjects": [
+     "geopolitics"
+    ]
+   },
+   {
+    "document_id": "4870e559bcd2e18e",
+    "subjects": []
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.202241,
+  "input_tokens": 16749,
+  "output_tokens": 2848,
+  "duration_ms": 25913,
+  "turns": 2
+ }
+}

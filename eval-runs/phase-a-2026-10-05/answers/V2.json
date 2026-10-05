@@ -1,0 +1,574 @@
+[
+  {
+    "variant": "V2",
+    "eval_id": "banking-regulation/topic.new-developments",
+    "question_id": "topic.new-developments",
+    "subject_id": "banking-regulation",
+    "run_id": "2026-09-24",
+    "summary": "Swiss upper house backed 90% CET1 cover for UBS foreign units; Fed flagged stress-test and capital finalisation; SVB review faulted Fed supervisors; Singapore published national AML strategy.",
+    "state": "watch",
+    "citations": [
+      {
+        "document_id": "ed7d0023d140a394",
+        "url": null,
+        "quote": "ZURICH, Sept 23 (Reuters) - Switzerland's upper house of parliament on Wednesday voted in favour \u200bof capital rules that would require UBS(UBSG.S), opens new tab \u200cto back its foreign units with 90% Common Equity Tier 1 capital, dealing a blow to the bank, \u200bwhich had lobbied against it.",
+        "development_id": "ed7d0023d140a394-0"
+      },
+      {
+        "document_id": "01e736463285d60c",
+        "url": null,
+        "quote": "The Federal Reserve's top regulatory official said on Friday that an overhaul of the US central bank's \"stress test\" of big banks will make the \u200bprocess more transparent and the results more",
+        "development_id": "01e736463285d60c-0"
+      },
+      {
+        "document_id": "4a7d8fb5c30ac562",
+        "url": null,
+        "quote": "In the coming weeks, the Federal Reserve Board will consider final revisions to the Board's stress testing framework.",
+        "development_id": "01e736463285d60c-0"
+      },
+      {
+        "document_id": "4a7d8fb5c30ac562",
+        "url": null,
+        "quote": "As proposed, this rule requires the Board to publish detailed information on the stress test models and on the scenario design process, resulting in greater transparency and public accountability.",
+        "development_id": "01e736463285d60c-0"
+      },
+      {
+        "document_id": "4a7d8fb5c30ac562",
+        "url": null,
+        "quote": "The second final rule reduces the volatility of the SCB requirement by averaging the results of a bank's two most recent annual stress tests.",
+        "development_id": "01e736463285d60c-0"
+      },
+      {
+        "document_id": "4a7d8fb5c30ac562",
+        "url": null,
+        "quote": "The proposal will seek public comment on a revised model for noninterest income, which is the fee and trading revenue that banks earn from activities including wealth management, investment banking, and market making.",
+        "development_id": "01e736463285d60c-0"
+      },
+      {
+        "document_id": "4a7d8fb5c30ac562",
+        "url": null,
+        "quote": "In addition, and before the end of this year, I expect the Board to finalize reforms to risk-based capital requirements for large and small banks as well as improvements to the global systemically important bank (GISB) surcharge.",
+        "development_id": "4a7d8fb5c30ac562-1"
+      },
+      {
+        "document_id": "5b3753cd2b41e758",
+        "url": null,
+        "quote": "Second, our supervisory staff knew, or should have known, about these vulnerabilities as early as March 2022.",
+        "development_id": "5b3753cd2b41e758-1"
+      },
+      {
+        "document_id": "9724fb50f5b197e1",
+        "url": null,
+        "quote": "SINGAPORE (Oct 30): Singapore has published its 32-page national anti-money laundering (AML) strategy, as part of continuing efforts to maintain the effectiveness of its anti money-laundering (ML) in the country.",
+        "development_id": "9724fb50f5b197e1-0"
+      },
+      {
+        "document_id": "c6293c2fa9eddb4a",
+        "url": null,
+        "quote": "Group 1 banks report \u20ac1.2 billion of regulatory capital shortfall, compared with \u20ac0.9 billion at the end of June 2025.",
+        "development_id": "c6293c2fa9eddb4a-3"
+      },
+      {
+        "document_id": "d10c75158d8efd25",
+        "url": null,
+        "quote": "A notable area for enforcement and supervisory action in 2025 was unplanned system downtime that disrupted essential banking services, said the central bank.",
+        "development_id": "d10c75158d8efd25-2"
+      },
+      {
+        "document_id": "d2d5af3117771e42",
+        "url": null,
+        "quote": "KUALA LUMPUR (April 1): Bank Negara Malaysia (BNM) on Jan 20 fined Bank Kerjasama Rakyat Malaysia Bhd (Bank Rakyat) RM1 million for cybersecurity and customer data breaches brought about by inadequate cybersecurity controls and incident response.",
+        "development_id": "d2d5af3117771e42-0"
+      },
+      {
+        "document_id": "2bd2d5d9a38dcd02",
+        "url": null,
+        "quote": "Bank Negara Malaysia (BNM) has identified Malayan Banking Bhd (Maybank), CIMB Group Holdings Bhd and Public Bank Bhd as banks whose distress or failure has the potential to cause considerable disruption to the domestic financial system and the wider economy.",
+        "development_id": "2bd2d5d9a38dcd02-0"
+      }
+    ],
+    "changes": [
+      "ed7d0023d140a394-0",
+      "01e736463285d60c-0",
+      "4a7d8fb5c30ac562-1",
+      "5b3753cd2b41e758-1",
+      "9724fb50f5b197e1-0",
+      "c6293c2fa9eddb4a-3",
+      "d10c75158d8efd25-2",
+      "d2d5af3117771e42-0",
+      "2bd2d5d9a38dcd02-0"
+    ],
+    "facts": []
+  },
+  {
+    "variant": "V2",
+    "eval_id": "geopolitics/geopolitics.financial-channels",
+    "question_id": "geopolitics.financial-channels",
+    "subject_id": "geopolitics",
+    "run_id": "2026-09-24",
+    "summary": "US 10-year 5.11%, series high; VIX 14.21; SGD weakened 0.23% against the USD and 0.26% against the CNY on the week.",
+    "state": "needs_attention",
+    "citations": [
+      {
+        "document_id": "3be3977c57cb633f",
+        "url": null,
+        "quote": "At the onset of the Middle East conflict, Singapore\u2019s financial stress index rose sharply, but the spike was brief and soon returned to historically low levels, said the central bank.",
+        "development_id": "3be3977c57cb633f-2"
+      },
+      {
+        "document_id": "6919bfc55a872eca",
+        "url": null,
+        "quote": "Bessent said during testimony to the House financial services committee earlier this week that he has had \u201cprivate discussions\u201d with Chinese officials on the issue and hopes to make further progress during the upcoming talks this weekend.",
+        "development_id": "6919bfc55a872eca-4"
+      },
+      {
+        "document_id": "e4513ef7f0d04823",
+        "url": null,
+        "quote": "CIMB Group Holdings Bhd (KL: CIMB), the country\u2019s second-largest lender by assets, said it will see an uptick in its gross impaired loan (GIL) ratio this year if the conflict in West Asia continues to drive up costs.",
+        "development_id": "e4513ef7f0d04823-0"
+      },
+      {
+        "document_id": "337e08ab052edc84",
+        "url": null,
+        "quote": "China's yuan strengthened to more than a 3-1/2-year high against the US dollar on Monday as the central bank softened its curb on currency appreciation ahead of the meeting this week between the leaders of \u200bChina and the US.",
+        "development_id": "337e08ab052edc84-1"
+      }
+    ],
+    "changes": [
+      "3be3977c57cb633f-2",
+      "6919bfc55a872eca-4",
+      "e4513ef7f0d04823-0",
+      "337e08ab052edc84-1"
+    ],
+    "facts": [
+      "US 10-year Treasury yield: 5.11% on 23 Sep 2026; up 0.10 points on the week (from 5.01% on 16 Sep 2026), up 0.37 points on the month (from 4.74% on 21 Aug 2026), up 0.61 points over 3 months (from 4.50% on 23 Jun 2026), up 0.99 points on the year (from 4.12% on 23 Sep 2025); in the 14 days to 24 Sep 2026 it ranged from 4.94% (17 Sep 2026) to 5.11% (23 Sep 2026); the highest of the 1,307 values since 1 Jul 2021.",
+      "VIX: 14.21 on 22 Sep 2026; down 17.38% on the week (from 17.20 on 15 Sep 2026), down 6.08% on the month (from 15.13 on 21 Aug 2026), down 17.77% over 3 months (from 17.28 on 22 Jun 2026), down 11.74% on the year (from 16.10 on 22 Sep 2025); in the 14 days to 24 Sep 2026 it ranged from 14.21 (22 Sep 2026) to 17.71 (16 Sep 2026); above 195 of the 1,345 values since 1 Jul 2021.",
+      "SGD per Chinese yuan: 0.1903 SGD per CNY on 23 Sep 2026; SGD weakened 0.26% against the CNY on the week (from 0.1898 SGD per CNY on 16 Sep 2026), SGD weakened 0.69% against the CNY on the month (from 0.1890 SGD per CNY on 21 Aug 2026), SGD strengthened 0.31% against the CNY over 3 months (from 0.1909 SGD per CNY on 23 Jun 2026), SGD weakened 5.55% against the CNY on the year (from 0.1803 SGD per CNY on 23 Sep 2025); in the 14 days to 24 Sep 2026 it ranged from 0.1890 SGD per CNY (11 Sep 2026) to 0.1905 SGD per CNY (21 Sep 2026); above 797 of the 1,314 values since 1 Jul 2021.",
+      "SGD per US dollar: 1.2762 SGD per USD on 23 Sep 2026; SGD weakened 0.23% against the USD on the week (from 1.2733 SGD per USD on 16 Sep 2026), SGD weakened 0.47% against the USD on the month (from 1.2702 SGD per USD on 21 Aug 2026), SGD strengthened 1.35% against the USD over 3 months (from 1.2936 SGD per USD on 23 Jun 2026), SGD strengthened 0.49% against the USD on the year (from 1.2825 SGD per USD on 23 Sep 2025); in the 14 days to 24 Sep 2026 it ranged from 1.2685 SGD per USD (11 Sep 2026) to 1.2766 SGD per USD (17 Sep 2026); above 78 of the 1,314 values since 1 Jul 2021."
+    ]
+  },
+  {
+    "variant": "V2",
+    "eval_id": "singapore-banks/group.peer-moves",
+    "question_id": "group.peer-moves",
+    "subject_id": "singapore-banks",
+    "run_id": "2026-09-24",
+    "summary": "DBS's wealth push (S$1 trillion AUM target, 18 new centres) and tokenised deposits may draw followers; OCBC is already chasing bullion storage after DBS's gold vaulting.",
+    "state": "new",
+    "citations": [
+      {
+        "document_id": "e558b126131ded1e",
+        "url": null,
+        "quote": "DBS Group aims to grow assets under management in its wealth business to more than S$1 trillion (US$774 billion) by 2030, its unit's head said, as Singapore's biggest bank bets on rising Asian wealth and inflows into regional financial hubs.",
+        "development_id": "e558b126131ded1e-0"
+      },
+      {
+        "document_id": "e558b126131ded1e",
+        "url": null,
+        "quote": "Last month, DBS announced that it would \u200copen 18 new wealth centres across Asia by the end of 2027 and upgrade 36 existing centres over the next 18 months, marking the largest \u200bphysical expansion of its wealth franchise to date.",
+        "development_id": "e558b126131ded1e-3"
+      },
+      {
+        "document_id": "9e51fd9cea11cfef",
+        "url": null,
+        "quote": "SINGAPORE \u2013 DBS Bank and Citigroup executed a cross-border US dollar payment on Sept 5 using tokenised deposits, marking a new milestone in the banks\u2019 efforts to bypass traditional banking hours and enable round-the-clock global cash transfers.",
+        "development_id": "9e51fd9cea11cfef-0"
+      },
+      {
+        "document_id": "c2835e2c35b4435c",
+        "url": null,
+        "quote": "DBS (D05) and Citi (C) completed the first cross-border USD payment over a weekend using tokenized deposits on Swift's Digital Ledger, the banks announced Monday.",
+        "development_id": "9e51fd9cea11cfef-0"
+      },
+      {
+        "document_id": "a085dad241d4f7aa",
+        "url": null,
+        "quote": "Oversea-Chinese Banking Corp. Ltd. has also approached precious metal storage providers about securing more space, according to people with knowledge of the matter.",
+        "development_id": "a085dad241d4f7aa-2"
+      },
+      {
+        "document_id": "a085dad241d4f7aa",
+        "url": null,
+        "quote": "DBS, Southeast Asia\u2019s largest lender, increased its vaulting space this year to support growing demand from both private wealth and institutional clients, the bank said in an emailed response to Bloomberg\u2019s request for comment on Wednesday.",
+        "development_id": "a085dad241d4f7aa-1"
+      },
+      {
+        "document_id": "82888b8e97f5262d",
+        "url": null,
+        "quote": "The Singapore lender is the lead adviser for a new syndicate for ZanKore\u2019s financing",
+        "development_id": "82888b8e97f5262d-2"
+      }
+    ],
+    "changes": [
+      "e558b126131ded1e-0",
+      "e558b126131ded1e-3",
+      "82888b8e97f5262d-2"
+    ],
+    "facts": []
+  },
+  {
+    "variant": "V2",
+    "eval_id": "sea-regional-banks/group.common-issues",
+    "question_id": "group.common-issues",
+    "subject_id": "sea-regional-banks",
+    "run_id": "2026-09-24",
+    "summary": "Tradeview flagged CIMB and Maybank for third-quarter fair-value losses; both are also Indonesia foreign-cap beneficiaries and joined BNM's tokenised-deposit trial. Bangkok Bank absent.",
+    "state": "watch",
+    "citations": [
+      {
+        "document_id": "b9d28d968412048a",
+        "url": null,
+        "quote": "So far, CIMB Group Holdings Bhd, Malayan Banking Bhd (Maybank) and AMMB Holdings Bhd look more exposed,\u201d Ng said.",
+        "development_id": "b9d28d968412048a-3"
+      },
+      {
+        "document_id": "4a0f2d61d1961db8",
+        "url": null,
+        "quote": "CIMB (\u201ctrading buy\u201d, target price: RM7.80) will be the biggest beneficiary of the withdrawal of this policy, given that its Indonesia subsidiary, CIMB Niaga, contributed more than 30% of its group earnings last year.",
+        "development_id": "4a0f2d61d1961db8-2"
+      },
+      {
+        "document_id": "4a0f2d61d1961db8",
+        "url": null,
+        "quote": "Another beneficiary is Malayan Banking Bhd (\u201cbuy\u201d, TP: RM9.15), given its majority stake in Bank Internasional Indonesia (BII).",
+        "development_id": "4a0f2d61d1961db8-3"
+      },
+      {
+        "document_id": "c1f62067d2a38d2e",
+        "url": null,
+        "quote": "tokenised deposits for payments by Malayan Banking Bhd (KL: MAYBANK)",
+        "development_id": "c1f62067d2a38d2e-2"
+      },
+      {
+        "document_id": "c1f62067d2a38d2e",
+        "url": null,
+        "quote": "tokenised deposits for payments by CIMB Group Holdings Bhd (KL: CIMB).",
+        "development_id": "c1f62067d2a38d2e-3"
+      },
+      {
+        "document_id": "b9d28d968412048a",
+        "url": null,
+        "quote": "It noted that Maybank, CIMB and RHB Bank Bhd could benefit from their Singapore operations as higher Singapore Overnight Rate Average rates lift asset yields and support NIM expansion.",
+        "development_id": "b9d28d968412048a-4"
+      }
+    ],
+    "changes": [
+      "b9d28d968412048a-3",
+      "4a0f2d61d1961db8-2",
+      "4a0f2d61d1961db8-3",
+      "c1f62067d2a38d2e-2",
+      "c1f62067d2a38d2e-3",
+      "b9d28d968412048a-4"
+    ],
+    "facts": []
+  },
+  {
+    "variant": "V2",
+    "eval_id": "mas/central-bank.regulation",
+    "question_id": "central-bank.regulation",
+    "subject_id": "mas",
+    "run_id": "2026-09-24",
+    "summary": "MAS issued draft AI Risk Management Guidelines, stablecoin consultation P015-2026 (closes 16 October 2026), a TLAC bill, Notice 643A amendment and a national AML strategy.",
+    "state": "new",
+    "citations": [
+      {
+        "document_id": "30c6454b3295f845",
+        "url": null,
+        "quote": "MAS has also issued a set of Guidelines for AI Risk Management for public consultation.",
+        "development_id": "a08acf6f980bfad3-1"
+      },
+      {
+        "document_id": "a08acf6f980bfad3",
+        "url": null,
+        "quote": "MAS has also issued a set of Guidelines for AI Risk Management for public consultation.",
+        "development_id": "a08acf6f980bfad3-1"
+      },
+      {
+        "document_id": "36f16bb2b0932e48",
+        "url": null,
+        "quote": "MAS on Tuesday (Sep 1) issued a consultation paper on proposed legislative changes to the Payment Services Act, which sets out the regulatory framework for stablecoins in Singapore.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "36f16bb2b0932e48",
+        "url": null,
+        "quote": "Known as the MAS Single-Currency Stablecoin framework, the legislation only allows issuers licensed by the regulator to describe themselves as \u201cMAS-regulated stablecoins\u201d.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "36f16bb2b0932e48",
+        "url": null,
+        "quote": "Stablecoins not regulated by MAS will be treated as digital payment tokens (DPTs) and be subject to the same consumer protection safeguards that apply to this asset.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "36f16bb2b0932e48",
+        "url": null,
+        "quote": "The proposed changes include requirements for issuers to ensure their stablecoins retain their value, maintain sufficient capital, allow users to redeem the tokens at their original value and provide relevant disclosure to users.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "36f16bb2b0932e48",
+        "url": null,
+        "quote": "Such areas include the multi-jurisdictional issuance of stablecoins, recognition of foreign-issued stablecoin, additional requirements to safeguard financial stability, and more consumer protection safeguards.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "56c9fa2014ab0540",
+        "url": null,
+        "quote": "The optional regime offers an MAS label, but issuers will have to decide if the extra rules and costs are worth it.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "7ba8abe7f48968a6",
+        "url": null,
+        "quote": "The Monetary Authority of Singapore on Sept 1 issued a consultation paper on proposed legislative changes to the Payment Services Act.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "7ba8abe7f48968a6",
+        "url": null,
+        "quote": "Known as the MAS Single-Currency Stablecoin framework, the legislation only allows issuers licensed by the regulator to describe themselves as \u201cMAS-regulated stablecoins\u201d.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "7ba8abe7f48968a6",
+        "url": null,
+        "quote": "Stablecoins not regulated by MAS will be treated as digital payment tokens (DPTs) and be subject to the same consumer protection safeguards that apply to this asset.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "7ba8abe7f48968a6",
+        "url": null,
+        "quote": "The proposed changes include requirements for issuers to ensure their stablecoins retain their value, maintain sufficient capital, allow users to redeem the tokens at their original value and provide relevant disclosure to users.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "7ba8abe7f48968a6",
+        "url": null,
+        "quote": "Such areas include the multi-jurisdictional issuance of stablecoins, recognition of foreign-issued stablecoins, additional requirements to safeguard financial stability and more consumer protection safeguards.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "92ab1750b83a161e",
+        "url": null,
+        "quote": "This paper sets out proposed legislative amendments to the Payment Services Act 2019 to introduce the regulatory framework for stablecoins in Singapore, as well as proposals on further requirements taking into account stablecoin developments since 2023.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "92ab1750b83a161e",
+        "url": null,
+        "quote": "Issuers of MAS-regulated stablecoin will be prohibited from paying interest, return, or any other \nbenefit to a holder that is directly or indirectly attributable to the holding of or balance of  \nMAS-regulated stablecoins.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "92ab1750b83a161e",
+        "url": null,
+        "quote": "MAS proposes amendments to introduce a new Part 2A to the PS Act, which establishes a \nframework for the designation and regulation of systemic stablecoins.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "957500a2b904c731",
+        "url": null,
+        "quote": "Singapore\u2019s financial regulator has proposed requiring stablecoin issuers to maintain segregated reserves equal to at least 100% of tokens in circulation.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "957500a2b904c731",
+        "url": null,
+        "quote": "The new rules would also bar stablecoin issuers from paying interest or other benefits tied to customers\u2019 stablecoin holdings, an approach the MAS states \u201cis aligned with international regulatory practices.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "957500a2b904c731",
+        "url": null,
+        "quote": "The consultation also covers limited recognition for a small number of foreign stablecoins governed by comparable overseas frameworks, though how that recognition would work in practice, how responsibilities would be divided for jointly issued tokens and whether transitional arrangements would apply to existing Singapore-based issuers are yet to be determined.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "957500a2b904c731",
+        "url": null,
+        "quote": "Trusted and well-regulated stablecoins can serve as a credible settlement asset in tokenized financial markets, while mitigating risks to users and the broader financial system,\" said Ho Hern Shin, MAS deputy managing director for financial supervision.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "a06e4aa018165f63",
+        "url": null,
+        "quote": "The Monetary Authority of Singapore (MAS) today published a consultation paper on proposed legislative amendments to the Payment Services Act 2019 (PS Act) to implement MAS\u2019 regulatory framework for stablecoins",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "a06e4aa018165f63",
+        "url": null,
+        "quote": "Multi-jurisdictional issuance of stablecoins \u2013 MAS proposes to allow stablecoins that are jointly issued by a Singapore and foreign issuer to be regulated under the MAS-SCS framework, and labelled as \u201cMAS-regulated stablecoins\u201d, provided that risks are sufficiently mitigated.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "a06e4aa018165f63",
+        "url": null,
+        "quote": "Recognition of foreign-issued stablecoins \u2013 Recognising cross-border wholesale use cases of stablecoins, MAS proposes to recognise a limited number of foreign-issued stablecoins regulated under a comparable foreign regulatory framework.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "a06e4aa018165f63",
+        "url": null,
+        "quote": "Additional requirements to safeguard financial stability \u2013 MAS proposes several enhancements to the MAS-SCS framework, including the prohibition of interest to be paid on MAS-regulated stablecoins, the requirement for stress testing, and to have in place plans for recovery and orderly wind-down of MAS-regulated stablecoin issuers.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "a06e4aa018165f63",
+        "url": null,
+        "quote": "Additional consumer protection safeguards \u2013 MAS proposes to impose safeguards similar to those applicable to existing PS Act licensees, including the requirement to safeguard customer\u2019s monies received before the stablecoins have been issued.",
+        "development_id": "36f16bb2b0932e48-0"
+      },
+      {
+        "document_id": "5acb03fef2960e31",
+        "url": null,
+        "quote": "Mr Alvin Tan, on behalf of Deputy Prime Minister and Minister for Trade and Industry (Trade), as Minister-in-charge of the Monetary Authority of Singapore (\u201cMAS\u201d), Mr Gan Kim Yong, today moved the Financial Services and Markets (Amendment) Bill 2026 (the \u201cBill\u201d) for First Reading in Parliament.",
+        "development_id": "5acb03fef2960e31-0"
+      },
+      {
+        "document_id": "3394a3e1424a6978",
+        "url": null,
+        "quote": "MAS Notice 643A (Amendment) 2026 (531.1 KB) dated 4 September 2026 takes effect.",
+        "development_id": "3394a3e1424a6978-0"
+      },
+      {
+        "document_id": "3394a3e1424a6978",
+        "url": null,
+        "quote": "A bank incorporated in Singapore must prepare the statement under Appendix 9 on a \nsemi-annual basis, containing the following exposures as at 30 June and 31 December, no \nlater than the 14th day of the second month from 30 June and 31 December of each year \nrespectively, or such other period as the Authority may approve, at the Solo level and the \nGroup level, in accordance with the instructions and format of the statement set out in \nAppendix 9",
+        "development_id": "3394a3e1424a6978-0"
+      },
+      {
+        "document_id": "4df958f06a407676",
+        "url": null,
+        "quote": "MAS Notice 656 (Amendment No.2) 2026 (565.3 KB) dated 4 September 2026 takes effect.",
+        "development_id": "3394a3e1424a6978-0"
+      },
+      {
+        "document_id": "da28361d25b49441",
+        "url": null,
+        "quote": "MAS NOTICE 643 (AMENDMENT) 2026 \n \nIssued on: 4 September 2026",
+        "development_id": "3394a3e1424a6978-0"
+      },
+      {
+        "document_id": "da28361d25b49441",
+        "url": null,
+        "quote": "must not permit, at the Group level, the aggregate of the exposures \nof the banking group to each extended director group, extended \nsenior management group, indirect controller group, substantial \nshareholder group, or key credit approver group to exceed 25% of \nthe Tier 1 capital of the banking group.",
+        "development_id": "3394a3e1424a6978-0"
+      },
+      {
+        "document_id": "da28361d25b49441",
+        "url": null,
+        "quote": "The bank must ensure that its board consider the update referred to in \nparagraph 12B and determine whether it is appropriate for each such \ntransaction to continue without being subject to the requirements of this Part",
+        "development_id": "3394a3e1424a6978-0"
+      },
+      {
+        "document_id": "9724fb50f5b197e1",
+        "url": null,
+        "quote": "SINGAPORE (Oct 30): Singapore has published its 32-page national anti-money laundering (AML) strategy, as part of continuing efforts to maintain the effectiveness of its anti money-laundering (ML) in the country.",
+        "development_id": "9724fb50f5b197e1-0"
+      },
+      {
+        "document_id": "30c6454b3295f845",
+        "url": null,
+        "quote": "SAFR was published as a white paper in July this year.",
+        "development_id": "4ea1e0428bc037e0-4"
+      },
+      {
+        "document_id": "4ea1e0428bc037e0",
+        "url": null,
+        "quote": "MAS, together with leading financial institutions and FinTechs, published an industry white paper on developing safeguards for AI agents in Finance.",
+        "development_id": "4ea1e0428bc037e0-4"
+      },
+      {
+        "document_id": "a08acf6f980bfad3",
+        "url": null,
+        "quote": "The latest joint initiative with industry is SAFR \u2014 Safeguards for Agentic Finance at Runtime.",
+        "development_id": "4ea1e0428bc037e0-4"
+      },
+      {
+        "document_id": "14d39303de7fb5b9",
+        "url": null,
+        "quote": "Informs insurers on the issuance of the Response to Consultation Paper on the proposed changes to MAS Notice FHC-N133 on Valuation and Capital Framework for Designated Financial Holding Companies (Licensed Insurer).",
+        "development_id": "14d39303de7fb5b9-0"
+      }
+    ],
+    "changes": [
+      "a08acf6f980bfad3-1",
+      "9724fb50f5b197e1-0",
+      "4ea1e0428bc037e0-4"
+    ],
+    "facts": []
+  },
+  {
+    "variant": "V2",
+    "eval_id": "ocbc/bank.incidents",
+    "question_id": "bank.incidents",
+    "subject_id": "ocbc",
+    "run_id": "2026-09-24",
+    "summary": "OCBC's ATM, Internet and mobile banking services were disrupted on 23 September; CEO David Conner said all customer data remained protected.",
+    "state": "needs_attention",
+    "citations": [
+      {
+        "document_id": "1c5f03888832ab30",
+        "url": null,
+        "quote": "All customer data was protected with \u201cappropriate security measures\u201d during today\u2019s disruption of automated-teller machine, Internet and mobile-phone banking services, David Conner, chief executive officer of Oversea- Chinese Banking Corp., Singapore\u2019s second-biggest bank, said in an e-mailed statement.",
+        "development_id": "1c5f03888832ab30-0"
+      }
+    ],
+    "changes": [
+      "1c5f03888832ab30-0"
+    ],
+    "facts": []
+  },
+  {
+    "variant": "V2",
+    "eval_id": "uob/custom.exposure",
+    "question_id": "custom.exposure",
+    "subject_id": "uob",
+    "run_id": "2026-09-24",
+    "summary": "Since 10 Sep, no adverse market developments reported; Macquarie upgraded UOB on 16 Sep after CRE review, estimating $181m extra provisions per 10% collateral drop.",
+    "state": "new",
+    "citations": [
+      {
+        "document_id": "67383db0815d2524",
+        "url": null,
+        "quote": "Based on UOB's updated disclosures, we estimate each 10% collateral value reduction drives $181 million higher provisions, and any slippage from special mention to NPL drives $100 million provisions.",
+        "development_id": "67383db0815d2524-3"
+      },
+      {
+        "document_id": "67383db0815d2524",
+        "url": null,
+        "quote": "The bank has a handy $345 million in excess provisions in its US branch it can shift across to cover these risks",
+        "development_id": "67383db0815d2524-4"
+      },
+      {
+        "document_id": "67383db0815d2524",
+        "url": null,
+        "quote": "On Sept 16, Macquarie Capital upgraded UOB to outperform following a deep dive into the banking group\u2019s commercial real estate (CRE) exposure.",
+        "development_id": "67383db0815d2524-0"
+      },
+      {
+        "document_id": "67383db0815d2524",
+        "url": null,
+        "quote": "In its 1HFY2026 results deck, UOB showed details of its exposure to US and Greater China CRE.",
+        "development_id": "67383db0815d2524-2"
+      },
+      {
+        "document_id": "67383db0815d2524",
+        "url": null,
+        "quote": "Jayden Vantarakis says UOB's price-to-book-relative remains at half vs DBS and OCBC.",
+        "development_id": "67383db0815d2524-1"
+      }
+    ],
+    "changes": [
+      "67383db0815d2524-3",
+      "67383db0815d2524-4",
+      "67383db0815d2524-0",
+      "67383db0815d2524-2",
+      "67383db0815d2524-1"
+    ],
+    "facts": []
+  }
+]

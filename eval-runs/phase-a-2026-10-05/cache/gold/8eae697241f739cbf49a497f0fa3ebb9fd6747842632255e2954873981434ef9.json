@@ -1,0 +1,246 @@
+{
+ "group": "gold",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "decisions": [
+   {
+    "document_id": "9724fb50f5b197e1",
+    "include": false,
+    "reason": "The dateline says Oct 30, so this is an old story republished under a new date. Singapore's AML strategy was not published inside the lookback."
+   },
+   {
+    "document_id": "9ac4aa2e8067cc95",
+    "include": true,
+    "reason": "A supervisory speech on simplifying the EU prudential framework and finishing the Banking Union. It bears on capital policy direction."
+   },
+   {
+    "document_id": "9402e23e12d5dd84",
+    "include": false,
+    "reason": "A general RBI speech on fintech and trust, with no specific banking regulatory development."
+   },
+   {
+    "document_id": "2bd2d5d9a38dcd02",
+    "include": false,
+    "reason": "The dateline says Feb 5 and the list uses 2018 data, so this is an old BNM D-SIB story republished."
+   },
+   {
+    "document_id": "d7f79e07e4bfda31",
+    "include": true,
+    "reason": "Swiss business groups lobbied parliament against the UBS capital rules ahead of the vote."
+   },
+   {
+    "document_id": "d2d5af3117771e42",
+    "include": false,
+    "reason": "An old article (April 1 dateline) about a fine imposed in January 2026, so not a development in the lookback."
+   },
+   {
+    "document_id": "2029cf90436be0bf",
+    "include": true,
+    "reason": "The HKMA is considering climate finance disclosure requirements for banks and will survey banks in 2027 on their use of the taxonomy."
+   },
+   {
+    "document_id": "d5ab381941eb31ab",
+    "include": false,
+    "reason": "An ECB research working paper, not a regulatory or supervisory development."
+   },
+   {
+    "document_id": "f70ea7fea0ddfd3a",
+    "include": false,
+    "reason": "A monetary policy and energy price interview, not banking regulation."
+   },
+   {
+    "document_id": "c4d4dbb5e2bcd389",
+    "include": true,
+    "reason": "Same HKMA climate disclosure story as the Straits Times piece."
+   },
+   {
+    "document_id": "d10c75158d8efd25",
+    "include": false,
+    "reason": "The dateline says March 31 and it covers BNM's 2025 annual report, so this is old content republished."
+   },
+   {
+    "document_id": "8a5e3b8587edc1ac",
+    "include": false,
+    "reason": "The RBA's parliamentary statement is mostly about monetary policy and payments."
+   },
+   {
+    "document_id": "01e736463285d60c",
+    "include": true,
+    "reason": "Reuters report on Bowman's comments about the stress test overhaul."
+   },
+   {
+    "document_id": "8fc94d556c6cf992",
+    "include": false,
+    "reason": "An ECB research working paper on fragmentation of macroprudential buffers, not a development."
+   },
+   {
+    "document_id": "cf8b56eac5871fcb",
+    "include": true,
+    "reason": "A Fed speech on modernising the discount window, which is a bank liquidity facility."
+   },
+   {
+    "document_id": "fcb5a1966f0619c9",
+    "include": false,
+    "reason": "An ECB research working paper on the SSM and firm investment."
+   },
+   {
+    "document_id": "4a7d8fb5c30ac562",
+    "include": true,
+    "reason": "Bowman's speech on finalising the overhaul of the Fed's capital stress test framework."
+   },
+   {
+    "document_id": "a2d86767f3974cfb",
+    "include": true,
+    "reason": "The Fed terminated its enforcement action against SNB Bancshares and Bank of Eufaula."
+   },
+   {
+    "document_id": "76c512f31e51c5fe",
+    "include": false,
+    "reason": "An old republished story (Feb 2 dateline) quoting a former CIMB chairman."
+   },
+   {
+    "document_id": "c6293c2fa9eddb4a",
+    "include": true,
+    "reason": "The Basel Committee's latest Basel III monitoring report on Group 1 bank capital and liquidity."
+   },
+   {
+    "document_id": "b34dc379433787cb",
+    "include": false,
+    "reason": "An ECB research paper on monetary policy transmission."
+   },
+   {
+    "document_id": "cec165afd2edc412",
+    "include": true,
+    "reason": "The Swiss finance minister and the UBS CEO publicly disputed the capital rules ahead of the decision."
+   },
+   {
+    "document_id": "5b3753cd2b41e758",
+    "include": true,
+    "reason": "Initial findings of the independent review of the SVB failure and of shortcomings in Fed supervision."
+   },
+   {
+    "document_id": "1c5f03888832ab30",
+    "include": false,
+    "reason": "An old OCBC disruption story; the named CEO, David Conner, led the bank around 2010, so this is not a current incident."
+   },
+   {
+    "document_id": "bea54e6a0b4a0e6d",
+    "include": true,
+    "reason": "The FATF's mutual evaluation of Turkey's AML/CFT regime."
+   },
+   {
+    "document_id": "ed7d0023d140a394",
+    "include": true,
+    "reason": "Switzerland's upper house voted for UBS to back its foreign units with 90% CET1 capital."
+   },
+   {
+    "document_id": "3ca5afe2e022706b",
+    "include": false,
+    "reason": "About the EU company law regime, not banking regulation."
+   },
+   {
+    "document_id": "c4bc37b00cda5ad7",
+    "include": false,
+    "reason": "An old republished story (Dec 4 dateline) on BNM's digital bank licensing framework."
+   },
+   {
+    "document_id": "32af602fc2cb1a60",
+    "include": true,
+    "reason": "The Fed issued consent prohibition orders against three former bank employees."
+   }
+  ],
+  "events": [
+   {
+    "title": "Switzerland's upper house voted to require UBS to back its foreign units with 90% CET1 capital, after lobbying by business groups and a public clash between the finance minister and UBS.",
+    "document_ids": [
+     "ed7d0023d140a394",
+     "cec165afd2edc412",
+     "d7f79e07e4bfda31"
+    ],
+    "must_mention": true,
+    "reason": "A legislative step on capital rules for a G-SIB, with significant prudential and competitive implications."
+   },
+   {
+    "title": "Fed Vice Chair for Supervision Bowman set out the final overhaul of the stress test framework used to set bank capital requirements.",
+    "document_ids": [
+     "4a7d8fb5c30ac562",
+     "01e736463285d60c"
+    ],
+    "must_mention": true,
+    "reason": "A major change in how US large-bank capital requirements are set."
+   },
+   {
+    "title": "Bowman released initial findings of the independent Starling review of SVB's failure and of shortcomings in Fed supervision.",
+    "document_ids": [
+     "5b3753cd2b41e758"
+    ],
+    "must_mention": true,
+    "reason": "Significant findings on supervisory effectiveness that are directly relevant to supervisors."
+   },
+   {
+    "title": "The Basel Committee's monitoring report shows Group 1 banks' capital and leverage ratios stable at end-2025, LCR slightly up, NSFR slightly down, and a +2.2% Tier 1 MRC impact from full Basel III.",
+    "document_ids": [
+     "c6293c2fa9eddb4a"
+    ],
+    "must_mention": false,
+    "reason": "A core Basel III data point, but it shows stability, so it is secondary in a short answer."
+   },
+   {
+    "title": "The FATF evaluation found Turkey has strengthened its AML/CFT regime but must do more to trace cross-border proceeds and recover illicit assets.",
+    "document_ids": [
+     "bea54e6a0b4a0e6d"
+    ],
+    "must_mention": false,
+    "reason": "A relevant AML/CFT assessment, but of a single jurisdiction and lower priority."
+   },
+   {
+    "title": "The Fed issued prohibition orders against three former bank employees and terminated a written agreement with SNB Bancshares and Bank of Eufaula.",
+    "document_ids": [
+     "32af602fc2cb1a60",
+     "a2d86767f3974cfb"
+    ],
+    "must_mention": false,
+    "reason": "Routine, small-scale enforcement."
+   },
+   {
+    "title": "The HKMA plans to explore climate finance disclosures by banks and a 2027 survey on how they use its taxonomy.",
+    "document_ids": [
+     "2029cf90436be0bf",
+     "c4d4dbb5e2bcd389"
+    ],
+    "must_mention": false,
+    "reason": "An exploratory step only loosely tied to the core topic."
+   },
+   {
+    "title": "A European supervisory speech called for simplifying the prudential framework and reducing fragmentation in the Banking Union.",
+    "document_ids": [
+     "9ac4aa2e8067cc95"
+    ],
+    "must_mention": false,
+    "reason": "Policy commentary with no concrete measure."
+   },
+   {
+    "title": "Fed Vice Chair Jefferson described modernisation of the discount window as a liquidity backstop for banks.",
+    "document_ids": [
+     "cf8b56eac5871fcb"
+    ],
+    "must_mention": false,
+    "reason": "An incremental liquidity facility update."
+   }
+  ],
+  "series": [],
+  "expected_state": "watch",
+  "state_reason": "The Swiss legislative push for much higher UBS capital is contested and still in progress. The SVB review exposes supervisory failings and the US stress test overhaul changes how capital is set. All three are developing and could become material. Enforcement this week was routine, and there was no acute incident needing immediate follow-up."
+ },
+ "usage": {
+  "cost_usd": 0.2128906,
+  "input_tokens": 16840,
+  "output_tokens": 3824,
+  "duration_ms": 42243,
+  "turns": 2
+ }
+}

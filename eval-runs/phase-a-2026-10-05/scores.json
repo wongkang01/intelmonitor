@@ -1,0 +1,802 @@
+{
+ "rows": [
+  {
+   "eval_id": "banking-regulation/topic.new-developments",
+   "variant": "V0-C",
+   "summary": "MAS Financial Stability Review (22 Sep) found banks well-capitalised but ranked AI-driven cyber risk top concern; EBA finalised third-party risk guidelines; FCA opened AML probe into Euro Exchange Securities.",
+   "state": "watch",
+   "gold_state": "new",
+   "state_ok": false,
+   "correctness": 0.4,
+   "claims_supported": 2,
+   "claims": 5,
+   "absence_claims": 0,
+   "after_run_date": 0,
+   "coverage": 0.0,
+   "must_items": 3,
+   "unsupported_numbers": [],
+   "citations": 5
+  },
+  {
+   "eval_id": "banking-regulation/topic.new-developments",
+   "variant": "V1",
+   "summary": "BCBS's Basel III monitoring shows stable capital, Group 1 LCR 136.6%, NSFR 123.3%; Fed's Bowman flags final stress-test revisions soon; UBS capital dispute with Swiss minister continues.",
+   "state": "new",
+   "gold_state": "new",
+   "state_ok": true,
+   "correctness": 1.0,
+   "claims_supported": 5,
+   "claims": 5,
+   "absence_claims": 0,
+   "after_run_date": 0,
+   "coverage": 0.3333333333333333,
+   "must_items": 3,
+   "unsupported_numbers": [],
+   "citations": 3
+  },
+  {
+   "eval_id": "banking-regulation/topic.new-developments",
+   "variant": "V2",
+   "summary": "Swiss upper house backed 90% CET1 cover for UBS foreign units; Fed flagged stress-test and capital finalisation; SVB review faulted Fed supervisors; Singapore published national AML strategy.",
+   "state": "watch",
+   "gold_state": "new",
+   "state_ok": false,
+   "correctness": 1.0,
+   "claims_supported": 5,
+   "claims": 5,
+   "absence_claims": 0,
+   "after_run_date": 0,
+   "coverage": 1.0,
+   "must_items": 3,
+   "unsupported_numbers": [],
+   "citations": 9,
+   "change": {
+    "matched_developments": 19,
+    "flagged": 19,
+    "precision": 1.0,
+    "precision_same_kind": 1.0,
+    "gold_changed_events": 9,
+    "gold_unchanged_events": 0,
+    "recall": 0.7777777777777778
+   }
+  },
+  {
+   "eval_id": "geopolitics/geopolitics.financial-channels",
+   "variant": "V0-C",
+   "summary": "US Treasury's Iran sanctions campaign threatens mid-tier Chinese banks; China tightened outbound capital rules; PBOC steadied the yuan before the 24 September Trump-Xi summit.",
+   "state": "watch",
+   "gold_state": "watch",
+   "state_ok": true,
+   "correctness": 0.75,
+   "claims_supported": 3,
+   "claims": 4,
+   "absence_claims": 0,
+   "after_run_date": 0,
+   "coverage": 0.5,
+   "must_items": 2,
+   "unsupported_numbers": [],
+   "citations": 6
+  },
+  {
+   "eval_id": "geopolitics/geopolitics.financial-channels",
+   "variant": "V1",
+   "summary": "US seeks $61 million crypto forfeiture over Chinese-linked Iran oil payments; new Russia sanctions law threatens tariffs up to 100% on top buyers.",
+   "state": "watch",
+   "gold_state": "watch",
+   "state_ok": true,
+   "correctness": 0.75,
+   "claims_supported": 3,
+   "claims": 4,
+   "absence_claims": 0,
+   "after_run_date": 0,
+   "coverage": 0.5,
+   "must_items": 2,
+   "unsupported_numbers": [],
+   "citations": 4
+  },
+  {
+   "eval_id": "geopolitics/geopolitics.financial-channels",
+   "variant": "V2",
+   "summary": "US 10-year 5.11%, series high; VIX 14.21; SGD weakened 0.23% against the USD and 0.26% against the CNY on the week.",
+   "state": "needs_attention",
+   "gold_state": "watch",
+   "state_ok": false,
+   "correctness": 1.0,
+   "claims_supported": 5,
+   "claims": 5,
+   "absence_claims": 0,
+   "after_run_date": 0,
+   "coverage": 0.0,
+   "must_items": 2,
+   "unsupported_numbers": [],
+   "citations": 4,
+   "change": {
+    "matched_developments": 8,
+    "flagged": 4,
+    "precision": 1.0,
+    "precision_same_kind": 0.5,
+    "gold_changed_events": 3,
+    "gold_unchanged_events": 1,
+    "recall": 1.0
+   }
+  },
+  {
+   "eval_id": "singapore-banks/group.peer-moves",
+   "variant": "V0-C",
+   "summary": "DBS, OCBC and UOB jointly completed first live SGD tokenised-deposit interbank transactions on Swift's ledger on 10 Sep; no unilateral move peers must follow found.",
+   "state": "new",
+   "gold_state": "new",
+   "state_ok": true,
+   "correctness": 0.5,
+   "claims_supported": 1,
+   "claims": 2,
+   "absence_claims": 1,
+   "after_run_date": 0,
+   "coverage": 0.0,
+   "must_items": 2,
+   "unsupported_numbers": [],
+   "citations": 3
+  },
+  {
+   "eval_id": "singapore-banks/group.peer-moves",
+   "variant": "V1",
+   "summary": "DBS expanded gold vaulting capacity this year; OCBC has approached storage providers for more space, and other banks are considering similar moves, per Bloomberg.",
+   "state": "new",
+   "gold_state": "new",
+   "state_ok": true,
+   "correctness": 1.0,
+   "claims_supported": 3,
+   "claims": 3,
+   "absence_claims": 0,
+   "after_run_date": 0,
+   "coverage": 0.5,
+   "must_items": 2,
+   "unsupported_numbers": [],
+   "citations": 1
+  },
+  {
+   "eval_id": "singapore-banks/group.peer-moves",
+   "variant": "V2",
+   "summary": "DBS's wealth push (S$1 trillion AUM target, 18 new centres) and tokenised deposits may draw followers; OCBC is already chasing bullion storage after DBS's gold vaulting.",
+   "state": "new",
+   "gold_state": "new",
+   "state_ok": true,
+   "correctness": 0.6,
+   "claims_supported": 3,
+   "claims": 5,
+   "absence_claims": 0,
+   "after_run_date": 0,
+   "coverage": 0.5,
+   "must_items": 2,
+   "unsupported_numbers": [],
+   "citations": 5,
+   "change": {
+    "matched_developments": 6,
+    "flagged": 0,
+    "precision": null,
+    "precision_same_kind": null,
+    "gold_changed_events": 0,
+    "gold_unchanged_events": 2,
+    "recall": null
+   }
+  },
+  {
+   "eval_id": "sea-regional-banks/group.common-issues",
+   "variant": "V0-C",
+   "summary": "No common adverse issue found across Maybank, CIMB and Bangkok Bank for 17\u201324 Sep 2026; Thai flood relief measures came after the window.",
+   "state": "stable",
+   "gold_state": "watch",
+   "state_ok": false,
+   "correctness": 0.0,
+   "claims_supported": 0,
+   "claims": 1,
+   "absence_claims": 1,
+   "after_run_date": 1,
+   "coverage": 0.0,
+   "must_items": 2,
+   "unsupported_numbers": [],
+   "citations": 2
+  },
+  {
+   "eval_id": "sea-regional-banks/group.common-issues",
+   "variant": "V1",
+   "summary": "Only a routine overlap: BNM onboarded both Maybank and CIMB to test tokenised deposits for payments. No shared adverse issue is evident; Bangkok Bank isn't involved.",
+   "state": "new",
+   "gold_state": "watch",
+   "state_ok": false,
+   "correctness": 0.5,
+   "claims_supported": 1,
+   "claims": 2,
+   "absence_claims": 2,
+   "after_run_date": 0,
+   "coverage": 0.0,
+   "must_items": 2,
+   "unsupported_numbers": [],
+   "citations": 2
+  },
+  {
+   "eval_id": "sea-regional-banks/group.common-issues",
+   "variant": "V2",
+   "summary": "Tradeview flagged CIMB and Maybank for third-quarter fair-value losses; both are also Indonesia foreign-cap beneficiaries and joined BNM's tokenised-deposit trial. Bangkok Bank absent.",
+   "state": "watch",
+   "gold_state": "watch",
+   "state_ok": true,
+   "correctness": 1.0,
+   "claims_supported": 3,
+   "claims": 3,
+   "absence_claims": 1,
+   "after_run_date": 0,
+   "coverage": 0.0,
+   "must_items": 2,
+   "unsupported_numbers": [],
+   "citations": 3,
+   "change": {
+    "matched_developments": 11,
+    "flagged": 11,
+    "precision": 1.0,
+    "precision_same_kind": 1.0,
+    "gold_changed_events": 4,
+    "gold_unchanged_events": 0,
+    "recall": 1.0
+   }
+  },
+  {
+   "eval_id": "mas/central-bank.regulation",
+   "variant": "V0-C",
+   "summary": "MAS opened a stablecoin consultation on 1 Sept (closes 16 Oct) with clarifications for banks; its bank corporate governance paper came 30 Sept, outside the period.",
+   "state": "new",
+   "gold_state": "new",
+   "state_ok": true,
+   "correctness": 0.75,
+   "claims_supported": 3,
+   "claims": 4,
+   "absence_claims": 0,
+   "after_run_date": 1,
+   "coverage": 0.0,
+   "must_items": 2,
+   "unsupported_numbers": [],
+   "citations": 3
+  },
+  {
+   "eval_id": "mas/central-bank.regulation",
+   "variant": "V1",
+   "summary": "MAS issued revised Notices 656, 643 and 643A for banks on 4 Sep, opened a stablecoin consultation (closes 16 Oct), and the Bill introduced TLAC powers.",
+   "state": "new",
+   "gold_state": "new",
+   "state_ok": true,
+   "correctness": 1.0,
+   "claims_supported": 6,
+   "claims": 6,
+   "absence_claims": 0,
+   "after_run_date": 0,
+   "coverage": 1.0,
+   "must_items": 2,
+   "unsupported_numbers": [],
+   "citations": 6
+  },
+  {
+   "eval_id": "mas/central-bank.regulation",
+   "variant": "V2",
+   "summary": "MAS issued draft AI Risk Management Guidelines, stablecoin consultation P015-2026 (closes 16 October 2026), a TLAC bill, Notice 643A amendment and a national AML strategy.",
+   "state": "new",
+   "gold_state": "new",
+   "state_ok": true,
+   "correctness": 1.0,
+   "claims_supported": 6,
+   "claims": 6,
+   "absence_claims": 0,
+   "after_run_date": 0,
+   "coverage": 1.0,
+   "must_items": 2,
+   "unsupported_numbers": [],
+   "citations": 15,
+   "change": {
+    "matched_developments": 10,
+    "flagged": 1,
+    "precision": 1.0,
+    "precision_same_kind": 1.0,
+    "gold_changed_events": 1,
+    "gold_unchanged_events": 3,
+    "recall": 1.0
+   }
+  },
+  {
+   "eval_id": "ocbc/bank.incidents",
+   "variant": "V0-C",
+   "summary": "No material OCBC operational or technology incidents found for 17\u201324 September 2026; only routine scheduled iOCBC maintenance notices (26\u201327 September) surfaced, with no reported outages, breaches or MAS action.",
+   "state": "stable",
+   "gold_state": "needs_attention",
+   "state_ok": false,
+   "correctness": 0.0,
+   "claims_supported": 0,
+   "claims": 1,
+   "absence_claims": 2,
+   "after_run_date": 0,
+   "coverage": 0.0,
+   "must_items": 1,
+   "unsupported_numbers": [],
+   "citations": 1
+  },
+  {
+   "eval_id": "ocbc/bank.incidents",
+   "variant": "V1",
+   "summary": "An article dated Sept 23 reports an OCBC ATM, internet and mobile banking disruption with data protected. Its CEO quote looks dated, and nothing corroborates it.",
+   "state": "watch",
+   "gold_state": "needs_attention",
+   "state_ok": false,
+   "correctness": 0.6666666666666666,
+   "claims_supported": 2,
+   "claims": 3,
+   "absence_claims": 1,
+   "after_run_date": 0,
+   "coverage": 1.0,
+   "must_items": 1,
+   "unsupported_numbers": [],
+   "citations": 2
+  },
+  {
+   "eval_id": "ocbc/bank.incidents",
+   "variant": "V2",
+   "summary": "OCBC's ATM, Internet and mobile banking services were disrupted on 23 September; CEO David Conner said all customer data remained protected.",
+   "state": "needs_attention",
+   "gold_state": "needs_attention",
+   "state_ok": true,
+   "correctness": 1.0,
+   "claims_supported": 2,
+   "claims": 2,
+   "absence_claims": 0,
+   "after_run_date": 0,
+   "coverage": 1.0,
+   "must_items": 1,
+   "unsupported_numbers": [],
+   "citations": 1,
+   "change": {
+    "matched_developments": 1,
+    "flagged": 1,
+    "precision": 1.0,
+    "precision_same_kind": 1.0,
+    "gold_changed_events": 1,
+    "gold_unchanged_events": 0,
+    "recall": 1.0
+   }
+  },
+  {
+   "eval_id": "uob/custom.exposure",
+   "variant": "V0-C",
+   "summary": "Little new UOB-specific adverse news 10\u201324 Sep: Indonesia's rupiah and capital outflows pressure ASEAN credit; Jefferies' 23 Sep initiation flags Greater China CRE asset quality. Unverified snippets.",
+   "state": "watch",
+   "gold_state": "watch",
+   "state_ok": true,
+   "correctness": 0.0,
+   "claims_supported": 0,
+   "claims": 2,
+   "absence_claims": 1,
+   "after_run_date": 0,
+   "coverage": 0.0,
+   "must_items": 3,
+   "unsupported_numbers": [],
+   "citations": 3
+  },
+  {
+   "eval_id": "uob/custom.exposure",
+   "variant": "V1",
+   "summary": "No fresh Greater China CRE or ASEAN shock; Macquarie upgraded UOB citing CRE provision buffer, while UOBKH flags Middle East conflict risk to loan growth.",
+   "state": "watch",
+   "gold_state": "watch",
+   "state_ok": true,
+   "correctness": 1.0,
+   "claims_supported": 2,
+   "claims": 2,
+   "absence_claims": 2,
+   "after_run_date": 0,
+   "coverage": 0.0,
+   "must_items": 3,
+   "unsupported_numbers": [],
+   "citations": 3
+  },
+  {
+   "eval_id": "uob/custom.exposure",
+   "variant": "V2",
+   "summary": "Since 10 Sep, no adverse market developments reported; Macquarie upgraded UOB on 16 Sep after CRE review, estimating $181m extra provisions per 10% collateral drop.",
+   "state": "new",
+   "gold_state": "watch",
+   "state_ok": false,
+   "correctness": 1.0,
+   "claims_supported": 3,
+   "claims": 3,
+   "absence_claims": 1,
+   "after_run_date": 0,
+   "coverage": 0.0,
+   "must_items": 3,
+   "unsupported_numbers": [],
+   "citations": 1,
+   "change": {
+    "matched_developments": 5,
+    "flagged": 5,
+    "precision": 1.0,
+    "precision_same_kind": 1.0,
+    "gold_changed_events": 4,
+    "gold_unchanged_events": 2,
+    "recall": 0.25
+   }
+  }
+ ],
+ "overall": {
+  "standing": {
+   "V0-C": {
+    "questions": 6,
+    "correctness": 0.4,
+    "coverage": 0.08333333333333333,
+    "state_accuracy": 0.5,
+    "unsupported_numbers": 0
+   },
+   "V1": {
+    "questions": 6,
+    "correctness": 0.8194444444444444,
+    "coverage": 0.5555555555555556,
+    "state_accuracy": 0.6666666666666666,
+    "unsupported_numbers": 0
+   },
+   "V2": {
+    "questions": 6,
+    "correctness": 0.9333333333333333,
+    "coverage": 0.5833333333333334,
+    "state_accuracy": 0.6666666666666666,
+    "unsupported_numbers": 0,
+    "change_precision": 1.0,
+    "change_recall": 0.9555555555555556
+   }
+  },
+  "all": {
+   "V0-C": {
+    "questions": 7,
+    "correctness": 0.34285714285714286,
+    "coverage": 0.07142857142857142,
+    "state_accuracy": 0.5714285714285714,
+    "unsupported_numbers": 0
+   },
+   "V1": {
+    "questions": 7,
+    "correctness": 0.8452380952380952,
+    "coverage": 0.47619047619047616,
+    "state_accuracy": 0.7142857142857143,
+    "unsupported_numbers": 0
+   },
+   "V2": {
+    "questions": 7,
+    "correctness": 0.9428571428571428,
+    "coverage": 0.5,
+    "state_accuracy": 0.5714285714285714,
+    "unsupported_numbers": 0,
+    "change_precision": 1.0,
+    "change_recall": 0.837962962962963
+   }
+  }
+ },
+ "cost": {
+  "V2": {
+   "records": [
+    {
+     "engine": "claude",
+     "model": "claude-sonnet-5-5",
+     "stage": "answer",
+     "calls": 12,
+     "cost_usd": 2.3679596,
+     "seconds": 239.526
+    },
+    {
+     "engine": "claude",
+     "model": "claude-sonnet-5-5",
+     "stage": "custom_answer",
+     "calls": 2,
+     "cost_usd": 0.0452052,
+     "seconds": 9.959
+    },
+    {
+     "engine": "claude",
+     "model": "claude-sonnet-5-5",
+     "stage": "custom_draft",
+     "calls": 1,
+     "cost_usd": 0.025856999999999998,
+     "seconds": 4.237
+    },
+    {
+     "engine": "jev",
+     "model": "jev-1.13",
+     "stage": "custom_match",
+     "calls": 14,
+     "cost_usd": 0,
+     "seconds": 6.627
+    }
+   ],
+   "cost_usd": 2.4390218,
+   "replay": [
+    {
+     "run_id": "2026-09-17",
+     "calls_replayed": 3880,
+     "live_calls": 0,
+     "developments": 672,
+     "same_as_stored": true,
+     "differences": 0,
+     "seconds": 10.4
+    },
+    {
+     "run_id": "2026-09-24",
+     "calls_replayed": 5866,
+     "live_calls": 0,
+     "developments": 973,
+     "same_as_stored": true,
+     "differences": 0,
+     "seconds": 14.7
+    }
+   ],
+   "answer_seconds": {
+    "2026-09-17": 118.1,
+    "2026-09-24": 121.8
+   },
+   "custom_seconds": 16.9,
+   "wall_seconds": 282.0
+  },
+  "V1": {
+   "calls": 7,
+   "cost_usd": 1.2521158000000001,
+   "call_seconds": 54.563,
+   "input_tokens": 133619,
+   "output_tokens": 5431
+  },
+  "V0-C": {
+   "calls": 7,
+   "cost_usd": 2.9166350000000003,
+   "call_seconds": 471.606,
+   "input_tokens": 457344,
+   "output_tokens": 16123
+  },
+  "gold": {
+   "gold-screen": {
+    "calls": 11,
+    "cost_usd": 2.0068062,
+    "call_seconds": 269.54,
+    "input_tokens": 167021,
+    "output_tokens": 29752
+   },
+   "gold": {
+    "calls": 9,
+    "cost_usd": 1.919804,
+    "call_seconds": 469.279,
+    "input_tokens": 158397,
+    "output_tokens": 29695
+   }
+  },
+  "judge": {
+   "judge-correctness": {
+    "calls": 21,
+    "cost_usd": 1.7023248,
+    "call_seconds": 192.779,
+    "input_tokens": 169671,
+    "output_tokens": 17231
+   },
+   "judge-coverage": {
+    "calls": 9,
+    "cost_usd": 0.253968,
+    "call_seconds": 79.204,
+    "input_tokens": 17300,
+    "output_tokens": 6557
+   },
+   "judge-recheck": {
+    "calls": 5,
+    "cost_usd": 0.47438040000000004,
+    "call_seconds": 49.875,
+    "input_tokens": 45830,
+    "output_tokens": 4083
+   }
+  },
+  "by_group": {
+   "v1": 1.2521158,
+   "v0": 2.9166350000000003,
+   "judge-recheck": 0.47438040000000004,
+   "gold-screen": 2.0068061999999998,
+   "gold": 1.919804,
+   "judge-correctness": 1.7023248,
+   "judge-coverage": 0.25396799999999997
+  },
+  "total_usd": 12.965056,
+  "answer_model": "claude-sonnet-5-5"
+ },
+ "consistency": {
+  "correctness_items": 5,
+  "correctness_claims": 18,
+  "correctness_agreement": 0.9444444444444444,
+  "coverage_questions": [
+   "sea-regional-banks/group.common-issues",
+   "geopolitics/geopolitics.financial-channels"
+  ],
+  "coverage_decisions": 12,
+  "coverage_agreement": 1.0,
+  "gold": [
+   {
+    "eval_id": "banking-regulation/topic.new-developments",
+    "documents": 29,
+    "in_out_agreement": 1.0,
+    "kappa": 1.0,
+    "kept": [
+     14,
+     14
+    ],
+    "state": [
+     "new",
+     "watch"
+    ],
+    "state_agrees": false,
+    "must_mention_events": [
+     3,
+     3
+    ],
+    "must_mention_matched": 3
+   },
+   {
+    "eval_id": "singapore-banks/group.peer-moves",
+    "documents": 32,
+    "in_out_agreement": 0.969,
+    "kappa": 0.84,
+    "kept": [
+     3,
+     4
+    ],
+    "state": [
+     "new",
+     "new"
+    ],
+    "state_agrees": true,
+    "must_mention_events": [
+     2,
+     2
+    ],
+    "must_mention_matched": 2
+   }
+  ]
+ },
+ "gold": [
+  {
+   "eval_id": "banking-regulation/topic.new-developments",
+   "pool": 29,
+   "pool_sources": {
+    "cited:V2": 9,
+    "screen": 24,
+    "keyword": 15,
+    "cited:V1": 3
+   },
+   "kept": 14,
+   "events": 9,
+   "must_events": 3,
+   "must_series": 0,
+   "expected_state": "new",
+   "changes": {
+    "new": 9,
+    "updated": 0,
+    "unchanged": 0
+   }
+  },
+  {
+   "eval_id": "geopolitics/geopolitics.financial-channels",
+   "pool": 40,
+   "pool_sources": {
+    "screen": 33,
+    "keyword": 25,
+    "cited:V1": 4,
+    "cited:V2": 4,
+    "cited:V0-C": 1
+   },
+   "kept": 7,
+   "events": 4,
+   "must_events": 2,
+   "must_series": 0,
+   "expected_state": "watch",
+   "changes": {
+    "new": 1,
+    "updated": 2,
+    "unchanged": 1
+   }
+  },
+  {
+   "eval_id": "singapore-banks/group.peer-moves",
+   "pool": 32,
+   "pool_sources": {
+    "keyword": 25,
+    "screen": 26,
+    "cited:V2": 5,
+    "cited:V1": 1
+   },
+   "kept": 3,
+   "events": 2,
+   "must_events": 2,
+   "must_series": 0,
+   "expected_state": "new",
+   "changes": {
+    "new": 0,
+    "updated": 0,
+    "unchanged": 2
+   }
+  },
+  {
+   "eval_id": "sea-regional-banks/group.common-issues",
+   "pool": 20,
+   "pool_sources": {
+    "screen": 14,
+    "keyword": 20,
+    "cited:V2": 3,
+    "cited:V1": 2
+   },
+   "kept": 4,
+   "events": 4,
+   "must_events": 2,
+   "must_series": 0,
+   "expected_state": "watch",
+   "changes": {
+    "new": 4,
+    "updated": 0,
+    "unchanged": 0
+   }
+  },
+  {
+   "eval_id": "mas/central-bank.regulation",
+   "pool": 29,
+   "pool_sources": {
+    "keyword": 25,
+    "screen": 24,
+    "cited:V2": 15,
+    "cited:V1": 6,
+    "cited:V0-C": 1
+   },
+   "kept": 11,
+   "events": 4,
+   "must_events": 2,
+   "must_series": 0,
+   "expected_state": "new",
+   "changes": {
+    "new": 1,
+    "updated": 0,
+    "unchanged": 3
+   }
+  },
+  {
+   "eval_id": "ocbc/bank.incidents",
+   "pool": 13,
+   "pool_sources": {
+    "keyword": 13,
+    "screen": 8,
+    "cited:V1": 2,
+    "cited:V2": 1
+   },
+   "kept": 1,
+   "events": 1,
+   "must_events": 1,
+   "must_series": 0,
+   "expected_state": "needs_attention",
+   "changes": {
+    "new": 1,
+    "updated": 0,
+    "unchanged": 0
+   }
+  },
+  {
+   "eval_id": "uob/custom.exposure",
+   "pool": 22,
+   "pool_sources": {
+    "screen": 18,
+    "keyword": 14,
+    "cited:V1": 3,
+    "cited:V2": 1
+   },
+   "kept": 10,
+   "events": 7,
+   "must_events": 3,
+   "must_series": 0,
+   "expected_state": "watch",
+   "changes": {
+    "new": 4,
+    "updated": 0,
+    "unchanged": 2
+   }
+  }
+ ]
+}

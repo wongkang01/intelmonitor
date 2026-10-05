@@ -1,0 +1,61 @@
+{
+ "group": "judge-correctness",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "claims": [
+   {
+    "claim": "Tradeview flagged CIMB and Maybank for third-quarter fair-value losses",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S1"
+    ],
+    "reason": "Tradeview Capital's Ng said CIMB, Maybank and AMMB 'look more exposed' to third-quarter fair-value/mark-to-market losses."
+   },
+   {
+    "claim": "CIMB and Maybank are both Indonesia foreign-cap beneficiaries",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S2"
+    ],
+    "reason": "S2 names CIMB as the biggest beneficiary and Maybank as another beneficiary of the withdrawn foreign-cap policy."
+   },
+   {
+    "claim": "CIMB and Maybank both joined BNM's tokenised-deposit trial",
+    "kind": "fact",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S3"
+    ],
+    "reason": "S3 says BNM's DAIH onboarded separate tokenised-deposit initiatives from Maybank and CIMB for testing."
+   },
+   {
+    "claim": "Bangkok Bank absent",
+    "kind": "absence",
+    "supported": true,
+    "after_run_date": false,
+    "source_labels": [
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "reason": "None of the cited sources mentions Bangkok Bank, so nothing contradicts this."
+   }
+  ]
+ },
+ "usage": {
+  "cost_usd": 0.057276600000000004,
+  "input_tokens": 5639,
+  "output_tokens": 738,
+  "duration_ms": 7604,
+  "turns": 2
+ }
+}
