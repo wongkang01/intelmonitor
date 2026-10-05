@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Living Map</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:oklch(0.972 0.004 260)}
+a{color:oklch(0.46 0.16 258);text-decoration:none}a:hover{color:oklch(0.38 0.15 258);text-decoration:underline}
+.meta{font-size:12px;line-height:16px;color:oklch(0.47 0.014 260)}
+.sec{font-size:13px;line-height:18px;font-weight:600;margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid oklch(0.885 0.007 260)}
+.btn{height:32px;padding:0 12px;border-radius:6px;border:1px solid oklch(0.885 0.007 260);background:oklch(0.993 0.002 260);font:inherit;font-size:13px;color:oklch(0.23 0.012 260);display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.seg{height:28px;padding:0 10px;border-radius:6px;border:1px solid transparent;background:none;font:inherit;font-size:12px;color:oklch(0.47 0.014 260);cursor:pointer}
+.seg.on{background:oklch(0.993 0.002 260);border-color:oklch(0.885 0.007 260);color:oklch(0.23 0.012 260);font-weight:600}
+.n{position:absolute;box-sizing:border-box;border-radius:8px;border:1px solid oklch(0.80 0.01 260);background:oklch(0.993 0.002 260);display:flex;flex-direction:column;justify-content:center;padding:4px 10px;font-size:12px;line-height:15px}
+.n b{font-size:13px}
+.mk{background:oklch(0.975 0.004 260);border-style:dashed}
+.hot{border:2px solid oklch(0.50 0.17 28);background:oklch(0.97 0.015 25)}
+.warm{border:2px solid oklch(0.55 0.11 62);background:oklch(0.975 0.025 80)}
+.ev{background:oklch(0.50 0.17 28);border-color:oklch(0.50 0.17 28);color:oklch(0.99 0.002 260)}
+.s{font-size:11px;color:oklch(0.47 0.014 260)}
+.ev .s{color:oklch(0.95 0.01 25)}
+table{border-collapse:collapse;width:100%}
+th{font-size:12px;font-weight:600;text-align:left;color:oklch(0.47 0.014 260);padding:6px 8px;border-bottom:1px solid oklch(0.885 0.007 260)}
+td{padding:7px 8px;border-bottom:1px solid oklch(0.93 0.005 260);vertical-align:top}
+.up{color:oklch(0.46 0.17 28);font-weight:600}.flat{color:oklch(0.47 0.014 260)}
+</style>
+</helmet>
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: oklch(0.23 0.012 260); font-size: 13px; line-height: 18px; min-height: 100vh">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 10px 24px; background: oklch(0.993 0.002 260); border-bottom: 1px solid oklch(0.93 0.005 260)">
+  <div style="font-weight: 700; font-size: 14px">IntelMonitor</div>
+  <nav style="display: flex; gap: 4px; flex-wrap: wrap">
+    <a href="#" style="padding: 6px 10px; border-radius: 6px; background: oklch(0.955 0.005 260); color: oklch(0.23 0.012 260); font-weight: 600">Map</a>
+    <a href="#" style="padding: 6px 10px; color: oklch(0.47 0.014 260)">Scenarios</a>
+    <a href="#" style="padding: 6px 10px; color: oklch(0.47 0.014 260)">Entities</a>
+    <a href="#" style="padding: 6px 10px; color: oklch(0.47 0.014 260)">Developments</a>
+  </nav>
+  <div style="display: flex; gap: 2px; padding: 2px; border-radius: 6px; background: oklch(0.955 0.005 260)" role="group" aria-label="Lens">
+    <button class="seg on" type="button">Prudential</button>
+    <button class="seg" type="button">Financial crime</button>
+    <button class="seg" type="button">Financial centres</button>
+    <button class="seg" type="button">System</button>
+  </div>
+  <div style="flex: 1 1 100px"></div>
+  <label class="meta" style="display: flex; align-items: center; gap: 8px">As of
+    <input type="range" min="0" max="8" value="8" aria-label="Run date" style="width: 160px">
+    <b style="color: oklch(0.23 0.012 260)">24 Sep 2026</b>
+  </label>
+</header>
+
+<main style="max-width: 1400px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 24px">
+
+  <section style="flex: 999 1 640px; min-width: 0">
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: baseline; margin-bottom: 8px">
+      <h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Singapore banks and what they touch</h1>
+      <span class="meta">Showing the HKMA rate rise ripple · 2 hops · edges weighted by exposure</span>
+    </div>
+
+    <div style="overflow-x: auto; border: 1px solid oklch(0.93 0.005 260); border-radius: 10px; background: oklch(0.993 0.002 260)">
+      <div style="position: relative; width: 880px; height: 600px; margin: 0 auto">
+        <svg width="880" height="600" viewBox="0 0 880 600" style="position: absolute; left: 0; top: 0" aria-hidden="true">
+          <g fill="none" stroke="oklch(0.85 0.008 260)" stroke-width="1.5">
+            <line x1="715" y1="342" x2="440" y2="288"></line>
+            <line x1="715" y1="342" x2="275" y2="174"></line>
+            <line x1="715" y1="442" x2="440" y2="288"></line>
+            <line x1="715" y1="442" x2="275" y2="174"></line>
+            <line x1="715" y1="442" x2="275" y2="404"></line>
+            <line x1="715" y1="532" x2="440" y2="288"></line>
+            <line x1="440" y1="288" x2="440" y2="438"></line>
+            <line x1="275" y1="174" x2="120" y2="108"></line>
+            <line x1="275" y1="404" x2="130" y2="488"></line>
+            <line x1="275" y1="174" x2="440" y2="288" stroke-dasharray="2 4"></line>
+            <line x1="275" y1="404" x2="440" y2="288" stroke-dasharray="2 4"></line>
+          </g>
+          <g fill="none" stroke="oklch(0.62 0.12 258)" stroke-width="1.5" stroke-dasharray="6 5">
+            <line x1="110" y1="298" x2="275" y2="174"></line>
+            <line x1="110" y1="298" x2="275" y2="404"></line>
+            <line x1="110" y1="298" x2="440" y2="288"></line>
+          </g>
+          <g fill="none" stroke="oklch(0.50 0.17 28)" stroke-linecap="round">
+            <line x1="715" y1="50" x2="715" y2="142" stroke-width="3"></line>
+            <line x1="715" y1="142" x2="440" y2="288" stroke-width="5"></line>
+            <line x1="715" y1="142" x2="120" y2="108" stroke-width="2.5"></line>
+            <line x1="715" y1="142" x2="130" y2="488" stroke-width="2"></line>
+          </g>
+          <line x1="715" y1="242" x2="440" y2="288" stroke="oklch(0.55 0.11 62)" stroke-width="4" stroke-linecap="round"></line>
+        </svg>
+
+        <div class="n ev" style="left: 640px; top: 30px; width: 150px; height: 40px"><b>HKMA rate rise</b><span class="s">development · 23 Sep</span></div>
+        <div class="n mk hot" style="left: 640px; top: 120px; width: 150px; height: 44px"><b>Hong Kong property</b><span class="s">market · Strained</span></div>
+        <div class="n mk warm" style="left: 640px; top: 220px; width: 150px; height: 44px"><b>Greater China CRE</b><span class="s">market · Watchful</span></div>
+        <div class="n mk" style="left: 640px; top: 320px; width: 150px; height: 44px"><b>China credit</b><span class="s">market · Watchful</span></div>
+        <div class="n mk" style="left: 640px; top: 420px; width: 150px; height: 44px"><b>ASEAN USD funding</b><span class="s">market · Calm</span></div>
+        <div class="n mk" style="left: 640px; top: 510px; width: 150px; height: 44px"><b>AI infrastructure loans</b><span class="s">sector · Watchful</span></div>
+
+        <div class="n hot" style="left: 380px; top: 260px; width: 120px; height: 56px"><b style="font-size: 15px">UOB</b><span class="s">D-SIB · indirect 0.71</span></div>
+        <div class="n" style="left: 220px; top: 150px; width: 110px; height: 48px"><b>DBS</b><span class="s">D-SIB · indirect 0.22</span></div>
+        <div class="n" style="left: 220px; top: 380px; width: 110px; height: 48px"><b>OCBC</b><span class="s">D-SIB · indirect 0.18</span></div>
+        <div class="n" style="left: 380px; top: 420px; width: 120px; height: 36px"><b>UOB Thailand</b></div>
+        <div class="n warm" style="left: 60px; top: 90px; width: 120px; height: 36px"><b>DBS Hong Kong</b></div>
+        <div class="n warm" style="left: 60px; top: 470px; width: 140px; height: 36px"><b>OCBC Wing Hang</b></div>
+        <div class="n" style="left: 40px; top: 280px; width: 140px; height: 36px; border-color: oklch(0.62 0.12 258)"><b>[Cloud provider]</b></div>
+      </div>
+    </div>
+
+    <div class="meta" style="display: flex; flex-wrap: wrap; gap: 18px; margin-top: 8px">
+      <span><svg width="22" height="6" aria-hidden="true"><line x1="0" y1="3" x2="22" y2="3" stroke="oklch(0.50 0.17 28)" stroke-width="3"></line></svg> ripple from the selected development</span>
+      <span><svg width="22" height="6" aria-hidden="true"><line x1="0" y1="3" x2="22" y2="3" stroke="oklch(0.80 0.01 260)" stroke-width="2"></line></svg> exposed to, owned by</span>
+      <span><svg width="22" height="6" aria-hidden="true"><line x1="0" y1="3" x2="22" y2="3" stroke="oklch(0.62 0.12 258)" stroke-width="2" stroke-dasharray="6 5"></line></svg> depends on</span>
+      <span><svg width="22" height="6" aria-hidden="true"><line x1="0" y1="3" x2="22" y2="3" stroke="oklch(0.80 0.01 260)" stroke-width="2" stroke-dasharray="2 4"></line></svg> peer of</span>
+      <span>Line width = exposure × materiality, halved each hop</span>
+    </div>
+
+    <section style="margin-top: 24px">
+      <h2 class="sec">Scenario</h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px">
+        <label style="flex: 1 1 360px; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border: 1px solid oklch(0.80 0.01 260); border-radius: 6px; background: oklch(0.993 0.002 260)">
+          <span class="meta" style="font-weight: 600">What if</span>
+          <input type="text" value="Hong Kong office values fall 20% over 12 months" aria-label="Scenario" style="border: 0; outline: 0; font: inherit; width: 100%; background: none">
+        </label>
+        <button class="btn" type="button" style="height: 36px; background: oklch(0.52 0.17 258); border-color: oklch(0.52 0.17 258); color: oklch(0.993 0.002 260)">Trace</button>
+        <button class="btn" type="button" style="height: 36px">Replay Credit Suisse 2023 on today's graph</button>
+      </div>
+      <div style="overflow-x: auto">
+        <table>
+          <thead><tr><th>Institution</th><th>Path</th><th>Exposure, as disclosed</th><th>Latest signal</th><th>This week</th></tr></thead>
+          <tbody>
+            <tr><td><b>UOB</b></td><td>HK property → Greater China CRE</td><td>Macquarie: S$181m provisions per 10% fall in collateral</td><td>CRE detail disclosed in 1H results, 18 Sep</td><td class="up">Closer</td></tr>
+            <tr><td><b>OCBC</b></td><td>HK property → OCBC Wing Hang</td><td>[from Pillar 3, 1H26]</td><td>No direct news</td><td class="flat">No change</td></tr>
+            <tr><td><b>DBS</b></td><td>HK property → DBS Hong Kong</td><td>[from Pillar 3, 1H26]</td><td>No direct news</td><td class="flat">No change</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="meta" style="margin-top: 6px">Saved as a standing scenario. Each run says whether the news moved it closer or further away.</div>
+    </section>
+  </section>
+
+  <aside style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 22px">
+    <section>
+      <div class="meta">Selected development · Needs attention · 3 sources</div>
+      <h2 style="margin: 2px 0 6px; font-size: 17px; line-height: 22px; font-weight: 600">HKMA raises base rate after the Fed; pressure on Hong Kong property</h2>
+      <p style="margin: 0">The Fed's rise to 3.88% on 17 Sep passes straight to Hong Kong through the currency peg. Higher funding costs weigh on already weak office values.</p>
+      <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap">
+        <button class="btn" type="button">Evidence</button>
+        <button class="btn" type="button">Make this a scenario</button>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="sec">Reached</h2>
+      <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 6px 12px">
+        <span class="meta" style="font-weight: 600">Institution</span><span class="meta" style="font-weight: 600">Hops</span><span class="meta" style="font-weight: 600">Score</span>
+        <span>UOB, via Greater China CRE</span><span>2</span><span style="font-weight: 600">0.71</span>
+        <span>DBS Hong Kong</span><span>1</span><span>0.22</span>
+        <span>OCBC Wing Hang</span><span>1</span><span>0.18</span>
+        <span>UOB Thailand</span><span>3</span><span class="meta">below cut</span>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="sec">Who to call</h2>
+      <ol style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px">
+        <li><b>UOB, Group CRO office</b><br><span class="meta">Score 0.71 · last contact 41 days ago · ask for Greater China CRE stress results</span><br><button class="btn" type="button" style="margin-top: 4px; height: 28px">Draft note</button></li>
+        <li><b>OCBC, Wing Hang credit</b><br><span class="meta">Score 0.18 · last contact 12 days ago</span></li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 class="sec">Edges proposed from the news</h2>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div><b>UOB</b> lends to <b>ZanKore</b>, AI infrastructure<br><span class="meta">"UOB is the lead adviser for a new financing syndicate arranged for ZanKore" · 22 Sep</span>
+          <div style="display: flex; gap: 6px; margin-top: 4px"><button class="btn" type="button" style="height: 28px">Add edge</button><button class="btn" type="button" style="height: 28px">Dismiss</button></div></div>
+        <div><b>DBS</b> depends on <b>Swift Digital Ledger</b><br><span class="meta">"executed a cross-border US dollar payment … via the Swift Digital Ledger" · 7 Sep</span>
+          <div style="display: flex; gap: 6px; margin-top: 4px"><button class="btn" type="button" style="height: 28px">Add edge</button><button class="btn" type="button" style="height: 28px">Dismiss</button></div></div>
+      </div>
+    </section>
+  </aside>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

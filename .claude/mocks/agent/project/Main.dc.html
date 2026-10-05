@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agent inbox</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:oklch(0.972 0.004 260)}
+a{color:oklch(0.46 0.16 258);text-decoration:none}a:hover{color:oklch(0.38 0.15 258);text-decoration:underline}
+.meta{font-size:12px;line-height:16px;color:oklch(0.47 0.014 260)}
+.sec{font-size:13px;line-height:18px;font-weight:600;margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid oklch(0.885 0.007 260)}
+.btn{height:28px;padding:0 10px;border-radius:6px;border:1px solid oklch(0.885 0.007 260);background:oklch(0.993 0.002 260);font:inherit;font-size:12px;color:oklch(0.23 0.012 260);cursor:pointer}
+.pri{background:oklch(0.52 0.17 258);border-color:oklch(0.52 0.17 258);color:oklch(0.993 0.002 260)}
+.card{padding:14px 0;border-bottom:1px solid oklch(0.93 0.005 260);display:flex;flex-direction:column;gap:6px}
+.k{font-size:11px;line-height:18px;font-weight:600;padding:0 6px;border-radius:4px;display:inline-block}
+.k1{background:oklch(0.955 0.022 25);color:oklch(0.46 0.17 28)}
+.k2{background:oklch(0.955 0.022 250);color:oklch(0.48 0.15 258)}
+.k3{background:oklch(0.965 0.035 80);color:oklch(0.42 0.105 62)}
+.k4{background:oklch(0.95 0.03 155);color:oklch(0.40 0.10 155)}
+.chain{font-size:12px;line-height:16px;color:oklch(0.47 0.014 260);padding:6px 10px;background:oklch(0.955 0.005 260);border-radius:6px}
+.msg{padding:10px 12px;border-radius:10px;max-width:92%}
+.me{align-self:flex-end;background:oklch(0.23 0.012 260);color:oklch(0.97 0.004 260)}
+.ag{align-self:flex-start;background:oklch(0.993 0.002 260);border:1px solid oklch(0.93 0.005 260)}
+sup a{font-size:10px}
+</style>
+</helmet>
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: oklch(0.23 0.012 260); font-size: 13px; line-height: 18px; min-height: 100vh">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 10px 24px; background: oklch(0.993 0.002 260); border-bottom: 1px solid oklch(0.93 0.005 260)">
+  <div style="font-weight: 700; font-size: 14px">IntelMonitor</div>
+  <nav style="display: flex; gap: 4px; flex-wrap: wrap">
+    <a href="#" style="padding: 6px 10px; border-radius: 6px; background: oklch(0.955 0.005 260); color: oklch(0.23 0.012 260); font-weight: 600">Inbox <span class="meta">7</span></a>
+    <a href="Draft.dc.html" style="padding: 6px 10px; color: oklch(0.47 0.014 260)">Drafts <span class="meta">3</span></a>
+    <a href="#" style="padding: 6px 10px; color: oklch(0.47 0.014 260)">Portfolio</a>
+    <a href="#" style="padding: 6px 10px; color: oklch(0.47 0.014 260)">What it learned</a>
+  </nav>
+  <div style="flex: 1 1 100px"></div>
+  <div class="meta">Your agent last worked 06:10 · read 214 new documents · next pass 13:00</div>
+</header>
+
+<main style="max-width: 1400px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 28px">
+
+  <section style="flex: 999 1 620px; min-width: 0">
+    <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; margin-bottom: 4px">
+      <h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600">Good morning. 7 things since Tuesday.</h1>
+      <span class="meta">Ranked by what you have acted on before</span>
+    </div>
+
+    <article class="card">
+      <div><span class="k k1">Act</span> <span class="meta">UOB · via Greater China CRE · confidence high</span></div>
+      <div style="font-size: 15px; line-height: 20px; font-weight: 600">Hong Kong property is under new pressure, and UOB's CRE book is where it lands</div>
+      <div>The HKMA followed the Fed's rise on 17 Sep. Macquarie's deep dive puts S$181m of extra provisions on each 10% fall in collateral, and UOB holds S$345m of excess provisions in its US branch it can move. You asked UOB about CRE in August; nothing new from them since.</div>
+      <div class="chain">3 developments → 6 findings → 6 verified quotes · Macquarie note 18 Sep · UOB 1H26 deck · HKMA release</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px"><a href="Draft.dc.html" class="btn pri" style="display: inline-flex; align-items: center">Draft note to UOB</a><button class="btn" type="button">Add to weekly update</button><button class="btn" type="button">Ask a follow-up</button><button class="btn" type="button">Not relevant</button></div>
+    </article>
+
+    <article class="card">
+      <div><span class="k k3">Watch</span> <span class="meta">Maybank, CIMB · peers · confidence medium</span></div>
+      <div style="font-size: 15px; line-height: 20px; font-weight: 600">Two Malaysian peers show stress in the same week</div>
+      <div>Maybank removed its CFO and its shares fell 2%. CIMB expects its impaired loan ratio to rise if the Middle East conflict lasts. Tradeview flags Q3 mark-to-market losses at CIMB, Maybank and AMMB. No sign of the same at your banks yet.</div>
+      <div class="chain">4 developments · The Edge, The Star · 7 quotes</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px"><button class="btn" type="button">Compare with my banks</button><button class="btn" type="button">Not relevant</button></div>
+    </article>
+
+    <article class="card">
+      <div><span class="k k2">Drafted for you</span> <span class="meta">due Friday</span></div>
+      <div style="font-size: 15px; line-height: 20px; font-weight: 600">Weekly update to your director is ready</div>
+      <div>Five items, half a page, built from what you accepted this week. Two sentences need your judgement before it goes.</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px"><button class="btn pri" type="button">Review draft</button></div>
+    </article>
+
+    <article class="card">
+      <div><span class="k k2">Meeting prep</span> <span class="meta">UOB quarterly meeting, [date]</span></div>
+      <div style="font-size: 15px; line-height: 20px; font-weight: 600">Six questions for UOB, each tied to a source</div>
+      <div>CRE collateral values in Hong Kong; the ZanKore GPU facility and AI loan concentration; provisioning at 147% coverage; Thai sustainable finance targets; cyber vendor concentration after the MAS CRO survey; tokenised deposit plans.</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px"><button class="btn" type="button">Open questions</button></div>
+    </article>
+
+    <article class="card">
+      <div><span class="k k3">Check yourself</span> <span class="meta">from your triage</span></div>
+      <div style="font-size: 15px; line-height: 20px; font-weight: 600">You dismissed every CIMB item for three weeks</div>
+      <div>CIMB's adverse news count tripled over the same weeks. Still not relevant to you?</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px"><button class="btn" type="button">Keep hiding</button><button class="btn" type="button">Show CIMB again</button></div>
+    </article>
+
+    <article class="card">
+      <div><span class="k k4">Quiet</span> <span class="meta">DBS, OCBC</span></div>
+      <div style="font-size: 15px; line-height: 20px; font-weight: 600">Nothing that needs you at DBS or OCBC</div>
+      <div>41 items checked and set aside. The DBS and Citi tokenised payment is notable but already in your notes.</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px"><button class="btn" type="button">See what was set aside</button></div>
+    </article>
+  </section>
+
+  <aside style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+    <h2 class="sec" style="margin: 0">Ask your agent</h2>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div class="msg me">What changed at Maybank since I last looked?</div>
+      <div class="msg ag">Since Tue 22 Sep: the CFO was removed and shares fell nearly 2% to RM10.36<sup><a href="#">1</a></sup>. Maybank also launched a US$700m dual-tranche bond<sup><a href="#">2</a></sup> and got BNM approval to buy out the rest of Etiqa's holding company<sup><a href="#">3</a></sup>. Analysts link the CFO exit to governance, not to funding.
+        <div class="meta" style="margin-top: 6px">3 sources, all inside the corpus · 1 claim is an analyst view</div></div>
+      <div class="msg me">Does any of my banks have a CFO change this year?</div>
+      <div class="msg ag">None found in the corpus for DBS, OCBC or UOB since 1 January. I searched 489 documents and 3 filings. Want me to watch for it?
+        <div style="display: flex; gap: 6px; margin-top: 8px"><button class="btn" type="button">Make it a watch item</button></div></div>
+    </div>
+    <label style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px; border: 1px solid oklch(0.80 0.01 260); border-radius: 8px; background: oklch(0.993 0.002 260)">
+      <input type="text" placeholder="Ask about your institutions" aria-label="Ask your agent" style="border: 0; outline: 0; font: inherit; width: 100%; background: none">
+      <button class="btn pri" type="button">Ask</button>
+    </label>
+
+    <h2 class="sec" style="margin: 14px 0 0">What it has learned about you</h2>
+    <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px">
+      <li>You skip investment picks and broker targets</li>
+      <li>You read CRE and provisioning items in full</li>
+      <li>You forward governance news to your director</li>
+      <li>You prefer two-line summaries</li>
+    </ul>
+    <a href="#" class="meta">Edit or remove any of these</a>
+  </aside>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

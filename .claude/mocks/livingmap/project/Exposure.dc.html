@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>UOB edges</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:oklch(0.972 0.004 260)}
+a{color:oklch(0.46 0.16 258);text-decoration:none}a:hover{color:oklch(0.38 0.15 258);text-decoration:underline}
+.meta{font-size:12px;line-height:16px;color:oklch(0.47 0.014 260)}
+.sec{font-size:13px;line-height:18px;font-weight:600;margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid oklch(0.885 0.007 260)}
+.btn{height:28px;padding:0 10px;border-radius:6px;border:1px solid oklch(0.885 0.007 260);background:oklch(0.993 0.002 260);font:inherit;font-size:12px;color:oklch(0.23 0.012 260);cursor:pointer}
+table{border-collapse:collapse;width:100%}
+th{font-size:12px;font-weight:600;text-align:left;color:oklch(0.47 0.014 260);padding:6px 8px;border-bottom:1px solid oklch(0.885 0.007 260);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid oklch(0.93 0.005 260);vertical-align:top}
+.b{display:inline-block;font-size:11px;line-height:18px;font-weight:600;padding:0 6px;border-radius:4px}
+.calm{background:oklch(0.95 0.03 155);color:oklch(0.40 0.10 155)}
+.watchful{background:oklch(0.965 0.035 80);color:oklch(0.42 0.105 62)}
+.strained{background:oklch(0.955 0.022 25);color:oklch(0.46 0.17 28)}
+.pend{background:oklch(0.955 0.022 250);color:oklch(0.48 0.15 258)}
+.tab{padding:8px 2px;border:0;border-bottom:2px solid transparent;background:none;font:inherit;font-size:13px;color:oklch(0.47 0.014 260);cursor:pointer}
+.tab.on{border-bottom-color:oklch(0.23 0.012 260);color:oklch(0.23 0.012 260);font-weight:600}
+</style>
+</helmet>
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: oklch(0.23 0.012 260); font-size: 13px; line-height: 18px; min-height: 100vh">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 10px 24px; background: oklch(0.993 0.002 260); border-bottom: 1px solid oklch(0.93 0.005 260)">
+  <div style="font-weight: 700; font-size: 14px">IntelMonitor</div>
+  <a href="#" class="meta">Map</a><span class="meta">/</span><span style="font-weight: 600">UOB</span>
+</header>
+
+<main style="max-width: 1400px; margin: 0 auto; padding: 20px 24px">
+  <div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: baseline">
+    <h1 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 600; letter-spacing: -0.015em">United Overseas Bank</h1>
+    <span class="meta">LEI [UOB group LEI] · D-SIB · supervised by Banking Department I</span>
+    <span class="b watchful">Watchful</span><span class="meta">direct 0.12 · indirect 0.71</span>
+  </div>
+
+  <nav style="display: flex; gap: 20px; margin: 16px 0 20px; border-bottom: 1px solid oklch(0.93 0.005 260); flex-wrap: wrap">
+    <button class="tab" type="button">News</button>
+    <button class="tab on" type="button">Edges</button>
+    <button class="tab" type="button">Peers</button>
+    <button class="tab" type="button">Scenarios</button>
+    <button class="tab" type="button">Trend</button>
+  </nav>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 28px">
+    <section style="flex: 999 1 640px; min-width: 0">
+      <h2 class="sec">Exposed to</h2>
+      <div style="overflow-x: auto">
+        <table>
+          <thead><tr><th>Market or sector</th><th>Measure</th><th>Value</th><th>As of</th><th>Source</th><th>Status now</th></tr></thead>
+          <tbody>
+            <tr><td><b>Greater China CRE</b></td><td>Share of loans</td><td>[x.x%]</td><td>30 Jun 2026</td><td><a href="#">1H26 results deck, p. [n]</a></td><td><span class="b strained">Strained</span></td></tr>
+            <tr><td><b>US CRE</b></td><td>Share of loans</td><td>[x.x%]</td><td>30 Jun 2026</td><td><a href="#">1H26 results deck</a></td><td><span class="b watchful">Watchful</span></td></tr>
+            <tr><td><b>Thailand</b></td><td>Share of loans</td><td>[x.x%]</td><td>30 Jun 2026</td><td><a href="#">Pillar 3, 1H26</a></td><td><span class="b calm">Calm</span></td></tr>
+            <tr><td><b>Indonesia</b></td><td>Share of loans</td><td>[x.x%]</td><td>30 Jun 2026</td><td><a href="#">Pillar 3, 1H26</a></td><td><span class="b watchful">Watchful</span></td></tr>
+            <tr><td><b>AI infrastructure</b></td><td>Facilities named in news</td><td>US$3.1b syndicate, share [n]</td><td>22 Sep 2026</td><td><a href="#">News, 2 sources</a></td><td><span class="b watchful">Watchful</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="sec" style="margin-top: 24px">Owns, depends on, peers</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px">
+        <div><div class="meta" style="font-weight: 600; margin-bottom: 4px">Owns</div>UOB Thailand<br>UOB Indonesia<br>UOB Malaysia<br>UOB China</div>
+        <div><div class="meta" style="font-weight: 600; margin-bottom: 4px">Depends on</div>[Cloud provider]<br>FAST, MEPS+<br>[Core banking vendor]</div>
+        <div><div class="meta" style="font-weight: 600; margin-bottom: 4px">Peer of</div>DBS, OCBC<br>Maybank, CIMB, Bangkok Bank</div>
+        <div><div class="meta" style="font-weight: 600; margin-bottom: 4px">Regulated by</div>MAS<br>BOT, OJK, BNM, NFRA</div>
+      </div>
+
+      <h2 class="sec" style="margin-top: 24px">How the Greater China CRE edge changed</h2>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; align-items: end; height: 120px; padding: 0 4px; border-bottom: 1px solid oklch(0.80 0.01 260)">
+        <div style="height: 62%; background: oklch(0.88 0.01 260); border-radius: 4px 4px 0 0"></div>
+        <div style="height: 70%; background: oklch(0.88 0.01 260); border-radius: 4px 4px 0 0"></div>
+        <div style="height: 74%; background: oklch(0.88 0.01 260); border-radius: 4px 4px 0 0"></div>
+        <div style="height: 71%; background: oklch(0.88 0.01 260); border-radius: 4px 4px 0 0"></div>
+        <div style="height: 66%; background: oklch(0.62 0.12 258); border-radius: 4px 4px 0 0"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px" class="meta"><span>FY24</span><span>1H25</span><span>FY25</span><span>1Q26</span><span>1H26</span></div>
+      <div class="meta" style="margin-top: 6px">Illustrative shape. Values come from the disclosures in the table, one point per filing.</div>
+    </section>
+
+    <aside style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 22px">
+      <section>
+        <h2 class="sec">Waiting for your approval</h2>
+        <div style="display: flex; flex-direction: column; gap: 14px">
+          <div><span class="b pend">From filing</span> <b>Greater China CRE</b> share of loans [old] → [new]<br><span class="meta">Read from the 3Q26 results deck, due 16 Oct. Quote and page attached.</span>
+            <div style="display: flex; gap: 6px; margin-top: 6px"><button class="btn" type="button">Approve</button><button class="btn" type="button">Edit</button><button class="btn" type="button">Reject</button></div></div>
+          <div><span class="b pend">From news</span> <b>AI infrastructure</b>: lead adviser on ZanKore US$3.1b GPU facility<br><span class="meta">News, 22 Sep · adds a lends-to edge</span>
+            <div style="display: flex; gap: 6px; margin-top: 6px"><button class="btn" type="button">Approve</button><button class="btn" type="button">Reject</button></div></div>
+        </div>
+      </section>
+      <section>
+        <h2 class="sec">Refresh schedule</h2>
+        <div style="display: grid; grid-template-columns: 1fr auto; row-gap: 6px; column-gap: 12px">
+          <span>Quarterly results</span><span>16 Oct</span>
+          <span>Pillar 3 disclosure</span><span>with results</span>
+          <span>Annual report</span><span>Mar 2027</span>
+          <span>Internal returns</span><span class="meta">not connected</span>
+        </div>
+        <div class="meta" style="margin-top: 6px">Each run uses the latest value dated on or before its run date.</div>
+      </section>
+      <section>
+        <h2 class="sec">Edge rules</h2>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span>Flag when an exposure moves 2pp between filings</span>
+          <span>Flag when news says UOB sells or buys a unit</span>
+          <span>Ripple cut below score 0.10</span>
+        </div>
+      </section>
+    </aside>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

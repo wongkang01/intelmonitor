@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Morning Brief front page</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:oklch(0.972 0.004 260)}
+a{color:oklch(0.46 0.16 258);text-decoration:none}a:hover{color:oklch(0.38 0.15 258);text-decoration:underline}
+.meta{font-size:12px;line-height:16px;color:oklch(0.47 0.014 260)}
+.b{display:inline-block;font-size:11px;line-height:18px;font-weight:600;padding:0 6px;border-radius:4px}
+.calm{background:oklch(0.95 0.03 155);color:oklch(0.40 0.10 155)}
+.watchful{background:oklch(0.965 0.035 80);color:oklch(0.42 0.105 62)}
+.strained{background:oklch(0.955 0.022 25);color:oklch(0.46 0.17 28)}
+.sec{font-size:13px;line-height:18px;font-weight:600;color:oklch(0.23 0.012 260);margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid oklch(0.885 0.007 260)}
+.item{padding:10px 0;border-bottom:1px solid oklch(0.93 0.005 260);display:flex;flex-direction:column;gap:4px}
+.why{font-size:13px;line-height:18px;color:oklch(0.23 0.012 260)}
+.why b{font-weight:600}
+.act{font-size:12px;line-height:16px;border:0;background:none;padding:0;color:oklch(0.46 0.16 258);cursor:pointer;font-family:inherit}
+.btn{height:32px;padding:0 12px;border-radius:6px;border:1px solid oklch(0.885 0.007 260);background:oklch(0.993 0.002 260);font:inherit;font-size:13px;color:oklch(0.23 0.012 260);display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.seg{height:28px;padding:0 10px;border-radius:6px;border:1px solid transparent;background:none;font:inherit;font-size:12px;color:oklch(0.47 0.014 260);cursor:pointer}
+.seg.on{background:oklch(0.993 0.002 260);border-color:oklch(0.885 0.007 260);color:oklch(0.23 0.012 260);font-weight:600}
+</style>
+</helmet>
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: oklch(0.23 0.012 260); font-size: 13px; line-height: 18px; min-height: 100vh">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 10px 24px; background: oklch(0.993 0.002 260); border-bottom: 1px solid oklch(0.93 0.005 260)">
+  <div style="font-weight: 700; font-size: 14px; letter-spacing: -0.01em">IntelMonitor</div>
+  <nav style="display: flex; gap: 4px; flex-wrap: wrap">
+    <a href="#" style="padding: 6px 10px; border-radius: 6px; background: oklch(0.955 0.005 260); color: oklch(0.23 0.012 260); font-weight: 600">Front page</a>
+    <a href="#" style="padding: 6px 10px; color: oklch(0.47 0.014 260)">Editions</a>
+    <a href="#" style="padding: 6px 10px; color: oklch(0.47 0.014 260)">Watch items</a>
+    <a href="#" style="padding: 6px 10px; color: oklch(0.47 0.014 260)">Developments</a>
+  </nav>
+  <div style="display: flex; gap: 2px; padding: 2px; border-radius: 6px; background: oklch(0.955 0.005 260)" role="group" aria-label="Persona">
+    <button class="seg on" type="button">Supervisor</button>
+    <button class="seg" type="button">Financial crime</button>
+    <button class="seg" type="button">Development</button>
+    <button class="seg" type="button">Desk</button>
+  </div>
+  <div style="flex: 1 1 200px"></div>
+  <label style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid oklch(0.80 0.01 260); border-radius: 6px; background: oklch(0.993 0.002 260); min-width: 220px">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+    <input type="search" placeholder="Search the corpus" aria-label="Search" style="border: 0; outline: 0; font: inherit; background: none; width: 100%">
+  </label>
+</header>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 24px">
+
+  <section style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; padding-bottom: 16px; border-bottom: 2px solid oklch(0.23 0.012 260)">
+    <div style="flex: 1 1 520px; min-width: 0">
+      <div class="meta">Thursday 24 September 2026, 07:00 edition · Banking Department I · 22 institutions, 4 watch items</div>
+      <h1 style="margin: 4px 0 0; font-family: 'Source Serif 4', Georgia, serif; font-size: 44px; line-height: 48px; font-weight: 600; letter-spacing: -0.02em">The Morning Brief</h1>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap">
+      <button class="btn" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>Listen, 4 min</button>
+      <button class="btn" type="button">Email me this</button>
+      <button class="btn" type="button" style="background: oklch(0.52 0.17 258); border-color: oklch(0.52 0.17 258); color: oklch(0.993 0.002 260)">Mark read</button>
+    </div>
+  </section>
+
+  <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; padding: 20px 0; border-bottom: 1px solid oklch(0.885 0.007 260)">
+    <p style="margin: 0; grid-column: span 2; font-family: 'Source Serif 4', Georgia, serif; font-size: 20px; line-height: 30px">
+      Direct news on your three local banks is calm, but two exposure channels moved this week. Hong Kong property weakened after the HKMA followed the Fed's rise to 3.88%, and China credit growth slowed again. Both touch UOB's Greater China commercial real estate book, where Macquarie sizes each 10% fall in collateral at S$181m of extra provisions. At peers, Maybank removed its CFO and CIMB flagged rising impaired loans from the Middle East conflict. Nothing at DBS or OCBC needs a call today.
+    </p>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div class="sec" style="margin: 0">Since your last read, Tue 18:40</div>
+      <div style="display: grid; grid-template-columns: 1fr auto; row-gap: 6px; column-gap: 12px">
+        <span>UOB</span><span class="b watchful">Watchful, via exposure</span>
+        <span>DBS</span><span class="b calm">Calm</span>
+        <span>OCBC</span><span class="b calm">Calm</span>
+        <span>Maybank</span><span class="b strained">Strained</span>
+        <span>CIMB</span><span class="b watchful">Watchful</span>
+        <span>Singapore banks</span><span class="b watchful">Watchful</span>
+      </div>
+      <div class="meta" style="margin-top: 4px">Status moves only on a material development or a 2σ series move.</div>
+    </div>
+  </section>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; padding-top: 20px">
+
+    <div style="flex: 999 1 640px; min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px 32px; align-content: start">
+
+      <section>
+        <h2 class="sec">Via exposure</h2>
+        <article class="item">
+          <div class="meta">Hong Kong property → <b style="color: oklch(0.23 0.012 260)">UOB</b>, Greater China CRE · Notable · 3 sources</div>
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 600; color: oklch(0.23 0.012 260)">HKMA raises base rate after Fed; pressure on Hong Kong property</a>
+          <div class="why"><b>Why it matters to you:</b> UOB disclosed its Greater China CRE exposure in its 1H results; Macquarie puts S$181m of extra provisions on each 10% fall in collateral.</div>
+          <div style="display: flex; gap: 12px"><button class="act" type="button">Draft note to UOB</button><button class="act" type="button">Evidence</button><button class="act" type="button">Not for me</button></div>
+        </article>
+        <article class="item">
+          <div class="meta">China credit → <b style="color: oklch(0.23 0.012 260)">UOB, DBS</b>, Greater China loans · Notable · 2 sources</div>
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 600; color: oklch(0.23 0.012 260)">China's credit growth slumps</a>
+          <div class="why"><b>Why it matters to you:</b> weak demand in mainland corporate credit adds to the CRE pressure above. No change to exposure weights since the 1H disclosures.</div>
+          <div style="display: flex; gap: 12px"><button class="act" type="button">Evidence</button><button class="act" type="button">Not for me</button></div>
+        </article>
+        <article class="item">
+          <div class="meta">ASEAN funding → <b style="color: oklch(0.23 0.012 260)">Singapore banks</b> · Minor · 1 source</div>
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 600; color: oklch(0.23 0.012 260)">US dollar funding tightens for regional lenders</a>
+          <div class="why"><b>Why it matters to you:</b> all three hold sizeable ASEAN dollar books; provisioning cover stands at 147% across the group.</div>
+        </article>
+      </section>
+
+      <section>
+        <h2 class="sec">Peers</h2>
+        <article class="item">
+          <div class="meta">Maybank · Needs attention · 4 sources · updated today</div>
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 600; color: oklch(0.23 0.012 260)">Sudden removal of Maybank's CFO raises governance concerns</a>
+          <div class="why"><b>Why it matters to you:</b> shares fell 2% to a one-week low. A governance change at a regional peer is a prompt to check board oversight at your banks.</div>
+          <div style="display: flex; gap: 12px"><button class="act" type="button">Evidence</button><button class="act" type="button">Compare governance</button></div>
+        </article>
+        <article class="item">
+          <div class="meta">CIMB · Notable · 3 sources</div>
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 600; color: oklch(0.23 0.012 260)">CIMB flags uptick in impaired loans if Mideast conflict drags on</a>
+          <div class="why"><b>Why it matters to you:</b> commercial disbursements are down year on year; the same cost pressure applies to SME books in Singapore.</div>
+        </article>
+        <article class="item">
+          <div class="meta">CIMB, Maybank, AMMB · Notable · 1 source</div>
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 600; color: oklch(0.23 0.012 260)">Tradeview sees Q3 mark-to-market losses at three Malaysian banks</a>
+          <div class="why"><b>Why it matters to you:</b> driven by treasury portfolio mix; no comparable flag on Singapore banks yet.</div>
+        </article>
+      </section>
+
+      <section>
+        <h2 class="sec">Your institutions</h2>
+        <article class="item">
+          <div class="meta">DBS · Notable · 2 sources</div>
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 600; color: oklch(0.23 0.012 260)">DBS and Citi settle a cross-border dollar payment with tokenised deposits</a>
+          <div class="why"><b>Why it matters to you:</b> minutes instead of two days; operational risk of the new rail sits outside current returns.</div>
+        </article>
+        <article class="item">
+          <div class="meta">DBS, OCBC, UOB · Minor · 5 sources</div>
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 600; color: oklch(0.23 0.012 260)">Net interest income fell at all three banks in Q2; profits still rose</a>
+          <div class="why"><b>Why it matters to you:</b> DBS margin at 1.87%. Already in your notes from August.</div>
+        </article>
+      </section>
+
+      <section>
+        <h2 class="sec">Elsewhere that matters</h2>
+        <article class="item">
+          <div class="meta">MAS · Notable · official</div>
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 600; color: oklch(0.23 0.012 260)">CRO survey: cyber and third-party risk overtake geopolitics as top concern</a>
+          <div class="why"><b>Why it matters to you:</b> vendor concentration is named; check cloud concentration at your three banks.</div>
+        </article>
+        <article class="item">
+          <div class="meta">MAS · Notable · official</div>
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 600; color: oklch(0.23 0.012 260)">Stress test: 32% of listed companies at risk in a severe AI downturn</a>
+          <div class="why"><b>Why it matters to you:</b> they hold 16% of corporate debt; check loan concentration to AI infrastructure, including UOB's GPU facility.</div>
+        </article>
+      </section>
+    </div>
+
+    <aside style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+      <section>
+        <h2 class="sec">Impact × imminence</h2>
+        <div style="position: relative; height: 240px; border-left: 1px solid oklch(0.80 0.01 260); border-bottom: 1px solid oklch(0.80 0.01 260); margin: 0 0 20px 16px; background: linear-gradient(oklch(0.993 0.002 260), oklch(0.993 0.002 260))">
+          <div style="position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px dashed oklch(0.885 0.007 260)"></div>
+          <div style="position: absolute; top: 50%; left: 0; right: 0; border-top: 1px dashed oklch(0.885 0.007 260)"></div>
+          <div style="position: absolute; left: 78%; top: 14%; display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 50%; background: oklch(0.50 0.17 28)"></span><span class="meta" style="color: oklch(0.23 0.012 260)">HK CRE → UOB</span></div>
+          <div style="position: absolute; left: 62%; top: 40%; display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 50%; background: oklch(0.47 0.105 62)"></span><span class="meta" style="color: oklch(0.23 0.012 260)">Maybank CFO</span></div>
+          <div style="position: absolute; left: 30%; top: 22%; display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 50%; background: oklch(0.47 0.105 62)"></span><span class="meta" style="color: oklch(0.23 0.012 260)">AI downturn</span></div>
+          <div style="position: absolute; left: 52%; top: 68%; display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 50%; background: oklch(0.47 0.10 155)"></span><span class="meta" style="color: oklch(0.23 0.012 260)">Tokenised rail</span></div>
+          <div style="position: absolute; left: 12%; top: 72%; display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 50%; background: oklch(0.47 0.10 155)"></span><span class="meta" style="color: oklch(0.23 0.012 260)">ASEAN funding</span></div>
+          <div class="meta" style="position: absolute; bottom: -20px; right: 0">Imminence →</div>
+          <div class="meta" style="position: absolute; top: 0; left: -16px; writing-mode: vertical-rl; transform: rotate(180deg)">Impact →</div>
+        </div>
+        <div class="meta">Impact from exposure size and materiality; imminence from dated events and direction over 4 weeks.</div>
+      </section>
+
+      <section>
+        <h2 class="sec">Checked and set aside</h2>
+        <div style="display: grid; grid-template-columns: 1fr auto; row-gap: 6px; column-gap: 12px">
+          <span>Already in your brief</span><span>18</span>
+          <span>Passing mentions</span><span>11</span>
+          <span>Older than 30 days</span><span>7</span>
+          <span>Not about your institutions</span><span>5</span>
+        </div>
+        <a href="#" class="meta" style="display: inline-block; margin-top: 6px; color: oklch(0.46 0.16 258)">See all 41 with reasons</a>
+      </section>
+
+      <section>
+        <h2 class="sec">Coming up</h2>
+        <div style="display: grid; grid-template-columns: 56px 1fr; row-gap: 8px">
+          <span class="meta">30 Sep</span><span>MAS AI risk guidelines, consultation closes</span>
+          <span class="meta">16 Oct</span><span>UOB 3Q results; exposure figures refresh</span>
+          <span class="meta">29 Oct</span><span>FOMC decision</span>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">Your watch items</h2>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span>Adverse news in markets UOB lends into</span>
+          <span>Outages at our banks' cloud providers</span>
+          <span>Peer banks fined for AML failures</span>
+          <span>Scam typologies hitting Singapore retail</span>
+        </div>
+        <button class="btn" type="button" style="margin-top: 10px">Add a watch item</button>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="meta" style="margin-top: 32px; padding-top: 12px; border-top: 1px solid oklch(0.93 0.005 260)">Compiled 07:00 from 489 documents. 2 items edited by the EKD desk. Every sentence links to its sources.</footer>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1620}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

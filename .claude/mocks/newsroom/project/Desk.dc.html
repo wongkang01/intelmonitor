@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Desk, editing an edition</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:oklch(0.972 0.004 260)}
+a{color:oklch(0.46 0.16 258);text-decoration:none}a:hover{color:oklch(0.38 0.15 258);text-decoration:underline}
+.meta{font-size:12px;line-height:16px;color:oklch(0.47 0.014 260)}
+.sec{font-size:13px;line-height:18px;font-weight:600;margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid oklch(0.885 0.007 260)}
+.btn{height:32px;padding:0 12px;border-radius:6px;border:1px solid oklch(0.885 0.007 260);background:oklch(0.993 0.002 260);font:inherit;font-size:13px;color:oklch(0.23 0.012 260);display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.row{display:grid;grid-template-columns:20px 1fr 44px 44px 44px;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid oklch(0.93 0.005 260)}
+.num{font-variant-numeric:tabular-nums;text-align:right;font-size:12px}
+.drag{color:oklch(0.56 0.012 260);cursor:grab;font-size:12px;line-height:20px}
+.ed{padding:8px 0;border-bottom:1px solid oklch(0.93 0.005 260);display:grid;grid-template-columns:16px 1fr auto;gap:8px}
+.tag{font-size:11px;line-height:18px;font-weight:600;padding:0 6px;border-radius:4px;background:oklch(0.955 0.022 250);color:oklch(0.48 0.15 258)}
+.tag.ed2{background:oklch(0.965 0.035 80);color:oklch(0.42 0.105 62)}
+</style>
+</helmet>
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: oklch(0.23 0.012 260); font-size: 13px; line-height: 18px; min-height: 100vh">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 10px 24px; background: oklch(0.993 0.002 260); border-bottom: 1px solid oklch(0.93 0.005 260)">
+  <div style="font-weight: 700; font-size: 14px">IntelMonitor</div>
+  <div style="font-weight: 600">Desk</div>
+  <div class="meta">Editing: Banking Department I, Thu 24 Sep 07:00 · draft composed 05:52</div>
+  <div style="flex: 1 1 100px"></div>
+  <button class="btn" type="button">Preview as reader</button>
+  <button class="btn" type="button" style="background: oklch(0.52 0.17 258); border-color: oklch(0.52 0.17 258); color: oklch(0.993 0.002 260)">Publish to 3 departments</button>
+</header>
+
+<main style="max-width: 1400px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 28px">
+
+  <section style="flex: 1 1 340px; min-width: 0">
+    <h2 class="sec">Candidates, ranked by the editor</h2>
+    <div class="row meta" style="font-weight: 600; padding-top: 0">
+      <span></span><span>Development</span><span class="num">Mat.</span><span class="num">Fit</span><span class="num">New</span>
+    </div>
+    <div class="row"><input type="checkbox" checked aria-label="Include"><span>HKMA rate rise, pressure on HK property <span class="meta">via UOB exposure</span></span><span class="num">3</span><span class="num">0.92</span><span class="num">1.0</span></div>
+    <div class="row"><input type="checkbox" checked aria-label="Include"><span>Maybank CFO removed <span class="meta">peer</span></span><span class="num">3</span><span class="num">0.81</span><span class="num">1.0</span></div>
+    <div class="row"><input type="checkbox" checked aria-label="Include"><span>China credit growth slumps <span class="meta">via exposure</span></span><span class="num">2</span><span class="num">0.77</span><span class="num">0.9</span></div>
+    <div class="row"><input type="checkbox" checked aria-label="Include"><span>MAS CRO survey: cyber over geopolitics</span><span class="num">3</span><span class="num">0.74</span><span class="num">0.8</span></div>
+    <div class="row"><input type="checkbox" checked aria-label="Include"><span>CIMB impaired loans uptick <span class="meta">peer</span></span><span class="num">2</span><span class="num">0.70</span><span class="num">1.0</span></div>
+    <div class="row"><input type="checkbox" aria-label="Include"><span>Swiss upper house backs 90% CET1 for UBS units</span><span class="num">3</span><span class="num">0.41</span><span class="num">1.0</span></div>
+    <div class="row"><input type="checkbox" aria-label="Include"><span>Fed SVB review faults supervisors</span><span class="num">3</span><span class="num">0.38</span><span class="num">0.6</span></div>
+    <div class="row"><input type="checkbox" aria-label="Include"><span>UOB green financing, Thai data centre</span><span class="num">2</span><span class="num">0.33</span><span class="num">1.0</span></div>
+    <div class="row"><input type="checkbox" aria-label="Include"><span>Q2 NII decline at all three banks</span><span class="num">2</span><span class="num">0.66</span><span class="num">0.2</span></div>
+    <div class="meta" style="margin-top: 8px">Fit learns from this department's reads and dismissals. New is 0 for items readers already saw.</div>
+  </section>
+
+  <section style="flex: 2 1 520px; min-width: 0; background: oklch(0.993 0.002 260); border: 1px solid oklch(0.93 0.005 260); border-radius: 10px; padding: 20px 24px">
+    <div class="meta">Draft edition</div>
+    <h1 style="margin: 2px 0 12px; font-family: 'Source Serif 4', Georgia, serif; font-size: 30px; line-height: 36px; font-weight: 600">The Morning Brief</h1>
+    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px"><span class="tag ed2">Edited</span><span class="meta">Lede rewritten by you at 06:40; original kept</span></div>
+    <div contenteditable="true" aria-label="Lede" style="font-family: 'Source Serif 4', Georgia, serif; font-size: 17px; line-height: 26px; padding: 10px 12px; border: 1px solid oklch(0.80 0.01 260); border-radius: 6px">Direct news on your three local banks is calm, but two exposure channels moved this week. Hong Kong property weakened after the HKMA followed the Fed's rise, and China credit growth slowed again. Both touch UOB's Greater China commercial real estate book. At peers, Maybank removed its CFO and CIMB flagged rising impaired loans. Nothing at DBS or OCBC needs a call today.</div>
+
+    <h2 class="sec" style="margin-top: 20px">Via exposure</h2>
+    <div class="ed"><span class="drag" aria-hidden="true">⋮⋮</span><span>HKMA raises base rate after Fed; pressure on Hong Kong property<br><span class="meta">Why: UOB Greater China CRE; S$181m extra provisions per 10% collateral fall</span></span><span class="tag">AI</span></div>
+    <div class="ed"><span class="drag" aria-hidden="true">⋮⋮</span><span>China's credit growth slumps<br><span class="meta">Why: adds to CRE pressure; exposure weights unchanged since 1H</span></span><span class="tag">AI</span></div>
+    <h2 class="sec" style="margin-top: 16px">Peers</h2>
+    <div class="ed"><span class="drag" aria-hidden="true">⋮⋮</span><span>Sudden removal of Maybank's CFO raises governance concerns<br><span class="meta">Why: prompt to check board oversight at your banks</span></span><span class="tag ed2">Edited</span></div>
+    <div class="ed"><span class="drag" aria-hidden="true">⋮⋮</span><span>CIMB flags uptick in impaired loans if Mideast conflict drags on<br><span class="meta">Why: same cost pressure on Singapore SME books</span></span><span class="tag">AI</span></div>
+    <h2 class="sec" style="margin-top: 16px">Desk note</h2>
+    <div contenteditable="true" aria-label="Desk note" style="padding: 8px 12px; border: 1px dashed oklch(0.80 0.01 260); border-radius: 6px; color: oklch(0.47 0.014 260)">Add a note from the desk, shown above the sections.</div>
+  </section>
+
+  <aside style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 22px">
+    <section>
+      <h2 class="sec">Checks before publish</h2>
+      <div style="display: grid; grid-template-columns: 1fr auto; row-gap: 6px; column-gap: 12px">
+        <span>Sentences with a verified source</span><span style="color: oklch(0.40 0.10 155); font-weight: 600">14 of 14</span>
+        <span>Numbers not in any source</span><span style="color: oklch(0.40 0.10 155); font-weight: 600">0</span>
+        <span>Sources older than the window</span><span style="color: oklch(0.40 0.10 155); font-weight: 600">0</span>
+        <span>Claims you edited, recheck</span><span style="color: oklch(0.42 0.105 62); font-weight: 600">1</span>
+      </div>
+    </section>
+    <section>
+      <h2 class="sec">Audience</h2>
+      <label style="display: flex; gap: 8px; padding: 3px 0"><input type="checkbox" checked>Banking Department I</label>
+      <label style="display: flex; gap: 8px; padding: 3px 0"><input type="checkbox" checked>Banking Department II</label>
+      <label style="display: flex; gap: 8px; padding: 3px 0"><input type="checkbox" checked>Prudential Policy</label>
+      <label style="display: flex; gap: 8px; padding: 3px 0"><input type="checkbox">Anti-Money Laundering</label>
+    </section>
+    <section>
+      <h2 class="sec">Delivery</h2>
+      <label style="display: flex; gap: 8px; padding: 3px 0"><input type="checkbox" checked>Front page</label>
+      <label style="display: flex; gap: 8px; padding: 3px 0"><input type="checkbox" checked>Email at 07:00</label>
+      <label style="display: flex; gap: 8px; padding: 3px 0"><input type="checkbox" checked>Audio edition, 4 min</label>
+      <div class="meta" style="margin-top: 4px">Next automatic edition 13:00</div>
+    </section>
+    <section>
+      <h2 class="sec">Last edition, readers</h2>
+      <div style="display: grid; grid-template-columns: 1fr auto; row-gap: 6px; column-gap: 12px">
+        <span>Opened</span><span>31 of 44</span>
+        <span>Median read time</span><span>3 min 10 s</span>
+        <span>Listened</span><span>9</span>
+        <span>Items marked not for me</span><span>6</span>
+        <span>Notes drafted to banks</span><span>2</span>
+      </div>
+    </section>
+  </aside>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
