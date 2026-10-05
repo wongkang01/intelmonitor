@@ -5237,6 +5237,26 @@
               }
             ],
             "title": "Last Published"
+          },
+          "theme": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "regulation",
+                  "digital-assets",
+                  "technology",
+                  "strategy",
+                  "markets",
+                  "macro"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theme",
+            "description": "A development's theme, which the view groups by"
           }
         },
         "type": "object",
@@ -5249,7 +5269,8 @@
           "has_new",
           "needs_attention",
           "materiality_level",
-          "last_published"
+          "last_published",
+          "theme"
         ],
         "title": "GraphNode"
       },

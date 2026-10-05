@@ -39,6 +39,7 @@ def neighbourhood(
             needs_attention=bool(data.get("needs_attention", False)),
             materiality_level=data.get("materiality_level"),
             last_published=published,
+            theme=data.get("theme"),
         )
     if center not in nodes or nodes[center].type == "development":
         raise NotFoundError(f"subject {center}")

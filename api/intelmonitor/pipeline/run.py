@@ -113,7 +113,7 @@ async def compute_run(
         if base_id:
             step(f"{store_changes(conn, run_id, base_id, changes)} changes vs {base_id}")
         conn.execute("UPDATE runs SET previous_run_id = ? WHERE id = ?", (base_id, run_id))
-        nodes, edges = store_graph(conn, run_id, changes)
+        nodes, edges = await store_graph(inf, conn, run_id, changes)
         step(f"graph {nodes} nodes, {edges} edges")
     except Exception as error:
         message = f"{type(error).__name__}: {error}"

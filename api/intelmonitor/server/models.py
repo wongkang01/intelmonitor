@@ -7,6 +7,7 @@ from typing import Annotated, Literal
 from pydantic import AfterValidator, BaseModel, Field
 
 from intelmonitor.pipeline.facts import SeriesFact
+from intelmonitor.pipeline.graph import Theme
 from intelmonitor.pipeline.subjects import all_subjects
 from intelmonitor.seed import (
     BadDirection,
@@ -519,6 +520,7 @@ class GraphNode(BaseModel):
     needs_attention: bool
     materiality_level: int | None
     last_published: date | None
+    theme: Theme | None = Field(description="A development's theme, which the view groups by")
 
 
 class GraphEdge(BaseModel):

@@ -2123,6 +2123,11 @@ export interface components {
             materiality_level: number | null;
             /** Last Published */
             last_published: string | null;
+            /**
+             * Theme
+             * @description A development's theme, which the view groups by
+             */
+            theme: ("regulation" | "digital-assets" | "technology" | "strategy" | "markets" | "macro") | null;
         };
         /** GroupInsights */
         GroupInsights: {
