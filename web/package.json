@@ -10,6 +10,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "gen:api": "uv run --project ../api im openapi lib/api/openapi.json && openapi-typescript lib/api/openapi.json -o lib/api/schema.ts",
+    "verify": "NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS:-$HOME/.portless/ca.pem} node --no-warnings verify/control.ts",
     "e2e": "NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS:-$HOME/.portless/ca.pem} playwright test"
   },
   "dependencies": {
