@@ -32,6 +32,7 @@ from intelmonitor.server.models import (
     QuestionAnswerView,
     QuestionStateChange,
     RunRef,
+    RunSummary,
     StageBucket,
     StageTrack,
     State,
@@ -107,6 +108,13 @@ def subject_links(subject_id: str) -> SubjectLinks:
         groups=[subject_ref(g.id) for g in groups],
         entities=[subject_ref(e) for e in dict.fromkeys(entities)],
     )
+
+
+def peers(subject_id: str) -> list[str]:
+    """The other members of the groups an entity belongs to, in seed order; none for topics and
+    groups."""
+    groups = [g for g in load_subjects().groups if subject(subject_id).id in g.members]
+    return [m for m in dict.fromkeys(m for g in groups for m in g.members) if m != subject_id]
 
 
 def aliases(subject_id: str) -> list[str]:
@@ -621,6 +629,13 @@ class Queries:
         return GroupInsights(
             lookback_days=GROUP_LOOKBACK_DAYS, common_issues=common[:5], outliers=outliers
         )
+
+    def summary(self, subject_id: str) -> RunSummary | None:
+        row = self.conn.execute(
+            "SELECT * FROM run_summaries WHERE run_id = ? AND subject_id = ?",
+            (self.run.id, subject_id),
+        ).fetchone()
+        return None if row is None else RunSummary.model_validate(dict(row))
 
     # ---- analyst actions
 

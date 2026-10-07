@@ -380,6 +380,22 @@ CREATE TABLE IF NOT EXISTS run_notes (
     PRIMARY KEY (run_id, subject_id)
 );
 
+-- Each run's summary per subject for the top of its monitor page (pipeline/summaries.py). Claude
+-- writes the text; code computes the direction against the previous run and the counts.
+CREATE TABLE IF NOT EXISTS run_summaries (
+    run_id TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    text TEXT NOT NULL,
+    direction TEXT,                    -- more_adverse, less_adverse, unchanged; null on a first run
+    direction_basis TEXT NOT NULL,     -- the direction's comparison in words
+    developments_in_scope INTEGER NOT NULL, -- the subject's developments in the run
+    needs_attention INTEGER NOT NULL,  -- of those, needing attention
+    adverse INTEGER NOT NULL,          -- of those, adverse
+    model TEXT NOT NULL,               -- the model that wrote the text
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (run_id, subject_id)
+);
+
 -- Detector firings (pipeline/detectors.py): each one is a source document in the data collection
 -- with one finding. Written once per event: the document id comes from the detector, the series and
 -- the event's first period, so reruns find the row already there.

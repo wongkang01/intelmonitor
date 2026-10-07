@@ -1,32 +1,39 @@
-/* A monitor page's Trend tab (components/monitor/TrendView.tsx, TrendChart.tsx). */
+/* A monitor page's Data tab (components/monitor/TrendView.tsx, TrendChart.tsx). */
 
-/* Overview and Trend in the page head, left of Follow: the segmented control with links. */
-.mon-tabs {
-  margin: 0 var(--s-2) 4px 0;
+/* The tab's column: Indicators across the top, then the brief, a main panel and the Facts rail. */
+.data-tab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: 0 var(--s-6) var(--s-7);
 }
-.mon-tabs a {
-  position: relative;
-  height: 24px;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 10px;
-  border: 1px solid transparent;
-  border-radius: var(--r-badge);
-  color: var(--ink2);
-  font: 500 var(--fs-meta) / var(--lh-meta) var(--font);
+.data-tab > .panel,
+.tr-brief > .panel {
+  display: block;
 }
-.mon-tabs a::after {
-  content: "";
-  position: absolute;
-  inset: -11px -1px;
+.tr-brief {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 296px;
+  gap: var(--s-4);
+  align-items: start;
 }
-.mon-tabs a:hover {
-  color: var(--ink);
+/* The rail sticks under the top bar as the monitor page's did; lib/dom.ts keeps --rail-h current. */
+.tr-rail {
+  position: sticky;
+  top: min(80px, calc(100vh - var(--rail-h, 0px) - var(--s-5)));
 }
-.mon-tabs a[aria-current="page"] {
-  background: var(--surface);
-  border-color: var(--line-strong);
-  color: var(--ink);
+@container main (width < 900px) {
+  .tr-brief {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tr-rail {
+    position: static;
+  }
+}
+@container main (width < 640px) {
+  .data-tab {
+    padding: 0 var(--s-4) var(--s-6);
+  }
 }
 
 /* Question state marks: Stable a baseline, New and Watch half height, Needs attention full.

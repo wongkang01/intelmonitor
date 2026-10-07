@@ -203,8 +203,12 @@ const firstDashboard = async () => {
 const TARGETS = {
   home: async () => "/",
   dashboard: async (q: string) => `/dashboards/${await dashboardId(q)}`,
+  // A monitor page's tabs: Overview, Developments (subject or peers), Data, Connections.
   monitor: async (q: string) => `/monitors/${await subjectId(q)}`,
-  trend: async (q: string) => `/monitors/${await subjectId(q)}/trend`,
+  "monitor-developments": async (q: string, scope = "") =>
+    `/monitors/${await subjectId(q)}/developments${scope === "peers" ? "?scope=peers" : ""}`,
+  data: async (q: string) => `/monitors/${await subjectId(q)}/data`,
+  connections: async (q: string) => `/monitors/${await subjectId(q)}/connections`,
   graph: async (q: string) => `/monitors/${await subjectId(q)}/graph`,
   // The list belongs to a dashboard; the query adds facets, sort, q= or changed=1.
   developments: async (dashboard: string, query = "") => {
@@ -317,8 +321,9 @@ const HELP = `pnpm -C web verify <command>
   up | down                   start what is not running | stop only what up started
   url <target> [arg]          page URL for a target
   open <target> [arg]         open it in the harness browser (session ${SESSION}, 1440x900)
-      targets: home, dashboard <dashboard>, monitor <subject>, trend <subject>,
-               graph <subject>, developments <dashboard> [query],
+      targets: home, dashboard <dashboard>, monitor <subject>,
+               monitor-developments <subject> [peers], data <subject>,
+               connections <subject>, graph <subject>, developments <dashboard> [query],
                evidence <development-id> [dashboard]
       <dashboard> and <subject> are an id or a name that matches one item
   shot <run>/<name>           screenshot + ARIA snapshot to artifacts/verify/<run>/

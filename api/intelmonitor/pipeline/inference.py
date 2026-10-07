@@ -158,10 +158,17 @@ class Inference:
         return answers
 
     async def claude[T: BaseModel](
-        self, stage: str, input_ref: str, prompt: str, schema: type[T], system: str
+        self,
+        stage: str,
+        input_ref: str,
+        prompt: str,
+        schema: type[T],
+        system: str,
+        model: str | None = None,
     ) -> T:
-        """One structured Claude turn, retried on failure; every attempt is recorded."""
-        model = get_settings().anthropic_model
+        """One structured Claude turn on `model` (default settings.anthropic_model), retried on
+        failure; every attempt is recorded."""
+        model = model or get_settings().anthropic_model
         key = _hash(
             {
                 "model": model,
@@ -179,7 +186,7 @@ class Inference:
             for attempt in range(1, _CLAUDE_ATTEMPTS + 1):
                 started = time.monotonic()
                 try:
-                    reply = await ask_claude(prompt, schema, system)
+                    reply = await ask_claude(prompt, schema, system, model)
                 except Exception as error:
                     refused = _is_refusal(error)
                     status = "refused" if refused else "error"

@@ -299,6 +299,8 @@ type Props = {
   hovered: string | null;
   onHover: (id: string | null) => void;
   onOpen: (id: string) => void;
+  /** Inside a scrolling monitor tab: a plain wheel scrolls the page, and pinch or Ctrl+wheel zooms. */
+  embedded?: boolean;
   /** Overlays drawn over the canvas, such as the legend. */
   children?: ReactNode;
 };
@@ -316,7 +318,8 @@ async function fit(renderer: Renderer) {
   renderer.setCustomBBox(renderer.getBBox());
 }
 
-export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props) {
+export function GraphCanvas({ data, hovered, onHover, onOpen, embedded = false, children }: Props) {
+  const wrap = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const regions = useRef<HTMLDivElement>(null);
   const graph = useRef(new Graph<NodeAttrs, EdgeAttrs>());
@@ -498,6 +501,18 @@ export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props)
     };
   }, [renderer, data]);
 
+  // Sigma zooms on every wheel event and stops it, which would trap the page's scroll. Embedded, the
+  // wrapper stops a plain wheel in the capture phase before sigma sees it, so the page scrolls.
+  useEffect(() => {
+    const el = wrap.current;
+    if (!embedded || !el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) e.stopPropagation();
+    };
+    el.addEventListener("wheel", onWheel, { capture: true });
+    return () => el.removeEventListener("wheel", onWheel, { capture: true });
+  }, [embedded]);
+
   useEffect(() => {
     hoveredRef.current = hovered;
     renderer?.refresh({ skipIndexation: true });
@@ -505,7 +520,7 @@ export function GraphCanvas({ data, hovered, onHover, onOpen, children }: Props)
 
   const themes = THEMES.filter((t) => data.nodes.some((n) => n.theme === t));
   return (
-    <div className="graph-canvas">
+    <div className="graph-canvas" ref={wrap}>
       <div
         ref={stage}
         className="graph-stage"

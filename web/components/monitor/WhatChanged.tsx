@@ -1,7 +1,8 @@
-// What changed since the last review, on monitor pages. Rows carry read, flag and dismiss actions
-// that replace the date while the pointer is over the row or focus is in it; a segmented control
-// filters them. After Mark reviewed the list folds away behind a disclosure of the run's changes,
-// which keeps the triage controls. A dashboard's developments list reuses the triage pieces.
+// What changed since the last review, at the top of a monitor page's Developments tab. Rows carry
+// read, flag and dismiss actions that replace the date while the pointer is over the row or focus is
+// in it; a segmented control filters them. After Mark reviewed the list folds away behind a
+// disclosure of the run's changes, which keeps the triage controls. A dashboard's developments list
+// reuses the triage pieces.
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type Ref } from "react";
 

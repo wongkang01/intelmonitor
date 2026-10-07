@@ -6,10 +6,10 @@ export const STEPS = [
   "Edit mode: drag, remove, reload keeps the layout",
   "New dashboard, Build",
   "New dashboard, Generate",
-  "Monitor page from ⌘K: mark reviewed and Undo, add a note, delete and Undo, the rail's foot in reach",
+  "Monitor page from ⌘K: add a note, delete and Undo, then mark reviewed and Undo on the Developments tab",
   "Triage: row actions by keyboard, filters, follow, alerts read on open",
-  "Custom question with answer and citations",
-  "Graph view: developments under their themes, drag a node without opening it, 2 hops, click a node, its page opens",
+  "Custom focus area with answer and citations",
+  "Connections tab, then the graph view: developments under their themes, drag a node without opening it, 2 hops, click a node, its page opens",
   "Sidebar: drag and Move up reorder dashboards, colors stay",
   "⌘K full text: a development and a document open their evidence, snippets are body text",
   "Correct the AI: mark an answer wrong and Undo, remove a tag and Undo",
@@ -25,8 +25,8 @@ export const STEPS = [
   "Indicators on monitor pages: a bank's system-wide rows as of the run, the Fed funds rise reads Watch and opens its development, the line's readout",
   "Indicator widget: a subject alone shows its peg, the gallery suggests the peg first, supply added at Large marks developments on its lane",
   "Data as a source: an answer's cited series show their sentence, flags in words and a chart over their span with the cited period highlighted",
-  "Trend tab: weekly runs from 30 Jul, each run's note numbered on the chart with the facts it was given, question states per run, no note before the first document",
-  "Custom question with a series: the picker names SGD per ringgit, answers cite its facts over the question's lookback, the widget at Medium shows its line",
+  "Data tab: weekly runs from 30 Jul, each run's note numbered on the chart with the facts it was given, question states per run, no note before the first document",
+  "Custom focus area with a series: the picker names SGD per ringgit, answers cite its facts over the question's lookback, the widget at Medium shows its line",
 ] as const;
 
 /** Where each run writes its artifacts; playwright.config.ts sets it once per run. */

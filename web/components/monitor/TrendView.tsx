@@ -1,18 +1,20 @@
-// A monitor page's Trend tab (structured-data-plan.md, F6; mocks/trend-series.html, B "Brief"):
-// the selected run's note on why the subject's series moved leads, its citations numbered on
-// the chart of the 12 months to the latest run, with the facts the note was given in the rail.
-// Standing questions' states per run and the cited developments follow. "Before <first document>"
-// shows the series where no document, run or note exists.
+// A monitor page's Data tab: the Indicators section (flagged rows first), then the trend
+// (structured-data-plan.md, F6; mocks/trend-series.html, B "Brief"): the selected run's note on why
+// the subject's series moved leads, its citations numbered on the chart of the 12 months to the
+// latest run, with the facts the note was given beside it. Standing questions' states per run and
+// the cited developments follow. "Before <first document>" shows the series where no document, run
+// or note exists.
 import { Link } from "@tanstack/react-router";
-import { Fragment, useState, type ReactNode } from "react";
+import { Fragment, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
-import { useMonitorPage, useTrend } from "@/lib/api/queries";
+import { useIndicators, useMonitorPage, useTrend } from "@/lib/api/queries";
 import { trackRailHeight, useHashScroll } from "@/lib/dom";
 import { day, longDate, monthsBefore, plural, seriesChange, seriesPeriod, seriesValue, shortDate, STATE_LABEL, STATE_TONE } from "@/lib/format";
 import { evidenceLink } from "@/components/shell/Evidence";
 
-import { Actions, MonitorHead } from "./MonitorView";
+import { Indicators } from "./Indicators";
+import { MonitorHead } from "./MonitorView";
 import { Section, StateChange } from "./parts";
 import { TrendChart } from "./TrendChart";
 
@@ -33,26 +35,36 @@ type Zoom = (typeof ZOOMS)[number]["months"];
 const MAX_SEGMENTS = 3;
 const PRE = "pre";
 
-export function TrendView({ id }: { id: string }) {
+export function DataView({ id }: { id: string }) {
   const page = useMonitorPage(id);
   const trend = useTrend(id);
-  useHashScroll();
   const p = page.data;
-  if (page.isError || trend.isError) return <p className="page-message">This trend could not be loaded.</p>;
-  if (!p || !trend.data) return null;
+  // The Indicators section reads the same query; waiting for it here keeps the trend from jumping down.
+  const indicators = useIndicators(id, p?.run.as_of, p !== undefined);
+  useHashScroll();
+  if (page.isError || trend.isError) return <p className="page-message">This data could not be loaded.</p>;
+  if (!p || !trend.data || indicators.isPending) return null;
+  const listed = indicators.data?.indicators.some((i) => i.series.listed) ?? false;
   return (
     <>
-      <MonitorHead page={p} view="trend" />
-      {trend.data.series.length === 0 ? (
-        <p className="page-message">{p.subject.name} has no measured series.</p>
-      ) : (
-        <Brief key={trend.data.run.id} t={trend.data} actions={<Actions page={p} />} />
-      )}
+      <MonitorHead page={p} view="data" />
+      <div className="data-tab">
+        {listed && (
+          <div className="panel">
+            <Indicators subjectId={p.subject.id} asOf={p.run.as_of} />
+          </div>
+        )}
+        {trend.data.series.length > 0 ? (
+          <Brief key={trend.data.run.id} t={trend.data} />
+        ) : (
+          !listed && <p className="mon-empty">{p.subject.name} has no measured series.</p>
+        )}
+      </div>
     </>
   );
 }
 
-function Brief({ t, actions }: { t: Trend; actions: ReactNode }) {
+function Brief({ t }: { t: Trend }) {
   const latest = t.runs[t.runs.length - 1];
   const [selected, setSelected] = useState<string>(latest?.run.id ?? PRE);
   const [picked, setPicked] = useState<string | null>(null);
@@ -74,8 +86,8 @@ function Brief({ t, actions }: { t: Trend; actions: ReactNode }) {
   const firstRun = t.runs[0]?.run.as_of;
 
   return (
-    <div className="monitor">
-      <div className="panel mon-main">
+    <div className="tr-brief">
+      <div className="panel">
         <Section
           id="why"
           title="Why it moved"
@@ -157,7 +169,7 @@ function Brief({ t, actions }: { t: Trend; actions: ReactNode }) {
         </Section>
         <Section
           id="runs"
-          title="Standing questions by run"
+          title="Focus areas by run"
           meta={firstRun ? `${plural(t.runs.length, "run")}; none before ${shortDate(firstRun)}` : "No runs"}
         >
           <QuestionsByRun t={t} index={index} />
@@ -168,7 +180,7 @@ function Brief({ t, actions }: { t: Trend; actions: ReactNode }) {
           </Section>
         )}
       </div>
-      <aside className="panel mon-rail" aria-label="Facts and actions" ref={trackRailHeight}>
+      <aside className="panel tr-rail" aria-label="Facts" ref={trackRailHeight}>
         <Section id="facts" title="Facts" meta={run ? "Given to the note" : "Computed"}>
           <dl className="tr-facts">
             {(run ? noteFacts(s, note?.facts.find((m) => m.series_id === s.id)) : preFacts(series, t.documents_from)).map(([term, value]) => (
@@ -183,7 +195,6 @@ function Brief({ t, actions }: { t: Trend; actions: ReactNode }) {
             Open source table
           </a>
         </Section>
-        {actions}
       </aside>
     </div>
   );
@@ -239,13 +250,13 @@ function StateChanges({ t, index }: { t: Trend; index: number }) {
 function QuestionsByRun({ t, index }: { t: Trend; index: number }) {
   const slots = runSlots(t.runs);
   const shown = index >= 0 ? t.runs[index] : null;
-  if (t.questions.length === 0) return <p className="mon-empty">No standing questions.</p>;
+  if (t.questions.length === 0) return <p className="mon-empty">No focus areas.</p>;
   return (
     <>
       <table className="tr-qt">
         <thead>
           <tr>
-            <th scope="col">Question</th>
+            <th scope="col">Focus area</th>
             <th scope="col">
               {t.runs.length > 0 && `${shortDate(t.runs[0].run.as_of)} to ${shortDate(t.runs[t.runs.length - 1].run.as_of)}`}
             </th>

@@ -1,7 +1,8 @@
 // Graph view around one subject: opens at 1 hop, expands to 2, with filters for node type, link
 // type and time window. Clicking a subject node opens its monitor page; clicking a development
 // opens its evidence over the graph. Developments are coloured and grouped by theme. The In view
-// list shows the same nodes as links.
+// list shows the same nodes as links. The full page (/monitors/$id/graph) has its own head;
+// `embedded` drops it and sizes the region to a monitor tab.
 import { Link } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
@@ -45,7 +46,7 @@ function toggle<T>(list: T[], item: T): T[] {
   return list.length > 1 ? list.filter((x) => x !== item) : list;
 }
 
-export function GraphView({ id }: { id: string }) {
+export function GraphView({ id, embedded = false }: { id: string; embedded?: boolean }) {
   const navigate = useNavigate();
   const [hops, setHops] = useState<1 | 2>(1);
   const [nodeTypes, setNodeTypes] = useState<NodeType[]>(NODE_TYPES.map((t) => t.value));
@@ -66,23 +67,26 @@ export function GraphView({ id }: { id: string }) {
   const open = useCallback((nodeId: string) => void navigate(linkOf(nodeId)), [navigate]);
 
   if (graph.isError) return <p className="page-message">This graph could not be loaded.</p>;
-  if (!g) return null;
+  // Embedded, an empty region holds the tab's height while the graph loads.
+  if (!g) return embedded ? <div className="graph-page embedded" aria-busy="true" /> : null;
   const center = g.nodes.find((n) => n.id === g.center);
 
   return (
     <>
-      <div className="pagehead">
-        <div className="grow">
-          <h1>{center?.label ?? id}</h1>
-          <p>
-            Graph view.{" "}
-            <Link {...monitorLink(id)} className="subject-link">
-              Open monitor page
-            </Link>
-          </p>
+      {!embedded && (
+        <div className="pagehead">
+          <div className="grow">
+            <h1>{center?.label ?? id}</h1>
+            <p>
+              Graph view.{" "}
+              <Link {...monitorLink(id)} className="subject-link">
+                Open monitor page
+              </Link>
+            </p>
+          </div>
         </div>
-      </div>
-      <div className="graph-page">
+      )}
+      <div className={embedded ? "graph-page embedded" : "graph-page"}>
         <div className="graph-bar" role="group" aria-label="Graph filters">
           <div className="seg" role="group" aria-label="Hops">
             {([1, 2] as const).map((h) => (
@@ -113,7 +117,7 @@ export function GraphView({ id }: { id: string }) {
           </div>
         </div>
         <div className="graph-region">
-          <GraphCanvas data={g} hovered={hovered} onHover={setHovered} onOpen={open}>
+          <GraphCanvas data={g} hovered={hovered} onHover={setHovered} onOpen={open} embedded={embedded}>
             <ul className="graph-legend" aria-label="Legend">
               {/* Themed developments are labelled beside their sectors, so only other types are listed. */}
               {NODE_TYPES.filter((t) => g.nodes.some((n) => n.type === t.value && !n.theme)).map((t) => (

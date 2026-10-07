@@ -411,7 +411,7 @@
     "/developments": {
       "get": {
         "summary": "List Developments",
-        "description": "The latest run's developments in display order, for some subjects, for a dashboard's\nsubjects, or all of them, narrowed by facet filters, with each facet's counts.",
+        "description": "The latest run's developments in display order, for some subjects, for a dashboard's\nsubjects, for an entity's peers, or all of them, narrowed by facet filters, with each\nfacet's counts.",
         "operationId": "list_developments",
         "parameters": [
           {
@@ -445,6 +445,24 @@
               "title": "Dashboard Id"
             },
             "description": "Adds a dashboard's subjects"
+          },
+          {
+            "name": "peers_of",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Adds the other members of the entity's groups, and drops every development tagged to the entity itself",
+              "title": "Peers Of"
+            },
+            "description": "Adds the other members of the entity's groups, and drops every development tagged to the entity itself"
           },
           {
             "name": "changed",
@@ -5756,6 +5774,17 @@
             "type": "boolean",
             "title": "Trend",
             "description": "The subject has measured series for a Trend view"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None until the run has one for the subject"
           }
         },
         "type": "object",
@@ -5769,7 +5798,8 @@
           "stage_track",
           "group",
           "notes",
-          "trend"
+          "trend",
+          "summary"
         ],
         "title": "MonitorPage"
       },
@@ -7026,6 +7056,66 @@
         ],
         "title": "RunStatus"
       },
+      "RunSummary": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "Written by Claude from the run's stored rows"
+          },
+          "direction": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "more_adverse",
+                  "less_adverse",
+                  "unchanged"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Direction",
+            "description": "Against the previous run, by code: focus areas at Needs attention (2 each) and Watch (1 each) plus adverse developments needing attention; null on a first run"
+          },
+          "direction_basis": {
+            "type": "string",
+            "title": "Direction Basis",
+            "description": "The comparison in words"
+          },
+          "developments_in_scope": {
+            "type": "integer",
+            "title": "Developments In Scope",
+            "description": "The subject's developments in the run"
+          },
+          "needs_attention": {
+            "type": "integer",
+            "title": "Needs Attention"
+          },
+          "adverse": {
+            "type": "integer",
+            "title": "Adverse"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "direction",
+          "direction_basis",
+          "developments_in_scope",
+          "needs_attention",
+          "adverse",
+          "model"
+        ],
+        "title": "RunSummary",
+        "description": "The latest run's summary of a subject (pipeline/summaries.py)."
+      },
       "SearchHit": {
         "properties": {
           "subject": {
@@ -7410,6 +7500,7 @@
               "fred",
               "coingecko",
               "defillama",
+              "yahoo",
               "derived"
             ],
             "title": "Source"

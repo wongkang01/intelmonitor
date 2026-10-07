@@ -306,7 +306,8 @@ def markdown(r: dict[str, Any]) -> str:
             c = row["change"]
             change = f"{_pct(c['precision'])} / {_pct(c['recall'])}"
         corr = f"{_pct(row['correctness'])} ({row['claims_supported']}/{row['claims']})"
-        cov = _pct(row["coverage"]) + (f" ({row['must_items']} required)" if row["must_items"] else "")
+        required = f" ({row['must_items']} required)" if row["must_items"] else ""
+        cov = _pct(row["coverage"]) + required
         nums = ", ".join(row["unsupported_numbers"]) or "0"
         lines.append(
             f"| {row['eval_id']} | {row['variant']} | {corr} | {cov} | {state} | {nums} "

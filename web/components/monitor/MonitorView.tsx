@@ -1,29 +1,31 @@
-// A monitor page for a topic, group or entity. Every scope has the same order: What changed,
-// Indicators (where series are mapped), Standing questions, Links, Actions. Topics add the stage
-// track and upcoming dates; groups add common issues and outliers. The main panel holds the first
-// three and the scope extras; a sticky rail panel holds Links and Actions. The head's Follow button
-// decides whether the subject alerts; a subject with measured series gets Overview and Trend tabs
-// beside it (TrendView.tsx).
+// A monitor page for a topic, group or entity, in four tabs under its head: Overview (here),
+// Developments, Data and Connections (other views, each rendering MonitorHead with its tab).
+// The Overview has two columns: the run's Summary, Focus areas (standing questions) and, for
+// topics, the stage track and upcoming dates on the left; Key data, Needs attention, a small
+// Connections graph and Notes on the right. Under 900px they stack. The head holds Follow, which
+// decides whether the subject alerts, and Mark reviewed.
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
-import { useFollow, useFollows, useMarkReviewed, useMonitorPage, useUndoReview } from "@/lib/api/queries";
-import { trackRailHeight, useHashScroll } from "@/lib/dom";
-import { answerText, capitalize, daysBetween, inDays, plural, shortDate, TYPE_PLURAL, whenAt } from "@/lib/format";
-import type { SubjectType } from "@/lib/widgets";
+import { useFollow, useFollows, useIndicators, useMarkReviewed, useMonitorPage, useUndoReview } from "@/lib/api/queries";
+import { useHashScroll } from "@/lib/dom";
+import { answerText, capitalize, daysBetween, inDays, plural, shortDate, whenAt } from "@/lib/format";
 import { CustomQuestionComposer, CustomQuestionEditor } from "@/components/custom/CustomQuestion";
 import { evidenceLink } from "@/components/shell/Evidence";
 import { useAnswerCorrection } from "@/components/shell/Feedback";
 import { Notes } from "@/components/shell/Notes";
-import { SubjectLink, SubjectLinks } from "@/components/shell/SubjectLink";
+import { SubjectLinks } from "@/components/shell/SubjectLink";
 import { PlusIcon, TickIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
-import { DevelopmentRow, StateBadge } from "@/components/widgets/parts";
+import { StateBadge } from "@/components/widgets/parts";
 
-import { Indicators } from "./Indicators";
+import { ConnectionsCard } from "./overview/ConnectionsCard";
+import { KeyData } from "./overview/KeyData";
+import { NeedsAttention } from "./overview/NeedsAttention";
+import { RunSummary } from "./overview/RunSummary";
 import { StageTrack } from "./StageTrack";
-import { hasUnreviewed, WhatChanged } from "./WhatChanged";
+import { hasUnreviewed } from "./WhatChanged";
 import { Dotted, Section, StateChange } from "./parts";
 import { SubjectIcon } from "@/components/ui/SubjectIcon";
 
@@ -35,60 +37,124 @@ export function MonitorView({ id }: { id: string }) {
   const p = page.data;
   if (page.isError) return <p className="page-message">This monitor could not be loaded.</p>;
   if (!p) return null;
+  const topic = p.subject.type === "topic";
   return (
     <>
       <MonitorHead page={p} view="overview" />
-      <div className="monitor">
-        <div className="panel mon-main">
-          <WhatChanged wc={p.what_changed} subjectId={p.subject.id} />
-          <Indicators subjectId={p.subject.id} asOf={p.run.as_of} />
-          <Questions page={p} />
-          {p.group && <GroupInsights group={p.group} />}
-          {p.stage_track && <StageTrack track={p.stage_track} />}
-          {p.subject.type === "topic" && <Upcoming page={p} />}
+      <div className="ov">
+        <div className="ov-col">
+          {p.summary && <RunSummary summary={p.summary} run={p.run} />}
+          <div className="panel ov-card">
+            <Questions page={p} />
+          </div>
+          {topic && p.stage_track && (
+            <div className="panel ov-card">
+              <StageTrack track={p.stage_track} />
+            </div>
+          )}
+          {topic && (
+            <div className="panel ov-card">
+              <Upcoming page={p} />
+            </div>
+          )}
         </div>
-        <aside className="panel mon-rail" aria-label="Links and actions" ref={trackRailHeight}>
-          <Links subject={p.subject} />
-          <Actions page={p} />
-        </aside>
+        <div className="ov-col">
+          <KeyData subjectId={p.subject.id} asOf={p.run.as_of} />
+          <NeedsAttention subjectId={p.subject.id} />
+          <ConnectionsCard subject={p.subject} />
+          <div className="panel ov-card">
+            <Section id="notes" title="Notes">
+              <Notes target={{ subject_id: p.subject.id }} notes={p.notes} />
+            </Section>
+          </div>
+        </div>
       </div>
     </>
   );
 }
 
+export type MonitorTab = "overview" | "developments" | "data" | "connections";
+
 /**
- * The page head: logo, name and summary line, the Overview and Trend tabs where the subject has
- * measured series, and Follow.
+ * The page head: logo, name and summary line with Mark reviewed and Follow at its right, over the
+ * tabs. Data shows when the subject has listed series; Connections shows for groups and entities.
  */
-export function MonitorHead({ page: p, view }: { page: Page; view: "overview" | "trend" }) {
+export function MonitorHead({ page: p, view }: { page: Page; view: MonitorTab }) {
   const params = { id: p.subject.id };
+  const indicators = useIndicators(p.subject.id, p.run.as_of);
+  const hasData = p.trend || (indicators.data?.indicators.some((i) => i.series.listed) ?? false);
+  const current = (tab: MonitorTab) => (view === tab ? ("page" as const) : undefined);
   return (
     <div className="mon-head">
-      <div className="mon-head-main">
-        {p.subject.logo_full && (
-          // Local logo files need no image optimization; the name below carries the meaning.
-          <img className={`mon-logo${p.subject.kind === "country" ? " flag" : ""}`} src={p.subject.logo_full} alt="" />
-        )}
-        <h1>
-          {!p.subject.logo_full && <SubjectIcon subject={p.subject} size={28} />}
-          {p.subject.name}
-        </h1>
-        <p>
-          <Summary subject={p.subject} />
-        </p>
+      <div className="mon-head-top">
+        <div className="mon-head-main">
+          {p.subject.logo_full && (
+            // Local logo files need no image optimization; the name below carries the meaning.
+            <img className={`mon-logo${p.subject.kind === "country" ? " flag" : ""}`} src={p.subject.logo_full} alt="" />
+          )}
+          <h1>
+            {!p.subject.logo_full && <SubjectIcon subject={p.subject} size={28} />}
+            {p.subject.name}
+          </h1>
+          <p>
+            <Summary subject={p.subject} />
+          </p>
+        </div>
+        <div className="mon-head-acts">
+          <ReviewButton page={p} />
+          <FollowButton subjectId={p.subject.id} />
+        </div>
       </div>
-      {p.trend && (
-        <nav className="seg mon-tabs" aria-label="View">
-          <Link to="/monitors/$id" params={params} activeOptions={{ exact: true }} aria-current={view === "overview" ? "page" : undefined}>
-            Overview
+      <nav className="mon-nav" aria-label="Monitor views">
+        <Link to="/monitors/$id" params={params} activeOptions={{ exact: true }} aria-current={current("overview")}>
+          Overview
+        </Link>
+        <Link to="/monitors/$id/developments" params={params} aria-current={current("developments")}>
+          Developments
+        </Link>
+        {hasData && (
+          <Link to="/monitors/$id/data" params={params} aria-current={current("data")}>
+            Data
           </Link>
-          <Link to="/monitors/$id/trend" params={params} aria-current={view === "trend" ? "page" : undefined}>
-            Trend
+        )}
+        {p.subject.type !== "topic" && (
+          <Link to="/monitors/$id/connections" params={params} aria-current={current("connections")}>
+            Connections
           </Link>
-        </nav>
-      )}
-      <FollowButton subjectId={p.subject.id} />
+        )}
+      </nav>
     </div>
+  );
+}
+
+/** Mark reviewed clears What changed for the subject, with Undo in the toast; the last review beside it. */
+function ReviewButton({ page }: { page: Page }) {
+  const review = useMarkReviewed();
+  const undo = useUndoReview();
+  const toast = useToast();
+  const wc = page.what_changed;
+  const cleared = wc.new_count + wc.updated_count;
+  return (
+    <>
+      <span className="meta">{wc.reviewed_at ? `Reviewed ${whenAt(wc.reviewed_at)}` : "Not reviewed yet"}</span>
+      <button
+        type="button"
+        className="btn btn-primary"
+        disabled={review.isPending || !hasUnreviewed(wc)}
+        onClick={() =>
+          review.mutate([page.subject.id], {
+            onSuccess: (reviews) =>
+              toast({
+                message: `${page.subject.name} marked reviewed.${cleared > 0 ? ` ${cleared} new cleared.` : ""}`,
+                action: { label: "Undo", run: () => undo.mutate(reviews.map((r) => r.id)) },
+              }),
+            onError: () => toast({ message: "Could not mark reviewed" }),
+          })
+        }
+      >
+        Mark reviewed
+      </button>
+    </>
   );
 }
 
@@ -133,18 +199,28 @@ function Questions({ page }: { page: Page }) {
   const toast = useToast();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
-  // A question deleted in the editor: once it leaves the list, focus goes to Add a question.
+  // A question deleted in the editor: once it leaves the list, focus goes to Add a focus area.
+  // So does closing the composer, which held focus.
   const deleted = useRef<string | null>(null);
+  const closed = useRef(false);
   const addButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
+    if (closed.current && addButton.current) {
+      closed.current = false;
+      addButton.current.focus();
+    }
     const id = deleted.current;
     if (!id || page.questions.some((a) => a.question_id === id)) return;
     deleted.current = null;
     addButton.current?.focus();
   });
+  const close = () => {
+    closed.current = true;
+    setAdding(false);
+  };
   const changed = page.questions.filter((a) => a.change.kind === "state_changed").length;
   return (
-    <Section id="questions" title="Standing questions" meta={changed > 0 ? `${plural(changed, "answer")} changed` : plural(page.questions.length, "question")}>
+    <Section id="questions" title="Focus areas" meta={changed > 0 ? `${plural(changed, "answer")} changed` : plural(page.questions.length, "focus area")}>
       <div className="rows">
         {page.questions.map((a) => (
           <QuestionRow key={a.question_id} subjectId={page.subject.id} answer={a} onEdit={() => setEditing(a.question_id)} />
@@ -158,9 +234,9 @@ function Questions({ page }: { page: Page }) {
             <CustomQuestionComposer
               subject={page.subject}
               autoFocus
-              onCancel={() => setAdding(false)}
+              onCancel={close}
               onKept={(q) => {
-                setAdding(false);
+                close();
                 toast({ message: `${q.label} added to ${page.subject.name}` });
               }}
             />
@@ -171,12 +247,12 @@ function Questions({ page }: { page: Page }) {
         <div className="mon-more add-question">
           <button type="button" ref={addButton} className="btn btn-sm btn-ghost add-q" onClick={() => setAdding(true)}>
             <PlusIcon size={14} />
-            Add a question
+            Add a focus area
           </button>
           <span className="meta">
             {page.custom_question_slots > 0
-              ? `${plural(page.custom_question_slots, "custom question")} left`
-              : "No custom questions left. Delete one to add another."}
+              ? `${plural(page.custom_question_slots, "custom focus area")} left`
+              : "No custom focus areas left. Delete one to add another."}
           </span>
         </div>
       )}
@@ -255,104 +331,6 @@ function Upcoming({ page }: { page: Page }) {
             <span className="row-end">{inDays(daysBetween(asOf, item.date))}</span>
           </Link>
         ))}
-      </div>
-    </Section>
-  );
-}
-
-function GroupInsights({ group }: { group: Schema<"GroupInsights"> }) {
-  return (
-    <>
-      <Section id="common-issues" title="Common issues" meta={`Last ${group.lookback_days} days`}>
-        {group.common_issues.length === 0 && <p className="mon-empty">No development touches more than one member.</p>}
-        <div className="rows">
-          {group.common_issues.map((c) => (
-            <DevelopmentRow key={c.development.id} development={c.development} subjects={c.members} />
-          ))}
-        </div>
-      </Section>
-      <Section id="outliers" title="Outliers" meta={`Last ${group.lookback_days} days`}>
-        {group.outliers.length === 0 && <p className="mon-empty">No member stands out from its peers.</p>}
-        <div className="rows">
-          {group.outliers.map((o) => (
-            <div key={o.member.id} className="row">
-              <span className="stat">
-                {o.needs_attention > 0 && <span className="badge b-attn">{o.needs_attention} need attention</span>}
-              </span>
-              <span>
-                <span className="row-title">
-                  <SubjectLink subject={o.member} />
-                </span>
-                <span className="row-meta">{o.reason}</span>
-              </span>
-            </div>
-          ))}
-        </div>
-      </Section>
-    </>
-  );
-}
-
-const LINK_TYPES: SubjectType[] = ["topic", "group", "entity"];
-const LINK_KEY = { topic: "topics", group: "groups", entity: "entities" } as const;
-
-function Links({ subject }: { subject: Schema<"SubjectDetail"> }) {
-  const types = LINK_TYPES.filter((type) => subject.links[LINK_KEY[type]].length > 0);
-  return (
-    <Section id="links" title="Links">
-      {types.length > 0 ? (
-        <dl className="mon-links">
-          {types.map((type) => (
-            <div key={type}>
-              <dt>{TYPE_PLURAL[type]}</dt>
-              <dd>
-                {subject.links[LINK_KEY[type]].map((s) => (
-                  <SubjectLink key={s.id} subject={s} />
-                ))}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      ) : (
-        <p className="mon-empty">No linked subjects.</p>
-      )}
-      <Link to="/monitors/$id/graph" params={{ id: subject.id }} className="link">
-        Open graph view
-      </Link>
-    </Section>
-  );
-}
-
-export function Actions({ page }: { page: Page }) {
-  const review = useMarkReviewed();
-  const undo = useUndoReview();
-  const toast = useToast();
-  const wc = page.what_changed;
-  const cleared = wc.new_count + wc.updated_count;
-  return (
-    <Section id="actions" title="Actions">
-      <div className="mon-actions">
-        <div className="review">
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={review.isPending || !hasUnreviewed(wc)}
-            onClick={() =>
-              review.mutate([page.subject.id], {
-                onSuccess: (reviews) =>
-                  toast({
-                    message: `${page.subject.name} marked reviewed.${cleared > 0 ? ` ${cleared} new cleared.` : ""}`,
-                    action: { label: "Undo", run: () => undo.mutate(reviews.map((r) => r.id)) },
-                  }),
-                onError: () => toast({ message: "Could not mark reviewed" }),
-              })
-            }
-          >
-            Mark reviewed
-          </button>
-          <span className="meta">{wc.reviewed_at ? `Reviewed ${whenAt(wc.reviewed_at)}` : "Not reviewed yet"}</span>
-        </div>
-        <Notes target={{ subject_id: page.subject.id }} notes={page.notes} />
       </div>
     </Section>
   );

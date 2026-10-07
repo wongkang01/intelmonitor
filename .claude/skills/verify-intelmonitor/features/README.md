@@ -52,9 +52,9 @@ Walk top to bottom for a broad regression, or run `pnpm -C web e2e`, which cover
 
 ## Monitors
 
-- [monitor-page](monitor-page.md): A subject's page: standing questions, what changed, mark reviewed, follow, notes, indicators.
-- [trend](trend.md): Trend tab for subjects with series: per-run notes, the series chart, question states per run.
-- [graph](graph.md): Graph view from a monitor page: hops, filters, node click.
+- [monitor-page](monitor-page.md): A subject's page and its tabs: Overview (summary, focus areas, key data, notes), Developments (what changed, subject or peers), Connections; mark reviewed, follow.
+- [data](data.md): Data tab for subjects with series: indicators, per-run notes, the series chart, question states per run.
+- [graph](graph.md): Graph view, embedded in the Connections tab and full page: hops, filters, node click.
 - [custom-questions](custom-questions.md): Ask a custom question, its answer and citations, the widget it makes.
 
 ## Developments and evidence

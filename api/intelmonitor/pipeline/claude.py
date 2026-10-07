@@ -29,12 +29,13 @@ class ClaudeReply[T: BaseModel]:
 
 
 async def ask_claude[T: BaseModel](
-    prompt: str, schema: type[T], system: str | None = None
+    prompt: str, schema: type[T], system: str | None = None, model: str | None = None
 ) -> ClaudeReply[T]:
-    """Run one tool-free Claude turn and validate its structured output against `schema`."""
+    """Run one tool-free Claude turn and validate its structured output against `schema`, on
+    `model` (default settings.anthropic_model)."""
     scrub_parent_env()
     options = ClaudeAgentOptions(
-        model=get_settings().anthropic_model,
+        model=model or get_settings().anthropic_model,
         system_prompt=system,
         tools=[],
         # No settings, MCP servers (including account connectors) or skills: their tool

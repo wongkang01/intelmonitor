@@ -227,3 +227,17 @@
 .dtable .triage-acts {
   margin: -6px 0;
 }
+
+/* A monitor page's Developments tab (components/monitor/SubjectDevelopments.tsx): What changed and
+   the subject's list in one panel. */
+.mon-devs {
+  padding: 0 var(--s-6) var(--s-7);
+}
+.mon-devs > .panel {
+  display: block;
+}
+@container main (width < 640px) {
+  .mon-devs {
+    padding: 0 var(--s-4) var(--s-6);
+  }
+}

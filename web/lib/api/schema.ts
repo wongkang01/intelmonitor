@@ -190,7 +190,8 @@ export interface paths {
         /**
          * List Developments
          * @description The latest run's developments in display order, for some subjects, for a dashboard's
-         *     subjects, or all of them, narrowed by facet filters, with each facet's counts.
+         *     subjects, for an entity's peers, or all of them, narrowed by facet filters, with each
+         *     facet's counts.
          */
         get: operations["list_developments"];
         put?: never;
@@ -2355,6 +2356,8 @@ export interface components {
              * @description The subject has measured series for a Trend view
              */
             trend: boolean;
+            /** @description None until the run has one for the subject */
+            summary: components["schemas"]["RunSummary"] | null;
         };
         /** Note */
         Note: {
@@ -2864,6 +2867,38 @@ export interface components {
              */
             estimate_seconds: number | null;
         };
+        /**
+         * RunSummary
+         * @description The latest run's summary of a subject (pipeline/summaries.py).
+         */
+        RunSummary: {
+            /**
+             * Text
+             * @description Written by Claude from the run's stored rows
+             */
+            text: string;
+            /**
+             * Direction
+             * @description Against the previous run, by code: focus areas at Needs attention (2 each) and Watch (1 each) plus adverse developments needing attention; null on a first run
+             */
+            direction: ("more_adverse" | "less_adverse" | "unchanged") | null;
+            /**
+             * Direction Basis
+             * @description The comparison in words
+             */
+            direction_basis: string;
+            /**
+             * Developments In Scope
+             * @description The subject's developments in the run
+             */
+            developments_in_scope: number;
+            /** Needs Attention */
+            needs_attention: number;
+            /** Adverse */
+            adverse: number;
+            /** Model */
+            model: string;
+        };
         /** SearchHit */
         SearchHit: {
             subject: components["schemas"]["SubjectRef"];
@@ -3043,7 +3078,7 @@ export interface components {
              * Source
              * @enum {string}
              */
-            source: "mas" | "fred" | "coingecko" | "defillama" | "derived";
+            source: "mas" | "fred" | "coingecko" | "defillama" | "yahoo" | "derived";
             /**
              * Source Label
              * @description Where its values come from: "MAS I.18", "FRED DFF"
@@ -4249,6 +4284,8 @@ export interface operations {
                 subject_id?: string[];
                 /** @description Adds a dashboard's subjects */
                 dashboard_id?: string | null;
+                /** @description Adds the other members of the entity's groups, and drops every development tagged to the entity itself */
+                peers_of?: string | null;
                 /** @description review: only What changed since the review; run: only those the latest run added or updated */
                 changed?: ("review" | "run") | null;
                 limit?: number | null;

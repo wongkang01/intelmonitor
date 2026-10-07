@@ -1,8 +1,9 @@
-// The Indicators section of a monitor page (structured-data-plan.md, F4): one row per measured
-// series mapped to the subject, as of the page's run date. Status from the detector rules, the
-// latest value with its period, the change with its window, and a line over 12 months. Series
-// that share a group heading in api/seed/series.yaml sit under it when two or more are on the
-// page; the rest lead, under their full names.
+// The Indicators section of a monitor page's Data tab (structured-data-plan.md, F4): one row per
+// measured series mapped to the subject, as of the page's run date. Status from the detector rules,
+// the latest value with its period, the change with its window, and a line over 12 months. Series a
+// detector flagged (Watch or Needs attention) lead under "Flagged", worst first. The rest that
+// share a group heading in api/seed/series.yaml sit under it when two or more are on the page;
+// the others lead, under their full names.
 import { Link } from "@tanstack/react-router";
 import { useState, type PointerEvent, type ReactNode } from "react";
 
@@ -31,8 +32,24 @@ interface Group {
   rows: { ind: Indicator; name: string }[];
 }
 
-/** Lead rows (ungrouped, or alone in their group) first, then each group of two or more in order. */
-function grouped(indicators: Indicator[]): Group[] {
+const STATUS_RANK: Record<Indicator["status"], number> = { needs_attention: 0, watch: 1, stable: 2 };
+
+/** A row a detector flagged, from a feed that still has data. */
+const flagged = (i: Indicator) => i.status !== "stable" && i.state !== "no_data" && i.state !== "stale";
+
+/**
+ * Flagged rows first, worst first, under their full names; then lead rows (ungrouped, or alone in
+ * their group), then each group of two or more in order.
+ */
+function grouped(all: Indicator[]): Group[] {
+  const top: Group = {
+    heading: "Flagged",
+    rows: all
+      .filter(flagged)
+      .sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status])
+      .map((ind) => ({ ind, name: ind.series.name })),
+  };
+  const indicators = all.filter((i) => !flagged(i));
   const members = new Map<string, Indicator[]>();
   for (const ind of indicators) {
     if (ind.series.group) members.set(ind.series.group, [...(members.get(ind.series.group) ?? []), ind]);
@@ -52,7 +69,7 @@ function grouped(indicators: Indicator[]): Group[] {
     group.rows.push({ ind, name: shared ? ind.series.name : ind.series.short_name });
     groups.set(heading, group);
   }
-  return [lead, ...groups.values()].filter((g) => g.rows.length > 0);
+  return [top, lead, ...groups.values()].filter((g) => g.rows.length > 0);
 }
 
 /** "System-wide" when every row is the banking system's, else the APIs the values come from. */

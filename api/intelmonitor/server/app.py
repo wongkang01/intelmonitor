@@ -72,6 +72,7 @@ from intelmonitor.server.queries import (
     NotFoundError,
     Queries,
     now,
+    peers,
     subject,
     subject_ref,
 )
@@ -199,6 +200,7 @@ def get_monitor_page(q: Q, subject_id: str) -> MonitorPage:
         group=q.group_insights(subject_id) if s.type == "group" else None,
         notes=q.notes(subject_id=subject_id),
         trend=trend_view.has_trend(subject_id),
+        summary=q.summary(subject_id),
     )
 
 
@@ -259,11 +261,15 @@ def search(
 @app.get("/developments")
 def list_developments(q: Q, query: Annotated[DevelopmentQuery, Query()]) -> DevelopmentList:
     """The latest run's developments in display order, for some subjects, for a dashboard's
-    subjects, or all of them, narrowed by facet filters, with each facet's counts."""
+    subjects, for an entity's peers, or all of them, narrowed by facet filters, with each
+    facet's counts."""
     ids = list(query.subject_id)
+    if query.peers_of is not None:
+        ids += peers(query.peers_of)
     if query.dashboard_id is not None:
         ids += dash.get_dashboard(q.conn, query.dashboard_id).subject_ids
-    return development_list(q, ids or None, query)
+    # An entity with no peers lists nothing rather than every development.
+    return development_list(q, ids if ids or query.peers_of else None, query)
 
 
 @app.get("/what-changed")

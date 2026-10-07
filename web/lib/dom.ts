@@ -19,8 +19,8 @@ export const useCoarsePointer = () =>
 
 /**
  * Ref callback for a sticky rail: keeps `--rail-h` set to its height, so its CSS can let a rail
- * taller than the window scroll until its bottom shows before it sticks (`.mon-rail` in
- * styles/monitor.css).
+ * taller than the window scroll until its bottom shows before it sticks (`.tr-rail` in
+ * styles/trend.css).
  */
 export const trackRailHeight = (rail: HTMLElement | null) => (rail ? trackHeight(rail, "--rail-h") : undefined);
 
@@ -72,7 +72,7 @@ export function useDismiss(open: boolean, onClose: () => void) {
 const HASH_WAIT_MS = 10_000;
 
 /**
- * Lands on the section the URL's hash names (`/monitors/circle#indicators`) once it renders, on
+ * Lands on the section the URL's hash names (`/monitors/circle/data#indicators`) once it renders, on
  * direct load and after client navigation: sections that wait on data are not there yet when the
  * browser or the router looks for them. Until the user scrolls, clicks or types, or 10 s pass, the
  * section is kept at the top while content above it loads. Section headings carry the ids.

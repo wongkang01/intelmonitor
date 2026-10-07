@@ -1,18 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { TrendView } from "@/components/monitor/TrendView";
-import { monitorPageOptions, trendOptions } from "@/lib/api/queries";
-
-// A monitor page's Trend tab, opened from the tabs in its head.
+// The Trend tab became the Data tab; old links land there with their query and hash.
 export const Route = createFileRoute("/monitors/$id/trend")({
-  loader: ({ context: { queryClient }, params }) => {
-    void queryClient.prefetchQuery(monitorPageOptions(params.id));
-    void queryClient.prefetchQuery(trendOptions(params.id));
+  beforeLoad: ({ params, location }) => {
+    throw redirect({ to: "/monitors/$id/data", params, search: location.search, hash: location.hash, replace: true });
   },
-  component: TrendPage,
 });
-
-function TrendPage() {
-  const { id } = Route.useParams();
-  return <TrendView key={id} id={id} />;
-}

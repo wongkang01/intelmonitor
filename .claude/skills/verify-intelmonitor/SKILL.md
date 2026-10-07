@@ -1,6 +1,6 @@
 ---
 name: verify-intelmonitor
-description: "Drive the running IntelMonitor web app (Vite and TanStack Router dashboard over the FastAPI store) the way an analyst does, and keep proof. Use to verify any UI or API change, reproduce a reported bug, check a feature still works, or take screenshots and recordings of dashboards, monitor pages, developments, the evidence drawer, trend and graph views."
+description: "Drive the running IntelMonitor web app (Vite and TanStack Router dashboard over the FastAPI store) the way an analyst does, and keep proof. Use to verify any UI or API change, reproduce a reported bug, check a feature still works, or take screenshots and recordings of dashboards, monitor pages and their tabs, developments, the evidence drawer, the Data tab and graph views."
 ---
 
 # Verify IntelMonitor
@@ -37,7 +37,7 @@ Two agents driving at once each set `VERIFY_SESSION=<name>` for their own browse
 
 1. Match the change to a file in [`features/`](features/README.md) and read it. It lists every entry point, stable handles and gotchas.
 2. `pnpm -C web verify open <target> [args]` to reach the starting page.
-   Targets: `home`, `dashboard <dashboard>`, `monitor <subject>`, `trend <subject>`, `graph <subject>`, `developments <dashboard> [query]`, `evidence <development-id> [dashboard]`.
+   Targets: `home`, `dashboard <dashboard>`, `monitor <subject>`, `monitor-developments <subject> [peers]`, `data <subject>`, `connections <subject>`, `graph <subject>`, `developments <dashboard> [query]`, `evidence <development-id> [dashboard]`.
    A dashboard or subject is an id or a name; a name that matches several items fails and lists their ids.
 3. Find ids from the API when a recipe needs one: `pnpm -C web verify api /subjects`, `/dashboards`, `/developments?limit=5`, `/runs`.
 4. Drive with `agent-browser --session im-verify snapshot -i`, then `click @eN`, `fill @eN "text"`, `press "Meta+k"`, `wait --load networkidle`.

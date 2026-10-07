@@ -226,7 +226,10 @@ nav.side {
   border-top: 1px solid var(--line);
 }
 
+/* A size container, so page layouts switch on the room beside the sidebar rather than on the
+   viewport (the shell keeps a 1024px minimum width). */
 main.main {
+  container: main / inline-size;
   flex: 1;
   min-width: 0;
   overflow: auto;

@@ -84,6 +84,36 @@ def run(
         asyncio.run(compute_run(d, lambda line: typer.echo(line)))
 
 
+@app.command()
+def summarize(
+    as_of: Annotated[str | None, typer.Option("--as-of", help="Run date, YYYY-MM-DD")] = None,
+    all_: Annotated[bool, typer.Option("--all", help="Every complete run, oldest first")] = False,
+    subject: Annotated[
+        list[str] | None, typer.Option("--subject", help="Only these subject ids")
+    ] = None,
+) -> None:
+    """(Re)write the subject summaries of complete runs from their stored rows, without
+    recomputing the rest of the run."""
+    from intelmonitor.pipeline.subjects import all_subjects
+    from intelmonitor.pipeline.summaries import summarize_run
+    from intelmonitor.store.db import connect
+
+    if all_ == (as_of is not None):
+        raise typer.BadParameter("pass either --as-of <date> or --all")
+    if unknown := [s for s in subject or [] if s not in all_subjects()]:
+        raise typer.BadParameter(f"unknown subjects: {', '.join(unknown)}")
+    conn = connect()
+    complete = [
+        r["id"]
+        for r in conn.execute("SELECT id FROM runs WHERE status = 'complete' ORDER BY as_of")
+    ]
+    if as_of is not None and as_of not in complete:
+        raise typer.BadParameter(f"no complete run as of {as_of}")
+    for run_id in complete if all_ else [str(as_of)]:
+        written, broken = asyncio.run(summarize_run(conn, run_id, subject or None))
+        typer.echo(f"[{run_id}] {written} summaries, {broken} still breaking their rules")
+
+
 @check_app.command("series")
 def check_series() -> None:
     """Replay a series backfill and a daily fetch from cached responses in a scratch store; print

@@ -310,7 +310,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
         if (i === 0) await gallery.locator("button.subj", { has: page.getByText(entity.name, { exact: true }) }).click();
         await expect(gallery.getByRole("heading", { level: 3 })).toHaveText(entity.name);
         const add = gallery
-          .locator('section.offer:not([aria-label="Custom question"])')
+          .locator('section.offer:not([aria-label="Custom focus area"])')
           .nth(i)
           .getByRole("button", { name: /^Add / });
         await expect(add).toBeEnabled();
@@ -345,7 +345,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await dialog.getByRole("tab", { name: "Generate" }).click();
       const prompt = dialog.getByLabel("Describe your dashboard");
       await expect(prompt).toBeFocused();
-      const ask = `Track ${entity.name}: what changed since my last review, its standing questions and recent developments`;
+      const ask = `Track ${entity.name}: what changed since my last review, its focus areas and recent developments`;
       const undo = dialog.getByRole("button", { name: "Undo" });
       const keep = dialog.getByRole("button", { name: "Keep" });
       const failure = dialog.locator(".nd-error");
@@ -402,30 +402,10 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(page).toHaveURL(`/monitors/${entity.id}`);
       await expect(page.getByRole("heading", { level: 1, name: entity.name, exact: true })).toBeVisible();
 
-      // Mark reviewed moves the review watermark: What changed folds away until Undo.
-      const before = await unwrap(api.GET("/subjects/{subject_id}/page", { params: { path: { subject_id: entity.id } } }));
-      const wc = before.what_changed;
-      const changes = page.getByRole("region", { name: "What changed since last review" });
-      await expect(changes.locator(".mon-lead")).toHaveText(changeCounts(wc));
-      const actions = page.getByRole("region", { name: "Actions" });
-      const reviewed = page.waitForResponse((r) => r.url().endsWith("/reviews") && r.request().method() === "POST");
-      await actions.getByRole("button", { name: "Mark reviewed" }).click();
-      expect((await reviewed).ok()).toBe(true);
-      const cleared = wc.new_count + wc.updated_count;
-      const reviewToast = page.locator(".toast", { hasText: `${entity.name} marked reviewed.` });
-      await expect(reviewToast).toHaveText(new RegExp(`^${entity.name} marked reviewed\\.${cleared ? ` ${cleared} new cleared\\.` : ""}Undo$`));
-      await expect(changes.locator(".mon-lead")).toHaveText("Nothing new since your review");
-      await expect(changes.getByRole("button", { name: new RegExp(`^Run of ${shortDate(latest.as_of)} · `) })).toHaveAttribute("aria-expanded", "false");
-      await expect(actions.getByText(/^Reviewed today at /)).toBeVisible();
-      await expect(actions.getByRole("button", { name: "Mark reviewed" })).toBeDisabled();
-      // The sidebar's count of new developments goes with the review, and comes back with Undo.
-      const sidebarCount = page.locator(`nav a.navitem[href="/monitors/${entity.id}"] .count`);
-      await expect(sidebarCount).toHaveCount(0);
-      await reviewToast.getByRole("button", { name: "Undo" }).click();
-      await expect(changes.locator(".mon-lead")).toHaveText(changeCounts(wc));
-      await expect(actions.getByRole("button", { name: "Mark reviewed" })).toBeEnabled();
-      await expect(sidebarCount).toHaveText(String(entity.new_developments));
-
+      // Notes sit on the Overview. Deleting is a soft delete: the toast's Undo restores the note.
+      const views = page.getByRole("navigation", { name: "Monitor views" });
+      await expect(views.getByRole("link", { name: "Overview" })).toHaveAttribute("aria-current", "page");
+      const notes = page.getByRole("region", { name: "Notes" });
       const text = `E2E note ${stamp}`;
       cleanups.push(async () => {
         const notes = await unwrap(api.GET("/notes", { params: { query: { subject_id: entity.id } } }));
@@ -433,14 +413,13 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
           await deleted(api.DELETE("/notes/{note_id}", { params: { path: { note_id: n.id } } }));
         }
       });
-      await actions.getByRole("textbox", { name: "Note" }).fill(text);
-      await actions.getByRole("button", { name: "Add note" }).click();
-      const note = actions.locator(".note", { hasText: text });
+      await notes.getByRole("textbox", { name: "Note" }).fill(text);
+      await notes.getByRole("button", { name: "Add note" }).click();
+      const note = notes.locator(".note", { hasText: text });
       await expect(note).toBeVisible();
-      await expect(actions.getByRole("textbox", { name: "Note" })).toHaveValue("");
+      await expect(notes.getByRole("textbox", { name: "Note" })).toHaveValue("");
 
-      // Deleting is a soft delete: the toast's Undo restores the note. The toast waits while the
-      // pointer is over it, well past its 8 s.
+      // The toast waits while the pointer is over it, well past its 8 s.
       await note.getByRole("button", { name: "Delete note" }).click();
       await expect(note).toHaveCount(0);
       const toast = page.locator(".toast", { hasText: "Deleted note" });
@@ -458,20 +437,33 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(toast).toBeVisible();
       await expect(toast).toHaveCount(0, { timeout: 4_000 });
 
-      // In a window only as tall as the rail, the rail cannot fit under the top bar: scrolling to
-      // where its foot would show brings Add note into view instead of leaving it pinned below.
-      const main = page.locator("main.main");
-      const railBox = async () => {
-        await main.evaluate((m) => m.scrollTo(0, 0));
-        const box = await page.locator(".mon-rail").boundingBox();
-        if (!box) throw new Error("the monitor rail is not on screen");
-        return box;
-      };
-      await page.setViewportSize({ width: 1440, height: Math.round((await railBox()).height) });
-      const rail = await railBox();
-      await main.evaluate((m, foot) => m.scrollTo(0, foot - m.clientHeight + 24), rail.y + rail.height);
-      await expect(actions.getByRole("button", { name: "Add note" })).toBeInViewport({ ratio: 1 });
-      await page.setViewportSize({ width: 1440, height: 900 });
+      // What changed is on the Developments tab. Mark reviewed in the page head moves the review
+      // watermark: What changed folds away until Undo.
+      await views.getByRole("link", { name: "Developments" }).click();
+      await expect(page).toHaveURL(`/monitors/${entity.id}/developments`);
+      await expect(views.getByRole("link", { name: "Developments" })).toHaveAttribute("aria-current", "page");
+      const before = await unwrap(api.GET("/subjects/{subject_id}/page", { params: { path: { subject_id: entity.id } } }));
+      const wc = before.what_changed;
+      const changes = page.getByRole("region", { name: "What changed since last review" });
+      await expect(changes.locator(".mon-lead")).toHaveText(changeCounts(wc));
+      const head = page.locator(".mon-head");
+      const reviewed = page.waitForResponse((r) => r.url().endsWith("/reviews") && r.request().method() === "POST");
+      await head.getByRole("button", { name: "Mark reviewed" }).click();
+      expect((await reviewed).ok()).toBe(true);
+      const cleared = wc.new_count + wc.updated_count;
+      const reviewToast = page.locator(".toast", { hasText: `${entity.name} marked reviewed.` });
+      await expect(reviewToast).toHaveText(new RegExp(`^${entity.name} marked reviewed\\.${cleared ? ` ${cleared} new cleared\\.` : ""}Undo$`));
+      await expect(changes.locator(".mon-lead")).toHaveText("Nothing new since your review");
+      await expect(changes.getByRole("button", { name: new RegExp(`^Run of ${shortDate(latest.as_of)} · `) })).toHaveAttribute("aria-expanded", "false");
+      await expect(head.getByText(/^Reviewed today at /)).toBeVisible();
+      await expect(head.getByRole("button", { name: "Mark reviewed" })).toBeDisabled();
+      // The sidebar's count of new developments goes with the review, and comes back with Undo.
+      const sidebarCount = page.locator(`nav a.navitem[href="/monitors/${entity.id}"] .count`);
+      await expect(sidebarCount).toHaveCount(0);
+      await reviewToast.getByRole("button", { name: "Undo" }).click();
+      await expect(changes.locator(".mon-lead")).toHaveText(changeCounts(wc));
+      await expect(head.getByRole("button", { name: "Mark reviewed" })).toBeEnabled();
+      await expect(sidebarCount).toHaveText(String(entity.new_developments));
     });
 
     await step(STEPS[6], async () => {
@@ -613,16 +605,18 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
     await step(STEPS[7], async () => {
       const slots = await unwrap(api.GET("/custom-questions/slots"));
       expect(slots.left, "a custom question slot is free").toBeGreaterThan(0);
-      const questions = page.getByRole("region", { name: "Standing questions" });
-      await questions.getByRole("button", { name: "Add a question" }).click();
+      await page.getByRole("navigation", { name: "Monitor views" }).getByRole("link", { name: "Overview" }).click();
+      await expect(page).toHaveURL(`/monitors/${entity.id}`);
+      const questions = page.getByRole("region", { name: "Focus areas" });
+      await questions.getByRole("button", { name: "Add a focus area" }).click();
       const drafted = page.waitForResponse(
         (r) => r.url() === new URL("custom-questions", apiBase).href && r.request().method() === "POST",
         { timeout: LLM_TIMEOUT },
       );
       await questions
-        .getByLabel(`Your question about ${entity.name}`)
+        .getByLabel(`New focus area for ${entity.name}`)
         .fill(`What were the most material developments for ${entity.name} in this period, and what risks do they raise?`);
-      await questions.getByRole("button", { name: "Draft question" }).click();
+      await questions.getByRole("button", { name: "Draft focus area" }).click();
       const response = await drafted;
       expect(response.ok(), await response.text()).toBe(true);
       const draft: Schema<"CustomQuestion"> = await response.json();
@@ -630,7 +624,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
         deleted(api.DELETE("/custom-questions/{question_id}", { params: { path: { question_id: draft.id } } })),
       );
 
-      const preview = questions.getByRole("group", { name: "Custom question preview" });
+      const preview = questions.getByRole("group", { name: "Custom focus area preview" });
       await expect(preview).toBeVisible();
       await expect(preview.locator(".cq-run")).toHaveCount(draft.runs.length);
       await expect(preview.locator(".cq-cites")).toContainText(/^Cites \d+ developments?/);
@@ -657,7 +651,17 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
     });
 
     await step(STEPS[8], async () => {
-      await page.getByRole("region", { name: "Links" }).getByRole("link", { name: "Open graph view" }).click();
+      // The Connections tab embeds the graph under the page head, then Related opens the full graph.
+      const views = page.getByRole("navigation", { name: "Monitor views" });
+      await views.getByRole("link", { name: "Connections" }).click();
+      await expect(page).toHaveURL(`/monitors/${entity.id}/connections`);
+      await expect(page.getByTestId("graph-canvas")).toHaveAttribute("data-layout", "settled", { timeout: 30_000 });
+      // An entity in a group sets its focus area states beside its peers', its own column first.
+      const detail = await unwrap(api.GET("/subjects/{subject_id}", { params: { path: { subject_id: entity.id } } }));
+      if (detail.links.groups.length > 0) {
+        await expect(page.getByRole("region", { name: "Peers" }).getByRole("columnheader").nth(1)).toHaveText(entity.name);
+      }
+      await page.getByRole("region", { name: "Related" }).getByRole("link", { name: "Open full graph" }).click();
       await expect(page).toHaveURL(`/monitors/${entity.id}/graph`);
       const stage = page.getByTestId("graph-canvas");
       const listed = page.getByTestId("graph-nodes").locator("[data-node]");
@@ -707,7 +711,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       expect(opened).not.toBe(entity.id);
       const subject = await unwrap(api.GET("/subjects/{subject_id}", { params: { path: { subject_id: opened } } }));
       await expect(page.getByRole("heading", { level: 1, name: subject.name, exact: true })).toBeVisible();
-      await expect(page.getByRole("heading", { name: "What changed since last review" })).toBeVisible();
+      await expect(views.getByRole("link", { name: "Overview" })).toHaveAttribute("aria-current", "page");
     });
 
     await step(STEPS[9], async () => {
@@ -1459,7 +1463,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
     });
 
     await step(STEPS[21], async () => {
-      // Indicators sit between What changed and Standing questions, as of the page's run date
+      // Indicators lead the Data tab, as of the page's run date
       // (structured-data-plan.md, F4). OCBC has no figures of its own: its rows are the Singapore
       // banking system's MAS series, labelled System-wide in the head and on every row.
       const ocbc = await unwrap(
@@ -1469,11 +1473,10 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       expect(rows.length, "OCBC has the system's series").toBeGreaterThan(0);
       // The mock's width; the list steps before this one leave the window at 1024 px.
       await page.setViewportSize({ width: 1440, height: 900 });
-      await page.goto("/monitors/ocbc");
+      await page.goto("/monitors/ocbc/data");
       const section = page.locator("section", { has: page.locator("h2#indicators") });
       await expect(section.locator(".mon-sec-head .meta")).toHaveText("System-wide");
-      const headings = await page.locator("main h2").allTextContents();
-      expect(headings.indexOf("Indicators"), "Indicators come before Standing questions").toBeLessThan(headings.indexOf("Standing questions"));
+      await expect(page.locator("main h2").first(), "Indicators lead the Data tab").toHaveText("Indicators");
       await expect(section.locator(".mon-sub")).toHaveText(["Loan-to-deposit ratio", "Non-performing loans"]);
       for (const ind of rows) {
         if (!ind.latest) throw new Error(`${ind.series.id} has no data as of ${latest.as_of}`);
@@ -1498,7 +1501,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       expect(funds.status).toBe("watch");
       const event = funds.events.find((e) => e.statement.startsWith("Fed funds effective rate up 0.25 points to 3.88%"));
       if (!event?.development_id) throw new Error("the Fed funds indicator does not carry its detection's development");
-      await page.goto("/monitors/fed");
+      await page.goto("/monitors/fed/data");
       const fundsRow = page.locator('[data-series-id="fred.fed_funds"]');
       await expect(fundsRow.locator(".stat")).toHaveText("Watch");
       await expect(page.locator('[data-series-id="fx.sgd.usd"] .row-meta').first()).toContainText("Market-wide");
@@ -1520,17 +1523,13 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(page.getByTestId("evidence-drawer").getByRole("heading", { level: 3 })).toHaveText(dev.title);
       expect(dev.sources.some((src) => src.collection === "data" && src.findings.some((f) => f.statement === event.statement))).toBe(true);
 
-      // Inputs to derived series (prices, supply per chain) stay off the rows; a bank with no
-      // mapped series has no section.
-      await page.goto("/monitors/circle");
+      // Inputs to derived series (prices, supply per chain) stay off the rows.
+      await page.goto("/monitors/circle/data");
       await expect(page.locator("h2#indicators")).toBeVisible();
       await expect(page.locator('[data-series-id^="cg."], [data-series-id^="llama.usdc.supply."]')).toHaveCount(0);
-      await page.goto("/monitors/maybank");
-      await expect(page.getByRole("heading", { level: 2, name: "Standing questions" })).toBeVisible();
-      await expect(page.locator("h2#indicators")).toHaveCount(0);
 
       writeFileSync(path.join(dir, "monitor-indicators.json"), JSON.stringify({ run: latest, ocbc, fed }, null, 2));
-      await page.goto("/monitors/ocbc");
+      await page.goto("/monitors/ocbc/data");
       await page.locator("h2#indicators").scrollIntoViewIfNeeded();
     });
 
@@ -1610,17 +1609,17 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(tip.locator(".tip-title").first()).toHaveText(marks.find((m) => m.on === marks[0].on && m.badge === "needs_attention")?.development.title ?? marks[0].development.title);
       await expect(supply.locator(".ind-wrows .row").first()).toHaveClass(/\bon\b/);
 
-      // See data opens the subject's Indicators section; a subject without series gets no offer.
+      // See data opens the Indicators section on the subject's Data tab; a subject without series gets no offer.
       await page.mouse.move(5, 5);
       await peg.getByRole("link", { name: "See data" }).click();
-      await expect(page).toHaveURL(/\/monitors\/tether#indicators$/);
+      await expect(page).toHaveURL(/\/monitors\/tether\/data#indicators$/);
       await expect(page.locator('[data-series-id="derived.usdt.peg"]')).toBeVisible();
       // The section renders after its data loads and still lands level with the rail, on client
       // navigation and on a direct load.
       const indicatorsTop = () => page.locator("section:has(> .mon-sec-head #indicators)").evaluate((el) => el.getBoundingClientRect().top);
       await expect.poll(indicatorsTop).toBe(80);
       await page.goto("/");
-      await page.goto("/monitors/tether#indicators");
+      await page.goto("/monitors/tether/data#indicators");
       await expect(page.locator('[data-series-id="derived.usdt.peg"]')).toBeVisible();
       await expect.poll(indicatorsTop).toBe(80);
       await page.goto(`/dashboards/${created.id}`);
@@ -1720,7 +1719,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
         if (seriesOnly) break;
       }
       if (!seriesOnly) throw new Error("no answer change cites only series");
-      await page.goto(`/monitors/${seriesOnly.subject.id}`);
+      await page.goto(`/monitors/${seriesOnly.subject.id}/developments`);
       const changes = page.getByRole("region", { name: "What changed since last review" });
       const earlier = changes.getByRole("button", { name: /^Run of / });
       if (await earlier.isVisible()) await earlier.click();
@@ -1765,11 +1764,11 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       if (!note) throw new Error("the latest run has no note for Circle");
       const inView = note.developments.filter((d) => d.on >= trend.start);
 
-      // In the app: the Trend tab opens on the latest run's note, its citations linked and numbered
+      // In the app: the Data tab opens on the latest run's note, its citations linked and numbered
       // on the chart of the series it is about, with the facts it was given beside it.
       await page.goto("/monitors/circle");
-      await page.getByRole("navigation", { name: "View" }).getByRole("link", { name: "Trend" }).click();
-      await expect(page).toHaveURL(/\/monitors\/circle\/trend$/);
+      await page.getByRole("navigation", { name: "Monitor views" }).getByRole("link", { name: "Data" }).click();
+      await expect(page).toHaveURL(/\/monitors\/circle\/data$/);
       const why = page.locator('section[aria-labelledby="why"]');
       await expect(why.locator(".mon-sec-head .meta")).toHaveText(`Run of ${shortDate(shown.run.as_of)} against ${shortDate(shown.since)}`);
       const runButtons = why.getByRole("group", { name: "Run" }).getByRole("button");
@@ -1789,7 +1788,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(facts.locator(".tr-facts > div").first()).toHaveText(`Latest, ${shortDate(fact.latest.period)}${seriesValue(lead.series, fact.latest.value)}`);
       await expect(facts.getByRole("link", { name: "Open source table" })).toHaveAttribute("href", lead.series.source_url);
 
-      // Standing questions: one mark per run, the shown run's state and answer in words.
+      // Focus areas: one mark per run, the shown run's state and answer in words.
       const table = page.locator("table.tr-qt");
       await expect(table.locator("tbody tr")).toHaveCount(trend.questions.length);
       await expect(table.locator("tbody tr").first().locator(".tr-strip s")).toHaveCount(trend.runs.length);
@@ -1815,13 +1814,10 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       await expect(facts.locator(".mon-sec-head .meta")).toHaveText("Computed");
       await expect(table.locator("tbody .tr-state").first()).toHaveText("No run");
 
-      // A subject without measured series has no Trend tab.
-      await page.goto("/monitors/maybank");
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Maybank");
-      await expect(page.getByRole("navigation", { name: "View" })).toHaveCount(0);
-
       writeFileSync(path.join(dir, "trend.json"), JSON.stringify(trend, null, 2));
+      // The old Trend address lands on the Data tab.
       await page.goto("/monitors/circle/trend");
+      await expect(page).toHaveURL(/\/monitors\/circle\/data$/);
       await expect(page.locator(".tr-lead")).toHaveText(note.headline);
     });
 
@@ -1832,9 +1828,9 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       const slots = await unwrap(api.GET("/custom-questions/slots"));
       expect(slots.left, "a custom question slot is free").toBeGreaterThan(0);
       await page.goto("/monitors/malaysia");
-      const questions = page.getByRole("region", { name: "Standing questions" });
-      await questions.getByRole("button", { name: "Add a question" }).click();
-      await questions.getByLabel("Your question about Malaysia").fill("How is the SGD moving against the ringgit, and what is driving it?");
+      const questions = page.getByRole("region", { name: "Focus areas" });
+      await questions.getByRole("button", { name: "Add a focus area" }).click();
+      await questions.getByLabel("New focus area for Malaysia").fill("How is the SGD moving against the ringgit, and what is driving it?");
       const picker = questions.getByRole("combobox", { name: "Series", exact: true });
       await expect(picker).toHaveValue("");
       await expect(picker.locator("option").first()).toHaveText("Named in the question");
@@ -1846,7 +1842,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
         (r) => r.url() === new URL("custom-questions", apiBase).href && r.request().method() === "POST",
         { timeout: LLM_TIMEOUT },
       );
-      await questions.getByRole("button", { name: "Draft question" }).click();
+      await questions.getByRole("button", { name: "Draft focus area" }).click();
       const response = await drafted;
       expect(response.ok(), await response.text()).toBe(true);
       expect(response.request().postDataJSON()).toEqual({
@@ -1869,7 +1865,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
       expect(newest.run.id).toBe(latest.id);
       expect(newest.series_ids, "the latest answer cites the series").toEqual(["fx.sgd.myr"]);
 
-      const preview = questions.getByRole("group", { name: "Custom question preview" });
+      const preview = questions.getByRole("group", { name: "Custom focus area preview" });
       await expect(preview.locator(".cq-config dt", { hasText: "Series" }).locator("+ dd")).toHaveText("SGD per Malaysian ringgit");
       await expect(preview.locator(".cq-cites .cq-label")).toHaveText(/(^Cites | and )1 series$/);
       await expect(preview.locator(".cq-cites .row-title").last()).toHaveText("SGD per Malaysian ringgit");
@@ -1901,7 +1897,7 @@ test("IntelMonitor POC walkthrough", async ({ page, baseURL }, testInfo) => {
 
       // The edit dialog picks the series with the same select, None to drop it.
       await row.getByRole("button", { name: `Edit ${draft.label}` }).click();
-      const dialog = page.getByRole("dialog", { name: "Edit custom question" });
+      const dialog = page.getByRole("dialog", { name: "Edit custom focus area" });
       const editPicker = dialog.getByRole("combobox", { name: "Series", exact: true });
       await expect(editPicker).toHaveValue("fx.sgd.myr");
       await expect(editPicker.locator("option").first()).toHaveText("None");

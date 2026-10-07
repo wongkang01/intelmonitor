@@ -329,6 +329,24 @@ class Review(BaseModel):
     created_at: datetime
 
 
+SummaryDirection = Literal["more_adverse", "less_adverse", "unchanged"]
+
+
+class RunSummary(BaseModel):
+    """The latest run's summary of a subject (pipeline/summaries.py)."""
+
+    text: str = Field(description="Written by Claude from the run's stored rows")
+    direction: SummaryDirection | None = Field(
+        description="Against the previous run, by code: focus areas at Needs attention (2 each) "
+        "and Watch (1 each) plus adverse developments needing attention; null on a first run"
+    )
+    direction_basis: str = Field(description="The comparison in words")
+    developments_in_scope: int = Field(description="The subject's developments in the run")
+    needs_attention: int
+    adverse: int
+    model: str
+
+
 class MonitorPage(BaseModel):
     subject: SubjectDetail
     run: RunRef
@@ -340,6 +358,7 @@ class MonitorPage(BaseModel):
     group: GroupInsights | None = Field(description="Groups only")
     notes: list[Note]
     trend: bool = Field(description="The subject has measured series for a Trend view")
+    summary: RunSummary | None = Field(description="None until the run has one for the subject")
 
 
 class Span(BaseModel):

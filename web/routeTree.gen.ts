@@ -13,6 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DevelopmentsRouteImport } from './routes/developments'
 import { Route as DashboardsIdRouteImport } from './routes/dashboards/$id'
 import { Route as MonitorsIdIndexRouteImport } from './routes/monitors/$id/index'
+import { Route as MonitorsIdConnectionsRouteImport } from './routes/monitors/$id/connections'
+import { Route as MonitorsIdDataRouteImport } from './routes/monitors/$id/data'
+import { Route as MonitorsIdDevelopmentsRouteImport } from './routes/monitors/$id/developments'
 import { Route as MonitorsIdGraphRouteImport } from './routes/monitors/$id/graph'
 import { Route as MonitorsIdTrendRouteImport } from './routes/monitors/$id/trend'
 
@@ -36,6 +39,21 @@ const MonitorsIdIndexRoute = MonitorsIdIndexRouteImport.update({
   path: '/monitors/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MonitorsIdConnectionsRoute = MonitorsIdConnectionsRouteImport.update({
+  id: '/monitors/$id/connections',
+  path: '/monitors/$id/connections',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MonitorsIdDataRoute = MonitorsIdDataRouteImport.update({
+  id: '/monitors/$id/data',
+  path: '/monitors/$id/data',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MonitorsIdDevelopmentsRoute = MonitorsIdDevelopmentsRouteImport.update({
+  id: '/monitors/$id/developments',
+  path: '/monitors/$id/developments',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MonitorsIdGraphRoute = MonitorsIdGraphRouteImport.update({
   id: '/monitors/$id/graph',
   path: '/monitors/$id/graph',
@@ -51,6 +69,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/developments': typeof DevelopmentsRoute
   '/dashboards/$id': typeof DashboardsIdRoute
+  '/monitors/$id/connections': typeof MonitorsIdConnectionsRoute
+  '/monitors/$id/data': typeof MonitorsIdDataRoute
+  '/monitors/$id/developments': typeof MonitorsIdDevelopmentsRoute
   '/monitors/$id/graph': typeof MonitorsIdGraphRoute
   '/monitors/$id/trend': typeof MonitorsIdTrendRoute
   '/monitors/$id/': typeof MonitorsIdIndexRoute
@@ -59,6 +80,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/developments': typeof DevelopmentsRoute
   '/dashboards/$id': typeof DashboardsIdRoute
+  '/monitors/$id/connections': typeof MonitorsIdConnectionsRoute
+  '/monitors/$id/data': typeof MonitorsIdDataRoute
+  '/monitors/$id/developments': typeof MonitorsIdDevelopmentsRoute
   '/monitors/$id/graph': typeof MonitorsIdGraphRoute
   '/monitors/$id/trend': typeof MonitorsIdTrendRoute
   '/monitors/$id': typeof MonitorsIdIndexRoute
@@ -68,6 +92,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/developments': typeof DevelopmentsRoute
   '/dashboards/$id': typeof DashboardsIdRoute
+  '/monitors/$id/connections': typeof MonitorsIdConnectionsRoute
+  '/monitors/$id/data': typeof MonitorsIdDataRoute
+  '/monitors/$id/developments': typeof MonitorsIdDevelopmentsRoute
   '/monitors/$id/graph': typeof MonitorsIdGraphRoute
   '/monitors/$id/trend': typeof MonitorsIdTrendRoute
   '/monitors/$id/': typeof MonitorsIdIndexRoute
@@ -78,6 +105,9 @@ export interface FileRouteTypes {
     | '/'
     | '/developments'
     | '/dashboards/$id'
+    | '/monitors/$id/connections'
+    | '/monitors/$id/data'
+    | '/monitors/$id/developments'
     | '/monitors/$id/graph'
     | '/monitors/$id/trend'
     | '/monitors/$id/'
@@ -86,6 +116,9 @@ export interface FileRouteTypes {
     | '/'
     | '/developments'
     | '/dashboards/$id'
+    | '/monitors/$id/connections'
+    | '/monitors/$id/data'
+    | '/monitors/$id/developments'
     | '/monitors/$id/graph'
     | '/monitors/$id/trend'
     | '/monitors/$id'
@@ -94,6 +127,9 @@ export interface FileRouteTypes {
     | '/'
     | '/developments'
     | '/dashboards/$id'
+    | '/monitors/$id/connections'
+    | '/monitors/$id/data'
+    | '/monitors/$id/developments'
     | '/monitors/$id/graph'
     | '/monitors/$id/trend'
     | '/monitors/$id/'
@@ -103,6 +139,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DevelopmentsRoute: typeof DevelopmentsRoute
   DashboardsIdRoute: typeof DashboardsIdRoute
+  MonitorsIdConnectionsRoute: typeof MonitorsIdConnectionsRoute
+  MonitorsIdDataRoute: typeof MonitorsIdDataRoute
+  MonitorsIdDevelopmentsRoute: typeof MonitorsIdDevelopmentsRoute
   MonitorsIdGraphRoute: typeof MonitorsIdGraphRoute
   MonitorsIdTrendRoute: typeof MonitorsIdTrendRoute
   MonitorsIdIndexRoute: typeof MonitorsIdIndexRoute
@@ -138,6 +177,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MonitorsIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/monitors/$id/connections': {
+      id: '/monitors/$id/connections'
+      path: '/monitors/$id/connections'
+      fullPath: '/monitors/$id/connections'
+      preLoaderRoute: typeof MonitorsIdConnectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/monitors/$id/data': {
+      id: '/monitors/$id/data'
+      path: '/monitors/$id/data'
+      fullPath: '/monitors/$id/data'
+      preLoaderRoute: typeof MonitorsIdDataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/monitors/$id/developments': {
+      id: '/monitors/$id/developments'
+      path: '/monitors/$id/developments'
+      fullPath: '/monitors/$id/developments'
+      preLoaderRoute: typeof MonitorsIdDevelopmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/monitors/$id/graph': {
       id: '/monitors/$id/graph'
       path: '/monitors/$id/graph'
@@ -159,6 +219,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DevelopmentsRoute: DevelopmentsRoute,
   DashboardsIdRoute: DashboardsIdRoute,
+  MonitorsIdConnectionsRoute: MonitorsIdConnectionsRoute,
+  MonitorsIdDataRoute: MonitorsIdDataRoute,
+  MonitorsIdDevelopmentsRoute: MonitorsIdDevelopmentsRoute,
   MonitorsIdGraphRoute: MonitorsIdGraphRoute,
   MonitorsIdTrendRoute: MonitorsIdTrendRoute,
   MonitorsIdIndexRoute: MonitorsIdIndexRoute,

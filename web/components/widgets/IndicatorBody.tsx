@@ -17,7 +17,6 @@ import {
   STATE_LABEL,
   STATE_TONE,
 } from "@/lib/format";
-import { monitorLink } from "@/lib/widgets";
 import { evidenceLink } from "@/components/shell/Evidence";
 import { SubjectLink } from "@/components/shell/SubjectLink";
 import { IndicatorLine, yearAxis } from "@/components/monitor/Indicators";
@@ -62,7 +61,7 @@ export function IndicatorBody({ data, widget, link }: BodyProps & { data: DataOf
               See development
             </Link>
           ) : (
-            <Link {...monitorLink(data.subject.id)} hash="indicators" className="link">
+            <Link to="/monitors/$id/data" params={{ id: data.subject.id }} hash="indicators" className="link">
               See data
             </Link>
           )}

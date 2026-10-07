@@ -84,7 +84,13 @@ class CannedAnswers(Inference):
         raise ModelCallError(f"the check made a Jev call: {stage} {input_ref}")
 
     async def claude[T: BaseModel](
-        self, stage: str, input_ref: str, prompt: str, schema: type[T], system: str
+        self,
+        stage: str,
+        input_ref: str,
+        prompt: str,
+        schema: type[T],
+        system: str,
+        model: str | None = None,
     ) -> T:
         if schema is not SubjectAnswers:
             raise ModelCallError(f"the check made a Claude call: {stage} {input_ref}")

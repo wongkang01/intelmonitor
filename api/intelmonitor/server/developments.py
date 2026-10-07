@@ -21,7 +21,7 @@ from intelmonitor.server.models import (
     FacetValue,
     SubjectId,
 )
-from intelmonitor.server.queries import COLLECTION_ORDER, Queries, change_counts
+from intelmonitor.server.queries import COLLECTION_ORDER, Queries, change_counts, expand
 
 DATE_PRESETS = [7, 30, 90]
 COLLECTION_LABELS: dict[Collection, str] = {
@@ -45,6 +45,11 @@ class DevelopmentQuery(BaseModel):
         default_factory=list[str], description="Subjects in scope; groups include their members"
     )
     dashboard_id: str | None = Field(default=None, description="Adds a dashboard's subjects")
+    peers_of: SubjectId | None = Field(
+        default=None,
+        description="Adds the other members of the entity's groups, and drops every development "
+        "tagged to the entity itself",
+    )
     changed: ChangedFilter | None = Field(
         default=None,
         description="review: only What changed since the review; run: only those the latest "
@@ -143,6 +148,9 @@ def development_list(
     """The developments of the subjects (every development when None) matching the filters."""
     changed = f.changed
     scope = q.scope_developments(subject_ids)
+    if f.peers_of is not None:
+        own = expand([f.peers_of])
+        scope = [d for d in scope if not q.devs.subject_ids[d.id] & own]
     words = _words(f.q)
     tests = _tests(f, q.run.as_of)
     worded = [d for d in scope if words(d)]

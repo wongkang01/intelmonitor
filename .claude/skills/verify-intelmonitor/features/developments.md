@@ -3,7 +3,7 @@
 A dashboard's developments in the latest run, across all its subjects, as a sortable table at `/developments?dashboard=<id>` with Status, the full wrapped title, Category and Date.
 A filter bar narrows it by words and five facets, each a popover of values with counts, and switches between every development (`All N`) and What changed since the review (`New since review N`).
 Filters and the sort live in the URL, so a reload and the evidence drawer keep them.
-What changed adds the monitor page's triage: a filter (All, Unread, Flagged, Dismissed) and per-row Mark read, Flag and Dismiss.
+What changed adds the triage of a monitor page's Developments tab: a filter (All, Unread, Flagged, Dismissed) and per-row Mark read, Flag and Dismiss.
 
 ## Sub-features
 

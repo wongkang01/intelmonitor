@@ -1,4 +1,5 @@
-/* Graph view: toolbar, one region holding the sigma canvas and the In view list. */
+/* Graph view: toolbar, one region holding the sigma canvas and the In view list; also embedded in
+   a monitor page's Connections tab, with that tab's own layout at the end. */
 
 /* Graph-only colors. Type colors exist only in the canvas, its legend and the In view group heads.
    GraphCanvas reads these at mount (getComputedStyle), so change them here, never in TSX.
@@ -288,4 +289,129 @@
   border-radius: 50%;
   background: var(--new);
   vertical-align: middle;
+}
+
+/* Embedded in a monitor page's Connections tab: no page padding, a fixed-height region, and the
+   filter bar wraps. Under 800px the In view list drops below the canvas. */
+.graph-page.embedded {
+  flex: none;
+  min-height: 0;
+  padding: 0;
+  container-type: inline-size;
+}
+.graph-page.embedded[aria-busy] {
+  height: 560px;
+}
+.graph-page.embedded .graph-bar {
+  height: auto;
+  min-height: 32px;
+  flex-wrap: wrap;
+}
+.graph-page.embedded .graph-region {
+  flex: none;
+  height: 520px;
+  min-height: 0;
+}
+@container (width < 800px) {
+  .graph-page.embedded .graph-region {
+    height: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .graph-page.embedded .graph-canvas {
+    height: 360px;
+  }
+  .graph-page.embedded .graph-list {
+    border-left: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+  .graph-page.embedded .graph-list-body {
+    flex: none;
+    max-height: 320px;
+  }
+}
+
+/* Connections tab (components/monitor/Connections.tsx): the graph, then the comparison panel and
+   Related side by side (2:1), stacked under 900px. */
+.conn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: 0 var(--s-6) var(--s-7);
+  container-type: inline-size;
+}
+.conn-body {
+  display: grid;
+  gap: var(--s-4);
+  align-items: start;
+}
+.conn-body.split {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+.conn-body > .panel {
+  display: block;
+}
+@container (width < 900px) {
+  .conn-body.split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Peers: focus area states side by side; scrolls sideways when the banks do not fit. */
+.conn-scroll {
+  overflow-x: auto;
+}
+.conn-peers {
+  margin-top: var(--s-2);
+}
+.conn-peers tbody th {
+  padding: var(--s-2) var(--s-4) var(--s-2) 0;
+  border-top: 1px solid var(--line);
+  font-size: var(--fs-body);
+  font-weight: 400;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.conn-peers thead th .subject-link {
+  color: inherit;
+}
+.conn-state {
+  display: inline-flex;
+  border-radius: var(--r-badge);
+}
+.conn-state:hover .badge {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Related: linked subjects by type, one per 44px line so each name is a full target. */
+.conn-answer {
+  display: block;
+}
+.conn-links {
+  margin: 0;
+}
+.conn-links > div {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: var(--s-3);
+  line-height: 44px;
+}
+.conn-links > div + div,
+.conn-links .subject-link + .subject-link {
+  border-top: 1px solid var(--line);
+}
+.conn-links dt {
+  font-size: var(--fs-meta);
+  font-weight: 500;
+  color: var(--ink2);
+}
+.conn-links dd {
+  margin: 0;
+  min-width: 0;
+}
+.conn-links .subject-link {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
