@@ -1,0 +1,2806 @@
+# Singapore bank exposure data (DBS, OCBC, UOB), collected 2026-10-07 from free public disclosures.
+#
+# Purpose: route news about a market or sector (e.g. Hong Kong property) to the Singapore banks
+# exposed to it, with the exposure size and its source as evidence.
+#
+# Periods: DBS 2Q26, OCBC 1H26, UOB 1H26 (all period end 2026-06-30), except one DBS Bank India
+# row (FY ended 2026-03-31). Sources: DBS 2Q26 performance summary and Pillar 3; UOB condensed
+# interim financial statements, CFO slides and Pillar 3; OCBC 1H26 financial highlights, results
+# presentation and Pillar 3.
+#
+# Schema
+#   exposures[]: one reported figure each.
+#     bank            dbs | ocbc | uob
+#     dimension       geography | industry | currency | specific | ccyb_country
+#                     (currency = loans by currency, a proxy where geography is coarse;
+#                      specific = named concentration disclosed outside the standard tables;
+#                      ccyb_country = Pillar 3 MAS Notice 637 countercyclical buffer template)
+#     measure         gross_customer_loans | npl | npl_ratio | npa_coverage | rwa
+#                     (rwa = RWA for private sector credit exposures used in the CCyB computation)
+#     segment         the bank's own label, verbatim
+#     market          normalised kebab-case id, defined in markets[]
+#     value, unit     exactly as reported (SGD m, SGD b, %)
+#     share_of_total  value / total given in the same table (fraction, 4 dp); null for ratios
+#     period          period end date
+#     source_url, source_title, page (PDF page index, 1-based; null for web pages)
+#     quote           the table row or sentence as extracted (whitespace collapsed) so it can be checked
+#     note            optional caveat
+#   markets[]: id, name, and each bank's labels mapped to that id.
+#   gaps[]: items asked for but not available or not extractable.
+#
+# Caveats
+#   - Geography definitions differ: DBS uses borrower's place of incorporation; OCBC and UOB use
+#     where the credit risk resides. Residual buckets (Rest of the World, Others) are not comparable.
+#   - CCyB tables list only jurisdictions with a non-zero CCyB; Singapore, mainland China, India, the
+#     US and ASEAN sit inside the residual 'Others' row.
+#   - 'Building and construction' is the closest standard proxy for real estate lending in all three
+#     banks; none publishes a CRE-by-market split in the 1H26 documents.
+
+markets:
+- id: agriculture-mining
+  name: Agriculture, mining and quarrying
+  labels:
+    ocbc:
+    - Agriculture, mining and quarrying
+- id: australia
+  name: Australia
+  labels:
+    dbs:
+    - Australia
+    uob:
+    - Australia
+    ocbc:
+    - Australia
+- id: belgium
+  name: Belgium
+  labels:
+    dbs:
+    - Belgium
+    uob:
+    - Belgium
+    ocbc:
+    - Belgium
+- id: building-construction
+  name: Building and construction (incl. real estate developers and investors)
+  labels:
+    dbs:
+    - Building and construction
+    uob:
+    - Building and construction
+    ocbc:
+    - Building and construction
+- id: ccyb-others
+  name: 'CCyB residual: all jurisdictions with no CCyB in force (includes Singapore, mainland China, India, US, ASEAN)'
+  labels:
+    dbs:
+    - Others
+    ocbc:
+    - All Others
+- id: financial-institutions
+  name: Financial institutions, investment and holding companies
+  labels:
+    dbs:
+    - Financial institutions, investment & holding companies
+    uob:
+    - Financial institutions, investment and holding companies
+    ocbc:
+    - Financial institutions, investment and holding companies
+- id: france
+  name: France
+  labels:
+    dbs:
+    - France
+    uob:
+    - France
+    ocbc:
+    - France
+- id: general-commerce
+  name: General commerce
+  labels:
+    dbs:
+    - General commerce
+    uob:
+    - General commerce
+    ocbc:
+    - General commerce
+- id: germany
+  name: Germany
+  labels:
+    dbs:
+    - Germany
+    uob:
+    - Germany
+    ocbc:
+    - Germany
+- id: greater-china
+  name: Greater China (HK, mainland China, Taiwan, Macau)
+  labels:
+    uob:
+    - Greater China
+    - Exposure to Greater China
+    ocbc:
+    - Greater China
+- id: hong-kong
+  name: Hong Kong
+  labels:
+    dbs:
+    - Hong Kong
+    - Hong Kong dollar
+    uob:
+    - Hong Kong
+    ocbc:
+    - Hong Kong Dollar
+    - Hong Kong
+- id: housing
+  name: Housing loans (residential mortgages)
+  labels:
+    dbs:
+    - Housing loans
+    uob:
+    - Housing loans
+    ocbc:
+    - Housing loans
+- id: india
+  name: India
+  labels:
+    dbs:
+    - DBS Bank India (Gross NPAs)
+- id: indonesia
+  name: Indonesia
+  labels:
+    uob:
+    - Indonesia
+    - Indonesian Rupiah
+    ocbc:
+    - Indonesia
+    - Indonesian Rupiah
+- id: luxembourg
+  name: Luxembourg
+  labels:
+    dbs:
+    - Luxembourg
+    uob:
+    - Luxembourg
+    ocbc:
+    - Luxembourg
+- id: macau
+  name: Macau
+  labels:
+    ocbc:
+    - Macau
+- id: mainland-china
+  name: Mainland China
+  labels:
+    dbs:
+    - Chinese yuan
+    ocbc:
+    - Chinese Renminbi
+    - Mainland China
+- id: mainland-china-offshore
+  name: China risk booked outside mainland China
+  labels:
+    ocbc:
+    - Offshore
+- id: malaysia
+  name: Malaysia
+  labels:
+    uob:
+    - Malaysia
+    - Malaysian Ringgit
+    ocbc:
+    - Malaysia
+    - Malaysian Ringgit
+- id: manufacturing
+  name: Manufacturing
+  labels:
+    dbs:
+    - Manufacturing
+    uob:
+    - Manufacturing
+    ocbc:
+    - Manufacturing
+- id: netherlands
+  name: Netherlands
+  labels:
+    dbs:
+    - Netherlands
+    uob:
+    - Netherlands
+    ocbc:
+    - Netherlands
+- id: other-asia-pacific
+  name: Other Asia Pacific
+  labels:
+    ocbc:
+    - Other Asia Pacific
+- id: other-industries
+  name: Other industries (bank residual bucket)
+  labels:
+    dbs:
+    - Others
+    uob:
+    - Others
+    ocbc:
+    - Others
+- id: professionals-individuals
+  name: Professionals and private individuals
+  labels:
+    dbs:
+    - Professionals & private individuals (excluding housing loans)
+    uob:
+    - Professionals and private individuals
+    ocbc:
+    - Professionals and individuals
+- id: rest-of-greater-china
+  name: Greater China excluding Hong Kong (mainland China, Taiwan, Macau)
+  labels:
+    dbs:
+    - Rest of Greater China
+- id: rest-of-world
+  name: Rest of world (bank residual bucket)
+  labels:
+    dbs:
+    - Rest of the World
+    uob:
+    - Others
+    ocbc:
+    - Rest of the World
+- id: saudi-arabia
+  name: Saudi Arabia
+  labels:
+    dbs:
+    - Saudi Arabia
+    uob:
+    - Saudi Arabia
+    ocbc:
+    - Saudi Arabia
+- id: singapore
+  name: Singapore
+  labels:
+    dbs:
+    - Singapore
+    - Singapore dollar
+    uob:
+    - Singapore
+    - Singapore Dollar
+    ocbc:
+    - Singapore
+    - Singapore Dollar
+- id: south-africa
+  name: South Africa
+  labels:
+    dbs:
+    - South Africa
+    uob:
+    - South Africa
+- id: south-and-southeast-asia
+  name: South and Southeast Asia
+  labels:
+    dbs:
+    - South and Southeast Asia
+- id: south-korea
+  name: South Korea
+  labels:
+    dbs:
+    - Korea
+    uob:
+    - South Korea
+    ocbc:
+    - Korea, Republic Of
+- id: spain
+  name: Spain
+  labels:
+    dbs:
+    - Spain
+    uob:
+    - Spain
+    ocbc:
+    - Spain
+- id: sweden
+  name: Sweden
+  labels:
+    dbs:
+    - Sweden
+    ocbc:
+    - Sweden
+- id: taiwan
+  name: Taiwan
+  labels:
+    dbs:
+    - Taiwan dollar
+    ocbc:
+    - Taiwan
+- id: thailand
+  name: Thailand
+  labels:
+    uob:
+    - Thailand
+    - Thai Baht
+- id: transport-storage-communications
+  name: Transport, storage and communications
+  labels:
+    dbs:
+    - Transportation, storage & communications
+    uob:
+    - Transport, storage and communication
+    ocbc:
+    - Transport, storage and communication
+- id: united-kingdom
+  name: United Kingdom
+  labels:
+    dbs:
+    - United Kingdom
+    uob:
+    - United Kingdom
+    ocbc:
+    - United Kingdom
+- id: united-states
+  name: United States
+  labels:
+    uob:
+    - Exposure to United States
+- id: us-dollar
+  name: US dollar lending
+  labels:
+    dbs:
+    - US dollar
+    uob:
+    - US Dollar
+    ocbc:
+    - United States Dollar
+gaps:
+- bank: dbs
+  item: Commercial real estate by market (Hong Kong CRE, US CRE)
+  detail: Not quantified in the 2Q26 performance summary, CFO/CEO decks, media or analyst transcripts. The analyst transcript only says general provisions were taken for Hong Kong real estate. Press reports
+    (The Edge Singapore, 2024-25) cite DBS CRE of about S$90b with Hong Kong S$18b, but the articles returned HTTP 403 and could not be verified, so no row was recorded.
+- bank: dbs
+  item: Mainland China and Taiwan loans
+  detail: Only 'Rest of Greater China' is given by geography. Taiwan dollar and Chinese yuan loans are recorded under dimension currency as a proxy.
+- bank: dbs
+  item: India (DBS Bank India) loan amount
+  detail: The FY2026 release gives growth (15%) and gross NPA ratio only; group tables fold India into South and Southeast Asia.
+- bank: dbs
+  item: NPL ratio by industry
+  detail: Not published; only NPA and SP amounts by industry.
+- bank: uob
+  item: Commercial real estate by market
+  detail: Not quantified in 2Q26 documents. CFO slides say 2Q26 new NPA came from 'a single real estate account in Greater China' and that 72% of GWB income is from non-real-estate sectors.
+- bank: uob
+  item: Greater China split (Hong Kong vs mainland China)
+  detail: Not published in 2Q26 documents.
+- bank: uob
+  item: CCyB residual
+  detail: Pillar 3 table gives the listed-country sum (38,329) and total (216,493) but no explicit 'Others' line, so no residual row was recorded. Sweden is shown as '#' (below S$0.5m).
+- bank: ocbc
+  item: Commercial real estate by market
+  detail: Not quantified in 1H26 documents. The results presentation says 2Q26 new NPAs came mainly from 'two Greater China corporate real estate accounts under special mention'.
+- bank: ocbc
+  item: CCyB South Africa
+  detail: Shown as '#' (below S$0.5m); not recorded.
+- bank: all
+  item: Pillar 3 real-estate asset-class rows
+  detail: OCBC and UOB Pillar 3 standardised-approach tables have a 'Real estate' exposure class, but it covers only standardised-approach portfolios and is not a CRE total, so it was left out.
+- bank: uob
+  item: Sustainability sector exposures (SR2025)
+  detail: 'UOB Sustainability Report 2025 p17 ''UOB''s corporate exposures'' is a pie chart (labels: building and construction incl. IPRE, heavy industries, transportation, fossil fuels, utilities, agriculture,
+    non-climate-relevant; values 38%, 39%, 5%, 6%, 9%, <1%, 2%). Text extraction scrambles the label-to-value mapping, so nothing was recorded.'
+- bank: dbs
+  item: Sustainability sector exposures
+  detail: Not collected (optional item, time-boxed).
+- bank: ocbc
+  item: Sustainability sector exposures
+  detail: Not collected (optional item, time-boxed).
+exposures:
+- bank: dbs
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Singapore
+  market: singapore
+  value: 210852.0
+  unit: SGD m
+  share_of_total: 0.4437
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Singapore 210,852 202,317 197,458
+- bank: dbs
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Hong Kong
+  market: hong-kong
+  value: 58031.0
+  unit: SGD m
+  share_of_total: 0.1221
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Hong Kong 58,031 56,184 57,196
+- bank: dbs
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Rest of Greater China
+  market: rest-of-greater-china
+  value: 61416.0
+  unit: SGD m
+  share_of_total: 0.1292
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Rest of Greater China 61,416 58,429 59,236
+- bank: dbs
+  dimension: geography
+  measure: gross_customer_loans
+  segment: South and Southeast Asia
+  market: south-and-southeast-asia
+  value: 42375.0
+  unit: SGD m
+  share_of_total: 0.0892
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: South and Southeast Asia 42,375 38,773 38,588
+- bank: dbs
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Rest of the World
+  market: rest-of-world
+  value: 102564.0
+  unit: SGD m
+  share_of_total: 0.2158
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Rest of the World 102,564 95,213 86,622
+- bank: dbs
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Manufacturing
+  market: manufacturing
+  value: 51180.0
+  unit: SGD m
+  share_of_total: 0.1077
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Manufacturing 51,180 46,829 43,744
+- bank: dbs
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Building and construction
+  market: building-construction
+  value: 116133.0
+  unit: SGD m
+  share_of_total: 0.2444
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Building and construction 116,133 111,925 113,902
+- bank: dbs
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Housing loans
+  market: housing
+  value: 84776.0
+  unit: SGD m
+  share_of_total: 0.1784
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Housing loans 84,776 84,012 85,512
+- bank: dbs
+  dimension: industry
+  measure: gross_customer_loans
+  segment: General commerce
+  market: general-commerce
+  value: 48236.0
+  unit: SGD m
+  share_of_total: 0.1015
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: General commerce 48,236 45,576 41,961
+- bank: dbs
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Transportation, storage & communications
+  market: transport-storage-communications
+  value: 35384.0
+  unit: SGD m
+  share_of_total: 0.0745
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Transportation, storage & communications 35,384 33,703 33,092
+- bank: dbs
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Financial institutions, investment & holding companies
+  market: financial-institutions
+  value: 47084.0
+  unit: SGD m
+  share_of_total: 0.0991
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Financial institutions, investment & holding companies 47,084 45,343 41,941
+- bank: dbs
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Professionals & private individuals (excluding housing loans)
+  market: professionals-individuals
+  value: 46592.0
+  unit: SGD m
+  share_of_total: 0.098
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Professionals & private individuals (excluding housing loans) 46,592 44,437 41,331
+- bank: dbs
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Others
+  market: other-industries
+  value: 45853.0
+  unit: SGD m
+  share_of_total: 0.0965
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Others 45,853 39,091 37,617
+- bank: dbs
+  dimension: currency
+  measure: gross_customer_loans
+  segment: Singapore dollar
+  market: singapore
+  value: 176809.0
+  unit: SGD m
+  share_of_total: 0.372
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Singapore dollar 176,809 168,298 168,077
+- bank: dbs
+  dimension: currency
+  measure: gross_customer_loans
+  segment: US dollar
+  market: us-dollar
+  value: 130622.0
+  unit: SGD m
+  share_of_total: 0.2749
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: US dollar 130,622 120,367 108,154
+- bank: dbs
+  dimension: currency
+  measure: gross_customer_loans
+  segment: Hong Kong dollar
+  market: hong-kong
+  value: 38631.0
+  unit: SGD m
+  share_of_total: 0.0813
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Hong Kong dollar 38,631 40,366 40,918
+- bank: dbs
+  dimension: currency
+  measure: gross_customer_loans
+  segment: Taiwan dollar
+  market: taiwan
+  value: 23760.0
+  unit: SGD m
+  share_of_total: 0.05
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Taiwan dollar 23,760 23,071 26,987
+- bank: dbs
+  dimension: currency
+  measure: gross_customer_loans
+  segment: Chinese yuan
+  market: mainland-china
+  value: 26351.0
+  unit: SGD m
+  share_of_total: 0.0554
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 20
+  quote: Chinese yuan 26,351 24,366 22,332
+- bank: dbs
+  dimension: geography
+  measure: npl
+  segment: Singapore
+  market: singapore
+  value: 1954.0
+  unit: SGD m
+  share_of_total: 0.4266
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 21
+  quote: Singapore 1,954 0.9 1,228 1,907 0.9 1,185 1,728 0.9 1,045
+- bank: dbs
+  dimension: geography
+  measure: npl_ratio
+  segment: Singapore
+  market: singapore
+  value: 0.9
+  unit: '% of loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 21
+  quote: Singapore 1,954 0.9 1,228 1,907 0.9 1,185 1,728 0.9 1,045
+- bank: dbs
+  dimension: geography
+  measure: npl
+  segment: Hong Kong
+  market: hong-kong
+  value: 1267.0
+  unit: SGD m
+  share_of_total: 0.2766
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 21
+  quote: Hong Kong 1,267 2.2 461 1,367 2.4 509 997 1.7 319
+- bank: dbs
+  dimension: geography
+  measure: npl_ratio
+  segment: Hong Kong
+  market: hong-kong
+  value: 2.2
+  unit: '% of loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 21
+  quote: Hong Kong 1,267 2.2 461 1,367 2.4 509 997 1.7 319
+- bank: dbs
+  dimension: geography
+  measure: npl
+  segment: Rest of Greater China
+  market: rest-of-greater-china
+  value: 812.0
+  unit: SGD m
+  share_of_total: 0.1773
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 21
+  quote: Rest of Greater China 812 1.3 257 844 1.4 279 863 1.5 304
+- bank: dbs
+  dimension: geography
+  measure: npl_ratio
+  segment: Rest of Greater China
+  market: rest-of-greater-china
+  value: 1.3
+  unit: '% of loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 21
+  quote: Rest of Greater China 812 1.3 257 844 1.4 279 863 1.5 304
+- bank: dbs
+  dimension: geography
+  measure: npl
+  segment: South and Southeast Asia
+  market: south-and-southeast-asia
+  value: 353.0
+  unit: SGD m
+  share_of_total: 0.0771
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 21
+  quote: South and Southeast 353 0.8 305 362 0.9 317 494 1.3 400
+- bank: dbs
+  dimension: geography
+  measure: npl_ratio
+  segment: South and Southeast Asia
+  market: south-and-southeast-asia
+  value: 0.8
+  unit: '% of loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 21
+  quote: South and Southeast 353 0.8 305 362 0.9 317 494 1.3 400
+- bank: dbs
+  dimension: geography
+  measure: npl
+  segment: Rest of the World
+  market: rest-of-world
+  value: 194.0
+  unit: SGD m
+  share_of_total: 0.0424
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 21
+  quote: Rest of the World 194 0.2 46 149 0.2 34 370 0.4 148
+- bank: dbs
+  dimension: geography
+  measure: npl_ratio
+  segment: Rest of the World
+  market: rest-of-world
+  value: 0.2
+  unit: '% of loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 21
+  quote: Rest of the World 194 0.2 46 149 0.2 34 370 0.4 148
+- bank: dbs
+  dimension: industry
+  measure: npl
+  segment: Manufacturing
+  market: manufacturing
+  value: 236.0
+  unit: SGD m
+  share_of_total: 0.0515
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 22
+  quote: Manufacturing 236 142 255 146 487 347
+  note: Column header is NPA; rows sum to 'Total non-performing loans' 4,580, so recorded as NPL.
+- bank: dbs
+  dimension: industry
+  measure: npl
+  segment: Building and construction
+  market: building-construction
+  value: 1255.0
+  unit: SGD m
+  share_of_total: 0.274
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 22
+  quote: Building and construction 1,255 478 1,364 562 1,018 314
+  note: Column header is NPA; rows sum to 'Total non-performing loans' 4,580, so recorded as NPL.
+- bank: dbs
+  dimension: industry
+  measure: npl
+  segment: Housing loans
+  market: housing
+  value: 199.0
+  unit: SGD m
+  share_of_total: 0.0434
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 22
+  quote: Housing loans 199 5 190 5 214 3
+  note: Column header is NPA; rows sum to 'Total non-performing loans' 4,580, so recorded as NPL.
+- bank: dbs
+  dimension: industry
+  measure: npl
+  segment: General commerce
+  market: general-commerce
+  value: 772.0
+  unit: SGD m
+  share_of_total: 0.1686
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 22
+  quote: General commerce 772 531 803 544 868 567
+  note: Column header is NPA; rows sum to 'Total non-performing loans' 4,580, so recorded as NPL.
+- bank: dbs
+  dimension: industry
+  measure: npl
+  segment: Transportation, storage & communications
+  market: transport-storage-communications
+  value: 769.0
+  unit: SGD m
+  share_of_total: 0.1679
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 22
+  quote: Transportation, storage & 769 586 670 538 680 537
+  note: Column header is NPA; rows sum to 'Total non-performing loans' 4,580, so recorded as NPL.
+- bank: dbs
+  dimension: industry
+  measure: npl
+  segment: Financial institutions, investment & holding companies
+  market: financial-institutions
+  value: 150.0
+  unit: SGD m
+  share_of_total: 0.0328
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 22
+  quote: Financial institutions, investment & 150 34 104 27 47 1
+  note: Column header is NPA; rows sum to 'Total non-performing loans' 4,580, so recorded as NPL.
+- bank: dbs
+  dimension: industry
+  measure: npl
+  segment: Professionals & private individuals (excluding housing loans)
+  market: professionals-individuals
+  value: 827.0
+  unit: SGD m
+  share_of_total: 0.1806
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 22
+  quote: Professionals & private individuals 827 327 803 309 791 295
+  note: Column header is NPA; rows sum to 'Total non-performing loans' 4,580, so recorded as NPL.
+- bank: dbs
+  dimension: industry
+  measure: npl
+  segment: Others
+  market: other-industries
+  value: 372.0
+  unit: SGD m
+  share_of_total: 0.0812
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf
+  source_title: 'DBS Group Holdings 2Q26 Performance Summary: Unaudited Financial Results for the First Half/ Second Quarter Ended 30 June 2026'
+  page: 22
+  quote: Others 372 194 440 193 347 152
+  note: Column header is NPA; rows sum to 'Total non-performing loans' 4,580, so recorded as NPL.
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: Australia
+  market: australia
+  value: 8090.0
+  unit: SGD m
+  share_of_total: 0.0303
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: Australia 1.00 8,090
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: Belgium
+  market: belgium
+  value: 229.0
+  unit: SGD m
+  share_of_total: 0.0009
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: Belgium 1.00 229
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: France
+  market: france
+  value: 679.0
+  unit: SGD m
+  share_of_total: 0.0025
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: France 1.00 679
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: Germany
+  market: germany
+  value: 1968.0
+  unit: SGD m
+  share_of_total: 0.0074
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: Germany 0.75 1,968
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: Hong Kong
+  market: hong-kong
+  value: 27102.0
+  unit: SGD m
+  share_of_total: 0.1014
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: Hong Kong 0.50 27,102
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: Korea
+  market: south-korea
+  value: 4046.0
+  unit: SGD m
+  share_of_total: 0.0151
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: Korea 1.00 4,046
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: Luxembourg
+  market: luxembourg
+  value: 1040.0
+  unit: SGD m
+  share_of_total: 0.0039
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: Luxembourg 0.50 1,040
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: Netherlands
+  market: netherlands
+  value: 1546.0
+  unit: SGD m
+  share_of_total: 0.0058
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: Netherlands 2.00 1,546
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: Saudi Arabia
+  market: saudi-arabia
+  value: 809.0
+  unit: SGD m
+  share_of_total: 0.003
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: Saudi Arabia 1.00 809
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: South Africa
+  market: south-africa
+  value: 11.0
+  unit: SGD m
+  share_of_total: 0.0
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: South Africa 1.00 11
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: Spain
+  market: spain
+  value: 221.0
+  unit: SGD m
+  share_of_total: 0.0008
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: Spain 0.50 221
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: Sweden
+  market: sweden
+  value: 699.0
+  unit: SGD m
+  share_of_total: 0.0026
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: Sweden 2.00 699
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: United Kingdom
+  market: united-kingdom
+  value: 12008.0
+  unit: SGD m
+  share_of_total: 0.0449
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: United Kingdom 2.00 12,008
+- bank: dbs
+  dimension: ccyb_country
+  measure: rwa
+  segment: Others
+  market: ccyb-others
+  value: 208781.0
+  unit: SGD m
+  share_of_total: 0.7813
+  period: '2026-06-30'
+  source_url: https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_P3_other_regulatory_disclosures.pdf
+  source_title: DBS Group Holdings Pillar 3 and Liquidity Disclosures, 30 June 2026
+  page: 13
+  quote: Others 208,781
+- bank: uob
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Singapore
+  market: singapore
+  value: 179903.0
+  unit: SGD m
+  share_of_total: 0.4978
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Singapore 179,903 176,830 170,048
+- bank: uob
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Malaysia
+  market: malaysia
+  value: 37779.0
+  unit: SGD m
+  share_of_total: 0.1045
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Malaysia 37,779 36,074 34,006
+- bank: uob
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Thailand
+  market: thailand
+  value: 26915.0
+  unit: SGD m
+  share_of_total: 0.0745
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Thailand 26,915 27,339 26,244
+- bank: uob
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Indonesia
+  market: indonesia
+  value: 10860.0
+  unit: SGD m
+  share_of_total: 0.03
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Indonesia 10,860 11,094 11,258
+- bank: uob
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Greater China
+  market: greater-china
+  value: 48693.0
+  unit: SGD m
+  share_of_total: 0.1347
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Greater China 48,693 45,326 48,084
+- bank: uob
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Others
+  market: rest-of-world
+  value: 57261.0
+  unit: SGD m
+  share_of_total: 0.1584
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Others 57,261 55,517 53,260
+- bank: uob
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Transport, storage and communication
+  market: transport-storage-communications
+  value: 19824.0
+  unit: SGD m
+  share_of_total: 0.0549
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Transport, storage and communication 19,824 20,847 17,574
+- bank: uob
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Building and construction
+  market: building-construction
+  value: 88683.0
+  unit: SGD m
+  share_of_total: 0.2454
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Building and construction 88,683 90,815 91,421
+- bank: uob
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Manufacturing
+  market: manufacturing
+  value: 33077.0
+  unit: SGD m
+  share_of_total: 0.0915
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Manufacturing 33,077 27,533 26,501
+- bank: uob
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Financial institutions, investment and holding companies
+  market: financial-institutions
+  value: 41999.0
+  unit: SGD m
+  share_of_total: 0.1162
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Financial institutions, investment and holding companies 41,999 38,996 36,476
+- bank: uob
+  dimension: industry
+  measure: gross_customer_loans
+  segment: General commerce
+  market: general-commerce
+  value: 40523.0
+  unit: SGD m
+  share_of_total: 0.1121
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: General commerce 40,523 38,311 37,058
+- bank: uob
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Professionals and private individuals
+  market: professionals-individuals
+  value: 30572.0
+  unit: SGD m
+  share_of_total: 0.0846
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Professionals and private individuals 30,572 30,595 29,510
+- bank: uob
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Housing loans
+  market: housing
+  value: 86030.0
+  unit: SGD m
+  share_of_total: 0.238
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Housing loans 86,030 84,962 83,480
+- bank: uob
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Others
+  market: other-industries
+  value: 20703.0
+  unit: SGD m
+  share_of_total: 0.0573
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Others 20,703 20,121 20,880
+- bank: uob
+  dimension: currency
+  measure: gross_customer_loans
+  segment: Singapore Dollar
+  market: singapore
+  value: 156160.0
+  unit: SGD m
+  share_of_total: 0.4321
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Singapore Dollar 156,160 153,560 150,289
+- bank: uob
+  dimension: currency
+  measure: gross_customer_loans
+  segment: US Dollar
+  market: us-dollar
+  value: 68211.0
+  unit: SGD m
+  share_of_total: 0.1887
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: US Dollar 68,211 65,995 58,956
+- bank: uob
+  dimension: currency
+  measure: gross_customer_loans
+  segment: Malaysian Ringgit
+  market: malaysia
+  value: 34683.0
+  unit: SGD m
+  share_of_total: 0.096
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Malaysian Ringgit 34,683 33,424 31,650
+- bank: uob
+  dimension: currency
+  measure: gross_customer_loans
+  segment: Thai Baht
+  market: thailand
+  value: 25401.0
+  unit: SGD m
+  share_of_total: 0.0703
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Thai Baht 25,401 26,153 25,087
+- bank: uob
+  dimension: currency
+  measure: gross_customer_loans
+  segment: Indonesian Rupiah
+  market: indonesia
+  value: 6080.0
+  unit: SGD m
+  share_of_total: 0.0168
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 12
+  quote: Indonesian Rupiah 6,080 5,752 6,194
+- bank: uob
+  dimension: industry
+  measure: npl
+  segment: Transport, storage and communication
+  market: transport-storage-communications
+  value: 89.0
+  unit: SGD m
+  share_of_total: 0.0156
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Transport, storage and communication 89 0.4 107 0.5 140 0.8
+- bank: uob
+  dimension: industry
+  measure: npl_ratio
+  segment: Transport, storage and communication
+  market: transport-storage-communications
+  value: 0.4
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Transport, storage and communication 89 0.4 107 0.5 140 0.8
+- bank: uob
+  dimension: industry
+  measure: npl
+  segment: Building and construction
+  market: building-construction
+  value: 2693.0
+  unit: SGD m
+  share_of_total: 0.4725
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Building and construction 2,693 3.0 2,150 2.4 2,083 2.3
+- bank: uob
+  dimension: industry
+  measure: npl_ratio
+  segment: Building and construction
+  market: building-construction
+  value: 3.0
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Building and construction 2,693 3.0 2,150 2.4 2,083 2.3
+- bank: uob
+  dimension: industry
+  measure: npl
+  segment: Manufacturing
+  market: manufacturing
+  value: 506.0
+  unit: SGD m
+  share_of_total: 0.0888
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Manufacturing 506 1.5 624 2.3 511 1.9
+- bank: uob
+  dimension: industry
+  measure: npl_ratio
+  segment: Manufacturing
+  market: manufacturing
+  value: 1.5
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Manufacturing 506 1.5 624 2.3 511 1.9
+- bank: uob
+  dimension: industry
+  measure: npl
+  segment: Financial institutions, investment and holding companies
+  market: financial-institutions
+  value: 202.0
+  unit: SGD m
+  share_of_total: 0.0354
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Financial institutions, investment and holding companies 202 0.5 260 0.7 194 0.5
+- bank: uob
+  dimension: industry
+  measure: npl_ratio
+  segment: Financial institutions, investment and holding companies
+  market: financial-institutions
+  value: 0.5
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Financial institutions, investment and holding companies 202 0.5 260 0.7 194 0.5
+- bank: uob
+  dimension: industry
+  measure: npl
+  segment: General commerce
+  market: general-commerce
+  value: 635.0
+  unit: SGD m
+  share_of_total: 0.1114
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: General commerce 635 1.6 652 1.7 788 2.1
+- bank: uob
+  dimension: industry
+  measure: npl_ratio
+  segment: General commerce
+  market: general-commerce
+  value: 1.6
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: General commerce 635 1.6 652 1.7 788 2.1
+- bank: uob
+  dimension: industry
+  measure: npl
+  segment: Professionals and private individuals
+  market: professionals-individuals
+  value: 376.0
+  unit: SGD m
+  share_of_total: 0.066
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Professionals and private individuals 376 1.2 393 1.3 374 1.3
+- bank: uob
+  dimension: industry
+  measure: npl_ratio
+  segment: Professionals and private individuals
+  market: professionals-individuals
+  value: 1.2
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Professionals and private individuals 376 1.2 393 1.3 374 1.3
+- bank: uob
+  dimension: industry
+  measure: npl
+  segment: Housing loans
+  market: housing
+  value: 960.0
+  unit: SGD m
+  share_of_total: 0.1684
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Housing loans 960 1.1 988 1.2 968 1.2
+- bank: uob
+  dimension: industry
+  measure: npl_ratio
+  segment: Housing loans
+  market: housing
+  value: 1.1
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Housing loans 960 1.1 988 1.2 968 1.2
+- bank: uob
+  dimension: industry
+  measure: npl
+  segment: Others
+  market: other-industries
+  value: 239.0
+  unit: SGD m
+  share_of_total: 0.0419
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Others 239 1.2 205 1.0 283 1.4
+- bank: uob
+  dimension: industry
+  measure: npl_ratio
+  segment: Others
+  market: other-industries
+  value: 1.2
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 13
+  quote: Others 239 1.2 205 1.0 283 1.4
+- bank: uob
+  dimension: geography
+  measure: npl
+  segment: Singapore
+  market: singapore
+  value: 775.0
+  unit: SGD m
+  share_of_total: 0.136
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 14
+  quote: Singapore Jun-26 775 0.4 308 40
+- bank: uob
+  dimension: geography
+  measure: npl_ratio
+  segment: Singapore
+  market: singapore
+  value: 0.4
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 14
+  quote: Singapore Jun-26 775 0.4 308 40
+- bank: uob
+  dimension: geography
+  measure: npl
+  segment: Malaysia
+  market: malaysia
+  value: 874.0
+  unit: SGD m
+  share_of_total: 0.1533
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 14
+  quote: Malaysia Jun-26 874 2.3 193 22
+- bank: uob
+  dimension: geography
+  measure: npl_ratio
+  segment: Malaysia
+  market: malaysia
+  value: 2.3
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 14
+  quote: Malaysia Jun-26 874 2.3 193 22
+- bank: uob
+  dimension: geography
+  measure: npl
+  segment: Thailand
+  market: thailand
+  value: 930.0
+  unit: SGD m
+  share_of_total: 0.1632
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 14
+  quote: Thailand Jun-26 930 3.5 353 38
+- bank: uob
+  dimension: geography
+  measure: npl_ratio
+  segment: Thailand
+  market: thailand
+  value: 3.5
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 14
+  quote: Thailand Jun-26 930 3.5 353 38
+- bank: uob
+  dimension: geography
+  measure: npl
+  segment: Indonesia
+  market: indonesia
+  value: 299.0
+  unit: SGD m
+  share_of_total: 0.0525
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 14
+  quote: Indonesia Jun-26 299 2.8 87 29
+- bank: uob
+  dimension: geography
+  measure: npl_ratio
+  segment: Indonesia
+  market: indonesia
+  value: 2.8
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 14
+  quote: Indonesia Jun-26 299 2.8 87 29
+- bank: uob
+  dimension: geography
+  measure: npl
+  segment: Greater China
+  market: greater-china
+  value: 2319.0
+  unit: SGD m
+  share_of_total: 0.4068
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 14
+  quote: Greater China Jun-26 2,319 4.8 182 8
+- bank: uob
+  dimension: geography
+  measure: npl_ratio
+  segment: Greater China
+  market: greater-china
+  value: 4.8
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 14
+  quote: Greater China Jun-26 2,319 4.8 182 8
+- bank: uob
+  dimension: geography
+  measure: npl
+  segment: Others
+  market: rest-of-world
+  value: 503.0
+  unit: SGD m
+  share_of_total: 0.0882
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 14
+  quote: Others Jun-26 503 0.9 175 35
+- bank: uob
+  dimension: geography
+  measure: npl_ratio
+  segment: Others
+  market: rest-of-world
+  value: 0.9
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf
+  source_title: UOB Unaudited Financial Results for the First Half ended 30 June 2026 (Condensed Interim Financial Statements)
+  page: 14
+  quote: Others Jun-26 503 0.9 175 35
+- bank: uob
+  dimension: specific
+  measure: gross_customer_loans
+  segment: Exposure to United States
+  market: united-states
+  value: 17.0
+  unit: SGD b
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/PJL323UFL9E3U2E8/899002_2Q26%20-%20CFO%20slides.pdf
+  source_title: UOB Group Financial Updates (CFO slides), First Half / Second Quarter Ended 30 June 2026
+  page: 22
+  quote: Exposure to United States | Customer Loans ($b) | Jun-25 14, Sep-25 17, Dec-25 17, Mar-26 15, Jun-26 17
+  note: Bar-chart data labels; Jun-26 value assigned by text column position under the Jun-26 axis label.
+- bank: uob
+  dimension: specific
+  measure: gross_customer_loans
+  segment: Exposure to Greater China
+  market: greater-china
+  value: 49.0
+  unit: SGD b
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/PJL323UFL9E3U2E8/899002_2Q26%20-%20CFO%20slides.pdf
+  source_title: UOB Group Financial Updates (CFO slides), First Half / Second Quarter Ended 30 June 2026
+  page: 21
+  quote: Exposure to Greater China | Customer Loans ($b) | Jun-25 48, Sep-25 48, Dec-25 45, Mar-26 49, Jun-26 49
+  note: Bar-chart data labels; consistent with Greater China 48,693 (SGD m) in the condensed financial statements.
+- bank: uob
+  dimension: specific
+  measure: npl_ratio
+  segment: Exposure to United States
+  market: united-states
+  value: 1.2
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/PJL323UFL9E3U2E8/899002_2Q26%20-%20CFO%20slides.pdf
+  source_title: UOB Group Financial Updates (CFO slides), First Half / Second Quarter Ended 30 June 2026
+  page: 22
+  quote: NPL ratio (%) 4.2 4.0 3.0 1.5 1.2
+- bank: uob
+  dimension: specific
+  measure: npl_ratio
+  segment: Exposure to Greater China
+  market: greater-china
+  value: 4.8
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/PJL323UFL9E3U2E8/899002_2Q26%20-%20CFO%20slides.pdf
+  source_title: UOB Group Financial Updates (CFO slides), First Half / Second Quarter Ended 30 June 2026
+  page: 21
+  quote: NPL ratio (%) 2.7 3.1 3.3 3.5 4.8
+- bank: uob
+  dimension: specific
+  measure: npa_coverage
+  segment: Exposure to Greater China
+  market: greater-china
+  value: 42.0
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/PJL323UFL9E3U2E8/899002_2Q26%20-%20CFO%20slides.pdf
+  source_title: UOB Group Financial Updates (CFO slides), First Half / Second Quarter Ended 30 June 2026
+  page: 21
+  quote: NPA coverage (%) 57 78 60 57 42
+- bank: uob
+  dimension: ccyb_country
+  measure: rwa
+  segment: Australia
+  market: australia
+  value: 10751.0
+  unit: SGD m
+  share_of_total: 0.0497
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/regulatory-disclosures-pillar-3-disclosures-q2-2026.pdf
+  source_title: UOB Pillar 3 Disclosure Report, 30 June 2026
+  page: 18
+  quote: Australia 1.00% 10,751
+- bank: uob
+  dimension: ccyb_country
+  measure: rwa
+  segment: Belgium
+  market: belgium
+  value: 7.0
+  unit: SGD m
+  share_of_total: 0.0
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/regulatory-disclosures-pillar-3-disclosures-q2-2026.pdf
+  source_title: UOB Pillar 3 Disclosure Report, 30 June 2026
+  page: 18
+  quote: Belgium 1.00% 7
+- bank: uob
+  dimension: ccyb_country
+  measure: rwa
+  segment: France
+  market: france
+  value: 187.0
+  unit: SGD m
+  share_of_total: 0.0009
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/regulatory-disclosures-pillar-3-disclosures-q2-2026.pdf
+  source_title: UOB Pillar 3 Disclosure Report, 30 June 2026
+  page: 18
+  quote: France 1.00% 187
+- bank: uob
+  dimension: ccyb_country
+  measure: rwa
+  segment: Germany
+  market: germany
+  value: 192.0
+  unit: SGD m
+  share_of_total: 0.0009
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/regulatory-disclosures-pillar-3-disclosures-q2-2026.pdf
+  source_title: UOB Pillar 3 Disclosure Report, 30 June 2026
+  page: 18
+  quote: Germany 0.75% 192
+- bank: uob
+  dimension: ccyb_country
+  measure: rwa
+  segment: Hong Kong
+  market: hong-kong
+  value: 15525.0
+  unit: SGD m
+  share_of_total: 0.0717
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/regulatory-disclosures-pillar-3-disclosures-q2-2026.pdf
+  source_title: UOB Pillar 3 Disclosure Report, 30 June 2026
+  page: 18
+  quote: Hong Kong 0.50% 15,525
+- bank: uob
+  dimension: ccyb_country
+  measure: rwa
+  segment: South Korea
+  market: south-korea
+  value: 2246.0
+  unit: SGD m
+  share_of_total: 0.0104
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/regulatory-disclosures-pillar-3-disclosures-q2-2026.pdf
+  source_title: UOB Pillar 3 Disclosure Report, 30 June 2026
+  page: 18
+  quote: South Korea 1.00% 2,246
+- bank: uob
+  dimension: ccyb_country
+  measure: rwa
+  segment: Spain
+  market: spain
+  value: 807.0
+  unit: SGD m
+  share_of_total: 0.0037
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/regulatory-disclosures-pillar-3-disclosures-q2-2026.pdf
+  source_title: UOB Pillar 3 Disclosure Report, 30 June 2026
+  page: 18
+  quote: Spain 0.50% 807
+- bank: uob
+  dimension: ccyb_country
+  measure: rwa
+  segment: Luxembourg
+  market: luxembourg
+  value: 159.0
+  unit: SGD m
+  share_of_total: 0.0007
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/regulatory-disclosures-pillar-3-disclosures-q2-2026.pdf
+  source_title: UOB Pillar 3 Disclosure Report, 30 June 2026
+  page: 18
+  quote: Luxembourg 0.50% 159
+- bank: uob
+  dimension: ccyb_country
+  measure: rwa
+  segment: Netherlands
+  market: netherlands
+  value: 191.0
+  unit: SGD m
+  share_of_total: 0.0009
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/regulatory-disclosures-pillar-3-disclosures-q2-2026.pdf
+  source_title: UOB Pillar 3 Disclosure Report, 30 June 2026
+  page: 18
+  quote: Netherlands 2.00% 191
+- bank: uob
+  dimension: ccyb_country
+  measure: rwa
+  segment: Saudi Arabia
+  market: saudi-arabia
+  value: 4.0
+  unit: SGD m
+  share_of_total: 0.0
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/regulatory-disclosures-pillar-3-disclosures-q2-2026.pdf
+  source_title: UOB Pillar 3 Disclosure Report, 30 June 2026
+  page: 18
+  quote: Saudi Arabia 1.00% 4
+- bank: uob
+  dimension: ccyb_country
+  measure: rwa
+  segment: South Africa
+  market: south-africa
+  value: 1.0
+  unit: SGD m
+  share_of_total: 0.0
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/regulatory-disclosures-pillar-3-disclosures-q2-2026.pdf
+  source_title: UOB Pillar 3 Disclosure Report, 30 June 2026
+  page: 18
+  quote: South Africa 1.00% 1
+- bank: uob
+  dimension: ccyb_country
+  measure: rwa
+  segment: United Kingdom
+  market: united-kingdom
+  value: 8258.0
+  unit: SGD m
+  share_of_total: 0.0381
+  period: '2026-06-30'
+  source_url: https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/regulatory-disclosures-pillar-3-disclosures-q2-2026.pdf
+  source_title: UOB Pillar 3 Disclosure Report, 30 June 2026
+  page: 18
+  quote: United Kingdom 2.00% 8,258
+- bank: ocbc
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Singapore
+  market: singapore
+  value: 158688.0
+  unit: SGD m
+  share_of_total: 0.4354
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Singapore 158,688 149,086 138,888
+- bank: ocbc
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Malaysia
+  market: malaysia
+  value: 29825.0
+  unit: SGD m
+  share_of_total: 0.0818
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Malaysia 29,825 28,174 26,282
+- bank: ocbc
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Indonesia
+  market: indonesia
+  value: 18281.0
+  unit: SGD m
+  share_of_total: 0.0502
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Indonesia 18,281 17,748 18,085
+- bank: ocbc
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Greater China
+  market: greater-china
+  value: 71375.0
+  unit: SGD m
+  share_of_total: 0.1958
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Greater China 71,375 70,949 69,964
+- bank: ocbc
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Other Asia Pacific
+  market: other-asia-pacific
+  value: 29080.0
+  unit: SGD m
+  share_of_total: 0.0798
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Other Asia Pacific 29,080 24,755 24,215
+- bank: ocbc
+  dimension: geography
+  measure: gross_customer_loans
+  segment: Rest of the World
+  market: rest-of-world
+  value: 57244.0
+  unit: SGD m
+  share_of_total: 0.1571
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Rest of the World 57,244 50,408 47,172
+- bank: ocbc
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Agriculture, mining and quarrying
+  market: agriculture-mining
+  value: 6037.0
+  unit: SGD m
+  share_of_total: 0.0166
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Agriculture, mining and quarrying 6,037 6,402 6,597
+- bank: ocbc
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Manufacturing
+  market: manufacturing
+  value: 19877.0
+  unit: SGD m
+  share_of_total: 0.0545
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Manufacturing 19,877 18,241 15,342
+- bank: ocbc
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Building and construction
+  market: building-construction
+  value: 98293.0
+  unit: SGD m
+  share_of_total: 0.2697
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Building and construction 98,293 95,289 93,420
+- bank: ocbc
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Housing loans
+  market: housing
+  value: 75463.0
+  unit: SGD m
+  share_of_total: 0.207
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Housing loans 75,463 72,591 70,397
+- bank: ocbc
+  dimension: industry
+  measure: gross_customer_loans
+  segment: General commerce
+  market: general-commerce
+  value: 39656.0
+  unit: SGD m
+  share_of_total: 0.1088
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: General commerce 39,656 34,504 31,306
+- bank: ocbc
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Transport, storage and communication
+  market: transport-storage-communications
+  value: 27140.0
+  unit: SGD m
+  share_of_total: 0.0745
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Transport, storage and communication 27,140 23,589 22,717
+- bank: ocbc
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Financial institutions, investment and holding companies
+  market: financial-institutions
+  value: 31316.0
+  unit: SGD m
+  share_of_total: 0.0859
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Financial institutions, investment and holding companies 31,316 28,671 27,890
+- bank: ocbc
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Professionals and individuals
+  market: professionals-individuals
+  value: 38919.0
+  unit: SGD m
+  share_of_total: 0.1068
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Professionals and individuals 38,919 36,834 34,150
+- bank: ocbc
+  dimension: industry
+  measure: gross_customer_loans
+  segment: Others
+  market: other-industries
+  value: 27792.0
+  unit: SGD m
+  share_of_total: 0.0762
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Others 27,792 24,999 22,787
+- bank: ocbc
+  dimension: currency
+  measure: gross_customer_loans
+  segment: Singapore Dollar
+  market: singapore
+  value: 137369.0
+  unit: SGD m
+  share_of_total: 0.3769
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Singapore Dollar 137,369 128,590 124,231
+- bank: ocbc
+  dimension: currency
+  measure: gross_customer_loans
+  segment: United States Dollar
+  market: us-dollar
+  value: 80950.0
+  unit: SGD m
+  share_of_total: 0.2221
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: United States Dollar 80,950 71,920 68,886
+- bank: ocbc
+  dimension: currency
+  measure: gross_customer_loans
+  segment: Malaysian Ringgit
+  market: malaysia
+  value: 20745.0
+  unit: SGD m
+  share_of_total: 0.0569
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Malaysian Ringgit 20,745 20,250 18,690
+- bank: ocbc
+  dimension: currency
+  measure: gross_customer_loans
+  segment: Indonesian Rupiah
+  market: indonesia
+  value: 10655.0
+  unit: SGD m
+  share_of_total: 0.0292
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Indonesian Rupiah 10,655 10,604 10,025
+- bank: ocbc
+  dimension: currency
+  measure: gross_customer_loans
+  segment: Hong Kong Dollar
+  market: hong-kong
+  value: 32718.0
+  unit: SGD m
+  share_of_total: 0.0898
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Hong Kong Dollar 32,718 33,728 32,416
+- bank: ocbc
+  dimension: currency
+  measure: gross_customer_loans
+  segment: Chinese Renminbi
+  market: mainland-china
+  value: 13818.0
+  unit: SGD m
+  share_of_total: 0.0379
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 14
+  quote: Chinese Renminbi 13,818 13,544 11,042
+- bank: ocbc
+  dimension: geography
+  measure: npl
+  segment: Singapore
+  market: singapore
+  value: 270.0
+  unit: SGD m
+  share_of_total: 0.0866
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 15
+  quote: Singapore 30 Jun 2026 270 39 147 84 270 0.2
+- bank: ocbc
+  dimension: geography
+  measure: npl_ratio
+  segment: Singapore
+  market: singapore
+  value: 0.2
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 15
+  quote: Singapore 30 Jun 2026 270 39 147 84 270 0.2
+- bank: ocbc
+  dimension: geography
+  measure: npl
+  segment: Malaysia
+  market: malaysia
+  value: 363.0
+  unit: SGD m
+  share_of_total: 0.1164
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 15
+  quote: Malaysia 30 Jun 2026 369 116 124 129 363 1.2
+- bank: ocbc
+  dimension: geography
+  measure: npl_ratio
+  segment: Malaysia
+  market: malaysia
+  value: 1.2
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 15
+  quote: Malaysia 30 Jun 2026 369 116 124 129 363 1.2
+- bank: ocbc
+  dimension: geography
+  measure: npl
+  segment: Indonesia
+  market: indonesia
+  value: 456.0
+  unit: SGD m
+  share_of_total: 0.1462
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 15
+  quote: Indonesia 30 Jun 2026 457 73 184 200 456 2.5
+- bank: ocbc
+  dimension: geography
+  measure: npl_ratio
+  segment: Indonesia
+  market: indonesia
+  value: 2.5
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 15
+  quote: Indonesia 30 Jun 2026 457 73 184 200 456 2.5
+- bank: ocbc
+  dimension: geography
+  measure: npl
+  segment: Greater China
+  market: greater-china
+  value: 1401.0
+  unit: SGD m
+  share_of_total: 0.4492
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 15
+  quote: Greater China 30 Jun 2026 1,401 130 1,228 43 1,401 2.0
+- bank: ocbc
+  dimension: geography
+  measure: npl_ratio
+  segment: Greater China
+  market: greater-china
+  value: 2.0
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 15
+  quote: Greater China 30 Jun 2026 1,401 130 1,228 43 1,401 2.0
+- bank: ocbc
+  dimension: geography
+  measure: npl
+  segment: Other Asia Pacific
+  market: other-asia-pacific
+  value: 208.0
+  unit: SGD m
+  share_of_total: 0.0667
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 15
+  quote: 'Other Asia Pacific 30 Jun 2026 208 – 208 # 208 0.7'
+- bank: ocbc
+  dimension: geography
+  measure: npl_ratio
+  segment: Other Asia Pacific
+  market: other-asia-pacific
+  value: 0.7
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 15
+  quote: 'Other Asia Pacific 30 Jun 2026 208 – 208 # 208 0.7'
+- bank: ocbc
+  dimension: geography
+  measure: npl
+  segment: Rest of the World
+  market: rest-of-world
+  value: 421.0
+  unit: SGD m
+  share_of_total: 0.135
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 15
+  quote: 'Rest of the World 30 Jun 2026 427 226 201 # 421 0.7'
+- bank: ocbc
+  dimension: geography
+  measure: npl_ratio
+  segment: Rest of the World
+  market: rest-of-world
+  value: 0.7
+  unit: '%'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 15
+  quote: 'Rest of the World 30 Jun 2026 427 226 201 # 421 0.7'
+- bank: ocbc
+  dimension: industry
+  measure: npl
+  segment: Agriculture, mining and quarrying
+  market: agriculture-mining
+  value: 5.0
+  unit: SGD m
+  share_of_total: 0.0016
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Agriculture, mining and quarrying 5 0.1 5 0.1 32 0.5
+- bank: ocbc
+  dimension: industry
+  measure: npl_ratio
+  segment: Agriculture, mining and quarrying
+  market: agriculture-mining
+  value: 0.1
+  unit: '% of gross loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Agriculture, mining and quarrying 5 0.1 5 0.1 32 0.5
+- bank: ocbc
+  dimension: industry
+  measure: npl
+  segment: Manufacturing
+  market: manufacturing
+  value: 342.0
+  unit: SGD m
+  share_of_total: 0.1097
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Manufacturing 342 1.7 308 1.7 328 2.1
+- bank: ocbc
+  dimension: industry
+  measure: npl_ratio
+  segment: Manufacturing
+  market: manufacturing
+  value: 1.7
+  unit: '% of gross loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Manufacturing 342 1.7 308 1.7 328 2.1
+- bank: ocbc
+  dimension: industry
+  measure: npl
+  segment: Building and construction
+  market: building-construction
+  value: 1589.0
+  unit: SGD m
+  share_of_total: 0.5095
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Building and construction 1,589 1.6 1,738 1.8 1,302 1.4
+- bank: ocbc
+  dimension: industry
+  measure: npl_ratio
+  segment: Building and construction
+  market: building-construction
+  value: 1.6
+  unit: '% of gross loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Building and construction 1,589 1.6 1,738 1.8 1,302 1.4
+- bank: ocbc
+  dimension: industry
+  measure: npl
+  segment: Housing loans
+  market: housing
+  value: 326.0
+  unit: SGD m
+  share_of_total: 0.1045
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Housing loans 326 0.4 341 0.5 390 0.6
+- bank: ocbc
+  dimension: industry
+  measure: npl_ratio
+  segment: Housing loans
+  market: housing
+  value: 0.4
+  unit: '% of gross loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Housing loans 326 0.4 341 0.5 390 0.6
+- bank: ocbc
+  dimension: industry
+  measure: npl
+  segment: General commerce
+  market: general-commerce
+  value: 215.0
+  unit: SGD m
+  share_of_total: 0.0689
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: General commerce 215 0.5 231 0.7 318 1.0
+- bank: ocbc
+  dimension: industry
+  measure: npl_ratio
+  segment: General commerce
+  market: general-commerce
+  value: 0.5
+  unit: '% of gross loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: General commerce 215 0.5 231 0.7 318 1.0
+- bank: ocbc
+  dimension: industry
+  measure: npl
+  segment: Transport, storage and communication
+  market: transport-storage-communications
+  value: 69.0
+  unit: SGD m
+  share_of_total: 0.0221
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Transport, storage and communication 69 0.3 74 0.3 88 0.4
+- bank: ocbc
+  dimension: industry
+  measure: npl_ratio
+  segment: Transport, storage and communication
+  market: transport-storage-communications
+  value: 0.3
+  unit: '% of gross loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Transport, storage and communication 69 0.3 74 0.3 88 0.4
+- bank: ocbc
+  dimension: industry
+  measure: npl
+  segment: Financial institutions, investment and holding companies
+  market: financial-institutions
+  value: 284.0
+  unit: SGD m
+  share_of_total: 0.0911
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: holding companies 284 0.9 222 0.8 221 0.8
+- bank: ocbc
+  dimension: industry
+  measure: npl_ratio
+  segment: Financial institutions, investment and holding companies
+  market: financial-institutions
+  value: 0.9
+  unit: '% of gross loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: holding companies 284 0.9 222 0.8 221 0.8
+- bank: ocbc
+  dimension: industry
+  measure: npl
+  segment: Professionals and individuals
+  market: professionals-individuals
+  value: 90.0
+  unit: SGD m
+  share_of_total: 0.0289
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Professionals and individuals 90 0.2 100 0.3 102 0.3
+- bank: ocbc
+  dimension: industry
+  measure: npl_ratio
+  segment: Professionals and individuals
+  market: professionals-individuals
+  value: 0.2
+  unit: '% of gross loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Professionals and individuals 90 0.2 100 0.3 102 0.3
+- bank: ocbc
+  dimension: industry
+  measure: npl
+  segment: Others
+  market: other-industries
+  value: 199.0
+  unit: SGD m
+  share_of_total: 0.0638
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Others 199 0.7 210 0.8 202 0.9
+- bank: ocbc
+  dimension: industry
+  measure: npl_ratio
+  segment: Others
+  market: other-industries
+  value: 0.7
+  unit: '% of gross loans'
+  share_of_total: null
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf
+  source_title: OCBC 1H2026 Media Release and Financial Highlights
+  page: 16
+  quote: Others 199 0.7 210 0.8 202 0.9
+- bank: ocbc
+  dimension: specific
+  measure: gross_customer_loans
+  segment: Hong Kong
+  market: hong-kong
+  value: 34.0
+  unit: SGD b
+  share_of_total: 0.0934
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898996_OCBC_1H2026_Results_Presentation.pdf
+  source_title: OCBC First Half 2026 Results Presentation
+  page: 13
+  quote: 34 Hong Kong
+  note: Greater China loans (S$71b, Jun 26) split on the Loans slide. Offshore = loans booked outside Mainland China with credit risk traced to China; Mainland China = loans booked in Mainland China. Share
+    uses the slide's S$364b group total.
+- bank: ocbc
+  dimension: specific
+  measure: gross_customer_loans
+  segment: Offshore
+  market: mainland-china-offshore
+  value: 20.0
+  unit: SGD b
+  share_of_total: 0.0549
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898996_OCBC_1H2026_Results_Presentation.pdf
+  source_title: OCBC First Half 2026 Results Presentation
+  page: 13
+  quote: 20 Offshore 2/
+  note: Greater China loans (S$71b, Jun 26) split on the Loans slide. Offshore = loans booked outside Mainland China with credit risk traced to China; Mainland China = loans booked in Mainland China. Share
+    uses the slide's S$364b group total.
+- bank: ocbc
+  dimension: specific
+  measure: gross_customer_loans
+  segment: Mainland China
+  market: mainland-china
+  value: 10.0
+  unit: SGD b
+  share_of_total: 0.0275
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898996_OCBC_1H2026_Results_Presentation.pdf
+  source_title: OCBC First Half 2026 Results Presentation
+  page: 13
+  quote: 10 Mainland China 1/
+  note: Greater China loans (S$71b, Jun 26) split on the Loans slide. Offshore = loans booked outside Mainland China with credit risk traced to China; Mainland China = loans booked in Mainland China. Share
+    uses the slide's S$364b group total.
+- bank: ocbc
+  dimension: specific
+  measure: gross_customer_loans
+  segment: Taiwan
+  market: taiwan
+  value: 4.0
+  unit: SGD b
+  share_of_total: 0.011
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898996_OCBC_1H2026_Results_Presentation.pdf
+  source_title: OCBC First Half 2026 Results Presentation
+  page: 13
+  quote: 4 Taiwan
+  note: Greater China loans (S$71b, Jun 26) split on the Loans slide. Offshore = loans booked outside Mainland China with credit risk traced to China; Mainland China = loans booked in Mainland China. Share
+    uses the slide's S$364b group total.
+- bank: ocbc
+  dimension: specific
+  measure: gross_customer_loans
+  segment: Macau
+  market: macau
+  value: 3.0
+  unit: SGD b
+  share_of_total: 0.0082
+  period: '2026-06-30'
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898996_OCBC_1H2026_Results_Presentation.pdf
+  source_title: OCBC First Half 2026 Results Presentation
+  page: 13
+  quote: 3 Macau
+  note: Greater China loans (S$71b, Jun 26) split on the Loans slide. Offshore = loans booked outside Mainland China with credit risk traced to China; Mainland China = loans booked in Mainland China. Share
+    uses the slide's S$364b group total.
+- bank: ocbc
+  dimension: ccyb_country
+  measure: rwa
+  segment: Australia
+  market: australia
+  value: 12234.0
+  unit: SGD m
+  share_of_total: 0.0681
+  period: '2026-06-30'
+  source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/capital-and-regulatory-disclosures/pillar-3/2026/Pillar%203%20Disclosures%20as%20at%2030%20June%202026.pdf
+  source_title: OCBC Pillar 3 Disclosures, 30 June 2026
+  page: 6
+  quote: Australia 1.00% 12,234
+- bank: ocbc
+  dimension: ccyb_country
+  measure: rwa
+  segment: Belgium
+  market: belgium
+  value: 17.0
+  unit: SGD m
+  share_of_total: 0.0001
+  period: '2026-06-30'
+  source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/capital-and-regulatory-disclosures/pillar-3/2026/Pillar%203%20Disclosures%20as%20at%2030%20June%202026.pdf
+  source_title: OCBC Pillar 3 Disclosures, 30 June 2026
+  page: 6
+  quote: Belgium 1.00% 17
+- bank: ocbc
+  dimension: ccyb_country
+  measure: rwa
+  segment: France
+  market: france
+  value: 162.0
+  unit: SGD m
+  share_of_total: 0.0009
+  period: '2026-06-30'
+  source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/capital-and-regulatory-disclosures/pillar-3/2026/Pillar%203%20Disclosures%20as%20at%2030%20June%202026.pdf
+  source_title: OCBC Pillar 3 Disclosures, 30 June 2026
+  page: 6
+  quote: France 1.00% 162
+- bank: ocbc
+  dimension: ccyb_country
+  measure: rwa
+  segment: Germany
+  market: germany
+  value: 1212.0
+  unit: SGD m
+  share_of_total: 0.0067
+  period: '2026-06-30'
+  source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/capital-and-regulatory-disclosures/pillar-3/2026/Pillar%203%20Disclosures%20as%20at%2030%20June%202026.pdf
+  source_title: OCBC Pillar 3 Disclosures, 30 June 2026
+  page: 6
+  quote: Germany 0.75% 1,212
+- bank: ocbc
+  dimension: ccyb_country
+  measure: rwa
+  segment: Hong Kong
+  market: hong-kong
+  value: 22667.0
+  unit: SGD m
+  share_of_total: 0.1262
+  period: '2026-06-30'
+  source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/capital-and-regulatory-disclosures/pillar-3/2026/Pillar%203%20Disclosures%20as%20at%2030%20June%202026.pdf
+  source_title: OCBC Pillar 3 Disclosures, 30 June 2026
+  page: 6
+  quote: Hong Kong 0.50% 22,667
+- bank: ocbc
+  dimension: ccyb_country
+  measure: rwa
+  segment: Korea, Republic Of
+  market: south-korea
+  value: 1475.0
+  unit: SGD m
+  share_of_total: 0.0082
+  period: '2026-06-30'
+  source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/capital-and-regulatory-disclosures/pillar-3/2026/Pillar%203%20Disclosures%20as%20at%2030%20June%202026.pdf
+  source_title: OCBC Pillar 3 Disclosures, 30 June 2026
+  page: 6
+  quote: Korea, Republic Of 1.00% 1,475
+- bank: ocbc
+  dimension: ccyb_country
+  measure: rwa
+  segment: Luxembourg
+  market: luxembourg
+  value: 1354.0
+  unit: SGD m
+  share_of_total: 0.0075
+  period: '2026-06-30'
+  source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/capital-and-regulatory-disclosures/pillar-3/2026/Pillar%203%20Disclosures%20as%20at%2030%20June%202026.pdf
+  source_title: OCBC Pillar 3 Disclosures, 30 June 2026
+  page: 6
+  quote: Luxembourg 0.50% 1,354
+- bank: ocbc
+  dimension: ccyb_country
+  measure: rwa
+  segment: Netherlands
+  market: netherlands
+  value: 1122.0
+  unit: SGD m
+  share_of_total: 0.0062
+  period: '2026-06-30'
+  source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/capital-and-regulatory-disclosures/pillar-3/2026/Pillar%203%20Disclosures%20as%20at%2030%20June%202026.pdf
+  source_title: OCBC Pillar 3 Disclosures, 30 June 2026
+  page: 6
+  quote: Netherlands 2.00% 1,122
+- bank: ocbc
+  dimension: ccyb_country
+  measure: rwa
+  segment: Saudi Arabia
+  market: saudi-arabia
+  value: 42.0
+  unit: SGD m
+  share_of_total: 0.0002
+  period: '2026-06-30'
+  source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/capital-and-regulatory-disclosures/pillar-3/2026/Pillar%203%20Disclosures%20as%20at%2030%20June%202026.pdf
+  source_title: OCBC Pillar 3 Disclosures, 30 June 2026
+  page: 6
+  quote: Saudi Arabia 1.00% 42
+- bank: ocbc
+  dimension: ccyb_country
+  measure: rwa
+  segment: Spain
+  market: spain
+  value: 139.0
+  unit: SGD m
+  share_of_total: 0.0008
+  period: '2026-06-30'
+  source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/capital-and-regulatory-disclosures/pillar-3/2026/Pillar%203%20Disclosures%20as%20at%2030%20June%202026.pdf
+  source_title: OCBC Pillar 3 Disclosures, 30 June 2026
+  page: 6
+  quote: Spain 0.50% 139
+- bank: ocbc
+  dimension: ccyb_country
+  measure: rwa
+  segment: Sweden
+  market: sweden
+  value: 105.0
+  unit: SGD m
+  share_of_total: 0.0006
+  period: '2026-06-30'
+  source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/capital-and-regulatory-disclosures/pillar-3/2026/Pillar%203%20Disclosures%20as%20at%2030%20June%202026.pdf
+  source_title: OCBC Pillar 3 Disclosures, 30 June 2026
+  page: 6
+  quote: Sweden 2.00% 105
+- bank: ocbc
+  dimension: ccyb_country
+  measure: rwa
+  segment: United Kingdom
+  market: united-kingdom
+  value: 15038.0
+  unit: SGD m
+  share_of_total: 0.0837
+  period: '2026-06-30'
+  source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/capital-and-regulatory-disclosures/pillar-3/2026/Pillar%203%20Disclosures%20as%20at%2030%20June%202026.pdf
+  source_title: OCBC Pillar 3 Disclosures, 30 June 2026
+  page: 6
+  quote: United Kingdom 2.00% 15,038
+- bank: ocbc
+  dimension: ccyb_country
+  measure: rwa
+  segment: All Others
+  market: ccyb-others
+  value: 124093.0
+  unit: SGD m
+  share_of_total: 0.6907
+  period: '2026-06-30'
+  source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/capital-and-regulatory-disclosures/pillar-3/2026/Pillar%203%20Disclosures%20as%20at%2030%20June%202026.pdf
+  source_title: OCBC Pillar 3 Disclosures, 30 June 2026
+  page: 6
+  quote: All Others 124,093
+- bank: dbs
+  dimension: specific
+  measure: npl_ratio
+  segment: DBS Bank India (Gross NPAs)
+  market: india
+  value: 1.34
+  unit: '%'
+  share_of_total: null
+  period: '2026-03-31'
+  source_url: https://www.dbs.com/newsroom/DBS_bank_india_delivers_strong_FY26_earnings_with_49_percent_surge_in_net_profit
+  source_title: DBS Bank India delivers strong FY26 earnings with 49% surge in net profit (9 Jul 2026)
+  page: null
+  quote: Advances grew by 15% year-on-year, and asset quality strengthened significantly, with Gross NPAs declining to 1.34% from 2.78%, reflecting prudent risk management.
+  note: Subsidiary-level figure for FY ended 31 March 2026 (Indian GAAP). The release gives no absolute advances amount.

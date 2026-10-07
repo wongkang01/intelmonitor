@@ -1,0 +1,1578 @@
+# Market figures for the FMD (MAS Financial Markets Development) user test.
+# Collected 2026-10-07 by hand from free public sources: SGX monthly market statistics reports (links.sgx.com),
+# HKEX Monthly Market Highlights, MAS publications and media releases, HKMA, and ADB AsianBondsOnline.
+# Numbers are exactly as published (units as in the source table). Nothing is estimated or derived.
+#
+# Schema
+#   series[]: one tracked figure.
+#     id             dotted id, source prefix first (sgx., hkex., mas., mas_ams., hkma., adb.)
+#     name           human label shown on the Data tab
+#     subject        tracked subject id: sgx | hkex | singapore-equities | asset-management | fixed-income-fx
+#     unit           unit as published (SGD m = S$ million, HKD m = HK$ million, etc.)
+#     frequency      monthly | quarterly | yearly
+#     bad_direction  up | down | none: which move is unwelcome for Singapore's markets (peers are none)
+#     source_name    publication the figures come from
+#     observations[] period (YYYY-MM, YYYY-Qn or YYYY), value, source_url, quote
+#                    quote is the verbatim sentence, or for tables the column header line and the row joined by " / ".
+#                    Text in [square brackets] marks a value read from a chart rather than a sentence.
+#   tickers[]: Yahoo Finance tickers the pipeline already fetches or should fetch (not collected here).
+#              SORA comes from the existing MAS source, not Yahoo.
+#   gaps[]: missing months and items that could not be found.
+#
+# Notes
+#   SGX values for a month come from the latest report that shows it, since SGX carries late adjustments forward
+#   (only sgx.ipo_funds_mainboard 2025-09 was revised: 1,030 in the Sep 2025 report, 1,114 later).
+#   SGX IPO funds include RTOs. HKEX newly listed counts include GEM to Main Board transfers.
+#   HKEX "$" is HK dollars.
+series:
+- id: sgx.sdav
+  name: SGX securities daily average value
+  subject: sgx
+  unit: SGD m
+  frequency: monthly
+  bad_direction: down
+  source_name: SGX Monthly Market Statistics Report
+  observations:
+  - period: 2025-03
+    value: 1483
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 FYTD 2026 (2) CYTD 2026 (2) Mar 2025 YoY% / Securities Daily Average Value ($Million) 1,489 2,066 1,649 2,141 2,401 1,686 2,066 1,483 62%
+  - period: 2025-04
+    value: 1933
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 (2) CYTD 2026 (2) Apr 2025 YoY% / Securities Daily Average Value ($Million) 1,489 2,066 2,141 2,401 2,055 1,723 2,063 1,933 6%
+  - period: 2025-06
+    value: 1238
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 (2) CYTD 2026 (2) Jun 2025 YoY% / Securities Daily Average Value ($Million) 2,066 2,191 2,055 2,412 2,126 1,808 2,128 1,238 72%
+  - period: 2025-07
+    value: 1470
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/KS1EDQY9HHQFGQKG/863259_SGX%20Monthly%20Statistics%20Report%20Update_Sep%202025.pdf
+    quote: FY2025 Q4 FY2026 Q1 Jul 2025 Aug 2025 Sep 2025 FYTD 2026 (2) CYTD 2025 (2) Sep 2024 YoY% / Securities Daily Average Value ($Million) 1,508 1,527 1,470 1,601 1,515 1,527 1,459 1,447 5%
+  - period: 2025-08
+    value: 1601
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 (2) CYTD 2026 (2) Aug 2025 YoY% / Securities Daily Average Value ($Million) 2,066 2,191 2,126 2,008 2,163 2,081 2,116 1,601 35%
+  - period: 2025-09
+    value: 1515
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update%20For%20the%20month%20of%20Nov%202025_FA.ashx?App=Announcement&FileID=869429
+    quote: FY2025 Q4 FY2026 Q1 Sep 2025 Oct 2025 Nov 2025 FYTD 2026 (2) CYTD 2025 (2) Nov 2024 YoY% / Securities Daily Average Value ($Million) 1,508 1,527 1,515 1,542 1,777 1,576 1,495 1,436 24%
+  - period: 2025-10
+    value: 1542
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 FYTD 2026 (2) CYTD 2025 (2) Dec 2024 YoY% / Securities Daily Average Value ($Million) 1,527 1,489 1,542 1,777 1,173 1,508 1,467 954 23%
+  - period: 2025-11
+    value: 1777
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 FYTD 2026 (2) CYTD 2025 (2) Dec 2024 YoY% / Securities Daily Average Value ($Million) 1,527 1,489 1,542 1,777 1,173 1,508 1,467 954 23%
+  - period: 2025-12
+    value: 1173
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/ETVGFG9I2WSDGITX/878157_SGX%20Monthly%20Statistics%20Report%20Update_Feb%202026.pdf
+    quote: FY2026 Q1 FY2026 Q2 Dec 2025 Jan 2026 Feb 2026 FYTD 2026 (2) CYTD 2026 (2) Feb 2025 YoY% / Securities Daily Average Value ($Million) 1,527 1,489 1,173 1,649 2,141 1,593 1,876 1,480 45%
+  - period: 2026-01
+    value: 1649
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 FYTD 2026 (2) CYTD 2026 (2) Mar 2025 YoY% / Securities Daily Average Value ($Million) 1,489 2,066 1,649 2,141 2,401 1,686 2,066 1,483 62%
+  - period: 2026-02
+    value: 2141
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 (2) CYTD 2026 (2) Apr 2025 YoY% / Securities Daily Average Value ($Million) 1,489 2,066 2,141 2,401 2,055 1,723 2,063 1,933 6%
+  - period: 2026-03
+    value: 2401
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 (2) CYTD 2026 (2) Apr 2025 YoY% / Securities Daily Average Value ($Million) 1,489 2,066 2,141 2,401 2,055 1,723 2,063 1,933 6%
+  - period: 2026-04
+    value: 2055
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 (2) CYTD 2026 (2) Jun 2025 YoY% / Securities Daily Average Value ($Million) 2,066 2,191 2,055 2,412 2,126 1,808 2,128 1,238 72%
+  - period: 2026-05
+    value: 2412
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 (2) CYTD 2026 (2) Jun 2025 YoY% / Securities Daily Average Value ($Million) 2,066 2,191 2,055 2,412 2,126 1,808 2,128 1,238 72%
+  - period: 2026-06
+    value: 2126
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 (2) CYTD 2026 (2) Aug 2025 YoY% / Securities Daily Average Value ($Million) 2,066 2,191 2,126 2,008 2,163 2,081 2,116 1,601 35%
+  - period: 2026-07
+    value: 2008
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 (2) CYTD 2026 (2) Aug 2025 YoY% / Securities Daily Average Value ($Million) 2,066 2,191 2,126 2,008 2,163 2,081 2,116 1,601 35%
+  - period: 2026-08
+    value: 2163
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 (2) CYTD 2026 (2) Aug 2025 YoY% / Securities Daily Average Value ($Million) 2,066 2,191 2,126 2,008 2,163 2,081 2,116 1,601 35%
+- id: sgx.securities_turnover
+  name: SGX securities market turnover value (month)
+  subject: sgx
+  unit: SGD m
+  frequency: monthly
+  bad_direction: down
+  source_name: SGX Monthly Market Statistics Report
+  observations:
+  - period: 2025-03
+    value: 29654
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 FYTD 2026 (2) CYTD 2026 (2) Mar 2025 YoY% / Total Market Turnover Value ($Million) 95,284 125,998 34,630 38,547 52,822 322,041 125,998 29,654 78%
+  - period: 2025-04
+    value: 40592
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 (2) CYTD 2026 (2) Apr 2025 YoY% / Total Market Turnover Value ($Million) 95,284 125,998 38,547 52,822 43,160 365,201 169,158 40,592 6%
+  - period: 2025-06
+    value: 26006
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 (2) CYTD 2026 (2) Jun 2025 YoY% / Total Market Turnover Value ($Million) 125,998 133,636 43,160 45,837 44,639 455,677 259,634 26,006 72%
+  - period: 2025-07
+    value: 33812
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/KS1EDQY9HHQFGQKG/863259_SGX%20Monthly%20Statistics%20Report%20Update_Sep%202025.pdf
+    quote: FY2025 Q4 FY2026 Q1 Jul 2025 Aug 2025 Sep 2025 FYTD 2026 (2) CYTD 2025 (2) Sep 2024 YoY% / Total Market Turnover Value ($Million) 93,491 100,759 33,812 33,613 33,334 100,759 274,343 30,379 10%
+  - period: 2025-08
+    value: 33613
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 (2) CYTD 2026 (2) Aug 2025 YoY% / Total Market Turnover Value ($Million) 125,998 133,636 44,639 46,195 43,270 89,465 349,099 33,613 29%
+  - period: 2025-09
+    value: 33334
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update%20For%20the%20month%20of%20Nov%202025_FA.ashx?App=Announcement&FileID=869429
+    quote: FY2025 Q4 FY2026 Q1 Sep 2025 Oct 2025 Nov 2025 FYTD 2026 (2) CYTD 2025 (2) Nov 2024 YoY% / Total Market Turnover Value ($Million) 93,491 100,759 33,334 33,932 35,545 170,235 343,820 30,163 18%
+  - period: 2025-10
+    value: 33932
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 FYTD 2026 (2) CYTD 2025 (2) Dec 2024 YoY% / Total Market Turnover Value ($Million) 100,759 95,284 33,932 35,545 25,808 196,043 369,627 20,038 29%
+  - period: 2025-11
+    value: 35545
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 FYTD 2026 (2) CYTD 2025 (2) Dec 2024 YoY% / Total Market Turnover Value ($Million) 100,759 95,284 33,932 35,545 25,808 196,043 369,627 20,038 29%
+  - period: 2025-12
+    value: 25808
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/ETVGFG9I2WSDGITX/878157_SGX%20Monthly%20Statistics%20Report%20Update_Feb%202026.pdf
+    quote: FY2026 Q1 FY2026 Q2 Dec 2025 Jan 2026 Feb 2026 FYTD 2026 (2) CYTD 2026 (2) Feb 2025 YoY% / Total Market Turnover Value ($Million) 100,759 95,284 25,808 34,630 38,547 269,219 73,176 29,604 30%
+  - period: 2026-01
+    value: 34630
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 FYTD 2026 (2) CYTD 2026 (2) Mar 2025 YoY% / Total Market Turnover Value ($Million) 95,284 125,998 34,630 38,547 52,822 322,041 125,998 29,654 78%
+  - period: 2026-02
+    value: 38547
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 (2) CYTD 2026 (2) Apr 2025 YoY% / Total Market Turnover Value ($Million) 95,284 125,998 38,547 52,822 43,160 365,201 169,158 40,592 6%
+  - period: 2026-03
+    value: 52822
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 (2) CYTD 2026 (2) Apr 2025 YoY% / Total Market Turnover Value ($Million) 95,284 125,998 38,547 52,822 43,160 365,201 169,158 40,592 6%
+  - period: 2026-04
+    value: 43160
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 (2) CYTD 2026 (2) Jun 2025 YoY% / Total Market Turnover Value ($Million) 125,998 133,636 43,160 45,837 44,639 455,677 259,634 26,006 72%
+  - period: 2026-05
+    value: 45837
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 (2) CYTD 2026 (2) Jun 2025 YoY% / Total Market Turnover Value ($Million) 125,998 133,636 43,160 45,837 44,639 455,677 259,634 26,006 72%
+  - period: 2026-06
+    value: 44639
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 (2) CYTD 2026 (2) Aug 2025 YoY% / Total Market Turnover Value ($Million) 125,998 133,636 44,639 46,195 43,270 89,465 349,099 33,613 29%
+  - period: 2026-07
+    value: 46195
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 (2) CYTD 2026 (2) Aug 2025 YoY% / Total Market Turnover Value ($Million) 125,998 133,636 44,639 46,195 43,270 89,465 349,099 33,613 29%
+  - period: 2026-08
+    value: 43270
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 (2) CYTD 2026 (2) Aug 2025 YoY% / Total Market Turnover Value ($Million) 125,998 133,636 44,639 46,195 43,270 89,465 349,099 33,613 29%
+- id: sgx.derivatives_dav
+  name: SGX derivatives average daily trading volume
+  subject: sgx
+  unit: contracts
+  frequency: monthly
+  bad_direction: down
+  source_name: SGX Monthly Market Statistics Report
+  observations:
+  - period: 2025-03
+    value: 1333098
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 FYTD 2026 CYTD 2026 Mar 2025 YoY% / Average Daily Trading Volume 1,359,795 1,672,043 1,582,582 1,655,304 1,804,456 1,450,009 1,672,043 1,333,098 35%
+  - period: 2025-04
+    value: 1472954
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 CYTD 2026 Apr 2025 YoY% / Average Daily Trading Volume 1,359,795 1,672,043 1,655,304 1,804,456 1,479,546 1,451,859 1,620,153 1,472,954 0%
+  - period: 2025-06
+    value: 1270536
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 CYTD 2026 Jun 2025 YoY% / Average Daily Trading Volume 1,672,043 1,566,512 1,479,546 1,607,949 1,619,444 1,478,988 1,618,396 1,270,536 27%
+  - period: 2025-07
+    value: 1281130
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/KS1EDQY9HHQFGQKG/863259_SGX%20Monthly%20Statistics%20Report%20Update_Sep%202025.pdf
+    quote: FY2025 Q4 FY2026 Q1 Jul 2025 Aug 2025 Sep 2025 FYTD 2026 CYTD 2025 Sep 2024 YoY% / Average Daily Trading Volume 1,341,647 1,334,914 1,281,130 1,325,870 1,402,108 1,334,914 1,327,685 1,451,034 -3%
+  - period: 2025-08
+    value: 1325870
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / Average Daily Trading Volume 1,672,043 1,566,512 1,619,444 1,488,259 1,305,314 1,400,882 1,560,329 1,325,870 -2%
+  - period: 2025-09
+    value: 1402108
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update%20For%20the%20month%20of%20Nov%202025_FA.ashx?App=Announcement&FileID=869429
+    quote: FY2025 Q4 FY2026 Q1 Sep 2025 Oct 2025 Nov 2025 FYTD 2026 CYTD 2025 Nov 2024 YoY% / Average Daily Trading Volume 1,341,647 1,334,914 1,402,108 1,516,900 1,310,947 1,361,914 1,342,525 1,271,078 3%
+  - period: 2025-10
+    value: 1516900
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 FYTD 2026 CYTD 2025 Dec 2024 YoY% / Average Daily Trading Volume 1,334,914 1,359,795 1,516,900 1,310,947 1,279,017 1,347,455 1,337,038 1,092,542 17%
+  - period: 2025-11
+    value: 1310947
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 FYTD 2026 CYTD 2025 Dec 2024 YoY% / Average Daily Trading Volume 1,334,914 1,359,795 1,516,900 1,310,947 1,279,017 1,347,455 1,337,038 1,092,542 17%
+  - period: 2025-12
+    value: 1279017
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/ETVGFG9I2WSDGITX/878157_SGX%20Monthly%20Statistics%20Report%20Update_Feb%202026.pdf
+    quote: FY2026 Q1 FY2026 Q2 Dec 2025 Jan 2026 Feb 2026 FYTD 2026 CYTD 2026 Feb 2025 YoY% / Average Daily Trading Volume 1,334,914 1,359,795 1,279,017 1,582,582 1,655,304 1,405,199 1,607,428 1,359,761 22%
+  - period: 2026-01
+    value: 1582582
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 FYTD 2026 CYTD 2026 Mar 2025 YoY% / Average Daily Trading Volume 1,359,795 1,672,043 1,582,582 1,655,304 1,804,456 1,450,009 1,672,043 1,333,098 35%
+  - period: 2026-02
+    value: 1655304
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 CYTD 2026 Apr 2025 YoY% / Average Daily Trading Volume 1,359,795 1,672,043 1,655,304 1,804,456 1,479,546 1,451,859 1,620,153 1,472,954 0%
+  - period: 2026-03
+    value: 1804456
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 CYTD 2026 Apr 2025 YoY% / Average Daily Trading Volume 1,359,795 1,672,043 1,655,304 1,804,456 1,479,546 1,451,859 1,620,153 1,472,954 0%
+  - period: 2026-04
+    value: 1479546
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 CYTD 2026 Jun 2025 YoY% / Average Daily Trading Volume 1,672,043 1,566,512 1,479,546 1,607,949 1,619,444 1,478,988 1,618,396 1,270,536 27%
+  - period: 2026-05
+    value: 1607949
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 CYTD 2026 Jun 2025 YoY% / Average Daily Trading Volume 1,672,043 1,566,512 1,479,546 1,607,949 1,619,444 1,478,988 1,618,396 1,270,536 27%
+  - period: 2026-06
+    value: 1619444
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / Average Daily Trading Volume 1,672,043 1,566,512 1,619,444 1,488,259 1,305,314 1,400,882 1,560,329 1,325,870 -2%
+  - period: 2026-07
+    value: 1488259
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / Average Daily Trading Volume 1,672,043 1,566,512 1,619,444 1,488,259 1,305,314 1,400,882 1,560,329 1,325,870 -2%
+  - period: 2026-08
+    value: 1305314
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / Average Daily Trading Volume 1,672,043 1,566,512 1,619,444 1,488,259 1,305,314 1,400,882 1,560,329 1,325,870 -2%
+- id: sgx.ipos_mainboard
+  name: SGX Mainboard IPOs (month)
+  subject: sgx
+  unit: count
+  frequency: monthly
+  bad_direction: down
+  source_name: SGX Monthly Market Statistics Report
+  observations:
+  - period: 2025-03
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 Mar 2025 / - IPOs 4 2 1 0 1 0
+  - period: 2025-04
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / - IPOs 4 2 0 1 0 1
+  - period: 2025-06
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / - IPOs 2 1 0 1 0 0
+  - period: 2025-07
+    value: 3
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/KS1EDQY9HHQFGQKG/863259_SGX%20Monthly%20Statistics%20Report%20Update_Sep%202025.pdf
+    quote: FY2025 Q4 FY2026 Q1 Jul 2025 Aug 2025 Sep 2025 Sep 2024 / - IPOs 0 5 3 0 2 0
+  - period: 2025-08
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - IPOs 2 1 0 3 1 0
+  - period: 2025-09
+    value: 2
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update%20For%20the%20month%20of%20Nov%202025_FA.ashx?App=Announcement&FileID=869429
+    quote: FY2025 Q4 FY2026 Q1 Sep 2025 Oct 2025 Nov 2025 Nov 2024 / - IPOs 0 5 2 1 2 1
+  - period: 2025-10
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 Dec 2024 / - IPOs 5 4 1 2 1 0
+  - period: 2025-11
+    value: 2
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 Dec 2024 / - IPOs 5 4 1 2 1 0
+  - period: 2025-12
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/ETVGFG9I2WSDGITX/878157_SGX%20Monthly%20Statistics%20Report%20Update_Feb%202026.pdf
+    quote: FY2026 Q1 FY2026 Q2 Dec 2025 Jan 2026 Feb 2026 Feb 2025 / - IPOs 5 4 1 1 0 1
+  - period: 2026-01
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 Mar 2025 / - IPOs 4 2 1 0 1 0
+  - period: 2026-02
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / - IPOs 4 2 0 1 0 1
+  - period: 2026-03
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / - IPOs 4 2 0 1 0 1
+  - period: 2026-04
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / - IPOs 2 1 0 1 0 0
+  - period: 2026-05
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / - IPOs 2 1 0 1 0 0
+  - period: 2026-06
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - IPOs 2 1 0 3 1 0
+  - period: 2026-07
+    value: 3
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - IPOs 2 1 0 3 1 0
+  - period: 2026-08
+    value: 1
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - IPOs 2 1 0 3 1 0
+- id: sgx.ipos_catalist
+  name: SGX Catalist IPOs (month)
+  subject: sgx
+  unit: count
+  frequency: monthly
+  bad_direction: down
+  source_name: SGX Monthly Market Statistics Report
+  observations:
+  - period: 2025-03
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 Mar 2025 / - IPOs 2 2 2 0 0 0
+  - period: 2025-04
+    value: 2
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / - IPOs 2 2 0 0 1 2
+  - period: 2025-06
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / - IPOs 2 1 1 0 0 0
+  - period: 2025-07
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/KS1EDQY9HHQFGQKG/863259_SGX%20Monthly%20Statistics%20Report%20Update_Sep%202025.pdf
+    quote: FY2025 Q4 FY2026 Q1 Jul 2025 Aug 2025 Sep 2025 Sep 2024 / - IPOs 1 3 1 1 1 0
+  - period: 2025-08
+    value: 1
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - IPOs 2 1 0 0 0 1
+  - period: 2025-09
+    value: 1
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update%20For%20the%20month%20of%20Nov%202025_FA.ashx?App=Announcement&FileID=869429
+    quote: FY2025 Q4 FY2026 Q1 Sep 2025 Oct 2025 Nov 2025 Nov 2024 / - IPOs 1 3 1 0 0 2
+  - period: 2025-10
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 Dec 2024 / - IPOs 3 2 0 0 2 0
+  - period: 2025-11
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 Dec 2024 / - IPOs 3 2 0 0 2 0
+  - period: 2025-12
+    value: 2
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/ETVGFG9I2WSDGITX/878157_SGX%20Monthly%20Statistics%20Report%20Update_Feb%202026.pdf
+    quote: FY2026 Q1 FY2026 Q2 Dec 2025 Jan 2026 Feb 2026 Feb 2025 / - IPOs 3 2 2 2 0 0
+  - period: 2026-01
+    value: 2
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 Mar 2025 / - IPOs 2 2 2 0 0 0
+  - period: 2026-02
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / - IPOs 2 2 0 0 1 2
+  - period: 2026-03
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / - IPOs 2 2 0 0 1 2
+  - period: 2026-04
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / - IPOs 2 1 1 0 0 0
+  - period: 2026-05
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / - IPOs 2 1 1 0 0 0
+  - period: 2026-06
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - IPOs 2 1 0 0 0 1
+  - period: 2026-07
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - IPOs 2 1 0 0 0 1
+  - period: 2026-08
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - IPOs 2 1 0 0 0 1
+- id: sgx.ipo_funds_mainboard
+  name: SGX Mainboard funds raised through IPOs and RTOs (month)
+  subject: sgx
+  unit: SGD m
+  frequency: monthly
+  bad_direction: down
+  source_name: SGX Monthly Market Statistics Report
+  observations:
+  - period: 2025-03
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 FYTD 2026 CYTD 2026 Mar 2025 YoY% / SGX Mainboard 676 974 0 0 974 3,877 974 0 N.A.
+  - period: 2025-04
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 CYTD 2026 Apr 2025 YoY% / SGX Mainboard 676 974 0 974 0 3,877 974 0 N.A.
+  - period: 2025-06
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 CYTD 2026 Jun 2025 YoY% / SGX Mainboard 974 100 0 100 0 3,977 1,074 0 N.A.
+  - period: 2025-07
+    value: 1113
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/KS1EDQY9HHQFGQKG/863259_SGX%20Monthly%20Statistics%20Report%20Update_Sep%202025.pdf
+    quote: FY2025 Q4 FY2026 Q1 Jul 2025 Aug 2025 Sep 2025 FYTD 2026 CYTD 2025 Sep 2024 YoY% / SGX Mainboard 0 2,143 1,113 0 1,030 2,143 2,143 0 N.A.
+  - period: 2025-08
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / SGX Mainboard 974 100 0 272 20 293 1,366 0 N.A.
+  - period: 2025-09
+    value: 1114
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update%20For%20the%20month%20of%20Nov%202025_FA.ashx?App=Announcement&FileID=869429
+    quote: FY2025 Q4 FY2026 Q1 Sep 2025 Oct 2025 Nov 2025 FYTD 2026 CYTD 2025 Nov 2024 YoY% / SGX Mainboard 0 2,227 1,114 48 106 2,382 2,382 0 N.A.
+  - period: 2025-10
+    value: 48
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 FYTD 2026 CYTD 2025 Dec 2024 YoY% / SGX Mainboard 2,227 676 48 106 522 2,904 2,904 0 N.A.
+  - period: 2025-11
+    value: 106
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 FYTD 2026 CYTD 2025 Dec 2024 YoY% / SGX Mainboard 2,227 676 48 106 522 2,904 2,904 0 N.A.
+  - period: 2025-12
+    value: 522
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/ETVGFG9I2WSDGITX/878157_SGX%20Monthly%20Statistics%20Report%20Update_Feb%202026.pdf
+    quote: FY2026 Q1 FY2026 Q2 Dec 2025 Jan 2026 Feb 2026 FYTD 2026 CYTD 2026 Feb 2025 YoY% / SGX Mainboard 2,227 676 522 0 0 2,904 0 0 N.A.
+  - period: 2026-01
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 FYTD 2026 CYTD 2026 Mar 2025 YoY% / SGX Mainboard 676 974 0 0 974 3,877 974 0 N.A.
+  - period: 2026-02
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 CYTD 2026 Apr 2025 YoY% / SGX Mainboard 676 974 0 974 0 3,877 974 0 N.A.
+  - period: 2026-03
+    value: 974
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 CYTD 2026 Apr 2025 YoY% / SGX Mainboard 676 974 0 974 0 3,877 974 0 N.A.
+  - period: 2026-04
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 CYTD 2026 Jun 2025 YoY% / SGX Mainboard 974 100 0 100 0 3,977 1,074 0 N.A.
+  - period: 2026-05
+    value: 100
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 CYTD 2026 Jun 2025 YoY% / SGX Mainboard 974 100 0 100 0 3,977 1,074 0 N.A.
+  - period: 2026-06
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / SGX Mainboard 974 100 0 272 20 293 1,366 0 N.A.
+  - period: 2026-07
+    value: 272
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / SGX Mainboard 974 100 0 272 20 293 1,366 0 N.A.
+  - period: 2026-08
+    value: 20
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / SGX Mainboard 974 100 0 272 20 293 1,366 0 N.A.
+- id: sgx.ipo_funds_catalist
+  name: SGX Catalist funds raised through IPOs and RTOs (month)
+  subject: sgx
+  unit: SGD m
+  frequency: monthly
+  bad_direction: down
+  source_name: SGX Monthly Market Statistics Report
+  observations:
+  - period: 2025-03
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 FYTD 2026 CYTD 2026 Mar 2025 YoY% / SGX Catalist 18 35 35 0 0 78 35 0 N.A.
+  - period: 2025-04
+    value: 6
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 CYTD 2026 Apr 2025 YoY% / SGX Catalist 18 35 0 0 10 88 45 6 69%
+  - period: 2025-06
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 CYTD 2026 Jun 2025 YoY% / SGX Catalist 35 10 10 0 0 88 45 0 N.A.
+  - period: 2025-07
+    value: 12
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/KS1EDQY9HHQFGQKG/863259_SGX%20Monthly%20Statistics%20Report%20Update_Sep%202025.pdf
+    quote: FY2025 Q4 FY2026 Q1 Jul 2025 Aug 2025 Sep 2025 FYTD 2026 CYTD 2025 Sep 2024 YoY% / SGX Catalist 6 25 12 7 6 25 31 0 N.A.
+  - period: 2025-08
+    value: 7
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / SGX Catalist 35 10 0 0 0 0 45 7 -100%
+  - period: 2025-09
+    value: 6
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update%20For%20the%20month%20of%20Nov%202025_FA.ashx?App=Announcement&FileID=869429
+    quote: FY2025 Q4 FY2026 Q1 Sep 2025 Oct 2025 Nov 2025 FYTD 2026 CYTD 2025 Nov 2024 YoY% / SGX Catalist 6 25 6 0 0 25 31 17 -100%
+  - period: 2025-10
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 FYTD 2026 CYTD 2025 Dec 2024 YoY% / SGX Catalist 25 18 0 0 18 43 49 0 N.A.
+  - period: 2025-11
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 FYTD 2026 CYTD 2025 Dec 2024 YoY% / SGX Catalist 25 18 0 0 18 43 49 0 N.A.
+  - period: 2025-12
+    value: 18
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/ETVGFG9I2WSDGITX/878157_SGX%20Monthly%20Statistics%20Report%20Update_Feb%202026.pdf
+    quote: FY2026 Q1 FY2026 Q2 Dec 2025 Jan 2026 Feb 2026 FYTD 2026 CYTD 2026 Feb 2025 YoY% / SGX Catalist 25 18 18 35 0 78 35 0 N.A.
+  - period: 2026-01
+    value: 35
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 FYTD 2026 CYTD 2026 Mar 2025 YoY% / SGX Catalist 18 35 35 0 0 78 35 0 N.A.
+  - period: 2026-02
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 CYTD 2026 Apr 2025 YoY% / SGX Catalist 18 35 0 0 10 88 45 6 69%
+  - period: 2026-03
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 CYTD 2026 Apr 2025 YoY% / SGX Catalist 18 35 0 0 10 88 45 6 69%
+  - period: 2026-04
+    value: 10
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 CYTD 2026 Jun 2025 YoY% / SGX Catalist 35 10 10 0 0 88 45 0 N.A.
+  - period: 2026-05
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 CYTD 2026 Jun 2025 YoY% / SGX Catalist 35 10 10 0 0 88 45 0 N.A.
+  - period: 2026-06
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / SGX Catalist 35 10 0 0 0 0 45 7 -100%
+  - period: 2026-07
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / SGX Catalist 35 10 0 0 0 0 45 7 -100%
+  - period: 2026-08
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / SGX Catalist 35 10 0 0 0 0 45 7 -100%
+- id: sgx.delistings_mainboard
+  name: SGX Mainboard delistings (month)
+  subject: sgx
+  unit: count
+  frequency: monthly
+  bad_direction: up
+  source_name: SGX Monthly Market Statistics Report
+  observations:
+  - period: 2025-03
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 Mar 2025 / - Delistings 3 4 1 1 2 0
+  - period: 2025-04
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / - Delistings 3 4 1 2 4 0
+  - period: 2025-06
+    value: 3
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / - Delistings 4 4 4 0 0 3
+  - period: 2025-07
+    value: 2
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/KS1EDQY9HHQFGQKG/863259_SGX%20Monthly%20Statistics%20Report%20Update_Sep%202025.pdf
+    quote: FY2025 Q4 FY2026 Q1 Jul 2025 Aug 2025 Sep 2025 Sep 2024 / - Delistings 4 7 2 1 4 2
+  - period: 2025-08
+    value: 1
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - Delistings 4 4 0 0 1 1
+  - period: 2025-09
+    value: 4
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update%20For%20the%20month%20of%20Nov%202025_FA.ashx?App=Announcement&FileID=869429
+    quote: FY2025 Q4 FY2026 Q1 Sep 2025 Oct 2025 Nov 2025 Nov 2024 / - Delistings 4 7 4 2 1 2
+  - period: 2025-10
+    value: 2
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 Dec 2024 / - Delistings 7 3 2 1 0 1
+  - period: 2025-11
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 Dec 2024 / - Delistings 7 3 2 1 0 1
+  - period: 2025-12
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/ETVGFG9I2WSDGITX/878157_SGX%20Monthly%20Statistics%20Report%20Update_Feb%202026.pdf
+    quote: FY2026 Q1 FY2026 Q2 Dec 2025 Jan 2026 Feb 2026 Feb 2025 / - Delistings 7 3 0 1 1 2
+  - period: 2026-01
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 Mar 2025 / - Delistings 3 4 1 1 2 0
+  - period: 2026-02
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / - Delistings 3 4 1 2 4 0
+  - period: 2026-03
+    value: 2
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / - Delistings 3 4 1 2 4 0
+  - period: 2026-04
+    value: 4
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / - Delistings 4 4 4 0 0 3
+  - period: 2026-05
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / - Delistings 4 4 4 0 0 3
+  - period: 2026-06
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - Delistings 4 4 0 0 1 1
+  - period: 2026-07
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - Delistings 4 4 0 0 1 1
+  - period: 2026-08
+    value: 1
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - Delistings 4 4 0 0 1 1
+- id: sgx.delistings_catalist
+  name: SGX Catalist delistings (month)
+  subject: sgx
+  unit: count
+  frequency: monthly
+  bad_direction: up
+  source_name: SGX Monthly Market Statistics Report
+  observations:
+  - period: 2025-03
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 Mar 2025 / - Delistings 2 2 1 0 1 1
+  - period: 2025-04
+    value: 2
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / - Delistings 2 2 0 1 1 2
+  - period: 2025-06
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / - Delistings 2 1 1 0 0 1
+  - period: 2025-07
+    value: 3
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/KS1EDQY9HHQFGQKG/863259_SGX%20Monthly%20Statistics%20Report%20Update_Sep%202025.pdf
+    quote: FY2025 Q4 FY2026 Q1 Jul 2025 Aug 2025 Sep 2025 Sep 2024 / - Delistings 2 3 3 0 0 0
+  - period: 2025-08
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - Delistings 2 1 0 0 0 0
+  - period: 2025-09
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update%20For%20the%20month%20of%20Nov%202025_FA.ashx?App=Announcement&FileID=869429
+    quote: FY2025 Q4 FY2026 Q1 Sep 2025 Oct 2025 Nov 2025 Nov 2024 / - Delistings 2 3 0 0 0 0
+  - period: 2025-10
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 Dec 2024 / - Delistings 3 2 0 0 2 0
+  - period: 2025-11
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 Dec 2024 / - Delistings 3 2 0 0 2 0
+  - period: 2025-12
+    value: 2
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/ETVGFG9I2WSDGITX/878157_SGX%20Monthly%20Statistics%20Report%20Update_Feb%202026.pdf
+    quote: FY2026 Q1 FY2026 Q2 Dec 2025 Jan 2026 Feb 2026 Feb 2025 / - Delistings 3 2 2 1 0 0
+  - period: 2026-01
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 Mar 2025 / - Delistings 2 2 1 0 1 1
+  - period: 2026-02
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / - Delistings 2 2 0 1 1 2
+  - period: 2026-03
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / - Delistings 2 2 0 1 1 2
+  - period: 2026-04
+    value: 1
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / - Delistings 2 1 1 0 0 1
+  - period: 2026-05
+    value: 0
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / - Delistings 2 1 1 0 0 1
+  - period: 2026-06
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - Delistings 2 1 0 0 0 0
+  - period: 2026-07
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - Delistings 2 1 0 0 0 0
+  - period: 2026-08
+    value: 0
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / - Delistings 2 1 0 0 0 0
+- id: sgx.listed_securities
+  name: SGX total number of listed securities (month-end, excl. GDRs, hedge funds, debt)
+  subject: sgx
+  unit: count
+  frequency: monthly
+  bad_direction: down
+  source_name: SGX Monthly Market Statistics Report
+  observations:
+  - period: 2025-03
+    value: 613
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 Mar 2025 / Total Number of Listed Securities (10) 606 604 607 606 604 613
+  - period: 2025-04
+    value: 615
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / Total Number of Listed Securities (10) 606 604 606 604 600 615
+  - period: 2025-06
+    value: 608
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / Total Number of Listed Securities (7) 604 601 600 601 601 608
+  - period: 2025-07
+    value: 607
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/KS1EDQY9HHQFGQKG/863259_SGX%20Monthly%20Statistics%20Report%20Update_Sep%202025.pdf
+    quote: FY2025 Q4 FY2026 Q1 Jul 2025 Aug 2025 Sep 2025 Sep 2024 / Total Number of Listed Securities (10) 608 606 607 607 606 620
+  - period: 2025-08
+    value: 607
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / Total Number of Listed Securities (7) 604 601 601 604 604 607
+  - period: 2025-09
+    value: 606
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update%20For%20the%20month%20of%20Nov%202025_FA.ashx?App=Announcement&FileID=869429
+    quote: FY2025 Q4 FY2026 Q1 Sep 2025 Oct 2025 Nov 2025 Nov 2024 / Total Number of Listed Securities (10) 608 606 606 605 606 618
+  - period: 2025-10
+    value: 605
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 Dec 2024 / Total Number of Listed Securities (10) 606 606 605 606 606 617
+  - period: 2025-11
+    value: 606
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 Dec 2024 / Total Number of Listed Securities (10) 606 606 605 606 606 617
+  - period: 2025-12
+    value: 606
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/ETVGFG9I2WSDGITX/878157_SGX%20Monthly%20Statistics%20Report%20Update_Feb%202026.pdf
+    quote: FY2026 Q1 FY2026 Q2 Dec 2025 Jan 2026 Feb 2026 Feb 2025 / Total Number of Listed Securities (10) 606 606 606 607 606 615
+  - period: 2026-01
+    value: 607
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 Mar 2025 / Total Number of Listed Securities (10) 606 604 607 606 604 613
+  - period: 2026-02
+    value: 606
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / Total Number of Listed Securities (10) 606 604 606 604 600 615
+  - period: 2026-03
+    value: 604
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 / Total Number of Listed Securities (10) 606 604 606 604 600 615
+  - period: 2026-04
+    value: 600
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / Total Number of Listed Securities (7) 604 601 600 601 601 608
+  - period: 2026-05
+    value: 601
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 / Total Number of Listed Securities (7) 604 601 600 601 601 608
+  - period: 2026-06
+    value: 601
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / Total Number of Listed Securities (7) 604 601 601 604 604 607
+  - period: 2026-07
+    value: 604
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / Total Number of Listed Securities (7) 604 601 601 604 604 607
+  - period: 2026-08
+    value: 604
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 / Total Number of Listed Securities (7) 604 601 601 604 604 607
+- id: sgx.market_cap
+  name: SGX total market capitalisation of listed securities (month-end)
+  subject: sgx
+  unit: SGD m
+  frequency: monthly
+  bad_direction: down
+  source_name: SGX Monthly Market Statistics Report
+  observations:
+  - period: 2025-03
+    value: 890496
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 Mar 2025 YoY% / Total Market Capitalisation (11) 1,059,272 1,095,707 1,101,283 1,124,434 1,095,707 890,496 23%
+  - period: 2025-04
+    value: 873104
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 YoY% / Total Market Capitalisation (11) 1,059,272 1,095,707 1,124,434 1,095,707 1,120,293 873,104 28%
+  - period: 2025-06
+    value: 889665
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 YoY% / Total Market Capitalisation (8) 1,095,707 1,129,411 1,120,293 1,123,460 1,129,411 889,665 27%
+  - period: 2025-07
+    value: 946159
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/KS1EDQY9HHQFGQKG/863259_SGX%20Monthly%20Statistics%20Report%20Update_Sep%202025.pdf
+    quote: FY2025 Q4 FY2026 Q1 Jul 2025 Aug 2025 Sep 2025 Sep 2024 YoY% / Total Market Capitalisation (11) 891,201 995,101 946,159 967,655 995,101 853,084 17%
+  - period: 2025-08
+    value: 967655
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 YoY% / Total Market Capitalisation (8) 1,095,707 1,129,411 1,129,411 1,201,325 1,210,986 967,655 25%
+  - period: 2025-09
+    value: 995101
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update%20For%20the%20month%20of%20Nov%202025_FA.ashx?App=Announcement&FileID=869429
+    quote: FY2025 Q4 FY2026 Q1 Sep 2025 Oct 2025 Nov 2025 Nov 2024 YoY% / Total Market Capitalisation (11) 891,201 995,101 995,101 1,021,695 1,034,736 859,042 20%
+  - period: 2025-10
+    value: 1021695
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 Dec 2024 YoY% / Total Market Capitalisation (11) 995,101 1,059,272 1,021,695 1,034,736 1,059,272 865,902 22%
+  - period: 2025-11
+    value: 1034736
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 Dec 2024 YoY% / Total Market Capitalisation (11) 995,101 1,059,272 1,021,695 1,034,736 1,059,272 865,902 22%
+  - period: 2025-12
+    value: 1059272
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/ETVGFG9I2WSDGITX/878157_SGX%20Monthly%20Statistics%20Report%20Update_Feb%202026.pdf
+    quote: FY2026 Q1 FY2026 Q2 Dec 2025 Jan 2026 Feb 2026 Feb 2025 YoY% / Total Market Capitalisation (11) 995,101 1,059,272 1,059,272 1,101,283 1,124,434 876,992 28%
+  - period: 2026-01
+    value: 1101283
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 Mar 2025 YoY% / Total Market Capitalisation (11) 1,059,272 1,095,707 1,101,283 1,124,434 1,095,707 890,496 23%
+  - period: 2026-02
+    value: 1124434
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 YoY% / Total Market Capitalisation (11) 1,059,272 1,095,707 1,124,434 1,095,707 1,120,293 873,104 28%
+  - period: 2026-03
+    value: 1095707
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 Apr 2025 YoY% / Total Market Capitalisation (11) 1,059,272 1,095,707 1,124,434 1,095,707 1,120,293 873,104 28%
+  - period: 2026-04
+    value: 1120293
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 YoY% / Total Market Capitalisation (8) 1,095,707 1,129,411 1,120,293 1,123,460 1,129,411 889,665 27%
+  - period: 2026-05
+    value: 1123460
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 Jun 2025 YoY% / Total Market Capitalisation (8) 1,095,707 1,129,411 1,120,293 1,123,460 1,129,411 889,665 27%
+  - period: 2026-06
+    value: 1129411
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 YoY% / Total Market Capitalisation (8) 1,095,707 1,129,411 1,129,411 1,201,325 1,210,986 967,655 25%
+  - period: 2026-07
+    value: 1201325
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 YoY% / Total Market Capitalisation (8) 1,095,707 1,129,411 1,129,411 1,201,325 1,210,986 967,655 25%
+  - period: 2026-08
+    value: 1210986
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 Aug 2025 YoY% / Total Market Capitalisation (8) 1,095,707 1,129,411 1,129,411 1,201,325 1,210,986 967,655 25%
+- id: sgx.new_bond_listings_funds
+  name: SGX new bond listings, funds raised (month)
+  subject: sgx
+  unit: SGD m
+  frequency: monthly
+  bad_direction: down
+  source_name: SGX Monthly Market Statistics Report
+  observations:
+  - period: 2025-03
+    value: 34491
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 FYTD 2026 CYTD 2026 Mar 2025 YoY% / Fund Raised ($ million) 103,912 94,501 30,554 14,617 49,330 367,287 94,501 34,491 43%
+  - period: 2025-04
+    value: 21608
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 CYTD 2026 Apr 2025 YoY% / Fund Raised ($ million) 103,912 94,501 14,617 49,330 41,631 408,918 136,132 21,608 93%
+  - period: 2025-06
+    value: 15362
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 CYTD 2026 Jun 2025 YoY% / Fund Raised ($ million) 94,501 106,440 41,631 32,293 32,516 473,727 200,941 15,362 112%
+  - period: 2025-07
+    value: 81585
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/KS1EDQY9HHQFGQKG/863259_SGX%20Monthly%20Statistics%20Report%20Update_Sep%202025.pdf
+    quote: FY2025 Q4 FY2026 Q1 Jul 2025 Aug 2025 Sep 2025 FYTD 2026 CYTD 2025 Sep 2024 YoY% / Fund Raised ($ million) 66,480 168,874 81,585 22,333 64,956 168,874 319,270 28,161 131%
+  - period: 2025-08
+    value: 22333
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / Fund Raised ($ million) 94,501 106,440 32,516 46,929 25,584 72,513 273,454 22,333 15%
+  - period: 2025-09
+    value: 64956
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update%20For%20the%20month%20of%20Nov%202025_FA.ashx?App=Announcement&FileID=869429
+    quote: FY2025 Q4 FY2026 Q1 Sep 2025 Oct 2025 Nov 2025 FYTD 2026 CYTD 2025 Nov 2024 YoY% / Fund Raised ($ million) 66,480 168,874 64,956 40,094 16,592 225,560 375,956 23,432 -29%
+  - period: 2025-10
+    value: 40094
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 FYTD 2026 CYTD 2025 Dec 2024 YoY% / Fund Raised ($ million) 168,874 103,912 40,094 16,592 47,226 272,786 423,182 11,154 323%
+  - period: 2025-11
+    value: 16592
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/H3L2VGGP9YCWRZI2/871660_SGX%20Monthly%20Statistics%20Report%20Update_Dec%202025.pdf
+    quote: FY2026 Q1 FY2026 Q2 Oct 2025 Nov 2025 Dec 2025 FYTD 2026 CYTD 2025 Dec 2024 YoY% / Fund Raised ($ million) 168,874 103,912 40,094 16,592 47,226 272,786 423,182 11,154 323%
+  - period: 2025-12
+    value: 47226
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/ETVGFG9I2WSDGITX/878157_SGX%20Monthly%20Statistics%20Report%20Update_Feb%202026.pdf
+    quote: FY2026 Q1 FY2026 Q2 Dec 2025 Jan 2026 Feb 2026 FYTD 2026 CYTD 2026 Feb 2025 YoY% / Fund Raised ($ million) 168,874 103,912 47,226 30,554 14,617 317,957 45,171 21,487 -32%
+  - period: 2026-01
+    value: 30554
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Y0TMVDBVXQ0LEFDZ/882762_SGX%20Monthly%20Statistics%20Report%20Update_Mar%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Jan 2026 Feb 2026 Mar 2026 FYTD 2026 CYTD 2026 Mar 2025 YoY% / Fund Raised ($ million) 103,912 94,501 30,554 14,617 49,330 367,287 94,501 34,491 43%
+  - period: 2026-02
+    value: 14617
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 CYTD 2026 Apr 2025 YoY% / Fund Raised ($ million) 103,912 94,501 14,617 49,330 41,631 408,918 136,132 21,608 93%
+  - period: 2026-03
+    value: 49330
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/1DNTODDQ7XS4ENGJ/888606_SGX%20Monthly%20Statistics%20Report%20Update_Apr%202026.pdf
+    quote: FY2026 Q2 FY2026 Q3 Feb 2026 Mar 2026 Apr 2026 FYTD 2026 CYTD 2026 Apr 2025 YoY% / Fund Raised ($ million) 103,912 94,501 14,617 49,330 41,631 408,918 136,132 21,608 93%
+  - period: 2026-04
+    value: 41631
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 CYTD 2026 Jun 2025 YoY% / Fund Raised ($ million) 94,501 106,440 41,631 32,293 32,516 473,727 200,941 15,362 112%
+  - period: 2026-05
+    value: 32293
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/IJM1XSR2Y9TQ9KE6/896086_SGX%20Monthly%20Statistics%20Report%20Update_Jun%202026.pdf
+    quote: FY2026 Q3 FY2026 Q4 Apr 2026 May 2026 Jun 2026 FYTD 2026 CYTD 2026 Jun 2025 YoY% / Fund Raised ($ million) 94,501 106,440 41,631 32,293 32,516 473,727 200,941 15,362 112%
+  - period: 2026-06
+    value: 32516
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / Fund Raised ($ million) 94,501 106,440 32,516 46,929 25,584 72,513 273,454 22,333 15%
+  - period: 2026-07
+    value: 46929
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / Fund Raised ($ million) 94,501 106,440 32,516 46,929 25,584 72,513 273,454 22,333 15%
+  - period: 2026-08
+    value: 25584
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    quote: FY2026 Q3 FY2026 Q4 Jun 2026 Jul 2026 Aug 2026 FYTD 2027 CYTD 2026 Aug 2025 YoY% / Fund Raised ($ million) 94,501 106,440 32,516 46,929 25,584 72,513 273,454 22,333 15%
+- id: sgx.secondary_fundraising_ytd
+  name: SGX secondary fundraising, year to date
+  subject: sgx
+  unit: SGD bn
+  frequency: monthly
+  bad_direction: down
+  source_name: SGX Group monthly news release (republished by Mondo Visione)
+  observations:
+  - period: 2026-08
+    value: 3.57
+    source_url: https://mondovisione.com/news/sgx-group-reports-resilient-multi-asset-performance-for-august-2026910/
+    quote: Secondary fundraising totalled S$3.57 billion over the first eight months of 2026, reinforcing the role of public equity markets in supporting listed companies beyond the IPO stage.
+- id: hkex.adt
+  name: HKEX securities market average daily turnover (Main Board and GEM)
+  subject: hkex
+  unit: HKD m
+  frequency: monthly
+  bad_direction: none
+  source_name: HKEX Monthly Market Highlights
+  observations:
+  - period: 2025-08
+    value: 279098
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B42F1D2CF-355D-45C9-BACE-FBD72EAEA7AC%7D
+    quote: Securities Market Turnover (Main Board and GEM) Sep 2025 Aug 2025 % Change / Average daily turnover by value ($Mil.) * 316,715 279,098 13.5%
+  - period: 2025-09
+    value: 316715
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BA6DAF5DC-8335-46E6-8D38-EBFB8BBEF0E0%7D
+    quote: Securities Market Turnover (Main Board and GEM) Oct 2025 Sep 2025 % Change / Average daily turnover by value ($Mil.) * 274,917 316,715 -13.2%
+  - period: 2025-10
+    value: 274917
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B33903E7B-868A-4E03-9DEC-7C41C107E72B%7D
+    quote: Securities Market Turnover (Main Board and GEM) Nov 2025 Oct 2025 % Change / Average daily turnover by value ($Mil.) * 230,660 274,917 -16.1%
+  - period: 2025-11
+    value: 230660
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BB874D9B6-E6B3-44CC-AC36-B566A6363CCD%7D
+    quote: Securities Market Turnover (Main Board and GEM) Dec 2025 Nov 2025 % Change / Average daily turnover by value ($Mil.) * 186,011 230,660 -19.4%
+  - period: 2025-12
+    value: 186011
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BB874D9B6-E6B3-44CC-AC36-B566A6363CCD%7D
+    quote: Securities Market Turnover (Main Board and GEM) Dec 2025 Nov 2025 % Change / Average daily turnover by value ($Mil.) * 186,011 230,660 -19.4%
+  - period: 2026-01
+    value: 272292
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B2EA751A5-CB84-41A8-B99D-9C8BC53AA367%7D
+    quote: Securities Market Turnover (Main Board and GEM) Feb 2026 Jan 2026 % Change / Average daily turnover by value ($Mil.) * 246,769 272,292 -9.4%
+  - period: 2026-02
+    value: 246769
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B2EA751A5-CB84-41A8-B99D-9C8BC53AA367%7D
+    quote: Securities Market Turnover (Main Board and GEM) Feb 2026 Jan 2026 % Change / Average daily turnover by value ($Mil.) * 246,769 272,292 -9.4%
+  - period: 2026-03
+    value: 303957
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B40F215EC-D057-4C61-9293-114240C470CD%7D
+    quote: Securities Market Turnover (Main Board and GEM) Apr 2026 Mar 2026 % Change / Average daily turnover by value ($Mil.) * 253,505 303,957 -16.6%
+  - period: 2026-04
+    value: 253505
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B40F215EC-D057-4C61-9293-114240C470CD%7D
+    quote: Securities Market Turnover (Main Board and GEM) Apr 2026 Mar 2026 % Change / Average daily turnover by value ($Mil.) * 253,505 303,957 -16.6%
+  - period: 2026-05
+    value: 292903
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B5B984B00-9551-4A5B-B3A4-4AFD16B70E88%7D
+    quote: Securities Market Turnover (Main Board and GEM) Jun 2026 May 2026 % Change / Average daily turnover by value ($Mil.) * 319,076 292,903 8.9%
+  - period: 2026-06
+    value: 319076
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B99B25159-DF7E-46A8-840D-9F8E07F49AEE%7D
+    quote: Securities Market Turnover (Main Board and GEM) Jul 2026 Jun 2026 % Change / Average daily turnover by value ($Mil.) * 307,235 319,076 -3.7%
+  - period: 2026-07
+    value: 307235
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BDCE954BC-D1B6-4EF7-AB2F-591E3AD165E8%7D
+    quote: Securities Market Turnover (Main Board and GEM) Aug 2026 Jul 2026 % Change / Average daily turnover by value ($Mil.) * 253,357 307,235 -17.5%
+  - period: 2026-08
+    value: 253357
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BDCE954BC-D1B6-4EF7-AB2F-591E3AD165E8%7D
+    quote: Securities Market Turnover (Main Board and GEM) Aug 2026 Jul 2026 % Change / Average daily turnover by value ($Mil.) * 253,357 307,235 -17.5%
+  - period: 2026-09
+    value: 201917
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B0313FF24-82C0-4802-A7D5-5E90470EC17D%7D
+    quote: Securities Market Turnover (Main Board and GEM) Sep 2026 Aug 2026 % Change / Average daily turnover by value ($Mil.) * 201,917 253,357 -20.3%
+- id: hkex.newly_listed
+  name: HKEX newly listed companies (month, incl. GEM to Main Board transfers)
+  subject: hkex
+  unit: count
+  frequency: monthly
+  bad_direction: none
+  source_name: HKEX Monthly Market Highlights
+  observations:
+  - period: 2025-03
+    value: 7
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B89EB1121-C960-48E9-B0B3-60472D07478F%7D
+    quote: Month-end figures Mar 2026 Mar 2025 End 2025 / No. of newly listed companies * 16 7 119
+  - period: 2025-04
+    value: 2
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B40F215EC-D057-4C61-9293-114240C470CD%7D
+    quote: Month-end figures Apr 2026 Apr 2025 End 2025 / No. of newly listed companies * 9 2 119
+  - period: 2025-05
+    value: 10
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BEB2ED362-B7EA-4B69-A432-5A893CADDE28%7D
+    quote: Month-end figures May 2026 May 2025 End 2025 / No. of newly listed companies * 13 10 119
+  - period: 2025-06
+    value: 15
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B5B984B00-9551-4A5B-B3A4-4AFD16B70E88%7D
+    quote: Month-end figures Jun 2026 Jun 2025 End 2025 / No. of newly listed companies * 25 15 119
+  - period: 2025-07
+    value: 9
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B99B25159-DF7E-46A8-840D-9F8E07F49AEE%7D
+    quote: Month-end figures Jul 2026 Jul 2025 End 2025 / No. of newly listed companies * 17 9 119
+  - period: 2025-08
+    value: 6
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BDCE954BC-D1B6-4EF7-AB2F-591E3AD165E8%7D
+    quote: Month-end figures Aug 2026 Aug 2025 End 2025 / No. of newly listed companies * 2 6 119
+  - period: 2025-09
+    value: 10
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B42F1D2CF-355D-45C9-BACE-FBD72EAEA7AC%7D
+    quote: Month-end figures Sep 2025 Sep 2024 End 2024 / No. of newly listed companies * 10 2 71
+  - period: 2025-10
+    value: 12
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BA6DAF5DC-8335-46E6-8D38-EBFB8BBEF0E0%7D
+    quote: Month-end figures Oct 2025 Oct 2024 End 2024 / No. of newly listed companies * 12 9 71
+  - period: 2025-11
+    value: 12
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B33903E7B-868A-4E03-9DEC-7C41C107E72B%7D
+    quote: Month-end figures Nov 2025 Nov 2024 End 2024 / No. of newly listed companies * 12 7 71
+  - period: 2025-12
+    value: 26
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BB874D9B6-E6B3-44CC-AC36-B566A6363CCD%7D
+    quote: Month-end figures Dec 2025 Dec 2024 End 2024 / No. of newly listed companies * 26 10 71
+  - period: 2026-01
+    value: 13
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B6EA87B6C-938A-48B1-8CDA-6960712E4C54%7D
+    quote: Month-end figures Jan 2026 Jan 2025 End 2025 / No. of newly listed companies * 13 8 119
+  - period: 2026-02
+    value: 11
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B2EA751A5-CB84-41A8-B99D-9C8BC53AA367%7D
+    quote: Month-end figures Feb 2026 Feb 2025 End 2025 / No. of newly listed companies * 11 2 119
+  - period: 2026-03
+    value: 16
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B89EB1121-C960-48E9-B0B3-60472D07478F%7D
+    quote: Month-end figures Mar 2026 Mar 2025 End 2025 / No. of newly listed companies * 16 7 119
+  - period: 2026-04
+    value: 9
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B40F215EC-D057-4C61-9293-114240C470CD%7D
+    quote: Month-end figures Apr 2026 Apr 2025 End 2025 / No. of newly listed companies * 9 2 119
+  - period: 2026-05
+    value: 13
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BEB2ED362-B7EA-4B69-A432-5A893CADDE28%7D
+    quote: Month-end figures May 2026 May 2025 End 2025 / No. of newly listed companies * 13 10 119
+  - period: 2026-06
+    value: 25
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B5B984B00-9551-4A5B-B3A4-4AFD16B70E88%7D
+    quote: Month-end figures Jun 2026 Jun 2025 End 2025 / No. of newly listed companies * 25 15 119
+  - period: 2026-07
+    value: 17
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B99B25159-DF7E-46A8-840D-9F8E07F49AEE%7D
+    quote: Month-end figures Jul 2026 Jul 2025 End 2025 / No. of newly listed companies * 17 9 119
+  - period: 2026-08
+    value: 2
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BDCE954BC-D1B6-4EF7-AB2F-591E3AD165E8%7D
+    quote: Month-end figures Aug 2026 Aug 2025 End 2025 / No. of newly listed companies * 2 6 119
+  - period: 2026-09
+    value: 12
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B0313FF24-82C0-4802-A7D5-5E90470EC17D%7D
+    quote: Month-end figures Sep 2026 Sep 2025 End 2025 / No. of newly listed companies * 12 10 119
+- id: hkex.ipo_funds_ytd
+  name: HKEX funds raised through IPOs, cumulative year to date
+  subject: hkex
+  unit: HKD bn
+  frequency: monthly
+  bad_direction: none
+  source_name: HKEX Monthly Market Highlights
+  observations:
+  - period: 2025-09
+    value: 182.9
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B42F1D2CF-355D-45C9-BACE-FBD72EAEA7AC%7D
+    quote: Funds raised through IPOs# for the first nine months of 2025 was $182.9 billion, an increase of 229 per cent when compared with $55.6 billion for the same period last year.
+  - period: 2025-10
+    value: 216.0
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BA6DAF5DC-8335-46E6-8D38-EBFB8BBEF0E0%7D
+    quote: Funds raised through IPOs# for the first ten months of 2025 was $216.0 billion, an increase of 209 per cent when compared with $70.0 billion for the same period last year.
+  - period: 2025-11
+    value: 259.4
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B33903E7B-868A-4E03-9DEC-7C41C107E72B%7D
+    quote: Funds raised through IPOs# for the first eleven months of 2025 was $259.4 billion, an increase of 228 per cent when compared with $79.1 billion for the same period last year.
+  - period: 2025-12
+    value: 285.8
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BB874D9B6-E6B3-44CC-AC36-B566A6363CCD%7D
+    quote: Funds raised through IPOs# in 2025 was $285.8 billion, an increase of 225 per cent when compared with $88.0 billion in 2024.
+  - period: 2026-01
+    value: 39.3
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B6EA87B6C-938A-48B1-8CDA-6960712E4C54%7D
+    quote: Funds raised through IPOs# in January 2026 was $39.3 billion, an increase of 555 per cent when compared with $6.0 billion for the same period last year.
+  - period: 2026-02
+    value: 89.2
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B2EA751A5-CB84-41A8-B99D-9C8BC53AA367%7D
+    quote: Funds raised through IPOs# for the first two months of 2026 was $89.2 billion, an increase of 1015 per cent when compared with $8.0 billion for the same period last year.
+  - period: 2026-03
+    value: 109.9
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B89EB1121-C960-48E9-B0B3-60472D07478F%7D
+    quote: Funds raised through IPOs# for the first three months of 2026 was $109.9 billion, an increase of 488 per cent when compared with $18.7 billion for the same period last year.
+  - period: 2026-04
+    value: 151.4
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B40F215EC-D057-4C61-9293-114240C470CD%7D
+    quote: Funds raised through IPOs# for the first four months of 2026 was $151.4 billion, an increase of 604 per cent when compared with $21.5 billion for the same period last year.
+  - period: 2026-05
+    value: 166.8
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BEB2ED362-B7EA-4B69-A432-5A893CADDE28%7D
+    quote: Funds raised through IPOs# for the first five months of 2026 was $166.8 billion, an increase of 111 per cent when compared with $79.2 billion for the same period last year.
+  - period: 2026-06
+    value: 210.2
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B5B984B00-9551-4A5B-B3A4-4AFD16B70E88%7D
+    quote: Funds raised through IPOs# for the first six months of 2026 was $210.2 billion, an increase of 92 per cent when compared with $109.4 billion for the same period last year.
+  - period: 2026-07
+    value: 328.2
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B99B25159-DF7E-46A8-840D-9F8E07F49AEE%7D
+    quote: Funds raised through IPOs# for the first seven months of 2026 was $328.2 billion, an increase of 154 per cent when compared with $129.3 billion for the same period last year.
+  - period: 2026-08
+    value: 342.4
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BDCE954BC-D1B6-4EF7-AB2F-591E3AD165E8%7D
+    quote: Funds raised through IPOs# for the first eight months of 2026 was $342.4 billion, an increase of 153 per cent when compared with $135.1 billion for the same period last year.
+  - period: 2026-09
+    value: 388.0
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B0313FF24-82C0-4802-A7D5-5E90470EC17D%7D
+    quote: Funds raised through IPOs# for the first nine months of 2026 was $388.0 billion, an increase of 106 per cent when compared with $188.3 billion for the same period last year.
+- id: hkex.market_cap
+  name: HKEX total market capitalisation (Main Board and GEM, month-end)
+  subject: hkex
+  unit: HKD bn
+  frequency: monthly
+  bad_direction: none
+  source_name: HKEX Monthly Market Highlights
+  observations:
+  - period: 2025-09
+    value: 49853.5
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B42F1D2CF-355D-45C9-BACE-FBD72EAEA7AC%7D
+    quote: Month-end figures Sep 2025 Sep 2024 End 2024 / Total market capitalisation ($Bil.) 49,853.5 36,921.6 35,319.5
+  - period: 2025-10
+    value: 48136.3
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BA6DAF5DC-8335-46E6-8D38-EBFB8BBEF0E0%7D
+    quote: Month-end figures Oct 2025 Oct 2024 End 2024 / Total market capitalisation ($Bil.) 48,136.3 35,182.0 35,319.5
+  - period: 2025-11
+    value: 47997.9
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B33903E7B-868A-4E03-9DEC-7C41C107E72B%7D
+    quote: Month-end figures Nov 2025 Nov 2024 End 2024 / Total market capitalisation ($Bil.) 47,997.9 34,031.6 35,319.5
+  - period: 2025-12
+    value: 47392.5
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BB874D9B6-E6B3-44CC-AC36-B566A6363CCD%7D
+    quote: Month-end figures Dec 2025 Dec 2024 End 2024 / Total market capitalisation ($Bil.) 47,392.5 35,319.5 35,319.5
+  - period: 2026-01
+    value: 50765.8
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B6EA87B6C-938A-48B1-8CDA-6960712E4C54%7D
+    quote: Month-end figures Jan 2026 Jan 2025 End 2025 / Total market capitalisation ($Bil.) 50,765.8 35,350.8 47,392.5
+  - period: 2026-02
+    value: 49876.1
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B2EA751A5-CB84-41A8-B99D-9C8BC53AA367%7D
+    quote: Month-end figures Feb 2026 Feb 2025 End 2025 / Total market capitalisation ($Bil.) 49,876.1 39,113.1 47,392.5
+  - period: 2026-03
+    value: 45941.2
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B89EB1121-C960-48E9-B0B3-60472D07478F%7D
+    quote: Month-end figures Mar 2026 Mar 2025 End 2025 / Total market capitalisation ($Bil.) 45,941.2 39,952.7 47,392.5
+  - period: 2026-04
+    value: 48019.7
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B40F215EC-D057-4C61-9293-114240C470CD%7D
+    quote: Month-end figures Apr 2026 Apr 2025 End 2025 / Total market capitalisation ($Bil.) 48,019.7 38,844.1 47,392.5
+  - period: 2026-05
+    value: 47078.6
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BEB2ED362-B7EA-4B69-A432-5A893CADDE28%7D
+    quote: Month-end figures May 2026 May 2025 End 2025 / Total market capitalisation ($Bil.) 47,078.6 40,932.8 47,392.5
+  - period: 2026-06
+    value: 43324.5
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B5B984B00-9551-4A5B-B3A4-4AFD16B70E88%7D
+    quote: Month-end figures Jun 2026 Jun 2025 End 2025 / Total market capitalisation ($Bil.) 43,324.5 42,684.4 47,392.5
+  - period: 2026-07
+    value: 46838.9
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B99B25159-DF7E-46A8-840D-9F8E07F49AEE%7D
+    quote: Month-end figures Jul 2026 Jul 2025 End 2025 / Total market capitalisation ($Bil.) 46,838.9 44,883.2 47,392.5
+  - period: 2026-08
+    value: 47154.7
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7BDCE954BC-D1B6-4EF7-AB2F-591E3AD165E8%7D
+    quote: Month-end figures Aug 2026 Aug 2025 End 2025 / Total market capitalisation ($Bil.) 47,154.7 46,587.4 47,392.5
+  - period: 2026-09
+    value: 45480.4
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B0313FF24-82C0-4802-A7D5-5E90470EC17D%7D
+    quote: Month-end figures Sep 2026 Sep 2025 End 2025 / Total market capitalisation ($Bil.) 45,480.4 49,853.5 47,392.5
+- id: mas_ams.aum
+  name: Singapore assets under management
+  subject: asset-management
+  unit: SGD bn
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS Singapore Asset Management Survey 2025
+  observations:
+  - period: '2021'
+    value: 5415
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: '[Chart 3: Assets under Management, S$ billion, bar labels 2020-2025: 4,654 5,415 4,909 5,407 6,067 6,680]'
+  - period: '2022'
+    value: 4909
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: '[Chart 3: Assets under Management, S$ billion, bar labels 2020-2025: 4,654 5,415 4,909 5,407 6,067 6,680]'
+  - period: '2023'
+    value: 5407
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: '[Chart 3: Assets under Management, S$ billion, bar labels 2020-2025: 4,654 5,415 4,909 5,407 6,067 6,680]'
+  - period: '2024'
+    value: 6067
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: '[Chart 3: Assets under Management, S$ billion, bar labels 2020-2025: 4,654 5,415 4,909 5,407 6,067 6,680]'
+  - period: '2025'
+    value: 6680
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: 'Singapore’s AUM grew by 10% to reach S$6.7 trillion (US$5.2 trillion) on the back of robust market performance and net inflows. [Chart 3: Assets under Management, S$ billion, bar labels 2020-2025: 4,654 5,415 4,909 5,407 6,067 6,680]'
+- id: mas_ams.net_inflows
+  name: Singapore net AUM inflows
+  subject: asset-management
+  unit: SGD bn
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS Singapore Asset Management Survey 2025
+  observations:
+  - period: '2021'
+    value: 448
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: '[Chart 4: Net AUM Inflows, S$ billion, bar labels 2020-2025: 387 448 435 193 290 376]'
+  - period: '2022'
+    value: 435
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: '[Chart 4: Net AUM Inflows, S$ billion, bar labels 2020-2025: 387 448 435 193 290 376]'
+  - period: '2023'
+    value: 193
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: '[Chart 4: Net AUM Inflows, S$ billion, bar labels 2020-2025: 387 448 435 193 290 376]'
+  - period: '2024'
+    value: 290
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: '[Chart 4: Net AUM Inflows, S$ billion, bar labels 2020-2025: 387 448 435 193 290 376]'
+  - period: '2025'
+    value: 376
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: 'Singapore’s net inflows grew by 29% year-on-year in 2025. [Chart 4: Net AUM Inflows, S$ billion, bar labels 2020-2025: 387 448 435 193 290 376]'
+- id: mas_ams.licensed_fmcs
+  name: Licensed fund management companies in Singapore
+  subject: asset-management
+  unit: count
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS Singapore Asset Management Survey 2025
+  observations:
+  - period: '2025'
+    value: 1320
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: The total number of licensed fund management companies in Singapore reached 1,320, with a net increase of 22 new fund management companies set up in Singapore as at December 2025.
+- id: mas_ams.aum_sourced_outside_sg_pct
+  name: Share of Singapore AUM sourced from outside Singapore
+  subject: asset-management
+  unit: percent
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS Singapore Asset Management Survey 2025
+  observations:
+  - period: '2025'
+    value: 76
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: 76% of AUM is sourced from outside Singapore and 88% of total AUM is invested globally.
+- id: mas_ams.aum_sourced_apac_ex_sg_pct
+  name: Share of Singapore AUM sourced from Asia Pacific ex-Singapore
+  subject: asset-management
+  unit: percent
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS Singapore Asset Management Survey 2025
+  observations:
+  - period: '2025'
+    value: 39
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: '[Chart 1: Singapore’s AUM – Sources of Funds, segment 39%, legend Asia Pacific ex-Singapore]'
+- id: mas_ams.aum_sourced_north_america_pct
+  name: Share of Singapore AUM sourced from North America
+  subject: asset-management
+  unit: percent
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS Singapore Asset Management Survey 2025
+  observations:
+  - period: '2025'
+    value: 15
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: '[Chart 1: Singapore’s AUM – Sources of Funds, segment 15%, legend North America]'
+- id: mas_ams.aum_sourced_europe_pct
+  name: Share of Singapore AUM sourced from Europe
+  subject: asset-management
+  unit: percent
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS Singapore Asset Management Survey 2025
+  observations:
+  - period: '2025'
+    value: 12
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: '[Chart 1: Singapore’s AUM – Sources of Funds, segment 12%, legend Europe]'
+- id: mas_ams.aum_invested_outside_sg_pct
+  name: Share of Singapore AUM invested outside Singapore
+  subject: asset-management
+  unit: percent
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS Singapore Asset Management Survey 2025
+  observations:
+  - period: '2025'
+    value: 88
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: 76% of AUM is sourced from outside Singapore and 88% of total AUM is invested globally.
+- id: mas_ams.aum_invested_apac_ex_sg_pct
+  name: Share of Singapore AUM invested in Asia Pacific ex-Singapore
+  subject: asset-management
+  unit: percent
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS Singapore Asset Management Survey 2025
+  observations:
+  - period: '2025'
+    value: 40
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    quote: '[Chart 2: Singapore’s AUM – Investments of Funds, segment 40%, legend Asia Pacific ex-Singapore]'
+- id: mas.eqdp_batch_placement
+  name: MAS Equity Market Development Programme placement per batch (period = announcement month)
+  subject: singapore-equities
+  unit: SGD bn
+  frequency: monthly
+  bad_direction: none
+  source_name: MAS media releases
+  observations:
+  - period: 2025-07
+    value: 1.1
+    source_url: https://www.mas.gov.sg/news/media-releases/2025/mas-appoints-first-batch-of-eqdp-asset-managers
+    quote: MAS has appointed the first three asset managers under the EQDP, and will place a combined initial sum of S$1.1 billion with them, out of the total S$5 billion that has been set aside for EQDP.
+  - period: 2025-11
+    value: 2.85
+    source_url: https://www.mas.gov.sg/news/media-releases/2026/mas-appoints-third-batch-of-eqdp-asset-managers
+    quote: MAS announced the first and second batches of EQDP appointments in July and November 2025, with placements of S$1.1 billion across three asset managers and S$2.85 billion across six asset managers respectively.
+  - period: 2026-09
+    value: 1.45
+    source_url: https://www.mas.gov.sg/news/media-releases/2026/mas-appoints-third-batch-of-eqdp-asset-managers
+    quote: MAS will place S$1.45 billion with the third batch of five EQDP asset managers.
+- id: mas.eqdp_total_allocation
+  name: MAS EQDP cumulative allocation to appointed asset managers
+  subject: singapore-equities
+  unit: SGD bn
+  frequency: monthly
+  bad_direction: down
+  source_name: MAS media releases
+  observations:
+  - period: 2026-09
+    value: 5.4
+    source_url: https://www.mas.gov.sg/news/media-releases/2026/mas-appoints-third-batch-of-eqdp-asset-managers
+    quote: MAS will place S$1.45 billion with the appointed managers, bringing the total allocation under the EQDP to S$5.4 billion.
+- id: mas.fx_adtv
+  name: Singapore FX average daily trading volume (BIS Triennial Survey, April of survey year)
+  subject: fixed-income-fx
+  unit: USD bn
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS media release on BIS Triennial Survey 2025
+  observations:
+  - period: '2025'
+    value: 1485
+    source_url: https://www.mas.gov.sg/news/media-releases/2025/singapore-strengthens-position-as-third-largest-global-fx-centre
+    quote: The Monetary Authority of Singapore (MAS) announced today that Singapore’s foreign exchange (FX) average daily trading volumes (ADTV) rose to US$1.485 trillion in April 2025, increasing by 60% from April 2022.
+- id: mas.fx_global_share
+  name: Singapore share of global FX turnover (BIS Triennial Survey, April of survey year)
+  subject: fixed-income-fx
+  unit: percent
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS media release on BIS Triennial Survey 2025
+  observations:
+  - period: '2022'
+    value: 9.5
+    source_url: https://www.mas.gov.sg/news/media-releases/2025/singapore-strengthens-position-as-third-largest-global-fx-centre
+    quote: Singapore strengthened its position as the third largest FX centre in the world, after the UK and the US, with its share of global FX volumes rising to 11.8% in April 2025, from 9.5% in April 2022.
+  - period: '2025'
+    value: 11.8
+    source_url: https://www.mas.gov.sg/news/media-releases/2025/singapore-strengthens-position-as-third-largest-global-fx-centre
+    quote: Singapore strengthened its position as the third largest FX centre in the world, after the UK and the US, with its share of global FX volumes rising to 11.8% in April 2025, from 9.5% in April 2022.
+- id: hkma.fx_adt
+  name: Hong Kong FX average daily turnover (BIS Triennial Survey, April of survey year)
+  subject: fixed-income-fx
+  unit: USD bn
+  frequency: yearly
+  bad_direction: none
+  source_name: HKMA press release on BIS Triennial Survey 2025
+  observations:
+  - period: '2022'
+    value: 694.4
+    source_url: https://www.hkma.gov.hk/eng/news-and-media/press-releases/2025/09/20250930-9/
+    quote: The average daily turnover of foreign exchange transactions in Hong Kong increased by 27.2% to US$883.1 billion in April 2025 from US$694.4 billion in April 2022.
+  - period: '2025'
+    value: 883.1
+    source_url: https://www.hkma.gov.hk/eng/news-and-media/press-releases/2025/09/20250930-9/
+    quote: The average daily turnover of foreign exchange transactions in Hong Kong increased by 27.2% to US$883.1 billion in April 2025 from US$694.4 billion in April 2022.
+- id: mas.corp_debt_issuance
+  name: New debt issuance arranged by financial institutions in Singapore (SGD and non-SGD)
+  subject: fixed-income-fx
+  unit: SGD bn
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS Singapore Corporate Debt Market Development 2026
+  observations:
+  - period: '2024'
+    value: 308
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-corporate-debt-market-developments/singapore-corporate-debt-market-development-2026.pdf
+    quote: 'New debt issuance increased 10% YoY to SGD 339 billion in 2025 [chart SGD Bn (Issuance Volume): 2025 bar 339, 2024 bar 308]'
+  - period: '2025'
+    value: 339
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-corporate-debt-market-developments/singapore-corporate-debt-market-development-2026.pdf
+    quote: New debt issuance increased 10% YoY to SGD 339 billion in 2025
+- id: mas.corp_debt_outstanding
+  name: Total outstanding debt arranged by financial institutions in Singapore
+  subject: fixed-income-fx
+  unit: SGD bn
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS Singapore Corporate Debt Market Development 2026
+  observations:
+  - period: '2024'
+    value: 617
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-corporate-debt-market-developments/singapore-corporate-debt-market-development-2026.pdf
+    quote: 'Total outstanding debt arranged by financial institutions in Singapore registered a 6.8% YoY increase to SGD 659 billion [chart SGD Bn (Outstanding Volume): 2025 bar 659, 2024 bar 617]'
+  - period: '2025'
+    value: 659
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-corporate-debt-market-developments/singapore-corporate-debt-market-development-2026.pdf
+    quote: Total outstanding debt arranged by financial institutions in Singapore registered a 6.8% YoY increase to SGD 659 billion
+- id: mas.sg_bond_issuance_usd
+  name: Singapore long-term bond issuance, SGD and non-SGD (Dealogic, converted to USD)
+  subject: fixed-income-fx
+  unit: USD bn
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS Singapore Corporate Debt Market Development 2026
+  observations:
+  - period: '2023'
+    value: 77
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-corporate-debt-market-developments/singapore-corporate-debt-market-development-2026.pdf
+    quote: Singapore's bond market issuance grew 21.8% YoY in 2025, achieving a record USD 95 billion in issuance volume. This exceeded the previous high of USD 77 billion achieved in 2023.
+  - period: '2025'
+    value: 95
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-corporate-debt-market-developments/singapore-corporate-debt-market-development-2026.pdf
+    quote: Singapore's bond market issuance grew 21.8% YoY in 2025, achieving a record USD 95 billion in issuance volume. This exceeded the previous high of USD 77 billion achieved in 2023.
+- id: mas.covered_bond_issuance
+  name: Singapore covered bond issuance
+  subject: fixed-income-fx
+  unit: SGD bn
+  frequency: yearly
+  bad_direction: down
+  source_name: MAS Singapore Corporate Debt Market Development 2026
+  observations:
+  - period: '2025'
+    value: 11.0
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-corporate-debt-market-developments/singapore-corporate-debt-market-development-2026.pdf
+    quote: Covered bond volumes hit a record SGD 11 billion in 2025, with total outstanding size of the market reaching SGD 29.8 billion
+- id: adb.sg_lcy_bonds_outstanding
+  name: Singapore local currency bonds outstanding (incl. MAS bills)
+  subject: fixed-income-fx
+  unit: SGD bn
+  frequency: quarterly
+  bad_direction: down
+  source_name: ADB AsianBondsOnline Singapore market summary (Asia Bond Monitor)
+  observations:
+  - period: 2025-Q2
+    value: 872.1
+    source_url: https://asianbondsonline.adb.org/singapore/market_summary/sg_market_summary_202509.pdf
+    quote: Singapore’s LCY bond market increased to a size of SGD872.1 billion at the end of June, driven by growth in outstanding MAS bills.
+  - period: 2025-Q3
+    value: 896.6
+    source_url: https://asianbondsonline.adb.org/singapore/market_summary/sg_market_summary_202511.pdf
+    quote: Singapore’s LCY bonds outstanding reached SGD896.6 billion at the end of September, supported by expansion across all bond segments.
+  - period: 2025-Q4
+    value: 896.9
+    source_url: https://asianbondsonline.adb.org/singapore/market_summary/sg_market_summary_202603.pdf
+    quote: Singapore’s LCY bond market was broadly unchanged in the fourth quarter (Q4) of 2025, totaling SGD896.9 billion.
+  - period: 2026-Q1
+    value: 910.5
+    source_url: https://asianbondsonline.adb.org/singapore/market_summary/sg_market_summary_202606.pdf
+    quote: Singapore’s LCY bond market expanded 1.5% quarter-on-quarter (q-o-q) to SGD910.5 billion at the end of March, accelerating from a 0.03% q-o-q gain in the fourth quarter of 2025.
+  - period: 2026-Q2
+    value: 912.4
+    source_url: https://asianbondsonline.adb.org/singapore/market_summary/sg_market_summary_202609.pdf
+    quote: Singapore’s LCY debt securities outstanding were broadly stable, settling at SGD912.4 billion at the end of the second quarter (Q2) of 2026, edging up 0.2% quarter-on-quarter (q-o-q)
+- id: adb.sg_corp_bond_issuance
+  name: Singapore LCY corporate bond issuance (AsianBondsOnline estimates)
+  subject: fixed-income-fx
+  unit: SGD bn
+  frequency: quarterly
+  bad_direction: down
+  source_name: ADB AsianBondsOnline Singapore market summary (Asia Bond Monitor)
+  observations:
+  - period: 2025-Q2
+    value: 1.3
+    source_url: https://asianbondsonline.adb.org/singapore/market_summary/sg_market_summary_202509.pdf
+    quote: Corporate bond issuance on Q2 2025 totaled SGD1.3 billion.
+  - period: 2025-Q3
+    value: 9.7
+    source_url: https://asianbondsonline.adb.org/singapore/market_summary/sg_market_summary_202511.pdf
+    quote: Corporate bond issuance recorded the fastest growth, surging 622.2% q-o-q to SGD9.7 billion in Q3 2025.
+tickers:
+- ticker: ^STI
+  name: Straits Times Index
+  subject: singapore-equities
+- ticker: ^HSI
+  name: Hang Seng Index
+  subject: hkex
+- ticker: ^HSCE
+  name: Hang Seng China Enterprises Index
+  subject: hkex
+- ticker: SGD=X
+  name: USD/SGD exchange rate
+  subject: fixed-income-fx
+- ticker: S68.SI
+  name: Singapore Exchange Ltd share price
+  subject: sgx
+- ticker: 0388.HK
+  name: Hong Kong Exchanges and Clearing share price
+  subject: hkex
+- ticker: ^KLSE
+  name: FTSE Bursa Malaysia KLCI
+  subject: singapore-equities
+- ticker: ^SET.BK
+  name: SET Index (Thailand)
+  subject: singapore-equities
+- ticker: ^JKSE
+  name: Jakarta Composite Index
+  subject: singapore-equities
+gaps:
+- 'sgx.*: 2025-05 missing. The May 2025 SGX monthly statistics report was not found on links.sgx.com; the 18-month window otherwise runs 2025-03 to 2026-08 (2025-03, 2025-04 and 2025-06 come from the prior-year column of the 2026 reports).'
+- 'sgx.*: 2026-09 not yet published (SGX releases around the 8th to 10th of the following month).'
+- 'sgx Global Listing Board: no GLB listing or trading figures found. GLB (SGX-Nasdaq dual listing board) was announced 19 Nov 2025 for a mid-2026 launch; the Securities and Futures (Amendment) Bill had its second reading on 7 May 2026. No GLB line appears in the June or August 2026 SGX statistics reports.'
+- 'hkex.adt: 2025-03 to 2025-07 missing; the HKEX Monthly Market Highlights page archive only goes back to September 2025 (August 2025 comes from the September 2025 page).'
+- 'hkex.ipo_funds_ytd: HKEX publishes only cumulative year-to-date IPO funds, not a monthly figure. December 2025 is the full-year 2025 total; January 2026 is the single month.'
+- 'hkex.market_cap and hkex.newly_listed: before 2025-09 only the same-month-prior-year column is available, so hkex.market_cap starts 2025-09.'
+- 'Bursa Malaysia / SET Thailand monthly turnover: not collected (optional item, no time spent beyond tickers).'
+- 'mas.fx_adtv for 2022: the MAS release gives only the 60% growth, not the April 2022 level, so it is left out rather than derived.'
+- 'Singapore corporate bond issuance: no monthly or quarterly MAS series found. Annual MAS figures and ADB quarterly estimates are given; ADB quarterly corporate issuance for 2025-Q4 to 2026-Q2 was published only as % changes.'
+- 'Asian dollar bond market (ACU) data: not collected; MAS no longer publishes a standalone Asian dollar bond series in the sources found.'

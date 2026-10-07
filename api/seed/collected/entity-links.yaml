@@ -1,0 +1,1070 @@
+# Structural links between tracked financial entities (collected 2026-10-07).
+#
+# Purpose: lets the dashboard back claims such as "DBS and OCBC have a lot in
+# common because of X" with typed, sourced edges, and trace how an event at one
+# entity can reach another through ownership, group structure, shared ventures,
+# shared memberships, market listings and supervisors.
+# IT vendors and payment-system participation are collected separately and are
+# deliberately not repeated here (NETS appears only as an owned company and a
+# taskforce member).
+#
+# Sections
+#   relationships: directed edges.
+#     from, to     entity ids (existing subject ids or ids declared in new_entities)
+#     type         owns | subsidiary_of | operates_in | shareholder_of | member_of
+#                  | partner_of | listed_on | supervised_by
+#                  Ownership is recorded once, parent -> child, as `owns`.
+#                  `subsidiary_of` is used only where a source says the entity is
+#                  part of a group without giving a stake.
+#                  `partner_of` also covers deal counterparties (e.g. a bank that
+#                  bought another bank's business); `detail` says which.
+#     share        ownership or voting fraction (0..1) when the source gives one, else null
+#     detail       one plain sentence
+#     evidence     public = primary or reputable source states it; reported = secondary only
+#     as_of        date the fact holds, per the source
+#     source_url, source_title
+#     quote        verbatim text seen on the page (footnote markers dropped). For tables, the heading and
+#                  row cells are joined with " | " (cell text itself is verbatim).
+#   groups: named multi-member ventures, platforms, taskforces and indices.
+#     Each member implies a member_of edge to the group id; those edges are not
+#     repeated in relationships. Members list only ids known to this file;
+#     `detail` names other notable members.
+#   new_entities: ids introduced here (kebab-case). kind is one of bank, insurer,
+#     broker, exchange, regulator, central-bank, company, investor, person,
+#     consortium, platform, taskforce, index, association, country.
+
+relationships:
+  # ---------------------------------------------------------------- DBS group
+  - from: dbs
+    to: dbs-hong-kong
+    type: owns
+    share: 1.0
+    detail: "DBS Group holds 100% of DBS Bank (Hong Kong), incorporated in Hong Kong."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 22.1 Main operating subsidiaries"
+    quote: "DBS Bank (Hong Kong) Limited | Hong Kong | 100 | 100"
+  - from: dbs
+    to: dbs-china
+    type: owns
+    share: 1.0
+    detail: "DBS Group holds 100% of DBS Bank (China), incorporated in China."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 22.1 Main operating subsidiaries"
+    quote: "DBS Bank (China) Limited | China | 100 | 100"
+  - from: dbs
+    to: dbs-taiwan
+    type: owns
+    share: 1.0
+    detail: "DBS Group holds 100% of DBS Bank (Taiwan), incorporated in Taiwan."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 22.1 Main operating subsidiaries"
+    quote: "DBS Bank (Taiwan) Limited | Taiwan | 100 | 100"
+  - from: dbs
+    to: dbs-indonesia
+    type: owns
+    share: 0.99
+    detail: "DBS Group holds 99% of PT Bank DBS Indonesia, incorporated in Indonesia."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 22.1 Main operating subsidiaries"
+    quote: "PT Bank DBS Indonesia | Indonesia | 99 | 99"
+  - from: dbs
+    to: dbs-india
+    type: owns
+    share: 1.0
+    detail: "DBS Group holds 100% of DBS Bank India, incorporated in India."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 22.1 Main operating subsidiaries"
+    quote: "DBS Bank India Limited* | India | 100 | 100"
+  - from: dbs
+    to: dbs-digital-exchange
+    type: owns
+    share: 0.93
+    detail: "DBS holds 93% of DBS Digital Exchange through DBS Finnovation."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 22.1 Main operating subsidiaries"
+    quote: "DBS Digital Exchange Pte. Ltd.(a) | Singapore | 93"
+  - from: dbs
+    to: shenzhen-rural-commercial-bank
+    type: owns
+    share: 0.199
+    detail: "DBS raised its stake in Shenzhen Rural Commercial Bank, an associate, to 19.9% in 2025."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 23.1 Main associate and joint venture"
+    quote: "(b) The Group has increased its stake in Shenzhen Rural Commercial Bank Corporation Limited from 16.69% to 19.9% in 2025."
+  - from: dbs
+    to: partior
+    type: owns
+    share: 0.333
+    detail: "DBS Finnovation held 33.3% of Partior after subscribing in 2021; Partior is still listed as a DBS associate at end-2025, and later funding rounds may have changed the stake."
+    evidence: public
+    as_of: 2021-12-31
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/87136S2Z8FGAWSKJ/701899_DBS_706A_announcement_2H21.pdf
+    source_title: "DBS Group Holdings, Announcement pursuant to Rule 706A (2H 2021)"
+    quote: "Following the subscription of the Partior Subscription Shares, DBS Finnovation’s shareholding interest in Partior is 33.3%."
+  - from: dbs
+    to: climate-impact-x
+    type: owns
+    share: 0.236
+    detail: "DBS Finnovation held 23.6% of Verified Impact Exchange Holdings, the joint venture that owns Climate Impact X."
+    evidence: public
+    as_of: 2021-12-31
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/87136S2Z8FGAWSKJ/701899_DBS_706A_announcement_2H21.pdf
+    source_title: "DBS Group Holdings, Announcement pursuant to Rule 706A (2H 2021)"
+    quote: "Following the subscription of the VIEH Subscription Shares, DBS Finnovation’s shareholding interest in VIEH is 23.6%."
+  - from: dbs
+    to: nets
+    type: owns
+    share: 0.333
+    detail: "DBS is one of NETS's three shareholder banks; NETS describes itself as equally owned by Singapore's three largest banks, and DBS lists NETS as an associate at end-2025."
+    evidence: public
+    as_of: 2024-08-30
+    source_url: https://www.nets.com.sg/newsroom/nets-appoints-jeremy-soo-dbs-managing-director-and-head-of-consumer-banking-group-as-new-chairman
+    source_title: "NETS Appoints Jeremy Soo, DBS’ Managing Director and Head of Consumer Banking Group as New Chairman"
+    quote: "The Chairmanship of NETS is rotated among the three shareholder banks, DBS, OCBC and UOB every three years."
+  - from: dbs
+    to: citibank
+    type: partner_of
+    share: null
+    detail: "DBS bought Citigroup's consumer banking business in Taiwan, which now sits in DBS Bank (Taiwan)."
+    evidence: public
+    as_of: 2024-08-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 27 Goodwill and Intangible Assets"
+    quote: "The goodwill arising from acquisition of Citigroup Inc’s consumer banking business in Taiwan (Citi Taiwan) was finalised at TWD 20.5 billion in August 2024"
+  - from: dbs-hong-kong
+    to: hong-kong
+    type: operates_in
+    share: null
+    detail: "DBS Bank (Hong Kong) is incorporated and operates in Hong Kong."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 22.1 Main operating subsidiaries"
+    quote: "DBS Bank (Hong Kong) Limited | Hong Kong | 100 | 100"
+  - from: dbs-china
+    to: china
+    type: operates_in
+    share: null
+    detail: "DBS Bank (China) is incorporated and operates in China."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 22.1 Main operating subsidiaries"
+    quote: "DBS Bank (China) Limited | China | 100 | 100"
+  - from: dbs-taiwan
+    to: taiwan
+    type: operates_in
+    share: null
+    detail: "DBS Bank (Taiwan) is incorporated and operates in Taiwan."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 22.1 Main operating subsidiaries"
+    quote: "DBS Bank (Taiwan) Limited | Taiwan | 100 | 100"
+  - from: dbs-indonesia
+    to: indonesia
+    type: operates_in
+    share: null
+    detail: "PT Bank DBS Indonesia is incorporated and operates in Indonesia."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 22.1 Main operating subsidiaries"
+    quote: "PT Bank DBS Indonesia | Indonesia | 99 | 99"
+  - from: dbs-india
+    to: india
+    type: operates_in
+    share: null
+    detail: "DBS Bank India is incorporated and operates in India."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 22.1 Main operating subsidiaries"
+    quote: "DBS Bank India Limited* | India | 100 | 100"
+  - from: shenzhen-rural-commercial-bank
+    to: china
+    type: operates_in
+    share: null
+    detail: "Shenzhen Rural Commercial Bank is incorporated in China."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-financial-statements.pdf
+    source_title: "DBS Annual Report 2025, Financial statements, Note 23.1 Main associate and joint venture"
+    quote: "Shenzhen Rural Commercial Bank Corporation Limited* (a) (b) | China | 19.9 | 16.7"
+
+  # --------------------------------------------------------------- OCBC group
+  - from: ocbc
+    to: great-eastern
+    type: owns
+    share: 0.9372
+    detail: "OCBC owns 93.72% of Great Eastern Holdings, its insurance arm."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025"
+    quote: "This is reinforced by subsidiaries with deep expertise in specialised fields: Bank of Singapore in private banking, Great Eastern Holdings (“Great Eastern”) in insurance (93.72%-owned), Lion Global Investors in asset management, and Pac Lease Berhad in capital equipment financing."
+  - from: ocbc
+    to: bank-of-singapore
+    type: owns
+    share: 1.0
+    detail: "OCBC owns 100% of Bank of Singapore, its private bank."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025, Note 33.1 List of Principal Subsidiaries"
+    quote: "Bank of Singapore Limited | Singapore | 100 | 100"
+  - from: ocbc
+    to: ocbc-malaysia
+    type: owns
+    share: 1.0
+    detail: "OCBC owns 100% of OCBC Bank (Malaysia)."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025, Note 33.1 List of Principal Subsidiaries"
+    quote: "OCBC Bank (Malaysia) Berhad | Malaysia | 100 | 100"
+  - from: ocbc
+    to: ocbc-indonesia
+    type: owns
+    share: 0.85
+    detail: "OCBC owns 85% of PT Bank OCBC NISP; 15% is held by non-controlling interests."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025, Note 33.1 List of Principal Subsidiaries"
+    quote: "PT Bank OCBC NISP Tbk | Indonesia | 85 | 85 | 15 | 15"
+  - from: ocbc
+    to: ocbc-hong-kong
+    type: owns
+    share: 1.0
+    detail: "OCBC owns 100% of OCBC Bank (Hong Kong), formerly OCBC Wing Hang."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025, Note 33.1 List of Principal Subsidiaries"
+    quote: "OCBC Bank (Hong Kong) Limited | Hong Kong SAR | 100 | 100"
+  - from: ocbc
+    to: ocbc-china
+    type: owns
+    share: 1.0
+    detail: "OCBC owns 100% of OCBC Bank Limited, its mainland China bank."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025, Note 33.1 List of Principal Subsidiaries"
+    quote: "OCBC Bank Limited | People’s Republic of China | 100 | 100"
+  - from: ocbc
+    to: ocbc-macau
+    type: owns
+    share: 1.0
+    detail: "OCBC owns 100% of OCBC Bank (Macau)."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025, Note 33.1 List of Principal Subsidiaries"
+    quote: "OCBC Bank (Macau) Limited | Macau SAR | 100 | 100"
+  - from: ocbc
+    to: bank-of-ningbo
+    type: owns
+    share: 0.20
+    detail: "OCBC holds 20% of Bank of Ningbo, its material associate in mainland China."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025"
+    quote: "In Mainland China, our presence is augmented with our 20% stake in Bank of Ningbo, one of the country’s fastest-growing commercial banks."
+  - from: ocbc
+    to: nets
+    type: owns
+    share: 0.333
+    detail: "OCBC is one of NETS's three shareholder banks; NETS describes itself as equally owned by Singapore's three largest banks."
+    evidence: public
+    as_of: 2024-08-30
+    source_url: https://www.nets.com.sg/newsroom/nets-appoints-jeremy-soo-dbs-managing-director-and-head-of-consumer-banking-group-as-new-chairman
+    source_title: "NETS Appoints Jeremy Soo, DBS’ Managing Director and Head of Consumer Banking Group as New Chairman"
+    quote: "The Chairmanship of NETS is rotated among the three shareholder banks, DBS, OCBC and UOB every three years."
+  - from: ocbc-malaysia
+    to: malaysia
+    type: operates_in
+    share: null
+    detail: "OCBC Bank (Malaysia) is incorporated and operates in Malaysia."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025, Note 33.1 List of Principal Subsidiaries"
+    quote: "OCBC Bank (Malaysia) Berhad | Malaysia | 100 | 100"
+  - from: ocbc-indonesia
+    to: indonesia
+    type: operates_in
+    share: null
+    detail: "PT Bank OCBC NISP is incorporated and operates in Indonesia."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025, Note 33.1 List of Principal Subsidiaries"
+    quote: "PT Bank OCBC NISP Tbk | Indonesia | 85 | 85 | 15 | 15"
+  - from: ocbc-hong-kong
+    to: hong-kong
+    type: operates_in
+    share: null
+    detail: "OCBC Bank (Hong Kong) is incorporated and operates in Hong Kong."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025, Note 33.1 List of Principal Subsidiaries"
+    quote: "OCBC Bank (Hong Kong) Limited | Hong Kong SAR | 100 | 100"
+  - from: ocbc-china
+    to: china
+    type: operates_in
+    share: null
+    detail: "OCBC Bank Limited is incorporated and operates in mainland China."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025, Note 33.1 List of Principal Subsidiaries"
+    quote: "OCBC Bank Limited | People’s Republic of China | 100 | 100"
+  - from: ocbc-macau
+    to: macau
+    type: operates_in
+    share: null
+    detail: "OCBC Bank (Macau) is incorporated and operates in Macau."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025, Note 33.1 List of Principal Subsidiaries"
+    quote: "OCBC Bank (Macau) Limited | Macau SAR | 100 | 100"
+  - from: great-eastern
+    to: malaysia
+    type: operates_in
+    share: null
+    detail: "Great Eastern runs life and general insurance subsidiaries in Malaysia."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025, Note 33.1 List of Principal Subsidiaries"
+    quote: "Great Eastern Life Assurance (Malaysia) Berhad (2) | Malaysia | 94 | 94 | 6 | 6"
+  - from: bank-of-ningbo
+    to: china
+    type: operates_in
+    share: null
+    detail: "Bank of Ningbo is a Chinese commercial bank listed on the Shenzhen Stock Exchange."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/2025-annual-report-en.pdf
+    source_title: "OCBC Annual Report 2025, Note 32.1 Material Associate"
+    quote: "Bank of Ningbo is listed on the Shenzhen Stock Exchange and its ability to transfer funds to the Group is subject to local listing and statutory regulations."
+
+  # ---------------------------------------------------------------- UOB group
+  - from: uob
+    to: uob-malaysia
+    type: owns
+    share: 1.0
+    detail: "UOB owns 100% of United Overseas Bank (Malaysia)."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.uobgroup.com/AR2025/documents/Financial_Statements.pdf
+    source_title: "UOB Annual Report 2025, Note 33(b) major subsidiaries"
+    quote: "United Overseas Bank (Malaysia) Bhd | Malaysia | 100 | 100"
+  - from: uob
+    to: uob-thailand
+    type: owns
+    share: 0.997
+    detail: "UOB owns 99.7% of United Overseas Bank (Thai)."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.uobgroup.com/AR2025/documents/Financial_Statements.pdf
+    source_title: "UOB Annual Report 2025, Note 33(b) major subsidiaries"
+    quote: "United Overseas Bank (Thai) Public Company Limited | Thailand | 99.7 | 99.7"
+  - from: uob
+    to: uob-indonesia
+    type: owns
+    share: 0.99
+    detail: "UOB owns 99% of PT Bank UOB Indonesia."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.uobgroup.com/AR2025/documents/Financial_Statements.pdf
+    source_title: "UOB Annual Report 2025, Note 33(b) major subsidiaries"
+    quote: "PT Bank UOB Indonesia | Indonesia | 99 | 99"
+  - from: uob
+    to: uob-china
+    type: owns
+    share: 1.0
+    detail: "UOB owns 100% of United Overseas Bank (China)."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.uobgroup.com/AR2025/documents/Financial_Statements.pdf
+    source_title: "UOB Annual Report 2025, Note 33(b) major subsidiaries"
+    quote: "United Overseas Bank (China) Limited | China | 100 | 100"
+  - from: uob
+    to: uob-vietnam
+    type: owns
+    share: 1.0
+    detail: "UOB owns 100% of United Overseas Bank (Vietnam)."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.uobgroup.com/AR2025/documents/Financial_Statements.pdf
+    source_title: "UOB Annual Report 2025, Note 33(b) major subsidiaries"
+    quote: "United Overseas Bank (Vietnam) Limited | Vietnam | 100 | 100"
+  - from: uob
+    to: uob-kay-hian
+    type: owns
+    share: 0.32
+    detail: "UOB holds 32% of UOB-Kay Hian Holdings, an SGX-listed stockbroker accounted for as an associate."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.uobgroup.com/AR2025/documents/Financial_Statements.pdf
+    source_title: "UOB Annual Report 2025, Note 32 Investment in associates and joint ventures"
+    quote: "UOB-Kay Hian Holdings Limited | Stockbroking | Singapore | 32 | 34"
+  - from: uob
+    to: nets
+    type: owns
+    share: 0.333
+    detail: "UOB is one of NETS's three shareholder banks; NETS describes itself as equally owned by Singapore's three largest banks."
+    evidence: public
+    as_of: 2024-08-30
+    source_url: https://www.nets.com.sg/newsroom/nets-appoints-jeremy-soo-dbs-managing-director-and-head-of-consumer-banking-group-as-new-chairman
+    source_title: "NETS Appoints Jeremy Soo, DBS’ Managing Director and Head of Consumer Banking Group as New Chairman"
+    quote: "The Chairmanship of NETS is rotated among the three shareholder banks, DBS, OCBC and UOB every three years."
+  - from: uob
+    to: citibank
+    type: partner_of
+    share: null
+    detail: "UOB bought Citigroup's consumer banking businesses in Malaysia, Thailand, Vietnam and Indonesia in 2022-2023 and folded them into its local subsidiaries."
+    evidence: public
+    as_of: 2023-11-20
+    source_url: https://www.uobgroup.com/web-resources/uobgroup/pdf/newsroom/2023/uob-completes-acquisition-integration-citigroup-indonesia.pdf
+    source_title: "UOB completes acquisition and integration of Citigroup’s consumer banking business in Indonesia"
+    quote: "Today’s announcement follows from completions in Malaysia and Thailand in November 2022 and Vietnam in March 2023."
+  - from: uob-malaysia
+    to: malaysia
+    type: operates_in
+    share: null
+    detail: "United Overseas Bank (Malaysia) is incorporated and operates in Malaysia."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.uobgroup.com/AR2025/documents/Financial_Statements.pdf
+    source_title: "UOB Annual Report 2025, Note 33(b) major subsidiaries"
+    quote: "United Overseas Bank (Malaysia) Bhd | Malaysia | 100 | 100"
+  - from: uob-thailand
+    to: thailand
+    type: operates_in
+    share: null
+    detail: "United Overseas Bank (Thai) is incorporated and operates in Thailand."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.uobgroup.com/AR2025/documents/Financial_Statements.pdf
+    source_title: "UOB Annual Report 2025, Note 33(b) major subsidiaries"
+    quote: "United Overseas Bank (Thai) Public Company Limited | Thailand | 99.7 | 99.7"
+  - from: uob-indonesia
+    to: indonesia
+    type: operates_in
+    share: null
+    detail: "PT Bank UOB Indonesia is incorporated and operates in Indonesia."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.uobgroup.com/AR2025/documents/Financial_Statements.pdf
+    source_title: "UOB Annual Report 2025, Note 33(b) major subsidiaries"
+    quote: "PT Bank UOB Indonesia | Indonesia | 99 | 99"
+  - from: uob-china
+    to: china
+    type: operates_in
+    share: null
+    detail: "United Overseas Bank (China) is incorporated and operates in China."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.uobgroup.com/AR2025/documents/Financial_Statements.pdf
+    source_title: "UOB Annual Report 2025, Note 33(b) major subsidiaries"
+    quote: "United Overseas Bank (China) Limited | China | 100 | 100"
+  - from: uob-vietnam
+    to: vietnam
+    type: operates_in
+    share: null
+    detail: "United Overseas Bank (Vietnam) is incorporated and operates in Vietnam."
+    evidence: public
+    as_of: 2025-12-31
+    source_url: https://www.uobgroup.com/AR2025/documents/Financial_Statements.pdf
+    source_title: "UOB Annual Report 2025, Note 33(b) major subsidiaries"
+    quote: "United Overseas Bank (Vietnam) Limited | Vietnam | 100 | 100"
+
+  # ------------------------------------------------------ major shareholders
+  - from: temasek
+    to: dbs
+    type: shareholder_of
+    share: 0.2830
+    detail: "Temasek holds 28.30% of DBS, 11.02% directly and the rest through its wholly owned Maju Holdings."
+    evidence: public
+    as_of: 2026-02-10
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-shareholding-statistics.pdf
+    source_title: "DBS Annual Report 2025, Shareholding statistics as at 10 February 2026"
+    quote: "Temasek Holdings (Private) Limited | 312,559,831 | 490,413,019 | 802,972,850 | 28.30"
+  - from: selat
+    to: ocbc
+    type: shareholder_of
+    share: 0.1444
+    detail: "Selat (Pte) Limited is OCBC's largest substantial shareholder at 14.44%, including shares held by Herald Investment."
+    evidence: public
+    as_of: 2026-02-25
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/shareholding-statistics.pdf
+    source_title: "OCBC Annual Report 2025, Shareholding Statistics as at 25 February 2026"
+    quote: "Selat (Pte) Limited | 467,604,264 | 181,721,294(3) | 649,325,558 | 14.44"
+  - from: lee-foundation
+    to: ocbc
+    type: shareholder_of
+    share: 0.0513
+    detail: "Lee Foundation is a substantial shareholder of OCBC with 5.13%."
+    evidence: public
+    as_of: 2026-02-25
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/shareholding-statistics.pdf
+    source_title: "OCBC Annual Report 2025, Shareholding Statistics as at 25 February 2026"
+    quote: "Lee Foundation | 189,310,098(1) | 31,835,411(2) | 221,145,509 | 5.13"
+  - from: wee-ee-cheong
+    to: uob
+    type: shareholder_of
+    share: 0.1089
+    detail: "Wee Ee Cheong has a 10.89% total interest in UOB, mostly a deemed interest through Wee Investments; his brothers Wee Ee Lim (10.74%) and Wee Ee Chao (8.36%) are also substantial shareholders."
+    evidence: public
+    as_of: 2026-02-23
+    source_url: https://www.uobgroup.com/AR2025/documents/Statistics_of_Shareholdings.pdf
+    source_title: "UOB Annual Report 2025, Statistics of Shareholdings as at 23 February 2026"
+    quote: "Wee Ee Cheong | 6,118,929 | 173,663,415(2) | 179,782,344 | 10.89"
+  - from: wee-investments
+    to: uob
+    type: shareholder_of
+    share: 0.0808
+    detail: "Wee Investments, the Wee family holding company, owns 8.08% of UOB."
+    evidence: public
+    as_of: 2026-02-23
+    source_url: https://www.uobgroup.com/AR2025/documents/Statistics_of_Shareholdings.pdf
+    source_title: "UOB Annual Report 2025, Statistics of Shareholdings as at 23 February 2026"
+    quote: "Wee Investments (Pte) Limited | 133,278,205 | 194,119 | 133,472,324 | 8.08"
+  - from: wah-hin
+    to: uob
+    type: shareholder_of
+    share: 0.0525
+    detail: "Wah Hin and Company, in which Lien Ying Chow Private Limited is deemed interested, owns 5.25% of UOB."
+    evidence: public
+    as_of: 2026-02-23
+    source_url: https://www.uobgroup.com/AR2025/documents/Statistics_of_Shareholdings.pdf
+    source_title: "UOB Annual Report 2025, Statistics of Shareholdings as at 23 February 2026"
+    quote: "Wah Hin and Company Private Limited | 86,676,076 | 10,377 | 86,686,453 | 5.25"
+  - from: sel-holdings
+    to: sgx
+    type: shareholder_of
+    share: 0.2339
+    detail: "SEL Holdings holds 23.39% of SGX for the benefit of the MAS-administered Financial Sector Development Fund, but by law cannot vote the shares, so SGX reports no substantial shareholder."
+    evidence: public
+    as_of: 2024-08-20
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/2LNAYTR36V5U2XDD/818851_2024%20SGX%20Annual%20Report.pdf
+    source_title: "Singapore Exchange Annual Report 2024, Statistics of shareholdings as at 20 August 2024"
+    quote: "Owing to the restriction in the exercise of votes attached to the shares, SEL is not regarded as a substantial shareholder of SGX."
+  - from: sel-holdings
+    to: mas
+    type: partner_of
+    share: null
+    detail: "SEL Holdings holds its SGX shares for the Financial Sector Development Fund, which MAS controls and administers."
+    evidence: public
+    as_of: 2021-10-04
+    source_url: https://www.mas.gov.sg/news/speeches/2021/explanatory-brief-for-exchanges-demutualisation-and-merger-amendment-bill
+    source_title: "Explanatory Brief for Exchanges (Demutualisation and Merger) (Amendment) Bill"
+    quote: "The FSDF is established under section 127 of the Monetary Authority of Singapore Act as a fund which shall, subject to the directions of the Minister, be controlled and administered by MAS."
+  - from: sgx
+    to: dbs-digital-exchange
+    type: shareholder_of
+    share: null
+    detail: "An SGX subsidiary bought into DBS Digital Exchange in 2021, cutting DBS's stake from 100% to 90%; DBS held 93% at end-2025."
+    evidence: public
+    as_of: 2021-08-30
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/87136S2Z8FGAWSKJ/701899_DBS_706A_announcement_2H21.pdf
+    source_title: "DBS Group Holdings, Announcement pursuant to Rule 706A (2H 2021)"
+    quote: "Asian Gateway Investments Pte. Ltd., a wholly-owned subsidiary of SGX, subscribed for 788,889 shares (“DDEX Subscription Shares”) in DDEX, a wholly-owned subsidiary of DBS Finnovation, for an aggregate subscription price of US$3 million (the “Transaction”) on 30 August 2021."
+
+  # ----------------------------------------------------------- market links
+  - from: dbs
+    to: sgx
+    type: listed_on
+    share: null
+    detail: "DBS Group Holdings is listed on SGX and is the largest STI constituent (29.77% weight)."
+    evidence: public
+    as_of: 2026-02-10
+    source_url: https://www.dbs.com/annualreports/2025/i/pdf/dbs-ar-2025-shareholding-statistics.pdf
+    source_title: "DBS Annual Report 2025, Shareholding statistics as at 10 February 2026"
+    quote: "As at 10 February 2026, approximately 71.58% of the issued ordinary shares of DBS Group Holdings Ltd are held by the public and, therefore, Rule 723 of the SGX Listing Manual is complied with."
+  - from: ocbc
+    to: sgx
+    type: listed_on
+    share: null
+    detail: "OCBC is listed on SGX and is the second-largest STI constituent (19.57% weight)."
+    evidence: public
+    as_of: 2026-02-25
+    source_url: https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/annual-reports/2025/shareholding-statistics.pdf
+    source_title: "OCBC Annual Report 2025, Shareholding Statistics as at 25 February 2026"
+    quote: "Approximately 72.3% of the issued shares (excluding treasury shares) are held in the hands of the public. Rule 723 of the Listing Manual of the SGX-ST has accordingly been complied with."
+  - from: uob
+    to: sgx
+    type: listed_on
+    share: null
+    detail: "UOB is listed on SGX under stock code U11 and is the third-largest STI constituent (9.79% weight)."
+    evidence: public
+    as_of: 2017-10-02
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Q3BJZ2L1MFGW55SH/a3223eec9ef20f6361501c540cab328ad1989a6e3f6aa1ab2e45f79ac4fd2773
+    source_title: "SGXNet: UOB General Announcement, Licence from State Bank of Vietnam"
+    quote: "Issuer/ Manager | UNITED OVERSEAS BANK LIMITED | Securities | UNITED OVERSEAS BANK LTD - SG1M31001969 - U11"
+  - from: sgx
+    to: sgx
+    type: listed_on
+    share: null
+    detail: "Singapore Exchange Limited is itself listed on its own market under stock code S68."
+    evidence: public
+    as_of: 2024-09-16
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/2LNAYTR36V5U2XDD
+    source_title: "SGXNet: Singapore Exchange Limited, Annual Reports and Related Documents"
+    quote: "Issuer/ Manager | SINGAPORE EXCHANGE LIMITED | Securities | SINGAPORE EXCHANGE LIMITED - SG1J26887955 - S68"
+  - from: sgx
+    to: hkex
+    type: partner_of
+    share: null
+    detail: "SGX and HKEX signed a 2013 cooperation MOU on renminbi products, connectivity, regulation and technology; no newer formal agreement was found."
+    evidence: public
+    as_of: 2013-12-04
+    source_url: https://www.acnnewswire.com/press-release/english/15027/hkex-and-sgx-cooperate-on-rmb-internationalisation-and-connectivity
+    source_title: "HKEx and SGX Cooperate on RMB Internationalisation and Connectivity (SGX release via ACN Newswire)"
+    quote: "HKEx Chief Executive Charles Li and SGX CEO Magnus Bocker signed a memorandum of understanding on the collaboration in Singapore today."
+
+  # ------------------------------------------------------- regulator links
+  - from: dbs
+    to: mas
+    type: supervised_by
+    share: null
+    detail: "MAS designates DBS as a domestic systemically important bank (inaugural 2015 list)."
+    evidence: public
+    as_of: 2015-04-30
+    source_url: https://www.mas.gov.sg/news/media-releases/2015/mas-publishes-framework-for-domestic-systemically-important-banks-in-singapore
+    source_title: "MAS Publishes Framework for Domestic Systemically Important Banks in Singapore"
+    quote: "MAS has designated the following banking groups as D-SIBs: DBS Bank; Oversea-Chinese Banking Corporation; United Overseas Bank; Citibank; Malayan Banking Berhad; Standard Chartered Bank; and The Hongkong and Shanghai Banking Corporation."
+  - from: ocbc
+    to: mas
+    type: supervised_by
+    share: null
+    detail: "MAS designates OCBC as a domestic systemically important bank (inaugural 2015 list)."
+    evidence: public
+    as_of: 2015-04-30
+    source_url: https://www.mas.gov.sg/news/media-releases/2015/mas-publishes-framework-for-domestic-systemically-important-banks-in-singapore
+    source_title: "MAS Publishes Framework for Domestic Systemically Important Banks in Singapore"
+    quote: "MAS has designated the following banking groups as D-SIBs: DBS Bank; Oversea-Chinese Banking Corporation; United Overseas Bank; Citibank; Malayan Banking Berhad; Standard Chartered Bank; and The Hongkong and Shanghai Banking Corporation."
+  - from: uob
+    to: mas
+    type: supervised_by
+    share: null
+    detail: "MAS designates UOB as a domestic systemically important bank (inaugural 2015 list)."
+    evidence: public
+    as_of: 2015-04-30
+    source_url: https://www.mas.gov.sg/news/media-releases/2015/mas-publishes-framework-for-domestic-systemically-important-banks-in-singapore
+    source_title: "MAS Publishes Framework for Domestic Systemically Important Banks in Singapore"
+    quote: "MAS has designated the following banking groups as D-SIBs: DBS Bank; Oversea-Chinese Banking Corporation; United Overseas Bank; Citibank; Malayan Banking Berhad; Standard Chartered Bank; and The Hongkong and Shanghai Banking Corporation."
+  - from: citibank
+    to: mas
+    type: supervised_by
+    share: null
+    detail: "MAS designates Citibank as a domestic systemically important bank in Singapore (inaugural 2015 list)."
+    evidence: public
+    as_of: 2015-04-30
+    source_url: https://www.mas.gov.sg/news/media-releases/2015/mas-publishes-framework-for-domestic-systemically-important-banks-in-singapore
+    source_title: "MAS Publishes Framework for Domestic Systemically Important Banks in Singapore"
+    quote: "MAS has designated the following banking groups as D-SIBs: DBS Bank; Oversea-Chinese Banking Corporation; United Overseas Bank; Citibank; Malayan Banking Berhad; Standard Chartered Bank; and The Hongkong and Shanghai Banking Corporation."
+  - from: maybank
+    to: mas
+    type: supervised_by
+    share: null
+    detail: "MAS designates Malayan Banking Berhad as a domestic systemically important bank in Singapore (inaugural 2015 list)."
+    evidence: public
+    as_of: 2015-04-30
+    source_url: https://www.mas.gov.sg/news/media-releases/2015/mas-publishes-framework-for-domestic-systemically-important-banks-in-singapore
+    source_title: "MAS Publishes Framework for Domestic Systemically Important Banks in Singapore"
+    quote: "MAS has designated the following banking groups as D-SIBs: DBS Bank; Oversea-Chinese Banking Corporation; United Overseas Bank; Citibank; Malayan Banking Berhad; Standard Chartered Bank; and The Hongkong and Shanghai Banking Corporation."
+  - from: great-eastern
+    to: mas
+    type: supervised_by
+    share: null
+    detail: "MAS lists The Great Eastern Life Assurance Company as one of four domestic systemically important insurers."
+    evidence: public
+    as_of: 2023-09-21
+    source_url: https://www.mas.gov.sg/news/media-releases/2023/mas-publishes-inaugural-list-of-domestic-systemically-important-insurers-in-singapore
+    source_title: "MAS Publishes Inaugural List of Domestic Systemically Important Insurers in Singapore"
+    quote: "The Monetary Authority of Singapore (MAS) today published its framework for designating domestic systemically important insurers (D-SIIs), and the inaugural list of four D-SIIs: AIA Singapore Private Limited Income Insurance Limited Prudential Assurance Company Singapore (Pte) Limited; and The Great Eastern Life Assurance Company Limited."
+  - from: income-insurance
+    to: mas
+    type: supervised_by
+    share: null
+    detail: "MAS lists Income Insurance as one of four domestic systemically important insurers."
+    evidence: public
+    as_of: 2023-09-21
+    source_url: https://www.mas.gov.sg/news/media-releases/2023/mas-publishes-inaugural-list-of-domestic-systemically-important-insurers-in-singapore
+    source_title: "MAS Publishes Inaugural List of Domestic Systemically Important Insurers in Singapore"
+    quote: "The Monetary Authority of Singapore (MAS) today published its framework for designating domestic systemically important insurers (D-SIIs), and the inaugural list of four D-SIIs: AIA Singapore Private Limited Income Insurance Limited Prudential Assurance Company Singapore (Pte) Limited; and The Great Eastern Life Assurance Company Limited."
+  - from: dbs-hong-kong
+    to: hkma
+    type: supervised_by
+    share: null
+    detail: "DBS Bank (Hong Kong) is an HKMA-authorized licensed bank incorporated in Hong Kong."
+    evidence: public
+    as_of: 2024-12-31
+    source_url: https://www.hkma.gov.hk/media/eng/publication-and-research/annual-report/2024/20_Annex.pdf
+    source_title: "HKMA Annual Report 2024, Annex: Authorized Institutions and Local Representative Offices at 31.12.2024"
+    quote: "Licensed Banks | Incorporated in Hong Kong | DBS BANK (HONG KONG) LIMITED"
+  - from: ocbc-hong-kong
+    to: hkma
+    type: supervised_by
+    share: null
+    detail: "OCBC Bank (Hong Kong) is an HKMA-authorized licensed bank incorporated in Hong Kong."
+    evidence: public
+    as_of: 2024-12-31
+    source_url: https://www.hkma.gov.hk/media/eng/publication-and-research/annual-report/2024/20_Annex.pdf
+    source_title: "HKMA Annual Report 2024, Annex: Authorized Institutions and Local Representative Offices at 31.12.2024"
+    quote: "Licensed Banks | Incorporated in Hong Kong | OCBC Bank (Hong Kong) Limited"
+  - from: dbs
+    to: hkma
+    type: supervised_by
+    share: null
+    detail: "DBS Bank Ltd. also holds an HKMA licence for its Hong Kong branch, alongside its Hong Kong subsidiary."
+    evidence: public
+    as_of: 2024-12-31
+    source_url: https://www.hkma.gov.hk/media/eng/publication-and-research/annual-report/2024/20_Annex.pdf
+    source_title: "HKMA Annual Report 2024, Annex: Authorized Institutions and Local Representative Offices at 31.12.2024"
+    quote: "Licensed Banks | Incorporated outside Hong Kong | DBS BANK LTD."
+  - from: ocbc
+    to: hkma
+    type: supervised_by
+    share: null
+    detail: "OCBC also holds an HKMA licence for its Hong Kong branch, alongside OCBC Bank (Hong Kong)."
+    evidence: public
+    as_of: 2024-12-31
+    source_url: https://www.hkma.gov.hk/media/eng/publication-and-research/annual-report/2024/20_Annex.pdf
+    source_title: "HKMA Annual Report 2024, Annex: Authorized Institutions and Local Representative Offices at 31.12.2024"
+    quote: "Licensed Banks | Incorporated outside Hong Kong | Oversea-Chinese Banking Corporation Limited"
+  - from: uob
+    to: hkma
+    type: supervised_by
+    share: null
+    detail: "UOB operates in Hong Kong as an HKMA-licensed bank incorporated outside Hong Kong (a branch)."
+    evidence: public
+    as_of: 2024-12-31
+    source_url: https://www.hkma.gov.hk/media/eng/publication-and-research/annual-report/2024/20_Annex.pdf
+    source_title: "HKMA Annual Report 2024, Annex: Authorized Institutions and Local Representative Offices at 31.12.2024"
+    quote: "Licensed Banks | Incorporated outside Hong Kong | United Overseas Bank Ltd."
+  - from: maybank
+    to: hkma
+    type: supervised_by
+    share: null
+    detail: "Malayan Banking Berhad operates in Hong Kong as an HKMA-licensed bank incorporated outside Hong Kong."
+    evidence: public
+    as_of: 2024-12-31
+    source_url: https://www.hkma.gov.hk/media/eng/publication-and-research/annual-report/2024/20_Annex.pdf
+    source_title: "HKMA Annual Report 2024, Annex: Authorized Institutions and Local Representative Offices at 31.12.2024"
+    quote: "Licensed Banks | Incorporated outside Hong Kong | MALAYAN BANKING BERHAD"
+  - from: cimb
+    to: hkma
+    type: supervised_by
+    share: null
+    detail: "CIMB Bank Berhad operates in Hong Kong as an HKMA-licensed bank incorporated outside Hong Kong."
+    evidence: public
+    as_of: 2024-12-31
+    source_url: https://www.hkma.gov.hk/media/eng/publication-and-research/annual-report/2024/20_Annex.pdf
+    source_title: "HKMA Annual Report 2024, Annex: Authorized Institutions and Local Representative Offices at 31.12.2024"
+    quote: "Licensed Banks | Incorporated outside Hong Kong | CIMB Bank Berhad"
+  - from: bangkok-bank
+    to: hkma
+    type: supervised_by
+    share: null
+    detail: "Bangkok Bank operates in Hong Kong as an HKMA-licensed bank incorporated outside Hong Kong."
+    evidence: public
+    as_of: 2024-12-31
+    source_url: https://www.hkma.gov.hk/media/eng/publication-and-research/annual-report/2024/20_Annex.pdf
+    source_title: "HKMA Annual Report 2024, Annex: Authorized Institutions and Local Representative Offices at 31.12.2024"
+    quote: "Licensed Banks | Incorporated outside Hong Kong | Bangkok Bank Public Company Limited"
+  - from: ocbc-malaysia
+    to: bnm
+    type: supervised_by
+    share: null
+    detail: "OCBC Bank (Malaysia) is a BNM-licensed commercial bank."
+    evidence: public
+    as_of: 2026-10-07
+    source_url: https://www.bnm.gov.my/regulations/fsp-directory
+    source_title: "Bank Negara Malaysia, Financial Sector Participants Directory"
+    quote: "OCBC Bank (Malaysia) Berhad | Licensed Commercial Bank"
+  - from: uob-malaysia
+    to: bnm
+    type: supervised_by
+    share: null
+    detail: "United Overseas Bank (Malaysia) is a BNM-licensed commercial bank."
+    evidence: public
+    as_of: 2026-10-07
+    source_url: https://www.bnm.gov.my/regulations/fsp-directory
+    source_title: "Bank Negara Malaysia, Financial Sector Participants Directory"
+    quote: "United Overseas Bank (Malaysia) Berhad | Licensed Commercial Bank"
+  - from: great-eastern
+    to: bnm
+    type: supervised_by
+    share: null
+    detail: "Great Eastern's Malaysian life, general and takaful companies are licensed by BNM."
+    evidence: public
+    as_of: 2026-10-07
+    source_url: https://www.bnm.gov.my/regulations/fsp-directory
+    source_title: "Bank Negara Malaysia, Financial Sector Participants Directory"
+    quote: "Great Eastern Life Assurance (Malaysia) Berhad | Life Insurance Business"
+  - from: maybank
+    to: bnm
+    type: supervised_by
+    share: null
+    detail: "Malayan Banking Berhad is a BNM-licensed commercial bank."
+    evidence: public
+    as_of: 2026-10-07
+    source_url: https://www.bnm.gov.my/regulations/fsp-directory
+    source_title: "Bank Negara Malaysia, Financial Sector Participants Directory"
+    quote: "Malayan Banking Berhad | Licensed Commercial Bank"
+  - from: cimb
+    to: bnm
+    type: supervised_by
+    share: null
+    detail: "CIMB Bank Berhad is a BNM-licensed commercial bank."
+    evidence: public
+    as_of: 2026-10-07
+    source_url: https://www.bnm.gov.my/regulations/fsp-directory
+    source_title: "Bank Negara Malaysia, Financial Sector Participants Directory"
+    quote: "CIMB Bank Berhad | Licensed Commercial Bank"
+  - from: dbs-indonesia
+    to: ojk
+    type: supervised_by
+    share: null
+    detail: "PT Bank DBS Indonesia is licensed and supervised by OJK and Bank Indonesia."
+    evidence: public
+    as_of: 2026-10-07
+    source_url: https://www.dbs.id/id/personal/default.page
+    source_title: "DBS Indonesia website footer"
+    quote: "PT Bank DBS Indonesia is licensed and supervised by the Indonesian Financial Services Authority & Bank Indonesia, and is a guaranteed member of Indonesia Deposit Insurance Corporation (LPS)."
+  - from: ocbc-indonesia
+    to: ojk
+    type: supervised_by
+    share: null
+    detail: "PT Bank OCBC NISP is licensed and supervised by OJK and Bank Indonesia."
+    evidence: public
+    as_of: 2026-10-07
+    source_url: https://www.ocbc.id/id
+    source_title: "OCBC Indonesia website footer"
+    quote: "PT Bank OCBC NISP Tbk berizin dan diawasi oleh Otoritas Jasa Keuangan & Bank Indonesia, serta merupakan peserta penjaminan LPS."
+  - from: uob-indonesia
+    to: ojk
+    type: supervised_by
+    share: null
+    detail: "PT Bank UOB Indonesia is licensed and supervised by OJK and Bank Indonesia."
+    evidence: public
+    as_of: 2026-10-07
+    source_url: https://www.uob.co.id/personal/index.page
+    source_title: "UOB Indonesia website footer"
+    quote: "UOB Indonesia berizin dan diawasi oleh Otoritas Jasa Keuangan dan Bank Indonesia serta merupakan peserta penjaminan Lembaga Penjamin Simpanan (LPS)."
+  - from: dbs-india
+    to: rbi
+    type: supervised_by
+    share: null
+    detail: "DBS Bank India holds an RBI licence to bank in India as a wholly owned subsidiary."
+    evidence: public
+    as_of: 2019-02-28
+    source_url: https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=46422
+    source_title: "RBI approves Amalgamation of DBS Bank Ltd., India with DBS Bank India Limited"
+    quote: "The Reserve Bank of India has sanctioned the Scheme of Amalgamation of the entire undertaking of DBS Bank Ltd., India with DBS Bank India Limited which has been granted licence by the Reserve Bank to carry on the business of banking in India through Wholly Owned Subsidiary (WOS)"
+  - from: uob-thailand
+    to: bank-of-thailand
+    type: supervised_by
+    share: null
+    detail: "UOB Thai is a Thai-incorporated commercial bank (per UOB AR 2025), and BOT states that all commercial bank forms in Thailand are registered under the Financial Institutions Business Act and supervised by BOT."
+    evidence: public
+    as_of: 2026-10-07
+    source_url: https://www.bot.or.th/en/our-roles/financial-institutions/Thailand-financial-institutions-and-financial-service-providers/depositary-corporations.html
+    source_title: "Bank of Thailand, Depositary Corporations"
+    quote: "The aforementioned forms of commercial bank business are registered under the Financial Institutions Business Act B.E. 2551 (2008) and supervised by the BOT."
+  - from: uob-vietnam
+    to: state-bank-of-vietnam
+    type: supervised_by
+    share: null
+    detail: "UOB Vietnam was set up under a foreign-owned subsidiary bank licence from the State Bank of Vietnam."
+    evidence: public
+    as_of: 2017-10-02
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/Q3BJZ2L1MFGW55SH/a3223eec9ef20f6361501c540cab328ad1989a6e3f6aa1ab2e45f79ac4fd2773
+    source_title: "SGXNet: UOB General Announcement, Licence from State Bank of Vietnam to establish a Foreign-Owned Subsidiary Bank"
+    quote: "Further to its announcements on 23 March 2017 and 20 July 2017, United Overseas Bank Limited is pleased to announce that it has received licence from the State Bank of Vietnam to establish a foreign-owned subsidiary bank in Vietnam."
+
+  # --------------------------------------------------------- group plumbing
+  - from: bcs
+    to: nets
+    type: subsidiary_of
+    share: null
+    detail: "Banking Computer Services is one of the three entities in the NETS Group."
+    evidence: public
+    as_of: 2026-10-07
+    source_url: https://www.nets.com.sg/group
+    source_title: "NETS Group"
+    quote: "NETS Group is a leading payments services group comprising three entities – NETS, Banking Computer Services (BCS) and NETS Solutions."
+  - from: temasek
+    to: partior
+    type: shareholder_of
+    share: null
+    detail: "Temasek is a founding shareholder of Partior alongside DBS, J.P. Morgan and Standard Chartered."
+    evidence: public
+    as_of: 2021-12-31
+    source_url: https://partior.com/about-us/our-story
+    source_title: "Partior, Our Story"
+    quote: "Established as an independent entity with founding shareholders DBS, J.P. Morgan, Standard Chartered, and Temasek."
+
+groups:
+  - id: partior
+    name: Partior
+    kind: consortium
+    members: [dbs, jpmorgan, standard-chartered, temasek, deutsche-bank]
+    detail: "Bank-owned blockchain clearing and settlement network founded in 2021 by DBS, J.P. Morgan, Standard Chartered and Temasek; Deutsche Bank joined the Series B in 2024, with Peak XV, Jump Trading and Valor Capital also investors."
+    source_url: https://partior.com/about-us/our-story
+    quote: "Established as an independent entity with founding shareholders DBS, J.P. Morgan, Standard Chartered, and Temasek."
+  - id: climate-impact-x
+    name: Climate Impact X (Verified Impact Exchange Holdings)
+    kind: consortium
+    members: [dbs, sgx, standard-chartered, temasek]
+    detail: "Carbon credit exchange set up as a joint venture of DBS, SGX, Standard Chartered and Temasek."
+    source_url: https://links.sgx.com/1.0.0/corporate-announcements/87136S2Z8FGAWSKJ/701899_DBS_706A_announcement_2H21.pdf
+    quote: "DBSH refers to its announcement released on 20 May 2021 relating to the intention of DBS Bank, Singapore Exchange Limited (“SGX”), Standard Chartered Bank (Singapore) Limited and Temasek to develop a carbon exchange and marketplace."
+  - id: nets-owners
+    name: NETS shareholder banks
+    kind: consortium
+    members: [dbs, ocbc, uob]
+    detail: "DBS, OCBC and UOB own NETS in equal shares and rotate its chairmanship every three years; BCS sits inside the NETS Group."
+    source_url: https://www.nets.com.sg/newsroom/nets-appoints-jeremy-soo-dbs-managing-director-and-head-of-consumer-banking-group-as-new-chairman
+    quote: "The Chairmanship of NETS is rotated among the three shareholder banks, DBS, OCBC and UOB every three years."
+  - id: mas-abs-act
+    name: MAS-ABS AI-Driven Cyber and Technology Risk Taskforce (ACT)
+    kind: taskforce
+    members: [mas, abs, dbs, ocbc, uob, sgx, nets, bcs]
+    detail: "Industry taskforce announced on 28 July 2026, meeting since May 2026, on cyber and technology risks from frontier AI models."
+    source_url: https://www.mas.gov.sg/news/media-releases/2026/mas-and-abs-establish-taskforce-to-strengthen-cyber-and-technology-resilience
+    quote: "The Taskforce includes members from MAS, ABS, DBS, OCBC, UOB, Singapore Exchange (SGX), Network for Electronic Transfers (NETS), and Banking Computer Services (BCS), to address emerging AI-driven threats through collaboration, innovation and shared expertise."
+  - id: cosmic
+    name: COSMIC (Collaborative Sharing of ML/TF Information & Cases)
+    kind: platform
+    members: [mas, dbs, ocbc, uob, citibank, hsbc, standard-chartered]
+    detail: "MAS AML/CFT information-sharing platform launched 1 April 2024, co-developed with six banks that are its initial participants."
+    source_url: https://www.mas.gov.sg/news/media-releases/2024/mas-launches-cosmic-platform
+    quote: "COSMIC was co-developed by MAS and six major commercial banks in Singapore - DBS, OCBC, UOB, Citibank, HSBC and Standard Chartered Bank."
+  - id: project-guardian
+    name: Project Guardian
+    kind: platform
+    members: [mas, dbs, ocbc, uob, sgx, citibank, hsbc, jpmorgan, standard-chartered, deutsche-bank]
+    detail: "MAS asset tokenisation initiative; its industry group had 24 financial institutions in 2024, also including ADDX, Apollo, BNY, Euroclear, Franklin Templeton, Moody's, S&P Global, SBI, Schroders, T. Rowe Price and UBS."
+    source_url: https://www.mas.gov.sg/-/media/mas/news/media-releases/2024/annex-a--list-of-participants-in-project-guardian-industry-group.pdf
+    quote: "The table below provides the list of financial institutions participating in Project Guardian."
+  - id: global-layer-one
+    name: Global Layer One (GL1)
+    kind: platform
+    members: [mas, citibank, jpmorgan]
+    detail: "MAS-led shared ledger initiative for tokenised assets with BNY, Citi, J.P. Morgan, MUFG and SG Forge; ECB, Banque de France and IMF staff observe. DBS, OCBC and UOB are not named."
+    source_url: https://www.mas.gov.sg/news/media-releases/2024/mas-expands-industry-collaboration-to-scale-asset-tokenisation-for-financial-services
+    quote: "Under the GL1 initiative, MAS is collaborating with international policymakers and financial institutions including BNY, Citi, J.P. Morgan, MUFG Bank, Ltd., and Societe Generale-FORGE (SG Forge) on the business, governance, risk, legal and technology considerations of a shared ledger infrastructure."
+  - id: project-orchid
+    name: Project Orchid (purpose-bound money trials)
+    kind: platform
+    members: [mas, dbs, ocbc, uob]
+    detail: "MAS digital Singapore dollar project; in 2022 DBS, OCBC and UOB each ran a purpose-bound money trial with a government agency."
+    source_url: https://www.mas.gov.sg/news/media-releases/2022/mas-report-on-potential-uses-of-a-purpose-bound-digital-singapore-dollar
+    quote: "Government Payouts : OCBC Ltd (OCBC) and the Central Provident Fund Board (CPFB) will test the use of PBM for funds disbursement from government agencies, without requiring recipients to have a bank account."
+  - id: nexus-global-payments
+    name: Project Nexus / Nexus Global Payments
+    kind: consortium
+    members: [mas, bnm, rbi, bsp, bank-of-thailand, bank-indonesia]
+    detail: "Singapore-incorporated company set up by five central banks in 2025 to run a multilateral instant cross-border payment scheme; Bank Indonesia joined in early 2026 (reported)."
+    source_url: https://www.bot.or.th/en/news-and-media/news/news-20250403.html
+    quote: "The first mover central bank partners in Project Nexus - Reserve Bank of India, Bank Negara Malaysia, Bangko Sentral ng Pilipinas, the Monetary Authority of Singapore, and Bank of Thailand – have formally incorporated Nexus Global Payments (NGP) in Singapore to operationalise and manage the multilateral instant cross-border payments scheme."
+  - id: sti
+    name: Straits Times Index
+    kind: index
+    members: [dbs, ocbc, uob, sgx]
+    detail: "Tracked constituents and weights at 30 Sep 2026: DBS 29.77%, OCBC 19.57%, UOB 9.79%, SGX 3.49%; the three banks are almost 60% of the index. SGX also co-created the index series with SPH and FTSE."
+    source_url: https://research.ftserussell.com/Analytics/FactSheets/Home/DownloadSingleIssue?issueName=STI&IsManual=False
+    quote: "It is also the headline index of the FTSE ST Index Series, a family of indices created by Singapore Press Holdings (SPH), Singapore Exchange (SGX) and FTSE Group (FTSE), offering a wider set of investment choices and opportunities by segmenting the Singapore market."
+  - id: mas-dsib
+    name: MAS domestic systemically important banks
+    kind: association
+    members: [dbs, ocbc, uob, citibank, maybank, standard-chartered, hsbc]
+    detail: "Banks MAS designated as D-SIBs in its inaugural 2015 list; they face higher capital requirements and are the subject of MAS stress tests. This is a regulatory designation, not a voluntary association."
+    source_url: https://www.mas.gov.sg/news/media-releases/2015/mas-publishes-framework-for-domestic-systemically-important-banks-in-singapore
+    quote: "MAS has designated the following banking groups as D-SIBs: DBS Bank; Oversea-Chinese Banking Corporation; United Overseas Bank; Citibank; Malayan Banking Berhad; Standard Chartered Bank; and The Hongkong and Shanghai Banking Corporation."
+
+new_entities:
+  # subsidiaries and associates
+  - {id: dbs-hong-kong, name: DBS Bank (Hong Kong) Limited, kind: bank, country: hong-kong, aliases: [DBS Hong Kong, DBS HK]}
+  - {id: dbs-china, name: DBS Bank (China) Limited, kind: bank, country: china, aliases: [DBS China]}
+  - {id: dbs-taiwan, name: DBS Bank (Taiwan) Limited, kind: bank, country: taiwan, aliases: [DBS Taiwan]}
+  - {id: dbs-indonesia, name: PT Bank DBS Indonesia, kind: bank, country: indonesia, aliases: [DBS Indonesia]}
+  - {id: dbs-india, name: DBS Bank India Limited, kind: bank, country: india, aliases: [DBS India, DBIL, Lakshmi Vilas Bank]}
+  - {id: dbs-digital-exchange, name: DBS Digital Exchange Pte. Ltd., kind: exchange, country: singapore, aliases: [DDEx, DBS Digital Exchange]}
+  - {id: shenzhen-rural-commercial-bank, name: Shenzhen Rural Commercial Bank Corporation Limited, kind: bank, country: china, aliases: [SRCB, Shenzhen Rural Commercial Bank]}
+  - {id: bank-of-singapore, name: Bank of Singapore Limited, kind: bank, country: singapore, aliases: [BOS]}
+  - {id: ocbc-malaysia, name: OCBC Bank (Malaysia) Berhad, kind: bank, country: malaysia, aliases: [OCBC Malaysia]}
+  - {id: ocbc-indonesia, name: PT Bank OCBC NISP Tbk, kind: bank, country: indonesia, aliases: [OCBC NISP, Bank OCBC NISP, OCBC Indonesia, NISP]}
+  - {id: ocbc-hong-kong, name: OCBC Bank (Hong Kong) Limited, kind: bank, country: hong-kong, aliases: [OCBC Hong Kong, OCBC Wing Hang, Wing Hang Bank]}
+  - {id: ocbc-china, name: OCBC Bank Limited (China), kind: bank, country: china, aliases: [OCBC China, OCBC Wing Hang China]}
+  - {id: ocbc-macau, name: OCBC Bank (Macau) Limited, kind: bank, country: macau, aliases: [OCBC Macau]}
+  - {id: bank-of-ningbo, name: Bank of Ningbo Co., Ltd., kind: bank, country: china, aliases: [BON, Ningbo Bank]}
+  - {id: uob-malaysia, name: United Overseas Bank (Malaysia) Bhd, kind: bank, country: malaysia, aliases: [UOB Malaysia]}
+  - {id: uob-thailand, name: United Overseas Bank (Thai) Public Company Limited, kind: bank, country: thailand, aliases: [UOB Thailand, UOB Thai, UOBT]}
+  - {id: uob-indonesia, name: PT Bank UOB Indonesia, kind: bank, country: indonesia, aliases: [UOB Indonesia]}
+  - {id: uob-china, name: United Overseas Bank (China) Limited, kind: bank, country: china, aliases: [UOB China]}
+  - {id: uob-vietnam, name: United Overseas Bank (Vietnam) Limited, kind: bank, country: vietnam, aliases: [UOB Vietnam]}
+  - {id: uob-kay-hian, name: UOB-Kay Hian Holdings Limited, kind: broker, country: singapore, aliases: [UOB Kay Hian, UOBKH]}
+  # shareholders
+  - {id: temasek, name: Temasek Holdings (Private) Limited, kind: investor, country: singapore, aliases: [Temasek, Maju Holdings]}
+  - {id: selat, name: Selat (Pte) Limited, kind: investor, country: singapore, aliases: [Selat, Herald Investment]}
+  - {id: lee-foundation, name: Lee Foundation, kind: investor, country: singapore, aliases: []}
+  - {id: wee-investments, name: Wee Investments (Pte) Limited, kind: investor, country: singapore, aliases: [Wee Investments]}
+  - {id: wah-hin, name: Wah Hin and Company Private Limited, kind: investor, country: singapore, aliases: [Wah Hin, Lien Ying Chow Private Limited]}
+  - {id: wee-ee-cheong, name: Wee Ee Cheong, kind: person, country: singapore, aliases: []}
+  - {id: sel-holdings, name: SEL Holdings Pte Ltd, kind: investor, country: singapore, aliases: [SEL, Financial Sector Development Fund, FSDF]}
+  # other firms appearing in groups
+  - {id: jpmorgan, name: J.P. Morgan, kind: bank, country: united-states, aliases: [JPMorgan Chase, JP Morgan, JPM]}
+  - {id: standard-chartered, name: Standard Chartered, kind: bank, country: united-kingdom, aliases: [StanChart, SCB, Standard Chartered Bank (Singapore)]}
+  - {id: hsbc, name: HSBC, kind: bank, country: united-kingdom, aliases: [The Hongkong and Shanghai Banking Corporation]}
+  - {id: deutsche-bank, name: Deutsche Bank, kind: bank, country: germany, aliases: []}
+  # ventures, platforms, groups
+  - {id: partior, name: Partior, kind: consortium, country: singapore, aliases: [Partior Holdings, Partior Pte. Ltd.]}
+  - {id: climate-impact-x, name: Climate Impact X, kind: consortium, country: singapore, aliases: [CIX, Verified Impact Exchange Holdings, VIEH]}
+  - {id: nets-owners, name: NETS shareholder banks, kind: consortium, country: singapore, aliases: []}
+  - {id: mas-abs-act, name: AI-Driven Cyber and Technology Risk Taskforce, kind: taskforce, country: singapore, aliases: [ACT]}
+  - {id: cosmic, name: COSMIC, kind: platform, country: singapore, aliases: [Collaborative Sharing of ML/TF Information & Cases]}
+  - {id: project-guardian, name: Project Guardian, kind: platform, country: singapore, aliases: [Guardian]}
+  - {id: global-layer-one, name: Global Layer One, kind: platform, country: singapore, aliases: [GL1]}
+  - {id: project-orchid, name: Project Orchid, kind: platform, country: singapore, aliases: [Purpose Bound Money, PBM]}
+  - {id: nexus-global-payments, name: Nexus Global Payments, kind: consortium, country: singapore, aliases: [Project Nexus, NGP, Nexus]}
+  - {id: sti, name: Straits Times Index, kind: index, country: singapore, aliases: [STI, FTSE ST Index]}
+  - {id: mas-dsib, name: MAS D-SIB list, kind: association, country: singapore, aliases: [D-SIB, domestic systemically important banks]}
+  - {id: abs, name: The Association of Banks in Singapore, kind: association, country: singapore, aliases: [ABS]}
+  # regulators and central banks
+  - {id: ojk, name: Otoritas Jasa Keuangan, kind: regulator, country: indonesia, aliases: [OJK, Indonesian Financial Services Authority]}
+  - {id: bank-indonesia, name: Bank Indonesia, kind: central-bank, country: indonesia, aliases: [BI]}
+  - {id: bank-of-thailand, name: Bank of Thailand, kind: central-bank, country: thailand, aliases: [BOT]}
+  - {id: rbi, name: Reserve Bank of India, kind: central-bank, country: india, aliases: [RBI]}
+  - {id: state-bank-of-vietnam, name: State Bank of Vietnam, kind: central-bank, country: vietnam, aliases: [SBV]}
+  - {id: bsp, name: Bangko Sentral ng Pilipinas, kind: central-bank, country: philippines, aliases: [BSP]}
+  # countries and territories
+  - {id: hong-kong, name: Hong Kong SAR, kind: country, country: hong-kong, aliases: [Hong Kong, HK]}
+  - {id: china, name: Mainland China, kind: country, country: china, aliases: [China, PRC, "People's Republic of China"]}
+  - {id: taiwan, name: Taiwan, kind: country, country: taiwan, aliases: []}
+  - {id: india, name: India, kind: country, country: india, aliases: []}
+  - {id: macau, name: Macau SAR, kind: country, country: macau, aliases: [Macao]}

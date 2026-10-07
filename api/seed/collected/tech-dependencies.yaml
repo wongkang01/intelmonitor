@@ -1,0 +1,3299 @@
+# Technology and infrastructure dependencies of Singapore financial institutions.
+#
+# Purpose: standing links "FI X depends on vendor or system Y", stored once, so that any
+# future news naming Y (a vendor, payment system or cloud region) can be routed to X as a
+# possible indirect impact. Built for the TCRD scenario "a major cloud or payment provider
+# has just reported an outage: which Singapore FIs should we worry about?".
+# Collected 2026-10-07 from free public sources only. Every public or reported row was
+# checked against the source page text; quotes are verbatim (whitespace normalised).
+#
+# Schema
+#   relationships:            one row per (from, to, type)
+#     from, to                entity ids (see new_entities and the shared id list)
+#     type                    depends_on | participates_in | owns | operates_in
+#                             participates_in = member or participant of a payment system,
+#                             card scheme or market infrastructure (complete lists where the
+#                             operator publishes one); operates_in = vendor region in a country
+#     detail                  one plain sentence; group-level links say so
+#     service                 cloud | data_centre | security | telco | core_banking | payments
+#                             | print_mail | market_infrastructure
+#     evidence                public = primary or reputable source states it;
+#                             reported = secondary source only; assumed = industry norm, no source
+#     source_url, source_title, published (source date or null), quote (verbatim, or null if assumed)
+#   incidents:                short list of past incidents cited as evidence for links above
+#     id, date, vendor, summary, affected [ids], impact, mas_action (or null),
+#     source_url, source_title, quote
+#   new_entities:             ids used here that are not in the shared id list
+#     id, name, kind (bank | insurer | tech_provider | market_infrastructure | agency | country), aliases
+#
+# Notes
+#   - PayNow participants on abs.org.sg are shown as logos; each row names the logo's link.
+#   - Group-level cloud deals (Citi, HSBC, Standard Chartered, Maybank) are mapped to the
+#     Singapore entity; the detail says the deal is group-level.
+#   - Cloud region rows quote adjacent cells of the vendor's region table, joined by spaces.
+#   - participates_in swift rows for GIRO banks come from the BIC column of the ABS list of
+#     participating GIRO banks; the BIC is named in the detail.
+#   - Complete lists: FAST (ABS fact sheet 7 Jul 2026), PayNow (ABS page), MEPS+ direct
+#     participants (MAS, as of 26 Jun 2026), Interbank GIRO and eGIRO (ABS), NETS debit banks.
+#     SGX-DC clearing members date from SGX's 2010 OTC clearing launch and are not a current list.
+
+relationships:
+- from: anext-bank
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("Anext Bank Pte Ltd").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Anext Bank Pte Ltd
+- from: anz-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("Australia and New Zealand Banking Group Ltd").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Australia and New Zealand Banking Group Ltd
+- from: bank-of-china
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("Bank of China Limited Singapore Branch").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Bank of China Limited Singapore Branch
+- from: bnp-paribas-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("BNP Paribas Singapore Branch").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: BNP Paribas Singapore Branch
+- from: cimb-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("CIMB Bank Berhad").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: CIMB Bank Berhad
+- from: citibank
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("Citibank Singapore Limited"); Citibank N.A., Singapore Branch is listed separately as well.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Citibank Singapore Limited
+- from: dbs
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("DBS Bank Ltd / POSB Bank Ltd.").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: DBS Bank Ltd / POSB Bank Ltd.
+- from: deutsche-bank-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("Deutsche Bank").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Deutsche Bank
+- from: green-link-digital-bank
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("Green Link Digital Bank Pte Ltd").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Green Link Digital Bank Pte Ltd
+- from: gxs-bank
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("GXS Bank Pte Ltd").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: GXS Bank Pte Ltd
+- from: hl-bank
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("HL Bank").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: HL Bank
+- from: hong-leong-finance
+  to: fast
+  type: participates_in
+  detail: 'Listed by ABS as a FAST participating bank ("Hong Leong Finance Limited [Effective Date: 27 Aug 2026]"); listed with effect from 27 Aug 2026.'
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: 'Hong Leong Finance Limited [Effective Date: 27 Aug 2026]'
+- from: hsbc-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("HSBC Bank (Singapore) Limited"); the HSBC branch is listed separately as "HSBC".
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: HSBC Bank (Singapore) Limited
+- from: icici-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("ICICI Bank Limited Singapore").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: ICICI Bank Limited Singapore
+- from: icbc-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("Industrial and Commercial Bank of China Limited").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Industrial and Commercial Bank of China Limited
+- from: jpmorgan-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("JPMorgan Chase Bank, N.A.").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: JPMorgan Chase Bank, N.A.
+- from: maribank
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("MariBank Singapore Private Limited").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: MariBank Singapore Private Limited
+- from: maybank
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("Maybank Singapore Limited"); Malayan Banking Berhad is listed separately as well.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Maybank Singapore Limited
+- from: mizuho-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("Mizuho Bank Ltd").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Mizuho Bank Ltd
+- from: mufg-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("MUFG Bank, Ltd").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: MUFG Bank, Ltd
+- from: ocbc
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("OCBC Bank").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: OCBC Bank
+- from: rhb-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("RHB Bank Singapore").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: RHB Bank Singapore
+- from: standard-chartered-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("Standard Chartered Bank (Singapore) Limited").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Standard Chartered Bank (Singapore) Limited
+- from: sing-investments-finance
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("Sing Investments & Finance Limited").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Sing Investments & Finance Limited
+- from: sbi-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("State Bank of India").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: State Bank of India
+- from: smbc-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("Sumitomo Mitsui Banking Corporation").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Sumitomo Mitsui Banking Corporation
+- from: bank-of-east-asia-singapore
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("The Bank of East Asia Ltd").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: The Bank of East Asia Ltd
+- from: trust-bank
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("Trust Bank Singapore Limited").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Trust Bank Singapore Limited
+- from: uob
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participating bank ("United Overseas Bank").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: United Overseas Bank
+- from: grabpay
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participant non-bank financial institution ("GPay Network (S) Pte Ltd").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: GPay Network (S) Pte Ltd
+- from: liquid-group
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participant non-bank financial institution ("Liquid Group Pte Ltd").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Liquid Group Pte Ltd
+- from: matchmove
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participant non-bank financial institution ("MatchMove Pay Pte Ltd").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: MatchMove Pay Pte Ltd
+- from: nium
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participant non-bank financial institution ("NIUM Pte Ltd").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: NIUM Pte Ltd
+- from: singcash
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participant non-bank financial institution ("SingCash Pte Ltd").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: SingCash Pte Ltd
+- from: wise-asia-pacific
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participant non-bank financial institution ("Wise Asia-Pacific Pte. Ltd.").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Wise Asia-Pacific Pte. Ltd.
+- from: xfers
+  to: fast
+  type: participates_in
+  detail: Listed by ABS as a FAST participant non-bank financial institution ("Xfers Pte Ltd").
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-07-07-fast-fact-sheet.pdf
+  source_title: Fast And Secure Transfers - Fact Sheet (ABS, last update 7 Jul 2026)
+  published: 2026-07-07
+  quote: Xfers Pte Ltd
+- from: anext-bank
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.anext.com.sg/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: anz-singapore
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.anz.com/institutional/global/singapore/en/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: bnp-paribas-singapore
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://apac.bnpparibas/en/singapore/paynow-corporate/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: bank-of-china
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to http://www.bankofchina.com/sg/custserv/cs6/201804/t20180426_12102708.html.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: cimb-singapore
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.cimb.com.sg/en/personal/home.html.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: citibank
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.citibank.com.sg/gcb/otherservices/payments_transfers.htm.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: dbs
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.dbs.com.sg/personal/deposits/pay-with-ease/paynow.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: deutsche-bank-singapore
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://country.db.com/singapore.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: green-link-digital-bank
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.glbank.com/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: gxs-bank
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.gxs.com.sg/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: hl-bank
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.hlbank.com.sg/en/personal-banking/hong-leong-connect/paynow.html.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: hsbc-singapore
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.hsbc.com.sg/ways-to-bank/transfers/paynow/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: icbc-singapore
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to http://www.icbc.com.sg/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: jpmorgan-singapore
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://pages-jpmcib.jpmorgan.com/2972-LP-SingaporeFASTandPayNow.html.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: maribank
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.maribank.sg/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: maybank
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.maybank2u.com.sg/en/personal/payments/local/fund-transfers/paynow.page.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: ocbc
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.ocbc.com/personal-banking/online-banking/paynow.html.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: rhb-singapore
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://rhbgroup.com.sg/personal/PayNow.html.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: sbi-singapore
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://sg.statebank/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: smbc-singapore
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.smbc.co.jp/asia/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: standard-chartered-singapore
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://www.sc.com/sg/bank-with-us/paynow/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: trust-bank
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to https://trustbank.sg/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: uob
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Banks) on the ABS PayNow page, as a logo linking to http://uob.com.sg/paynow.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: grabpay
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Major Payment Institutions) on the ABS PayNow page, as a logo linking to https://www.grab.com/sg/pay/pay-now/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: liquid-group
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Major Payment Institutions) on the ABS PayNow page, as a logo linking to https://liquidpaygroup.com/liquidpay-app/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: nium
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Major Payment Institutions) on the ABS PayNow page, as a logo linking to https://www.nium.com/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: singcash
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Major Payment Institutions) on the ABS PayNow page, as a logo linking to https://dash.com.sg/topup.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: wise-asia-pacific
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Major Payment Institutions) on the ABS PayNow page, as a logo linking to https://wise.com/.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: xfers
+  to: paynow
+  type: participates_in
+  detail: Shown under PayNow Participants (Major Payment Institutions) on the ABS PayNow page, as a logo linking to https://www.xfers.com/sg.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: You can find the list of participating institutions under PayNow Participants.
+- from: paynow
+  to: fast
+  type: depends_on
+  detail: PayNow transfers are settled through FAST.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: PayNow offers an enhanced funds transfer experience that enables retail customers of the participating banks and major payment institutions (MPI) to send and receive Singapore Dollar funds from one bank or e-wallet account to another in Singapore through FAST by using just their mobile number, Singapore NRIC/FIN, or Virtual Payment Address (VPA), instantly.
+- from: paynow
+  to: bcs
+  type: depends_on
+  detail: BCS is the Singapore system operator of PayNow, named by ABS for the PayNow-PromptPay linkage.
+  service: payments
+  evidence: public
+  source_url: https://www.abs.org.sg/consumer-banking/pay-now
+  source_title: PayNow Singapore (The Association of Banks in Singapore)
+  published: null
+  quote: The PPPN linkage, launched in April 2021, connects the fast payment systems of Singapore and Thailand (PayNow and PromptPay, respectively) through cross-border gateways built and operated by both countries’ systems operators (BCS and ITMX, respectively).
+- from: fast
+  to: bcs
+  type: depends_on
+  detail: NETS Group, through its subsidiary BCS, operates the FAST, eGIRO, Inter-bank GIRO and PayNow services.
+  service: payments
+  evidence: public
+  source_url: https://www.nets.com.sg/about-nets/
+  source_title: About NETS Group
+  published: null
+  quote: At NETS Group, we manage and operate the clearing and payment infrastructure for the Singapore Clearing House Association as well as the core electronic transfer services of FAST, eGIRO, Inter-bank GIRO and PayNow.
+- from: nets
+  to: bcs
+  type: owns
+  detail: BCS is a NETS subsidiary within NETS Group.
+  service: payments
+  evidence: public
+  source_url: https://www.nets.com.sg/about-nets/
+  source_title: About NETS Group
+  published: null
+  quote: Banking Computer Services Private Limited (BCS), a NETS subsidiary company.
+- from: dbs
+  to: nets
+  type: owns
+  detail: NETS is equally owned by DBS, OCBC and UOB, which NETS describes as Singapore's three largest banks.
+  service: payments
+  evidence: public
+  source_url: https://www.nets.com.sg/about-nets/
+  source_title: About NETS Group
+  published: null
+  quote: Equally owned by Singapore’s three largest banks
+- from: ocbc
+  to: nets
+  type: owns
+  detail: NETS is equally owned by DBS, OCBC and UOB, which NETS describes as Singapore's three largest banks.
+  service: payments
+  evidence: public
+  source_url: https://www.nets.com.sg/about-nets/
+  source_title: About NETS Group
+  published: null
+  quote: Equally owned by Singapore’s three largest banks
+- from: uob
+  to: nets
+  type: owns
+  detail: NETS is equally owned by DBS, OCBC and UOB, which NETS describes as Singapore's three largest banks.
+  service: payments
+  evidence: public
+  source_url: https://www.nets.com.sg/about-nets/
+  source_title: About NETS Group
+  published: null
+  quote: Equally owned by Singapore’s three largest banks
+- from: dbs
+  to: nets
+  type: participates_in
+  detail: Participating bank in the NETS national debit (EFTPOS) scheme; its ATM cards work at NETS terminals.
+  service: payments
+  evidence: public
+  source_url: https://www.nets.com.sg/about-nets/
+  source_title: About NETS Group
+  published: null
+  quote: NETS operates Singapore’s national debit scheme that enables customers of major banks to make payments with physical or contactless ATM cards as well as mobile devices. The participating banks include DBS Bank/POSB, HSBC, Maybank, OCBC Bank, Standard Chartered Bank and UOB.
+- from: hsbc-singapore
+  to: nets
+  type: participates_in
+  detail: Participating bank in the NETS national debit (EFTPOS) scheme; its ATM cards work at NETS terminals.
+  service: payments
+  evidence: public
+  source_url: https://www.nets.com.sg/about-nets/
+  source_title: About NETS Group
+  published: null
+  quote: NETS operates Singapore’s national debit scheme that enables customers of major banks to make payments with physical or contactless ATM cards as well as mobile devices. The participating banks include DBS Bank/POSB, HSBC, Maybank, OCBC Bank, Standard Chartered Bank and UOB.
+- from: maybank
+  to: nets
+  type: participates_in
+  detail: Participating bank in the NETS national debit (EFTPOS) scheme; its ATM cards work at NETS terminals.
+  service: payments
+  evidence: public
+  source_url: https://www.nets.com.sg/about-nets/
+  source_title: About NETS Group
+  published: null
+  quote: NETS operates Singapore’s national debit scheme that enables customers of major banks to make payments with physical or contactless ATM cards as well as mobile devices. The participating banks include DBS Bank/POSB, HSBC, Maybank, OCBC Bank, Standard Chartered Bank and UOB.
+- from: ocbc
+  to: nets
+  type: participates_in
+  detail: Participating bank in the NETS national debit (EFTPOS) scheme; its ATM cards work at NETS terminals.
+  service: payments
+  evidence: public
+  source_url: https://www.nets.com.sg/about-nets/
+  source_title: About NETS Group
+  published: null
+  quote: NETS operates Singapore’s national debit scheme that enables customers of major banks to make payments with physical or contactless ATM cards as well as mobile devices. The participating banks include DBS Bank/POSB, HSBC, Maybank, OCBC Bank, Standard Chartered Bank and UOB.
+- from: standard-chartered-singapore
+  to: nets
+  type: participates_in
+  detail: Participating bank in the NETS national debit (EFTPOS) scheme; its ATM cards work at NETS terminals.
+  service: payments
+  evidence: public
+  source_url: https://www.nets.com.sg/about-nets/
+  source_title: About NETS Group
+  published: null
+  quote: NETS operates Singapore’s national debit scheme that enables customers of major banks to make payments with physical or contactless ATM cards as well as mobile devices. The participating banks include DBS Bank/POSB, HSBC, Maybank, OCBC Bank, Standard Chartered Bank and UOB.
+- from: uob
+  to: nets
+  type: participates_in
+  detail: Participating bank in the NETS national debit (EFTPOS) scheme; its ATM cards work at NETS terminals.
+  service: payments
+  evidence: public
+  source_url: https://www.nets.com.sg/about-nets/
+  source_title: About NETS Group
+  published: null
+  quote: NETS operates Singapore’s national debit scheme that enables customers of major banks to make payments with physical or contactless ATM cards as well as mobile devices. The participating banks include DBS Bank/POSB, HSBC, Maybank, OCBC Bank, Standard Chartered Bank and UOB.
+- from: dbs
+  to: aws
+  type: depends_on
+  detail: DBS signed an agreement to run part of its compute workload on AWS in a hybrid cloud, starting with Treasury and Markets pricing.
+  service: cloud
+  evidence: public
+  source_url: https://www.dbs.com/newsroom/DBS_to_leverage_Amazon_Web_Services_Cloud
+  source_title: DBS to leverage Amazon Web Services Cloud
+  published: 2016-07-27
+  quote: The bank said today it has signed an agreement with leading infrastructure provider, Amazon Web Services (AWS), to leverage its cloud technology.
+- from: dbs
+  to: microsoft-365
+  type: depends_on
+  detail: DBS moved its workforce to Microsoft's cloud productivity suite Office 365.
+  service: cloud
+  evidence: public
+  source_url: https://www.dbs.com/newsroom/DBS_first_Singapore_bank_to_adopt_cloud_based_productivity_technology_in_the_workplace
+  source_title: DBS – first Singapore bank to adopt cloud-based productivity technology in the workplace
+  published: 2016-06-27
+  quote: The bank is the first Singapore bank to adopt cloud-based productivity technology, Office 365, in the workplace, enabling its employees to change the way they work, as well as make a leap forward in terms of mobility, efficiency and productivity.
+- from: dbs
+  to: equinix
+  type: depends_on
+  detail: DBS partnered Equinix to run its main Singapore data centre as a cloud-optimised centre; the 14 Oct 2023 Equinix cooling failure took DBS services down.
+  service: data_centre
+  evidence: public
+  source_url: https://theasianbanker.com/press-releases/dbs-launches-new-cloud-based-data-centre
+  source_title: DBS launches new cloud-based data centre (The Asian Banker press release)
+  published: 2017-11-13
+  quote: DBS Bank announced a partnership with data centre provider, Equinix, to transform one of its traditional data centres in Singapore into a cloud-optimised centre.
+- from: citibank
+  to: equinix
+  type: depends_on
+  detail: MAS said the 14 Oct 2023 DBS and Citibank outages came from a common data centre used by both banks, which Mothership identified as Equinix.
+  service: data_centre
+  evidence: reported
+  source_url: https://mothership.sg/2023/10/mas-dbs-citibank-outage-prelim-investigation/
+  source_title: Technical issue heated up data centre, disrupted DBS & Citibank's banking services (Mothership)
+  published: 2023-10-15
+  quote: The data centre in question is Equinix.
+- from: citibank
+  to: google-cloud
+  type: depends_on
+  detail: Citi group-wide agreement to migrate multiple workloads and applications to Google Cloud; Citibank Singapore is a Citi entity.
+  service: cloud
+  evidence: public
+  source_url: https://www.citigroup.com/global/news/press-release/2024/citi-and-google-cloud-announce-strategic-agreement
+  source_title: Citi and Google Cloud Announce Strategic Agreement to Modernize Citi’s Technology Infrastructure and Drive Innovation
+  published: 2024-10-28
+  quote: Through the collaboration, Citi will migrate multiple workloads and applications to Google Cloud's secure and scalable infrastructure.
+- from: hsbc-singapore
+  to: aws
+  type: depends_on
+  detail: HSBC group selected AWS as a long-term strategic cloud provider across its lines of business; group-level, not Singapore-specific.
+  service: cloud
+  evidence: public
+  source_url: https://press.aboutamazon.com/2020/7/aws-and-hsbc-reach-long-term-strategic-cloud-agreement
+  source_title: AWS and HSBC Reach Long-Term Strategic Cloud Agreement
+  published: 2020-07-15
+  quote: 'Today, Amazon Web Services (AWS), an Amazon.com company (NASDAQ: AMZN), announced that HSBC Holdings plc (NYSE: HSBC) has selected AWS as a key, long-term strategic cloud provider to drive their digital transformation and deliver new and personalized banking services.'
+- from: hsbc-singapore
+  to: google-cloud
+  type: depends_on
+  detail: HSBC group runs more than 600 applications on Google Cloud; group-level, not Singapore-specific.
+  service: cloud
+  evidence: public
+  source_url: https://www.hsbc.com/news-and-views/news/media-releases/2026/hsbc-and-google-cloud-announce-transformative-ai-banking-partnership
+  source_title: HSBC and Google Cloud announce transformative AI banking partnership
+  published: 2026-06-17
+  quote: This is on top of an existing footprint of more than 600 HSBC applications already running on Google Cloud.
+- from: standard-chartered-singapore
+  to: microsoft-azure
+  type: depends_on
+  detail: Standard Chartered group uses Microsoft Azure as a preferred cloud platform, starting with trade finance systems; group-level.
+  service: cloud
+  evidence: reported
+  source_url: https://fintechnews.sg/42700/fintech/standard-chartered-partners-with-microsoft-to-become-a-cloud-first-bank/
+  source_title: Standard Chartered Partners With Microsoft to Become a Cloud-First Bank (Fintech Singapore)
+  published: 2020-08-11
+  quote: The first set of capabilities to move to Microsoft Azure will be Standard Chartered’s trade finance systems, allowing for seamless cross-border trade for the bank’s corporate and institutional clients.
+- from: standard-chartered-singapore
+  to: thought-machine
+  type: depends_on
+  detail: Thought Machine lists Standard Chartered Bank as a core banking client; group-level, deployment market not stated.
+  service: core_banking
+  evidence: public
+  source_url: https://www.thoughtmachine.net/press-releases/trustbank
+  source_title: Trust Bank selects Thought Machine to power the first of Singapore's new wave of digital banks
+  published: 2022-11-30
+  quote: Thought Machine’s client list now includes Lloyds Banking Group, Standard Chartered Bank, Al Rajhi Bank Malaysia, HD Bank, Intesa Sanpaolo, Lunar, and Atom bank, among others around the world.
+- from: maybank
+  to: microsoft-azure
+  type: depends_on
+  detail: Maybank group adopts Microsoft Azure as a main cloud platform for strategic systems across ASEAN; group-level.
+  service: cloud
+  evidence: public
+  source_url: https://www.maybank.com/en/news/2025/08/05/maybank-microsoft-digital-ai-partnership.page
+  source_title: Maybank Forges Strategic Partnership with Microsoft to Accelerate Digital Transformation and AI-Driven Innovation
+  published: 2025-08-05
+  quote: At the heart of this partnership, Maybank will adopt Microsoft Azure as one of the main cloud platforms for some of its most strategic systems, functions and data workloads.
+- from: ocbc
+  to: microsoft-azure
+  type: depends_on
+  detail: OCBC built its staff generative AI chatbot (OCBC GPT) in its private Microsoft Azure environment.
+  service: cloud
+  evidence: public
+  source_url: https://news.microsoft.com/source/asia/features/ocbcs-new-generative-ai-chatbot-is-boosting-the-banks-productivity-across-departments-and-locations/
+  source_title: OCBC’s new generative AI chatbot is boosting the bank’s productivity across departments and locations (Microsoft Source Asia)
+  published: 2023-11-08
+  quote: OCBC built the chatbot in its private Microsoft Azure environment, which provides access to OpenAI’s models, including ChatGPT, along with Azure’s infrastructure and security.
+- from: ocbc
+  to: oracle-cloud
+  type: depends_on
+  detail: OCBC runs its global finance platform on Oracle Fusion Cloud ERP.
+  service: cloud
+  evidence: public
+  source_url: https://www.oracle.com/sg/news/announcement/ocbc-unifies-global-finance-with-oracle-fusion-cloud-erp-2025-03-13/
+  source_title: OCBC Unifies Global Finance with Oracle Fusion Cloud ERP
+  published: 2025-03-13
+  quote: With Oracle Cloud ERP, OCBC has unified its global finance platform to increase efficiency and enhance decision-making, as it continues to strengthen its ASEAN-Greater China network.
+- from: uob
+  to: aws
+  type: depends_on
+  detail: UOB runs VMware Cloud on AWS as part of its hybrid infrastructure.
+  service: cloud
+  evidence: reported
+  source_url: https://www.frontier-enterprise.com/uob-adopts-vmware-cloud-on-aws-for-hybrid-infrastructure/
+  source_title: UOB adopts VMware Cloud on AWS for hybrid infrastructure (Frontier Enterprise)
+  published: 2019-04-23
+  quote: VMware has announced that United Overseas Bank Limited (UOB) is the first organisation in Southeast Asia to adopt VMware Cloud on AWS.
+- from: trust-bank
+  to: aws
+  type: depends_on
+  detail: Trust Bank built its infrastructure on AWS (Amazon EKS and Amazon RDS).
+  service: cloud
+  evidence: public
+  source_url: https://aws.amazon.com/solutions/case-studies/trust-bank-video-case-study
+  source_title: Trust Bank delivers an innovative user experience to its customers (AWS case study)
+  published: null
+  quote: To create market differentiation and value for its customers, Trust Bank built its infrastructure on Amazon Web Services (AWS) using
+- from: trust-bank
+  to: google-cloud
+  type: depends_on
+  detail: Trust Bank uses Google Cloud's Apigee as its primary application channel for all mobile app and partner API traffic.
+  service: cloud
+  evidence: public
+  source_url: https://cloud.google.com/customers/trust-bank
+  source_title: 'Trust Bank: Building a digital banking ecosystem for Singapore with Apigee (Google Cloud case study)'
+  published: null
+  quote: An enabler of this growth has been the deployment of Apigee as its primary application channel, which manages all API traffic from the mobile app and various merchant partners or software vendors.
+- from: trust-bank
+  to: thought-machine
+  type: depends_on
+  detail: Trust Bank runs on Thought Machine's Vault Core core banking platform.
+  service: core_banking
+  evidence: public
+  source_url: https://www.thoughtmachine.net/press-releases/trustbank
+  source_title: Trust Bank selects Thought Machine to power the first of Singapore's new wave of digital banks
+  published: 2022-11-30
+  quote: Thought Machine, the cloud-native banking technology company, today announces it is powering Trust Bank, the first of Singapore’s cloud-native digital banks.
+- from: gxs-bank
+  to: aws
+  type: depends_on
+  detail: Grab runs its digibanks in Singapore, Malaysia and Indonesia, which include GXS Bank, on AWS.
+  service: cloud
+  evidence: reported
+  source_url: https://www.intelligentcio.com/apac/2025/01/14/superapp-grab-selects-aws-as-its-preferred-cloud-provider-to-drive-technology-innovation-and-growth/
+  source_title: Superapp Grab selects AWS as its preferred cloud provider to drive technology innovation and growth (Intelligent CIO APAC)
+  published: 2025-01-14
+  quote: As Grab looks to balance growth with cost discipline, it is using AWS Cloud to power the majority of its operations in Southeast Asia across verticals such as mobility, deliveries, and financial services and entities, including its digibanks in Indonesia, Malaysia, and Singapore.
+- from: singtel
+  to: gxs-bank
+  type: owns
+  detail: GXS Bank is backed by a Grab and Singtel consortium.
+  service: telco
+  evidence: public
+  source_url: https://www.gxs.com.sg/about-us
+  source_title: About GXS Bank
+  published: null
+  quote: It is backed by a consortium consisting of Grab Holdings Inc. - Southeast Asia’s leading super app, and Singtel - Asia’s leading communications technology group.
+- from: grab
+  to: gxs-bank
+  type: owns
+  detail: GXS Bank is backed by a Grab and Singtel consortium.
+  service: cloud
+  evidence: public
+  source_url: https://www.gxs.com.sg/about-us
+  source_title: About GXS Bank
+  published: null
+  quote: It is backed by a consortium consisting of Grab Holdings Inc. - Southeast Asia’s leading super app, and Singtel - Asia’s leading communications technology group.
+- from: great-eastern
+  to: oracle-cloud
+  type: depends_on
+  detail: Great Eastern runs its core databases on Oracle Exadata Cloud@Customer in its own data centres.
+  service: cloud
+  evidence: public
+  source_url: https://www.oracle.com/sg/news/announcement/great-eastern-selects-oracle-exadata-cloud-2024-04-16/
+  source_title: Great Eastern Selects Oracle Exadata Cloud@Customer to Meet Increased Customer Demand
+  published: 2024-04-16
+  quote: Great Eastern, the largest and most established life insurance group in Singapore and Malaysia, has migrated over 200 terabytes of data from 300 on-premises Oracle databases to Oracle Autonomous Database on Oracle Exadata Cloud@Customer in their data centers.
+- from: singlife
+  to: aws
+  type: depends_on
+  detail: Singlife moved more than 90% of its computing to AWS and exited its own data centres.
+  service: cloud
+  evidence: public
+  source_url: https://singlife.com/en/about-us/newsroom/2024/singlife-completes-all-in-migration-to-aws
+  source_title: Singlife Completes All-In Migration to AWS
+  published: 2024-06-05
+  quote: Leading homegrown financial services company, Singlife, has completed its cloud migration by moving more than 90 percent of its computational processes to cloud with Amazon Web Services (AWS).
+- from: julius-baer-singapore
+  to: temenos
+  type: depends_on
+  detail: Julius Baer's Singapore division runs on Temenos WealthSuite core banking.
+  service: core_banking
+  evidence: reported
+  source_url: https://wealthbriefingasia.com/printarticle.php?id=179561
+  source_title: 'Digital Digest: The Latest Tech News - Temenos (WealthBriefingAsia)'
+  published: 2018-05-28
+  quote: The Switzerland-headquartered banking technology house said that Julius Baer’s divisions in Singapore and Hong Kong have completed the migration to Temenos WealthSuite.
+- from: cdp
+  to: crowdstrike
+  type: depends_on
+  detail: SGX's Central Depository suffered a five-hour operational failure from the 19 Jul 2024 CrowdStrike faulty update.
+  service: security
+  evidence: reported
+  source_url: https://www.risk.net/risk-quantum/7960688/sgx-suffered-five-hour-op-failure-from-crowdstrike-outage
+  source_title: SGX suffered five-hour op failure from CrowdStrike outage (Risk.net)
+  published: 2025-01-08
+  quote: SGX-CDP, one of the two clearing arms of the Singapore Exchange, was hit by an operational failure lasting five hours and six minutes in the third quarter, stemming from a global CrowdStrike software outage on July 19, 2024.
+- from: dbs
+  to: singtel
+  type: depends_on
+  detail: DBS customer care hotlines went down in the 8 Oct 2024 Singtel fixed voice outage; DBS said its telco provider had the issue.
+  service: telco
+  evidence: reported
+  source_url: https://mothership.sg/2024/10/singtel-service-outage/
+  source_title: Singtel landline down for many, 999 & 995 emergency hotlines affected (Mothership)
+  published: 2024-10-08
+  quote: DBS stated on its app that it was informed by its telco provider it is experiencing an "industry-wide technical issue that is impacting its customer care hotlines".
+- from: uob
+  to: singtel
+  type: depends_on
+  detail: UOB warned customers of a telco service disruption during the 8 Oct 2024 Singtel fixed voice outage.
+  service: telco
+  evidence: reported
+  source_url: https://mothership.sg/2024/10/singtel-service-outage/
+  source_title: Singtel landline down for many, 999 & 995 emergency hotlines affected (Mothership)
+  published: 2024-10-08
+  quote: UOB and Standard Chartered also informed customers of a similar "telco service disruption" on their apps.
+- from: standard-chartered-singapore
+  to: singtel
+  type: depends_on
+  detail: Standard Chartered warned customers of a telco service disruption during the 8 Oct 2024 Singtel fixed voice outage.
+  service: telco
+  evidence: reported
+  source_url: https://mothership.sg/2024/10/singtel-service-outage/
+  source_title: Singtel landline down for many, 999 & 995 emergency hotlines affected (Mothership)
+  published: 2024-10-08
+  quote: UOB and Standard Chartered also informed customers of a similar "telco service disruption" on their apps.
+- from: dbs
+  to: toppan-next-tech
+  type: depends_on
+  detail: Toppan Next Tech printed and mailed DBS customer statements; its April 2025 ransomware attack exposed DBS customer data.
+  service: print_mail
+  evidence: public
+  source_url: https://www.mas.gov.sg/news/media-releases/2025/ransomware-attack-on-toppan-next-tech
+  source_title: Ransomware Attack on Toppan Next Tech (MAS and CSA joint media release)
+  published: 2025-04-07
+  quote: The attack has led to customer information from DBS Bank and Bank of China Limited, Singapore branch, being extracted by the threat actor.
+- from: bank-of-china
+  to: toppan-next-tech
+  type: depends_on
+  detail: Toppan Next Tech printed and mailed Bank of China Singapore customer letters; its April 2025 ransomware attack exposed that data.
+  service: print_mail
+  evidence: public
+  source_url: https://www.mas.gov.sg/news/media-releases/2025/ransomware-attack-on-toppan-next-tech
+  source_title: Ransomware Attack on Toppan Next Tech (MAS and CSA joint media release)
+  published: 2025-04-07
+  quote: The attack has led to customer information from DBS Bank and Bank of China Limited, Singapore branch, being extracted by the threat actor.
+- from: income-insurance
+  to: datapost
+  type: depends_on
+  detail: DataPost prints and mails some Income Insurance policyholder documents.
+  service: print_mail
+  evidence: public
+  source_url: https://www.income.com.sg/about-us/corporate-information/press-releases/income-insurance-made-aware-of-dataposts-ransomwa
+  source_title: Income Insurance made aware of DataPost’s ransomware incident, affecting policyholders’ annual bonus statements
+  published: 2025-05-29
+  quote: Income Insurance was alerted on Sunday, 25 May 2025, of a ransomware incident involving one of its third-party service providers, DataPost Pte Ltd (“DataPost”), which is responsible for the printing and mailing of some of its policyholders’ documents.
+- from: anext-bank
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Anext Bank Pte. Ltd.").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Anext Bank Pte. Ltd.
+- from: anz-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Australia And New Zealand Banking Group Limited").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Australia And New Zealand Banking Group Limited
+- from: bangkok-bank-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Bangkok Bank PCL").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Bangkok Bank PCL
+- from: santander-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Banco Santander S.A.").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Banco Santander S.A.
+- from: bank-of-america-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Bank Of America NA").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Bank Of America NA
+- from: bank-of-china
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Bank Of China Ltd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Bank Of China Ltd
+- from: bank-of-east-asia-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Bank Of East Asia Ltd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Bank Of East Asia Ltd
+- from: bank-of-india-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Bank Of India").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Bank Of India
+- from: bank-of-taiwan-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Bank Of Taiwan").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Bank Of Taiwan
+- from: barclays-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Barclays Bank Plc").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Barclays Bank Plc
+- from: bnp-paribas-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("BNP Paribas").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: BNP Paribas
+- from: cathay-united-bank-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Cathay United Bank").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Cathay United Bank
+- from: cdp
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Central Depository (Pte) Ltd").
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Central Depository (Pte) Ltd
+- from: ccb-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("China Construction Bank").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: China Construction Bank
+- from: cimb-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("CIMB Bank BHD").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: CIMB Bank BHD
+- from: citibank
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Citibank Singapore Limited"; "Citibank NA" is listed too).
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Citibank Singapore Limited
+- from: cls-bank
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("CLS Bank International").
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: CLS Bank International
+- from: commerzbank-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Commerzbank Aktiengesellschaft").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Commerzbank Aktiengesellschaft
+- from: credit-agricole-cib-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Credit Agricole CIB, Singapore").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Credit Agricole CIB, Singapore
+- from: cic-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Credit Industriel Et Commercial").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Credit Industriel Et Commercial
+- from: ctbc-bank-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("CTBC Bank Co., Ltd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: CTBC Bank Co., Ltd
+- from: dbs
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("DBS Bank Ltd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: DBS Bank Ltd
+- from: deutsche-bank-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Deutsche Bank AG").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Deutsche Bank AG
+- from: first-abu-dhabi-bank-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("First Abu Dhabi Bank P.J.S.C.").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: First Abu Dhabi Bank P.J.S.C.
+- from: first-commercial-bank-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("First Commercial Bank, Ltd.").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: First Commercial Bank, Ltd.
+- from: green-link-digital-bank
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Green Link Digital Bank Pte Ltd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Green Link Digital Bank Pte Ltd
+- from: gxs-bank
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("GXS Bank Pte Ltd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: GXS Bank Pte Ltd
+- from: habib-bank-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Habib Bank Ltd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Habib Bank Ltd
+- from: hl-bank
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("HL Bank").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: HL Bank
+- from: hsbc-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("HSBC Bank (Singapore) Limited"; "Hongkong And Shanghai Bkg Corp Ltd" is listed too).
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: HSBC Bank (Singapore) Limited
+- from: hong-leong-finance
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Hong Leong Finance Limited").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Hong Leong Finance Limited
+- from: icici-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("ICICI Bank Ltd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: ICICI Bank Ltd
+- from: indian-bank-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Indian Bank").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Indian Bank
+- from: indian-overseas-bank-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Indian Overseas Bank").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Indian Overseas Bank
+- from: icbc-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Industrial And Comm Bk Of China").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Industrial And Comm Bk Of China
+- from: ing-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("ING Bank NV").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: ING Bank NV
+- from: jpmorgan-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("JPMorgan Chase Bank NA").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: JPMorgan Chase Bank NA
+- from: keb-hana-bank-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("KEB Hana Bank").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: KEB Hana Bank
+- from: lch
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("LCH Limited").
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: LCH Limited
+- from: maybank
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Maybank Singapore Limited"; "Malayan Banking BHD" is listed too).
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Maybank Singapore Limited
+- from: maribank
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("MariBank Singapore Private Limited").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: MariBank Singapore Private Limited
+- from: mega-bank-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Mega International Commercial Bk Co").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Mega International Commercial Bk Co
+- from: mizuho-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Mizuho Bank Limited").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Mizuho Bank Limited
+- from: mufg-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("MUFG Bank Ltd, Singapore Branch").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: MUFG Bank Ltd, Singapore Branch
+- from: natixis-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Natixis").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Natixis
+- from: ocbc
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Oversea-Chinese Bkg Corp Ltd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Oversea-Chinese Bkg Corp Ltd
+- from: bni-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("PT Bank Negara Indonesia (Persero)").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: PT Bank Negara Indonesia (Persero)
+- from: rhb-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("RHB Bank Bhd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: RHB Bank Bhd
+- from: rbc-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Royal Bank Of Canada").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Royal Bank Of Canada
+- from: sgx-dc
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("SGX Derivatives Clearing Limited").
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: SGX Derivatives Clearing Limited
+- from: spdb-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Shanghai Pudong Development Bank Co., Ltd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Shanghai Pudong Development Bank Co., Ltd
+- from: sing-investments-finance
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Sing Investments And Finance Ltd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Sing Investments And Finance Ltd
+- from: seb-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Skandinaviska Enskilda Banken Ab").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Skandinaviska Enskilda Banken Ab
+- from: standard-chartered-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Standard Chartered Bank (S) Ltd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Standard Chartered Bank (S) Ltd
+- from: sbi-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("State Bank Of India").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: State Bank Of India
+- from: smbc-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Sumitomo Mitsui Banking Corp").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Sumitomo Mitsui Banking Corp
+- from: trust-bank
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("Trust Bank Singapore Limited").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: Trust Bank Singapore Limited
+- from: ubs-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("UBS AG").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: UBS AG
+- from: uco-bank-singapore
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("UCO Bank").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: UCO Bank
+- from: uob
+  to: meps-plus
+  type: participates_in
+  detail: Listed by MAS as a direct participant of MEPS+, the SGD real-time gross settlement system ("United Overseas Bank Ltd").
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: United Overseas Bank Ltd
+- from: sgx
+  to: sgx-dc
+  type: owns
+  detail: SGX Derivatives Clearing (SGX-DC), SGX's derivatives clearing house, is a 100% SGX subsidiary per SGX's legal entity chart.
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.cftc.gov/ucm/groups/public/@otherif/documents/ifdocs/eice7a-1-3corporatestructureo.pdf
+  source_title: SGX corporate structure chart, filed with the CFTC (printed 4 Oct 2011)
+  published: 2011-10-04
+  quote: '* - Direct 100% consolidation with SGX'
+- from: aws
+  to: singapore
+  type: operates_in
+  detail: AWS Asia Pacific (Singapore) region, id ap-southeast-1
+  service: cloud
+  evidence: public
+  source_url: https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-regions.html
+  source_title: AWS Regions - AWS Global Infrastructure
+  published: null
+  quote: ap-southeast-1 Asia Pacific (Singapore)
+- from: microsoft-azure
+  to: singapore
+  type: operates_in
+  detail: Azure Southeast Asia region is located in Singapore, programmatic name southeastasia
+  service: cloud
+  evidence: public
+  source_url: https://learn.microsoft.com/en-us/azure/reliability/regions-list
+  source_title: List of Azure regions - Microsoft Learn
+  published: null
+  quote: Southeast Asia 3 East Asia Singapore Asia Pacific southeastasia
+- from: google-cloud
+  to: singapore
+  type: operates_in
+  detail: Google Cloud region asia-southeast1 is in Jurong West, Singapore
+  service: cloud
+  evidence: public
+  source_url: https://cloud.google.com/compute/docs/regions-zones
+  source_title: Regions and zones - Compute Engine - Google Cloud
+  published: null
+  quote: asia-southeast1-a Jurong West, Singapore, APAC
+- from: oracle-cloud
+  to: singapore
+  type: operates_in
+  detail: Oracle Cloud region Singapore, id ap-singapore-1
+  service: cloud
+  evidence: public
+  source_url: https://docs.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm
+  source_title: Regions and Availability Domains - Oracle Cloud Infrastructure Documentation
+  published: null
+  quote: Singapore (Singapore) ap-singapore-1 Singapore,Singapore SIN
+- from: oracle-cloud
+  to: singapore
+  type: operates_in
+  detail: Oracle Cloud region Singapore West, id ap-singapore-2
+  service: cloud
+  evidence: public
+  source_url: https://docs.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm
+  source_title: Regions and Availability Domains - Oracle Cloud Infrastructure Documentation
+  published: null
+  quote: Singapore West (Singapore) ap-singapore-2 Singapore,Singapore XSP
+- from: alibaba-cloud
+  to: singapore
+  type: operates_in
+  detail: Alibaba Cloud Singapore region, id ap-southeast-1
+  service: cloud
+  evidence: public
+  source_url: https://www.alibabacloud.com/help/en/cloud-migration-guide-for-beginners/latest/regions-and-zones
+  source_title: Regions and zones - Alibaba Cloud
+  published: null
+  quote: Singapore ap-southeast-1 4 Singapore Zone A ap-southeast-1a
+- from: meps-plus
+  to: mas
+  type: depends_on
+  detail: MEPS+ is owned and operated by MAS
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.mas.gov.sg/-/media/mas/singapore-financial-centre/why-singapore/meps/references/mepsplus-pfmi-disclosure-2024.pdf
+  source_title: MEPS+ Principles for Financial Market Infrastructures Disclosure 2024
+  published: 2024-11-01
+  quote: It is owned and operated by the MAS. Participants of the system include commercial banks and financial market infrastructures (“FMIs”).
+- from: meps-plus
+  to: swift
+  type: depends_on
+  detail: MEPS+ uses the SWIFT network and messaging as its messaging backbone
+  service: payments
+  evidence: public
+  source_url: https://www.mas.gov.sg/-/media/mas/singapore-financial-centre/why-singapore/meps/references/mepsplus-pfmi-disclosure-2024.pdf
+  source_title: MEPS+ Principles for Financial Market Infrastructures Disclosure 2024
+  published: 2024-11-01
+  quote: It utilises the SWIFT network, SWIFT services and MT messaging standards as its messaging backbone.
+- from: sgx
+  to: meps-plus
+  type: participates_in
+  detail: SGX Derivatives Clearing, the SGX derivatives clearing house, is a direct participant of MEPS+
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.mas.gov.sg/regulation/payments/meps
+  source_title: MAS Electronic Payment System (MEPS+)
+  published: 2026-06-26
+  quote: SGX Derivatives Clearing Limited
+- from: dbs
+  to: swift
+  type: participates_in
+  detail: DBS publishes its SWIFT code DBSSSGSG for receiving overseas funds
+  service: payments
+  evidence: public
+  source_url: https://www.dbs.com.sg/personal/support/bank-receive-funds-from-others.html
+  source_title: Receive Funds from Others - DBS Singapore
+  published: null
+  quote: 'SWIFT Address/Code: DBSSSGSG'
+- from: ocbc
+  to: swift
+  type: participates_in
+  detail: OCBC publishes its SWIFT code OCBCSGSG for inward telegraphic transfers
+  service: payments
+  evidence: public
+  source_url: https://www.ocbc.com/personal-banking/digital-banking/sg-bank-account.page
+  source_title: Open a Singapore Bank Account Online - OCBC
+  published: null
+  quote: 'For overseas transfer, you can transfer funds via telegraphic transfer and input your new bank account details. Do ensure to input our SWIFT code: OCBCSGSG'
+- from: uob
+  to: swift
+  type: participates_in
+  detail: UOB publishes its SWIFT BIC UOVBSGSG for inward payments
+  service: payments
+  evidence: public
+  source_url: https://www.uob.com.sg/personal/customer-service/payments-and-transactions.page
+  source_title: Payment and Transactions - UOB Singapore
+  published: null
+  quote: 'Beneficiary Bank: United Overseas Bank Limited Singapore (SWIFT BIC: UOVBSGSG)'
+- from: dbs
+  to: visa
+  type: participates_in
+  detail: DBS issues a Visa debit card in Singapore
+  service: payments
+  evidence: public
+  source_url: https://www.dbs.com.sg/personal/cards/debit-cards/dbs-visa-debit-card
+  source_title: DBS Visa Debit Card - Your Multi-Currency Card
+  published: null
+  quote: DBS Visa Debit Card - Your Multi-Currency Card
+- from: dbs
+  to: mastercard
+  type: participates_in
+  detail: DBS and POSB issue Mastercard credit and debit cards
+  service: payments
+  evidence: public
+  source_url: https://www.dbs.com.sg/iwov-resources/media/pdf/cards/promotions/mastercard-travel/dbs-posb-mtr-faq.pdf
+  source_title: DBS/POSB Mastercard Travel Rewards Program FAQ
+  published: 2024-01-01
+  quote: Mastercard Travel Rewards offers DBS/POSB Mastercard credit and debit cardmembers access to a range
+- from: ocbc
+  to: mastercard
+  type: participates_in
+  detail: OCBC issues the OCBC 90N Mastercard credit card
+  service: payments
+  evidence: public
+  source_url: https://www.ocbc.com/personal-banking/cards/90-degrees-travel-credit-card
+  source_title: OCBC 90N Card
+  published: null
+  quote: Apply for the OCBC 90°N Mastercard and enjoy exclusive travel rewards when you shop from over 400 overseas merchants.
+- from: ocbc
+  to: visa
+  type: participates_in
+  detail: OCBC issues the OCBC Premier Visa Infinite credit card
+  service: payments
+  evidence: public
+  source_url: https://www.ocbc.com/personal-banking/cards/credit-card
+  source_title: OCBC Credit Cards Singapore
+  published: null
+  quote: For OCBC VOYAGE Card and OCBC Premier Visa Infinite Credit Card, please refer to the respective page for their annual income requirement.
+- from: uob
+  to: visa
+  type: participates_in
+  detail: UOB issues the UOB One Debit Visa Card
+  service: payments
+  evidence: public
+  source_url: https://www.uob.com.sg/web-resources/personal/pdf/personal/save/chequeing/one-account/uob-one-account-card-spend.pdf
+  source_title: UOB One Account FAQ on bonus interest earned on eligible card spend
+  published: null
+  quote: UOB One Debit Visa Card
+- from: uob
+  to: mastercard
+  type: participates_in
+  detail: UOB issues the UOB One Debit Mastercard and the KrisFlyer UOB Debit Mastercard
+  service: payments
+  evidence: public
+  source_url: https://www.uob.com.sg/web-resources/personal/pdf/personal/save/chequeing/one-account/uob-one-account-card-spend.pdf
+  source_title: UOB One Account FAQ on bonus interest earned on eligible card spend
+  published: null
+  quote: UOB One Debit Mastercard
+- from: trust-bank
+  to: visa
+  type: participates_in
+  detail: Trust Bank credit cards run on the Visa network
+  service: payments
+  evidence: public
+  source_url: https://trustbank.sg/legal/trust-freedom-credit-card-product-terms/
+  source_title: Trust Freedom Credit Card Product Terms
+  published: null
+  quote: Your use of your credit card will be subject to Visa’s legal terms.
+- from: gxs-bank
+  to: mastercard
+  type: participates_in
+  detail: The GXS FlexiCard is a Mastercard card
+  service: payments
+  evidence: public
+  source_url: https://help.gxs.com.sg/GXS_FlexiCard/GXS_FlexiCard_Fees_and_Charges/How_are_exchange_rates_determined_for_transactions_in_foreign_currencies_on_my_GXS_FlexiCard%3F
+  source_title: How are exchange rates determined for transactions in foreign currencies on my GXS FlexiCard? - GXS Help Centre
+  published: null
+  quote: When you make a transaction in a foreign currency with your GXS FlexiCard, it will be converted into Singapore dollars by Mastercard using their prevailing exchange rates.
+- from: maribank
+  to: mastercard
+  type: participates_in
+  detail: The Mari Credit Card is a Mastercard card
+  service: payments
+  evidence: public
+  source_url: https://www.maribank.sg/blog/mari-credit-card-overseas
+  source_title: 'Using Mari Credit Card Overseas: Fees, Benefits, and Travel Tips for you'
+  published: null
+  quote: Simply look for the familiar Mastercard logo – Mari Credit Card can be used wherever Mastercard is accepted.
+- from: citibank
+  to: mastercard
+  type: participates_in
+  detail: Citibank Singapore issues Mastercard credit and debit cards
+  service: payments
+  evidence: public
+  source_url: https://www.citibank.com.sg/credit-cards/
+  source_title: Citibank Singapore Credit Cards
+  published: null
+  quote: Activate your Citibank Debit Mastercard
+- from: citibank
+  to: visa
+  type: participates_in
+  detail: Citibank Singapore card transactions are processed by Visa or Mastercard
+  service: payments
+  evidence: public
+  source_url: https://www.citibank.com.sg/credit-cards/
+  source_title: Citibank Singapore Credit Cards
+  published: null
+  quote: A 1% administrative fee may be charged by VISA/MasterCard on the converted Singapore dollar amount for such transactions.
+- from: hsbc-singapore
+  to: mastercard
+  type: participates_in
+  detail: HSBC Singapore issues the HSBC Premier Mastercard
+  service: payments
+  evidence: public
+  source_url: https://www.hsbc.com.sg/credit-cards/
+  source_title: Credit Cards - HSBC SG
+  published: null
+  quote: Apply now for HSBC Premier Mastercard
+- from: hsbc-singapore
+  to: visa
+  type: participates_in
+  detail: HSBC Singapore issues the HSBC Visa Infinite credit card
+  service: payments
+  evidence: public
+  source_url: https://www.hsbc.com.sg/credit-cards/products/visa-infinite/
+  source_title: HSBC Visa Infinite Credit Card - HSBC SG
+  published: null
+  quote: From dedicated concierge service to exclusive retail and travel benefits, our HSBC Visa Infinite Credit Card brings you perks and services tailored to your every need - wherever you may be.
+- from: standard-chartered-singapore
+  to: mastercard
+  type: participates_in
+  detail: Standard Chartered Singapore issues the Bonus$aver World Mastercard
+  service: payments
+  evidence: public
+  source_url: https://www.sc.com/sg/credit-cards/
+  source_title: Credit Cards - Standard Chartered Singapore
+  published: null
+  quote: Get S$228 cashback when you sign up for a Bonus$aver Account and a Bonus$aver World Mastercard Credit Card.
+- from: standard-chartered-singapore
+  to: visa
+  type: participates_in
+  detail: Standard Chartered Singapore issues Visa credit cards
+  service: payments
+  evidence: public
+  source_url: https://www.sc.com/sg/credit-cards/
+  source_title: Credit Cards - Standard Chartered Singapore
+  published: null
+  quote: Prudential Visa Signature Card
+- from: sgx
+  to: cdp
+  type: owns
+  detail: SGX directly and fully owns The Central Depository (Pte) Limited (CDP)
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.cftc.gov/ucm/groups/public/@otherif/documents/ifdocs/eice7a-1-3corporatestructureo.pdf
+  source_title: SGX corporate structure chart, filed with the CFTC (printed 4 Oct 2011)
+  published: 2011-10-04
+  quote: '* - Direct 100% consolidation with SGX'
+- from: sgx
+  to: nasdaq
+  type: depends_on
+  detail: SGX derivatives trading and clearing (SGX TITAN) runs on Nasdaq Genium INET, and Nasdaq supports SGX securities and derivatives systems
+  service: market_infrastructure
+  evidence: public
+  source_url: https://links.sgx.com/1.0.0/corporate-announcements/WFW605CIGDBSUTIZ/8cac1d929b5b252801c74f85246ed80716b04d628b72035b8cd071173a36f2ee
+  source_title: SGX next-generation derivatives trading and clearing platform to use Nasdaq technology
+  published: 2014-12-29
+  quote: The core trading and clearing systems are based on Nasdaq s Genium INET solution, with rollout scheduled towards the end of calendar year 2016.
+- from: anext-bank
+  to: giro
+  type: participates_in
+  detail: Anext Bank Pte. Ltd. is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id001 2026-04-29
+  quote: Anext Bank Pte. Ltd. ANTPSGSG
+- from: anz-singapore
+  to: giro
+  type: participates_in
+  detail: Australia & New Zealand Banking Group Ltd is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id002 2026-04-29
+  quote: Australia & New Zealand Banking Group Ltd ANZBSGSX
+- from: bangkok-bank-singapore
+  to: giro
+  type: participates_in
+  detail: Bangkok Bank Public Company Ltd is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id003 2026-04-29
+  quote: Bangkok Bank Public Company Ltd BKKBSGSG
+- from: bank-of-america-singapore
+  to: giro
+  type: participates_in
+  detail: Bank of America, NA is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id004 2026-04-29
+  quote: Bank of America, NA BOFASG2X
+- from: bank-of-china
+  to: giro
+  type: participates_in
+  detail: Bank of China Limited is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id005 2026-04-29
+  quote: Bank of China Limited BKCHSGSG
+- from: bank-of-india-singapore
+  to: giro
+  type: participates_in
+  detail: Bank of India is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id006 2026-04-29
+  quote: Bank of India BKIDSGSG
+- from: bnp-paribas-singapore
+  to: giro
+  type: participates_in
+  detail: BNP Paribas is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id007 2026-04-29
+  quote: BNP Paribas BNPASGSG
+- from: cimb-singapore
+  to: giro
+  type: participates_in
+  detail: CIMB Bank Berhad is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id008 2026-04-29
+  quote: CIMB Bank Berhad CIBBSGSG
+- from: citibank
+  to: giro
+  type: participates_in
+  detail: Citibank Singapore Limited is a participating bank in Interbank GIRO. Citibank NA (CITISGSG) is listed separately as well.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id009 2026-04-29
+  quote: Citibank Singapore Limited CITISGSL
+- from: commerzbank-singapore
+  to: giro
+  type: participates_in
+  detail: Commerzbank AG is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id010 2026-04-29
+  quote: Commerzbank AG COBASGSX
+- from: credit-agricole-cib-singapore
+  to: giro
+  type: participates_in
+  detail: Credit Agricole Corporate & Investment Bank is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id011 2026-04-29
+  quote: Credit Agricole Corporate & Investment Bank CRLYSGSG
+- from: ctbc-bank-singapore
+  to: giro
+  type: participates_in
+  detail: CTBC Bank Co., Ltd is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id012 2026-04-29
+  quote: CTBC Bank Co., Ltd CTCBSGSG
+- from: dbs
+  to: giro
+  type: participates_in
+  detail: DBS Bank Ltd is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: 2026-04-29
+  quote: DBS Bank Ltd DBSSSGSG
+- from: deutsche-bank-singapore
+  to: giro
+  type: participates_in
+  detail: Deutsche Bank AG is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id013 2026-04-29
+  quote: Deutsche Bank AG DEUTSGSG
+- from: first-commercial-bank-singapore
+  to: giro
+  type: participates_in
+  detail: First Commercial Bank, Ltd. is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id014 2026-04-29
+  quote: First Commercial Bank, Ltd. FCBKSGSG
+- from: gxs-bank
+  to: giro
+  type: participates_in
+  detail: GXS Bank Pte. Ltd. is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id015 2026-04-29
+  quote: GXS Bank Pte. Ltd. GXSPSGSG
+- from: hl-bank
+  to: giro
+  type: participates_in
+  detail: HL Bank is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id016 2026-04-29
+  quote: HL Bank HLBBSGSG
+- from: hsbc-singapore
+  to: giro
+  type: participates_in
+  detail: HSBC BANK (Singapore) Limited is a participating bank in Interbank GIRO. The Hongkong & Shanghai Banking Corporation Ltd branch (HSBCSGSG) is listed separately as well.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id017 2026-04-29
+  quote: HSBC BANK (Singapore) Limited HSBCSGS2
+- from: icici-singapore
+  to: giro
+  type: participates_in
+  detail: ICICI Bank Ltd is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id018 2026-04-29
+  quote: ICICI Bank Ltd ICICSGSG
+- from: indian-bank-singapore
+  to: giro
+  type: participates_in
+  detail: Indian Bank is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id019 2026-04-29
+  quote: Indian Bank IDIBSGSG
+- from: indian-overseas-bank-singapore
+  to: giro
+  type: participates_in
+  detail: Indian Overseas Bank is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id020 2026-04-29
+  quote: Indian Overseas Bank IOBASGSG
+- from: icbc-singapore
+  to: giro
+  type: participates_in
+  detail: Industrial & Commercial Bank of China Limited is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id021 2026-04-29
+  quote: Industrial & Commercial Bank of China Limited ICBKSGSG
+- from: intesa-sanpaolo-singapore
+  to: giro
+  type: participates_in
+  detail: Intesa Sanpaolo S.p.A. is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id022 2026-04-29
+  quote: Intesa Sanpaolo S.p.A. BCITSGSG
+- from: jpmorgan-singapore
+  to: giro
+  type: participates_in
+  detail: JPMorgan Chase Bank, N.A. is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id023 2026-04-29
+  quote: JPMorgan Chase Bank, N.A. CHASSGSG
+- from: keb-hana-bank-singapore
+  to: giro
+  type: participates_in
+  detail: KEB Hana Bank is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id024 2026-04-29
+  quote: KEB Hana Bank KOEXSGSG
+- from: maribank
+  to: giro
+  type: participates_in
+  detail: Maribank Singapore Private Limited is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id025 2026-04-29
+  quote: Maribank Singapore Private Limited SSPISGSG
+- from: maybank
+  to: giro
+  type: participates_in
+  detail: Maybank Singapore Limited is a participating bank in Interbank GIRO. Malayan Banking Berhad (MBBESGSG) is listed separately as well.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id026 2026-04-29
+  quote: Maybank Singapore Limited MBBESGS2
+- from: mega-bank-singapore
+  to: giro
+  type: participates_in
+  detail: Mega International Commercial Bank Co. Ltd is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id027 2026-04-29
+  quote: Mega International Commercial Bank Co. Ltd ICBCSGSG
+- from: mizuho-singapore
+  to: giro
+  type: participates_in
+  detail: Mizuho Bank, Ltd is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id028 2026-04-29
+  quote: Mizuho Bank, Ltd MHCBSGSG
+- from: mufg-singapore
+  to: giro
+  type: participates_in
+  detail: MUFG Bank, Ltd is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id029 2026-04-29
+  quote: MUFG Bank, Ltd BOTKSGSX
+- from: ocbc
+  to: giro
+  type: participates_in
+  detail: Oversea-Chinese Banking Corporation Ltd is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: 2026-04-29
+  quote: Oversea-Chinese Banking Corporation Ltd OCBCSGSG
+- from: bni-singapore
+  to: giro
+  type: participates_in
+  detail: P.T. Bank Negara Indonesia (Persero) TBK is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id030 2026-04-29
+  quote: P.T. Bank Negara Indonesia (Persero) TBK BNINSGSG
+- from: qnb-singapore
+  to: giro
+  type: participates_in
+  detail: Qatar National Bank SAQ is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id031 2026-04-29
+  quote: Qatar National Bank SAQ QNBASGSG
+- from: rhb-singapore
+  to: giro
+  type: participates_in
+  detail: RHB Bank Berhad is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id032 2026-04-29
+  quote: RHB Bank Berhad RHBBSGSG
+- from: sing-investments-finance
+  to: giro
+  type: participates_in
+  detail: Sing Investments & Finance Ltd is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id033 2026-04-29
+  quote: Sing Investments & Finance Ltd SIVFSGSG
+- from: singapura-finance
+  to: giro
+  type: participates_in
+  detail: Singapura Finance Ltd is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id034 2026-04-29
+  quote: Singapura Finance Ltd SIEISGS1
+- from: seb-singapore
+  to: giro
+  type: participates_in
+  detail: Skandinaviska Enskilda Banken AB (publ) is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id035 2026-04-29
+  quote: Skandinaviska Enskilda Banken AB (publ) ESSESGSG
+- from: societe-generale-singapore
+  to: giro
+  type: participates_in
+  detail: Societe Generale is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id036 2026-04-29
+  quote: Societe Generale SOGESGSG
+- from: standard-chartered-singapore
+  to: giro
+  type: participates_in
+  detail: Standard Chartered Bank (Singapore) Limited is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id037 2026-04-29
+  quote: Standard Chartered Bank (Singapore) Limited SCBLSG22
+- from: sbi-singapore
+  to: giro
+  type: participates_in
+  detail: State Bank of India is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id038 2026-04-29
+  quote: State Bank of India SBINSGSG
+- from: smbc-singapore
+  to: giro
+  type: participates_in
+  detail: Sumitomo Mitsui Banking Corporation is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id039 2026-04-29
+  quote: Sumitomo Mitsui Banking Corporation SMBCSGSG
+- from: bank-of-east-asia-singapore
+  to: giro
+  type: participates_in
+  detail: The Bank of East Asia Ltd is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id040 2026-04-29
+  quote: The Bank of East Asia Ltd BEASSGSG
+- from: trust-bank
+  to: giro
+  type: participates_in
+  detail: Trust Bank Singapore Limited is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id041 2026-04-29
+  quote: Trust Bank Singapore Limited TRBUSGSG
+- from: ubs-singapore
+  to: giro
+  type: participates_in
+  detail: UBS AG is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id042 2026-04-29
+  quote: UBS AG UBSWSGSG
+- from: uco-bank-singapore
+  to: giro
+  type: participates_in
+  detail: UCO Bank is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: &id043 2026-04-29
+  quote: UCO Bank UCBASGSG
+- from: uob
+  to: giro
+  type: participates_in
+  detail: United Overseas Bank Ltd is a participating bank in Interbank GIRO.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: 2026-04-29
+  quote: United Overseas Bank Ltd UOVBSGSG
+- from: giro
+  to: bcs
+  type: depends_on
+  detail: Interbank GIRO runs on clearing infrastructure operated by NETS Group, whose payments-infrastructure arm is Banking Computer Services (BCS).
+  service: payments
+  evidence: public
+  source_url: https://www.nets.com.sg/about-nets/
+  source_title: About NETS, NETS Group
+  published: null
+  quote: At NETS Group, we manage and operate the clearing and payment infrastructure for the Singapore Clearing House Association as well as the core electronic transfer services of FAST, eGIRO, Inter-bank GIRO and PayNow.
+- from: bank-of-china
+  to: egiro
+  type: participates_in
+  detail: Bank of China Limited is an eGIRO participating bank.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-06-09_egiro-participating-banks.pdf?sfvrsn=5922d96f_1
+  source_title: eGIRO Participating Banks (list updated as of 9 June 2026), Association of Banks in Singapore
+  published: 2026-06-09
+  quote: 1. Bank of China Limited
+- from: citibank
+  to: egiro
+  type: participates_in
+  detail: Citibank Singapore Limited is an eGIRO participating bank. Retail customers only.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-06-09_egiro-participating-banks.pdf?sfvrsn=5922d96f_1
+  source_title: eGIRO Participating Banks (list updated as of 9 June 2026), Association of Banks in Singapore
+  published: 2026-06-09
+  quote: 2. Citibank Singapore Limited
+- from: cimb-singapore
+  to: egiro
+  type: participates_in
+  detail: CIMB Bank Berhad is an eGIRO participating bank.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-06-09_egiro-participating-banks.pdf?sfvrsn=5922d96f_1
+  source_title: eGIRO Participating Banks (list updated as of 9 June 2026), Association of Banks in Singapore
+  published: 2026-06-09
+  quote: 3. CIMB Bank Berhad
+- from: dbs
+  to: egiro
+  type: participates_in
+  detail: DBS Bank Limited is an eGIRO participating bank.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-06-09_egiro-participating-banks.pdf?sfvrsn=5922d96f_1
+  source_title: eGIRO Participating Banks (list updated as of 9 June 2026), Association of Banks in Singapore
+  published: 2026-06-09
+  quote: 4. DBS Bank Limited
+- from: icbc-singapore
+  to: egiro
+  type: participates_in
+  detail: Industrial and Commercial Bank of China Limited is an eGIRO participating bank.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-06-09_egiro-participating-banks.pdf?sfvrsn=5922d96f_1
+  source_title: eGIRO Participating Banks (list updated as of 9 June 2026), Association of Banks in Singapore
+  published: 2026-06-09
+  quote: 5. Industrial and Commercial Bank of China Limited
+- from: jpmorgan-singapore
+  to: egiro
+  type: participates_in
+  detail: JPMorgan Chase Bank, N.A. is an eGIRO participating bank. Billing organisations only.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-06-09_egiro-participating-banks.pdf?sfvrsn=5922d96f_1
+  source_title: eGIRO Participating Banks (list updated as of 9 June 2026), Association of Banks in Singapore
+  published: 2026-06-09
+  quote: 6. JPMorgan Chase Bank, N.A.
+- from: maribank
+  to: egiro
+  type: participates_in
+  detail: MariBank Singapore Private Limited is an eGIRO participating bank.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-06-09_egiro-participating-banks.pdf?sfvrsn=5922d96f_1
+  source_title: eGIRO Participating Banks (list updated as of 9 June 2026), Association of Banks in Singapore
+  published: 2026-06-09
+  quote: 7. MariBank Singapore Private Limited
+- from: maybank
+  to: egiro
+  type: participates_in
+  detail: Maybank Singapore Limited is an eGIRO participating bank.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-06-09_egiro-participating-banks.pdf?sfvrsn=5922d96f_1
+  source_title: eGIRO Participating Banks (list updated as of 9 June 2026), Association of Banks in Singapore
+  published: 2026-06-09
+  quote: 8. Maybank Singapore Limited
+- from: ocbc
+  to: egiro
+  type: participates_in
+  detail: Oversea-Chinese Banking Corporation Limited is an eGIRO participating bank.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-06-09_egiro-participating-banks.pdf?sfvrsn=5922d96f_1
+  source_title: eGIRO Participating Banks (list updated as of 9 June 2026), Association of Banks in Singapore
+  published: 2026-06-09
+  quote: 9. Oversea-Chinese Banking Corporation Limited
+- from: standard-chartered-singapore
+  to: egiro
+  type: participates_in
+  detail: Standard Chartered Bank Singapore Limited is an eGIRO participating bank. Retail customers only.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-06-09_egiro-participating-banks.pdf?sfvrsn=5922d96f_1
+  source_title: eGIRO Participating Banks (list updated as of 9 June 2026), Association of Banks in Singapore
+  published: 2026-06-09
+  quote: 10. Standard Chartered Bank Singapore Limited
+- from: hsbc-singapore
+  to: egiro
+  type: participates_in
+  detail: The Hongkong and Shanghai Banking Corporation Limited is an eGIRO participating bank. Retail customers only.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-06-09_egiro-participating-banks.pdf?sfvrsn=5922d96f_1
+  source_title: eGIRO Participating Banks (list updated as of 9 June 2026), Association of Banks in Singapore
+  published: 2026-06-09
+  quote: 11. The Hongkong and Shanghai Banking Corporation Limited
+- from: uob
+  to: egiro
+  type: participates_in
+  detail: United Overseas Bank Limited is an eGIRO participating bank.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/2026-06-09_egiro-participating-banks.pdf?sfvrsn=5922d96f_1
+  source_title: eGIRO Participating Banks (list updated as of 9 June 2026), Association of Banks in Singapore
+  published: 2026-06-09
+  quote: 12. United Overseas Bank Limited
+- from: egiro
+  to: bcs
+  type: depends_on
+  detail: The cloud-based eGIRO platform is operated by Banking Computer Services, a NETS subsidiary.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/egiro-press-release-08-november-2021.pdf
+  source_title: The Association of Banks in Singapore launches nationwide eGIRO
+  published: 2021-11-08
+  quote: The eGIRO platform, designed and implemented by Deloitte Consulting Southeast Asia, will be operated by Banking Computer Services Pte Ltd, a subsidiary of NETS.
+- from: dbs
+  to: sgx-dc
+  type: participates_in
+  detail: DBS Bank was admitted as an SGX Bank Clearing Member for OTC financial derivatives at launch in November 2010; current status not re-verified.
+  service: market_infrastructure
+  evidence: public
+  source_url: https://mondovisione.com/news/singapore-exchange-successfully-launched-otc-clearing-for-financial-derivatives-2011124/
+  source_title: Singapore Exchange Successfully Launched OTC Clearing For Financial Derivatives (Mondo Visione, SGX release)
+  published: 2010-11-15
+  quote: 'The nine banks are: Barclays Bank PLC, Citibank N.A., DBS Bank Limited, Deutsche Bank AG, The Hongkong and Shanghai Banking Corporation Limited, Oversea Chinese Banking Corporation Limited, The Royal Bank of Scotland plc, Standard Chartered Bank and United Overseas Bank Limited.'
+- from: ocbc
+  to: sgx-dc
+  type: participates_in
+  detail: OCBC Bank was admitted as an SGX Bank Clearing Member for OTC financial derivatives at launch in November 2010; current status not re-verified.
+  service: market_infrastructure
+  evidence: public
+  source_url: https://mondovisione.com/news/singapore-exchange-successfully-launched-otc-clearing-for-financial-derivatives-2011124/
+  source_title: Singapore Exchange Successfully Launched OTC Clearing For Financial Derivatives (Mondo Visione, SGX release)
+  published: 2010-11-15
+  quote: 'The nine banks are: Barclays Bank PLC, Citibank N.A., DBS Bank Limited, Deutsche Bank AG, The Hongkong and Shanghai Banking Corporation Limited, Oversea Chinese Banking Corporation Limited, The Royal Bank of Scotland plc, Standard Chartered Bank and United Overseas Bank Limited.'
+- from: uob
+  to: sgx-dc
+  type: participates_in
+  detail: UOB was admitted as an SGX Bank Clearing Member for OTC financial derivatives at launch in November 2010; current status not re-verified.
+  service: market_infrastructure
+  evidence: public
+  source_url: https://mondovisione.com/news/singapore-exchange-successfully-launched-otc-clearing-for-financial-derivatives-2011124/
+  source_title: Singapore Exchange Successfully Launched OTC Clearing For Financial Derivatives (Mondo Visione, SGX release)
+  published: 2010-11-15
+  quote: 'The nine banks are: Barclays Bank PLC, Citibank N.A., DBS Bank Limited, Deutsche Bank AG, The Hongkong and Shanghai Banking Corporation Limited, Oversea Chinese Banking Corporation Limited, The Royal Bank of Scotland plc, Standard Chartered Bank and United Overseas Bank Limited.'
+- from: citibank
+  to: sgx-dc
+  type: participates_in
+  detail: Citibank N.A. was admitted as an SGX Bank Clearing Member for OTC financial derivatives at launch in November 2010; current status not re-verified.
+  service: market_infrastructure
+  evidence: public
+  source_url: https://mondovisione.com/news/singapore-exchange-successfully-launched-otc-clearing-for-financial-derivatives-2011124/
+  source_title: Singapore Exchange Successfully Launched OTC Clearing For Financial Derivatives (Mondo Visione, SGX release)
+  published: 2010-11-15
+  quote: 'The nine banks are: Barclays Bank PLC, Citibank N.A., DBS Bank Limited, Deutsche Bank AG, The Hongkong and Shanghai Banking Corporation Limited, Oversea Chinese Banking Corporation Limited, The Royal Bank of Scotland plc, Standard Chartered Bank and United Overseas Bank Limited.'
+- from: hsbc-singapore
+  to: sgx-dc
+  type: participates_in
+  detail: The Hongkong and Shanghai Banking Corporation was admitted as an SGX Bank Clearing Member for OTC financial derivatives at launch in November 2010; current status not re-verified.
+  service: market_infrastructure
+  evidence: public
+  source_url: https://mondovisione.com/news/singapore-exchange-successfully-launched-otc-clearing-for-financial-derivatives-2011124/
+  source_title: Singapore Exchange Successfully Launched OTC Clearing For Financial Derivatives (Mondo Visione, SGX release)
+  published: 2010-11-15
+  quote: 'The nine banks are: Barclays Bank PLC, Citibank N.A., DBS Bank Limited, Deutsche Bank AG, The Hongkong and Shanghai Banking Corporation Limited, Oversea Chinese Banking Corporation Limited, The Royal Bank of Scotland plc, Standard Chartered Bank and United Overseas Bank Limited.'
+- from: standard-chartered-singapore
+  to: sgx-dc
+  type: participates_in
+  detail: Standard Chartered Bank was admitted as an SGX Bank Clearing Member for OTC financial derivatives at launch in November 2010; current status not re-verified.
+  service: market_infrastructure
+  evidence: public
+  source_url: https://mondovisione.com/news/singapore-exchange-successfully-launched-otc-clearing-for-financial-derivatives-2011124/
+  source_title: Singapore Exchange Successfully Launched OTC Clearing For Financial Derivatives (Mondo Visione, SGX release)
+  published: 2010-11-15
+  quote: 'The nine banks are: Barclays Bank PLC, Citibank N.A., DBS Bank Limited, Deutsche Bank AG, The Hongkong and Shanghai Banking Corporation Limited, Oversea Chinese Banking Corporation Limited, The Royal Bank of Scotland plc, Standard Chartered Bank and United Overseas Bank Limited.'
+- from: standard-chartered-singapore
+  to: sgx
+  type: participates_in
+  detail: Standard Chartered Securities joined the SGX securities market as a clearing and trading member in 2010.
+  service: market_infrastructure
+  evidence: reported
+  source_url: https://www.thetradenews.com/standard-chartered-joins-singapore-securities-market/
+  source_title: Standard Chartered joins Singapore securities market (The TRADE)
+  published: 2010-11-03
+  quote: Asian trading venue the Singapore Exchange (SGX) has introduced Standard Chartered Securities, a unit of the emerging markets-focused banking group, to its securities market as a clearing and trading member.
+- from: ocbc
+  to: sgx
+  type: participates_in
+  detail: OCBC Securities, a wholly owned OCBC subsidiary, is a member of SGX-ST and SGX-DT.
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.ocbc.com/group/careers/divisions/ocbc-securities.html
+  source_title: OCBC Securities, OCBC Careers
+  published: null
+  quote: OCBC Securities is a wholly owned subsidiary of OCBC Bank and a member of Singapore Exchange Securities Trading Limited (SGX-ST) and Singapore Exchange Derivatives Trading Limited (SGX-DT).
+- from: dbs
+  to: sgx
+  type: participates_in
+  detail: DBS Vickers Securities (Singapore), the DBS broking arm, is a member of SGX-ST (stated on its letterhead).
+  service: market_infrastructure
+  evidence: public
+  source_url: https://dbsvickers.com/iwov-resources/media/pdf/Important_Notice_GTA_update_Aug_2024.pdf
+  source_title: Updated DBS Vickers General Trading Agreement notice
+  published: 2024-08-17
+  quote: Member of Singapore Exchange Securities Trading Ltd
+- from: dbs
+  to: cdp
+  type: participates_in
+  detail: DBS Vickers acts as a CDP depository agent, holding customer securities in depository agent sub-accounts.
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.dbsvickers.com/iwov-resources/media/vickers-pdf/GTA.pdf
+  source_title: DBS Vickers General Trading Agreement
+  published: 2024-08-17
+  quote: “Securities Sub-Account” or “Depository Agent Sub-Account” means the securities sub-account maintained by the Customer with DBS Vickers as a depository agent.
+- from: ez-link
+  to: microsoft-azure
+  type: depends_on
+  detail: EZ-Link SimplyGo and wallet services went down in the 8 Feb 2023 Azure Southeast Asia power and cooling outage, as did CPF Board web services.
+  service: cloud
+  evidence: reported
+  source_url: https://mustsharenews.com/microsoft-azure-power-outage/
+  source_title: Microsoft Azure Power Outage Disrupts Multiple Sites, Services Fully Restored The Next Day (MustShareNews)
+  published: 2023-02-09
+  quote: The platforms attributed the disruptions to the power outage in Microsoft Azure cloud services.
+- from: anext-bank
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC ANTPSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id001
+  quote: Anext Bank Pte. Ltd. ANTPSGSG
+- from: anz-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC ANZBSGSX per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id002
+  quote: Australia & New Zealand Banking Group Ltd ANZBSGSX
+- from: bangkok-bank-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC BKKBSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id003
+  quote: Bangkok Bank Public Company Ltd BKKBSGSG
+- from: bank-of-america-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC BOFASG2X per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id004
+  quote: Bank of America, NA BOFASG2X
+- from: bank-of-china
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC BKCHSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id005
+  quote: Bank of China Limited BKCHSGSG
+- from: bank-of-india-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC BKIDSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id006
+  quote: Bank of India BKIDSGSG
+- from: bnp-paribas-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC BNPASGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id007
+  quote: BNP Paribas BNPASGSG
+- from: cimb-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC CIBBSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id008
+  quote: CIMB Bank Berhad CIBBSGSG
+- from: citibank
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC CITISGSL per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id009
+  quote: Citibank Singapore Limited CITISGSL
+- from: commerzbank-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC COBASGSX per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id010
+  quote: Commerzbank AG COBASGSX
+- from: credit-agricole-cib-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC CRLYSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id011
+  quote: Credit Agricole Corporate & Investment Bank CRLYSGSG
+- from: ctbc-bank-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC CTCBSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id012
+  quote: CTBC Bank Co., Ltd CTCBSGSG
+- from: deutsche-bank-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC DEUTSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id013
+  quote: Deutsche Bank AG DEUTSGSG
+- from: first-commercial-bank-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC FCBKSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id014
+  quote: First Commercial Bank, Ltd. FCBKSGSG
+- from: gxs-bank
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC GXSPSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id015
+  quote: GXS Bank Pte. Ltd. GXSPSGSG
+- from: hl-bank
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC HLBBSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id016
+  quote: HL Bank HLBBSGSG
+- from: hsbc-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC HSBCSGS2 per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id017
+  quote: HSBC BANK (Singapore) Limited HSBCSGS2
+- from: icici-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC ICICSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id018
+  quote: ICICI Bank Ltd ICICSGSG
+- from: indian-bank-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC IDIBSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id019
+  quote: Indian Bank IDIBSGSG
+- from: indian-overseas-bank-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC IOBASGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id020
+  quote: Indian Overseas Bank IOBASGSG
+- from: icbc-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC ICBKSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id021
+  quote: Industrial & Commercial Bank of China Limited ICBKSGSG
+- from: intesa-sanpaolo-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC BCITSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id022
+  quote: Intesa Sanpaolo S.p.A. BCITSGSG
+- from: jpmorgan-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC CHASSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id023
+  quote: JPMorgan Chase Bank, N.A. CHASSGSG
+- from: keb-hana-bank-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC KOEXSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id024
+  quote: KEB Hana Bank KOEXSGSG
+- from: maribank
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC SSPISGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id025
+  quote: Maribank Singapore Private Limited SSPISGSG
+- from: maybank
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC MBBESGS2 per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id026
+  quote: Maybank Singapore Limited MBBESGS2
+- from: mega-bank-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC ICBCSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id027
+  quote: Mega International Commercial Bank Co. Ltd ICBCSGSG
+- from: mizuho-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC MHCBSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id028
+  quote: Mizuho Bank, Ltd MHCBSGSG
+- from: mufg-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC BOTKSGSX per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id029
+  quote: MUFG Bank, Ltd BOTKSGSX
+- from: bni-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC BNINSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id030
+  quote: P.T. Bank Negara Indonesia (Persero) TBK BNINSGSG
+- from: qnb-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC QNBASGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id031
+  quote: Qatar National Bank SAQ QNBASGSG
+- from: rhb-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC RHBBSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id032
+  quote: RHB Bank Berhad RHBBSGSG
+- from: sing-investments-finance
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC SIVFSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id033
+  quote: Sing Investments & Finance Ltd SIVFSGSG
+- from: singapura-finance
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC SIEISGS1 per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id034
+  quote: Singapura Finance Ltd SIEISGS1
+- from: seb-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC ESSESGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id035
+  quote: Skandinaviska Enskilda Banken AB (publ) ESSESGSG
+- from: societe-generale-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC SOGESGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id036
+  quote: Societe Generale SOGESGSG
+- from: standard-chartered-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC SCBLSG22 per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id037
+  quote: Standard Chartered Bank (Singapore) Limited SCBLSG22
+- from: sbi-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC SBINSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id038
+  quote: State Bank of India SBINSGSG
+- from: smbc-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC SMBCSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id039
+  quote: Sumitomo Mitsui Banking Corporation SMBCSGSG
+- from: bank-of-east-asia-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC BEASSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id040
+  quote: The Bank of East Asia Ltd BEASSGSG
+- from: trust-bank
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC TRBUSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id041
+  quote: Trust Bank Singapore Limited TRBUSGSG
+- from: ubs-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC UBSWSGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id042
+  quote: UBS AG UBSWSGSG
+- from: uco-bank-singapore
+  to: swift
+  type: participates_in
+  detail: Holds SWIFT BIC UCBASGSG per the ABS list of participating GIRO banks.
+  service: payments
+  evidence: public
+  source_url: https://abs.org.sg/docs/library/swift-bic-code---updated-29-apr-2026-(published).pdf
+  source_title: SWIFT BIC for Participating GIRO Banks (updated as of 29 April 2026), Association of Banks in Singapore
+  published: *id043
+  quote: UCO Bank UCBASGSG
+
+incidents:
+- id: equinix-sg-2023-10
+  date: 2023-10-14
+  vendor: equinix
+  summary: A cooling system malfunction at the Equinix Singapore data centre hosting DBS and Citibank IT systems shut them down, and both banks failed to recover at backup sites within 4 hours.
+  affected:
+  - dbs
+  - citibank
+  impact: About 2.5 million payment and ATM transactions failed and up to 810,000 digital banking logins failed between 2.54pm on 14 Oct and 4.47am on 15 Oct 2023.
+  mas_action: MAS directed both banks to investigate; in Nov 2023 it imposed a six-month pause on DBS non-essential IT changes and acquisitions and kept the 1.8x operational risk capital multiplier.
+  source_url: https://www.mas.gov.sg/news/parliamentary-replies/2023/oral-reply-to-parliamentary-question-onbanking-services-disruption-of-dbs-and-citibank
+  source_title: Oral reply to Parliamentary Questions on banking services disruption of DBS and Citibank on 14 October 2023
+  quote: These outages were caused by a malfunction of the cooling system in the data centre hosting both DBS’ and Citibank’s IT systems.
+- id: crowdstrike-2024-07
+  date: 2024-07-19
+  vendor: crowdstrike
+  summary: A faulty CrowdStrike security update crashed Windows systems worldwide; in Singapore it disrupted SGX's post-trade services on CDP while bank critical systems were largely unaffected.
+  affected:
+  - cdp
+  - sgx
+  impact: CDP post-trade outage of about five hours; a limited number of trades rolled over to the next business day.
+  mas_action: MAS asked major FIs to report impact and extended MEPS+ operating hours by two hours to 9pm as a precaution.
+  source_url: https://www.mas.gov.sg/news/parliamentary-replies/2024/written-reply-to-parliamentary-question-on-the-impact-of-global-it-outage-on-financial-institutions
+  source_title: Written reply to Parliamentary Question on the impact of global IT outage on financial institutions
+  quote: The Singapore Exchange experienced a temporary disruption to its post trade services on the Central Depository, resulting in a limited number of trades being rolled over for settlement on the next business day.
+- id: singtel-2024-10
+  date: 2024-10-08
+  vendor: singtel
+  summary: A failed failover in Singtel's fixed voice system cut calls to emergency lines and to bank, hospital and government hotlines for about four hours.
+  affected:
+  - dbs
+  - uob
+  - standard-chartered-singapore
+  impact: About 500,000 residential and corporate users affected; bank customer care hotlines unreachable.
+  mas_action: null
+  source_url: https://mothership.sg/2025/12/imda-fines-singtel-1-million/
+  source_title: IMDA fines Singtel S$1 million for Oct. 2024 outage that affected emergency services (Mothership)
+  quote: Singtel has been fined S$1 million by the Infocomm Media Development Authority (IMDA) for a widespread service outrage that occurred on Oct. 8, 2024.
+- id: toppan-next-tech-2025-04
+  date: 2025-04-06
+  vendor: toppan-next-tech
+  summary: Ransomware at printing vendor Toppan Next Tech exposed statement data of DBS and Bank of China Singapore customers.
+  affected:
+  - dbs
+  - bank-of-china
+  impact: Customer information extracted; no login credentials compromised.
+  mas_action: MAS engaged the affected banks on risk mitigation and customer follow-up; CSA assisted TNT.
+  source_url: https://www.mas.gov.sg/news/media-releases/2025/ransomware-attack-on-toppan-next-tech
+  source_title: Ransomware Attack on Toppan Next Tech (MAS and CSA joint media release)
+  quote: The attack has led to customer information from DBS Bank and Bank of China Limited, Singapore branch, being extracted by the threat actor.
+- id: datapost-2025-05
+  date: 2025-05-25
+  vendor: datapost
+  summary: Ransomware at printing and mailing vendor DataPost exposed Income Insurance policyholders' annual bonus statements.
+  affected:
+  - income-insurance
+  impact: At least 146 policyholders' bonus statements compromised; Income suspended all DataPost print jobs.
+  mas_action: null
+  source_url: https://www.income.com.sg/about-us/corporate-information/press-releases/income-insurance-made-aware-of-dataposts-ransomwa
+  source_title: Income Insurance made aware of DataPost’s ransomware incident, affecting policyholders’ annual bonus statements
+  quote: Based on DataPost’s preliminary investigations, at least 146 policyholders' bonus statements have been compromised.
+- id: azure-gateway-2026-09
+  date: 2026-09-30
+  vendor: microsoft-azure
+  summary: A change to Azure's regional gateway management service degraded ExpressRoute, VPN and Application Gateway connectivity in 18 regions including Southeast Asia (Singapore); no Singapore FI impact was publicly reported.
+  affected: []
+  impact: 20:30 UTC 30 Sep to 02:15 UTC 1 Oct 2026; Southeast Asia was among the last regions to recover.
+  mas_action: null
+  source_url: https://azure.status.microsoft/en-us/status/history/
+  source_title: Azure status history, Tracking ID 7Q30-010
+  quote: Between 20:30 UTC on 30 September 2026 and 02:15 UTC on 01 October 2026, a subset of customers using gateway services in multiple regions experienced degraded or interrupted network connectivity.
+
+new_entities:
+  - {id: paynow, name: PayNow, kind: market_infrastructure, aliases: [PayNow Corporate, PayNow QR]}
+  - {id: fast, name: FAST (Fast And Secure Transfers), kind: market_infrastructure, aliases: [Fast And Secure Transfers, FAST]}
+  - {id: hsbc-singapore, name: HSBC Singapore, kind: bank, aliases: [HSBC Bank (Singapore) Limited, The Hongkong and Shanghai Banking Corporation Singapore Branch, HSBC]}
+  - {id: standard-chartered-singapore, name: Standard Chartered Singapore, kind: bank, aliases: [Standard Chartered Bank (Singapore) Limited, StanChart, Standard Chartered]}
+  - {id: icbc-singapore, name: ICBC Singapore, kind: bank, aliases: [Industrial and Commercial Bank of China Limited Singapore Branch, ICBC]}
+  - {id: maribank, name: MariBank, kind: bank, aliases: [MariBank Singapore, MariBank Singapore Private Limited]}
+  - {id: anext-bank, name: ANEXT Bank, kind: bank, aliases: [Anext Bank Pte Ltd, ANEXT]}
+  - {id: anz-singapore, name: ANZ Singapore, kind: bank, aliases: [Australia and New Zealand Banking Group Ltd, ANZ]}
+  - {id: bnp-paribas-singapore, name: BNP Paribas Singapore, kind: bank, aliases: [BNP Paribas Singapore Branch, BNP Paribas]}
+  - {id: cimb-singapore, name: CIMB Singapore, kind: bank, aliases: [CIMB Bank Berhad, CIMB Bank Singapore]}
+  - {id: deutsche-bank-singapore, name: Deutsche Bank Singapore, kind: bank, aliases: [Deutsche Bank]}
+  - {id: green-link-digital-bank, name: Green Link Digital Bank, kind: bank, aliases: [Green Link Digital Bank Pte Ltd, GLDB]}
+  - {id: hl-bank, name: HL Bank, kind: bank, aliases: [Hong Leong Bank Singapore]}
+  - {id: hong-leong-finance, name: Hong Leong Finance, kind: bank, aliases: [Hong Leong Finance Limited]}
+  - {id: icici-singapore, name: ICICI Bank Singapore, kind: bank, aliases: [ICICI Bank Limited Singapore]}
+  - {id: jpmorgan-singapore, name: JPMorgan Chase Singapore, kind: bank, aliases: ['JPMorgan Chase Bank, N.A.', J.P. Morgan]}
+  - {id: mizuho-singapore, name: Mizuho Bank Singapore, kind: bank, aliases: [Mizuho Bank Ltd, Mizuho]}
+  - {id: mufg-singapore, name: MUFG Bank Singapore, kind: bank, aliases: ['MUFG Bank, Ltd', MUFG]}
+  - {id: rhb-singapore, name: RHB Bank Singapore, kind: bank, aliases: [RHB]}
+  - {id: sing-investments-finance, name: Sing Investments & Finance, kind: bank, aliases: [Sing Investments & Finance Limited, SIF]}
+  - {id: sbi-singapore, name: State Bank of India Singapore, kind: bank, aliases: [State Bank of India, SBI]}
+  - {id: smbc-singapore, name: SMBC Singapore, kind: bank, aliases: [Sumitomo Mitsui Banking Corporation, SMBC]}
+  - {id: bank-of-east-asia-singapore, name: Bank of East Asia Singapore, kind: bank, aliases: [The Bank of East Asia Ltd, BEA]}
+  - {id: grabpay, name: GrabPay, kind: tech_provider, aliases: [GPay Network (S) Pte Ltd, GrabPay wallet, major payment institution]}
+  - {id: liquid-group, name: Liquid Group, kind: tech_provider, aliases: [Liquid Group Pte Ltd, LiquidPay, major payment institution]}
+  - {id: matchmove, name: MatchMove, kind: tech_provider, aliases: [MatchMove Pay Pte Ltd, major payment institution]}
+  - {id: nium, name: Nium, kind: tech_provider, aliases: [NIUM Pte Ltd, major payment institution]}
+  - {id: singcash, name: Singtel Dash, kind: tech_provider, aliases: [SingCash Pte Ltd, Dash, major payment institution]}
+  - {id: wise-asia-pacific, name: Wise Asia-Pacific, kind: tech_provider, aliases: [Wise Asia-Pacific Pte. Ltd., Wise, major payment institution]}
+  - {id: xfers, name: Xfers, kind: tech_provider, aliases: [Xfers Pte Ltd, StraitsX, major payment institution]}
+  - {id: microsoft-365, name: Microsoft 365, kind: tech_provider, aliases: [Office 365, M365, Microsoft Teams, Outlook]}
+  - {id: grab, name: Grab, kind: tech_provider, aliases: [Grab Holdings Inc., Grab Holdings]}
+  - {id: singlife, name: Singlife, kind: insurer, aliases: [Singapore Life, Singlife Ltd]}
+  - {id: julius-baer-singapore, name: Julius Baer Singapore, kind: bank, aliases: [Bank Julius Baer & Co. Ltd. Singapore Branch, Julius Baer]}
+  - {id: cdp, name: The Central Depository (Pte) Limited, kind: market_infrastructure, aliases: [CDP, SGX CDP, SGX-CDP, Central Depository]}
+  - {id: datapost, name: DataPost, kind: tech_provider, aliases: [DataPost Pte Ltd]}
+  - {id: bangkok-bank-singapore, name: Bangkok Bank Singapore, kind: bank, aliases: [Bangkok Bank PCL]}
+  - {id: santander-singapore, name: Banco Santander Singapore, kind: bank, aliases: [Banco Santander S.A., Santander]}
+  - {id: bank-of-america-singapore, name: Bank of America Singapore, kind: bank, aliases: [Bank Of America NA, BofA]}
+  - {id: bank-of-india-singapore, name: Bank of India Singapore, kind: bank, aliases: [Bank Of India]}
+  - {id: bank-of-taiwan-singapore, name: Bank of Taiwan Singapore, kind: bank, aliases: [Bank Of Taiwan]}
+  - {id: barclays-singapore, name: Barclays Singapore, kind: bank, aliases: [Barclays Bank Plc, Barclays]}
+  - {id: cathay-united-bank-singapore, name: Cathay United Bank Singapore, kind: bank, aliases: [Cathay United Bank]}
+  - {id: ccb-singapore, name: China Construction Bank Singapore, kind: bank, aliases: [China Construction Bank, CCB]}
+  - {id: cls-bank, name: CLS Bank International, kind: market_infrastructure, aliases: [CLS, Continuous Linked Settlement]}
+  - {id: commerzbank-singapore, name: Commerzbank Singapore, kind: bank, aliases: [Commerzbank Aktiengesellschaft, Commerzbank]}
+  - {id: credit-agricole-cib-singapore, name: Credit Agricole CIB Singapore, kind: bank, aliases: [Credit Agricole CIB, Crédit Agricole]}
+  - {id: cic-singapore, name: CIC Singapore, kind: bank, aliases: [Credit Industriel Et Commercial, CIC]}
+  - {id: ctbc-bank-singapore, name: CTBC Bank Singapore, kind: bank, aliases: ['CTBC Bank Co., Ltd', CTBC]}
+  - {id: first-abu-dhabi-bank-singapore, name: First Abu Dhabi Bank Singapore, kind: bank, aliases: [First Abu Dhabi Bank P.J.S.C., FAB]}
+  - {id: first-commercial-bank-singapore, name: First Commercial Bank Singapore, kind: bank, aliases: ['First Commercial Bank, Ltd.']}
+  - {id: habib-bank-singapore, name: Habib Bank Singapore, kind: bank, aliases: [Habib Bank Ltd, HBL]}
+  - {id: indian-bank-singapore, name: Indian Bank Singapore, kind: bank, aliases: [Indian Bank]}
+  - {id: indian-overseas-bank-singapore, name: Indian Overseas Bank Singapore, kind: bank, aliases: [Indian Overseas Bank, IOB]}
+  - {id: ing-singapore, name: ING Bank Singapore, kind: bank, aliases: [ING Bank NV, ING]}
+  - {id: keb-hana-bank-singapore, name: KEB Hana Bank Singapore, kind: bank, aliases: [KEB Hana Bank, Hana Bank]}
+  - {id: lch, name: LCH Limited, kind: market_infrastructure, aliases: [LCH, LCH.Clearnet]}
+  - {id: mega-bank-singapore, name: Mega International Commercial Bank Singapore, kind: bank, aliases: [Mega International Commercial Bk Co, Mega Bank]}
+  - {id: natixis-singapore, name: Natixis Singapore, kind: bank, aliases: [Natixis]}
+  - {id: bni-singapore, name: Bank Negara Indonesia Singapore, kind: bank, aliases: [PT Bank Negara Indonesia (Persero), BNI]}
+  - {id: rbc-singapore, name: Royal Bank of Canada Singapore, kind: bank, aliases: [Royal Bank Of Canada, RBC]}
+  - {id: spdb-singapore, name: Shanghai Pudong Development Bank Singapore, kind: bank, aliases: ['Shanghai Pudong Development Bank Co., Ltd', SPDB]}
+  - {id: seb-singapore, name: SEB Singapore, kind: bank, aliases: [Skandinaviska Enskilda Banken Ab, SEB]}
+  - {id: ubs-singapore, name: UBS Singapore, kind: bank, aliases: [UBS AG, UBS]}
+  - {id: uco-bank-singapore, name: UCO Bank Singapore, kind: bank, aliases: [UCO Bank]}
+  - {id: alibaba-cloud, name: Alibaba Cloud, kind: tech_provider, aliases: [Aliyun, Alibaba Cloud Singapore]}
+  - {id: meps-plus, name: MAS Electronic Payment System (MEPS+), kind: market_infrastructure, aliases: [MEPS+, MEPS Plus, MEPS]}
+  - {id: giro, name: Interbank GIRO (IBG), kind: market_infrastructure, aliases: [GIRO, IBG, Inter-bank GIRO]}
+  - {id: egiro, name: eGIRO, kind: market_infrastructure, aliases: [electronic GIRO]}
+  - {id: sgx-dc, name: Singapore Exchange Derivatives Clearing Limited, kind: market_infrastructure, aliases: [SGX-DC, SGX AsiaClear]}
+  - {id: ez-link, name: EZ-Link Pte Ltd, kind: tech_provider, aliases: [EZ-Link, SimplyGo EZ-Link]}
+  - {id: intesa-sanpaolo-singapore, name: Intesa Sanpaolo (Singapore branch), kind: bank, aliases: [Intesa Sanpaolo S.p.A.]}
+  - {id: qnb-singapore, name: Qatar National Bank (Singapore branch), kind: bank, aliases: [QNB]}
+  - {id: singapura-finance, name: Singapura Finance, kind: bank, aliases: [Singapura Finance Ltd]}
+  - {id: societe-generale-singapore, name: Societe Generale (Singapore branch), kind: bank, aliases: [SocGen]}
