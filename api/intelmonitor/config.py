@@ -21,7 +21,7 @@ class Settings(BaseSettings):
 
     # Claude runs on the user's Claude login; a non-empty key would bill the API instead.
     anthropic_api_key: str = ""
-    anthropic_model: str = "claude-sonnet-5"
+    anthropic_model: str = "claude-sonnet-5-5"
 
     openrouter_api_key: str
     typesafe_base_url: str = "https://openrouter.ai/api"
