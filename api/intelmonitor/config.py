@@ -1,5 +1,6 @@
 """Settings loaded from the repo-root .env, shared by the CLI and the server."""
 
+import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -8,7 +9,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 REPO_ROOT = Path(__file__).resolve().parents[2]
 API_ROOT = REPO_ROOT / "api"
 SEED_DIR = API_ROOT / "seed"
-DATA_DIR = REPO_ROOT / "data"
+# The deploy points this at its volume (Dockerfile).
+DATA_DIR = Path(os.environ.get("INTELMONITOR_DATA_DIR", REPO_ROOT / "data"))
 ARTIFACTS_DIR = REPO_ROOT / "artifacts"
 
 

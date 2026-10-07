@@ -6,7 +6,7 @@ import { Link } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
-import type { Schema } from "@/lib/api/client";
+import { LLM_OFF, LLM_OFF_NOTE, type Schema } from "@/lib/api/client";
 import {
   searchOptions,
   useAlerts,
@@ -394,14 +394,18 @@ function RunsPopover({
       foot={
         <>
           <span className="cap grow">
-            {runNow.isError ? "Could not start a run. Try again." : "Runs are manual for now."}
+            {LLM_OFF
+              ? `${LLM_OFF_NOTE}.`
+              : runNow.isError
+                ? "Could not start a run. Try again."
+                : "Runs are manual for now."}
           </span>
           <button
             type="button"
             className="btn btn-sm"
-            aria-disabled={busy}
+            aria-disabled={busy || LLM_OFF}
             onClick={() => {
-              if (!busy) runNow.mutate();
+              if (!busy && !LLM_OFF) runNow.mutate();
             }}
           >
             {busy ? "Running…" : "Run now"}

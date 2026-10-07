@@ -7,6 +7,11 @@ import type { components, paths } from "./schema";
 // The e2e imports this under Node, where Vite's import.meta.env does not exist.
 export const API_URL = import.meta.env?.VITE_API_URL ?? "https://intelmonitor.api.localhost";
 
+// VITE_LLM_OFF=1 builds for a deploy without LLM keys: Generate, drafting a custom focus area,
+// edits that answer one again, and Run now stay in place but disabled, with LLM_OFF_NOTE as why.
+export const LLM_OFF = import.meta.env?.VITE_LLM_OFF === "1";
+export const LLM_OFF_NOTE = "Not available in this demo";
+
 /** Usage: `const { data, error } = await api.GET("/subjects/{subject_id}/page", { params: { path: { subject_id } } })`. */
 export const api = createClient<paths>({ baseUrl: API_URL });
 

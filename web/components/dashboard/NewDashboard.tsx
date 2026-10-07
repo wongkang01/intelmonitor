@@ -5,7 +5,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 
-import type { Widget } from "@/lib/api/client";
+import { LLM_OFF, LLM_OFF_NOTE, type Widget } from "@/lib/api/client";
 import { errorMessage, useCatalog, useCreateDashboard, useSubjects } from "@/lib/api/queries";
 import { useDashboardDraft, type Tally } from "@/lib/agent";
 import { capitalize } from "@/lib/format";
@@ -164,6 +164,7 @@ function NewDashboardBody({
   const onTabKey = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
     e.preventDefault();
+    if (LLM_OFF) return;
     const next: Tab = tab === "build" ? "generate" : "build";
     setTab(next);
     document.getElementById(`new-dashboard-tab-${next}`)?.focus();
@@ -174,21 +175,26 @@ function NewDashboardBody({
       <div className="sheet-head nd-head" inert={asking}>
         <h2 id="new-dashboard-title">New dashboard</h2>
         <div className="seg" role="tablist" aria-label="How to build" onKeyDown={onTabKey}>
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              id={`new-dashboard-tab-${t.id}`}
-              aria-selected={tab === t.id}
-              aria-controls={`new-dashboard-${t.id}`}
-              tabIndex={tab === t.id ? 0 : -1}
-              onClick={() => setTab(t.id)}
-            >
-              {t.id === "generate" && <SparkleIcon size={12} twin />}
-              {t.label}
-            </button>
-          ))}
+          {TABS.map((t) => {
+            const off = t.id === "generate" && LLM_OFF;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                id={`new-dashboard-tab-${t.id}`}
+                aria-selected={tab === t.id}
+                aria-controls={`new-dashboard-${t.id}`}
+                aria-disabled={off || undefined}
+                title={off ? LLM_OFF_NOTE : undefined}
+                tabIndex={tab === t.id ? 0 : -1}
+                onClick={() => !off && setTab(t.id)}
+              >
+                {t.id === "generate" && <SparkleIcon size={12} twin />}
+                {t.label}
+              </button>
+            );
+          })}
         </div>
         <CloseButton onClick={onClose} />
       </div>
