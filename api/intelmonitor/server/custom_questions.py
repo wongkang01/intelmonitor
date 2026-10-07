@@ -44,7 +44,7 @@ class CapReachedError(RuntimeError):
 
     def __init__(self) -> None:
         super().__init__(
-            f"You have {MAX_CUSTOM_QUESTIONS} custom questions, the most allowed. "
+            f"You have {MAX_CUSTOM_QUESTIONS} custom focus areas, the most allowed. "
             "Delete one to add another."
         )
 

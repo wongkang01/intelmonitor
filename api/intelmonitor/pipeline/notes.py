@@ -210,7 +210,7 @@ def series_move(
     if rule:
         off = "off the peg" if isinstance(s.source, Deviation) else "from zero"
         parts.append(
-            f"a standing question needs attention at more than {rule.beyond:g}% {off} for "
+            f"a focus area needs attention at more than {rule.beyond:g}% {off} for "
             f"{rule.for_hours} hours"
         )
     return SeriesMove(
@@ -277,7 +277,7 @@ def note_prompt(
         f"{MATERIALITY_LEVELS[d.level]}"
         for d in devs
     ] or ["none"]
-    parts += ["", "Standing questions in this run:"]
+    parts += ["", "Focus areas in this run:"]
     parts += [
         f"- {label}: {state}" + (f" (was {before})" if before and before != state else "")
         for label, state, before in states

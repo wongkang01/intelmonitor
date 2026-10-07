@@ -78,7 +78,7 @@ def _question_label(subject_id: str, question_id: str) -> str | None:
 
 
 def describe(widget: Widget) -> str:
-    """Plain words for a widget, such as "Standing question (Enforcement), small, Banking
+    """Plain words for a widget, such as "Focus area (Enforcement), small, Banking
     regulation"."""
     subjects = all_subjects()
     name = widget_name(widget.type)
@@ -181,7 +181,7 @@ class DashboardEditor:
             else ""
         )
         return _ok(
-            f"Drafted custom question {draft.id} ({draft.label}): {draft.question} "
+            f"Drafted custom focus area {draft.id} ({draft.label}): {draft.question} "
             f"Lookback {draft.lookback_days} days.{series}{answer}\n{added['content'][0]['text']}"
         )
 
@@ -236,7 +236,7 @@ def _dump(widget: Widget) -> dict[str, Any]:
 
 def list_subjects(subject_ids: list[str] | None) -> ToolResult:
     """Every subject with its links and new-development counts; with `subject_ids`, those
-    subjects only, each with its standing questions and their current answer state, and its listed
+    subjects only, each with its focus areas and their current answer state, and its listed
     series (the default one flagged) for indicator widgets."""
     subjects = all_subjects()
     unknown = [i for i in subject_ids or [] if i not in subjects]
@@ -296,7 +296,7 @@ _SETTINGS_SCHEMA: dict[str, Any] = {
     "description": "The widget type's settings; see the catalog in the system prompt.",
     "properties": {
         "subject_id": {"type": "string", "description": "A subject id from list_subjects"},
-        "question_id": {"type": "string", "description": "Standing question widgets only"},
+        "question_id": {"type": "string", "description": "Focus area widgets only"},
         "series_id": {
             "type": "string",
             "description": "Indicator widgets only: a series id from list_subjects",
@@ -373,7 +373,7 @@ def build_server(editor: DashboardEditor) -> tuple[McpSdkServerConfig, list[str]
     @tool(
         "list_subjects",
         "List topics, groups and entities with their ids, links and new-development counts. "
-        "Pass subject_ids to also get those subjects' standing questions and answer states, "
+        "Pass subject_ids to also get those subjects' focus areas and answer states, "
         "and their measured series for Indicator widgets.",
         {
             "type": "object",
@@ -386,8 +386,8 @@ def build_server(editor: DashboardEditor) -> tuple[McpSdkServerConfig, list[str]
 
     @tool(
         "create_custom_widget",
-        "Create a custom standing question for an angle no standing question covers, and add a "
-        "Standing question widget that shows it. The question is drafted and answered for "
+        "Create a custom focus area for an angle no focus area covers, and add a "
+        "Focus area widget that shows it. The focus area is drafted and answered for "
         "every run, which takes up to a minute. It becomes the user's once they keep the "
         "change and create the dashboard.",
         {

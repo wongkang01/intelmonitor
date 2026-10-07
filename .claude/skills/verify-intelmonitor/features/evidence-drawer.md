@@ -17,13 +17,13 @@ Esc or `Close evidence` drops the parameter and returns focus to what opened it.
 - `ev-wrong`: `Mark wrong` form (State, Summary, Cited developments, Reason), Send, then `You marked this wrong today: ... Undo`.
 - `ev-tag`: `<Subject> is wrong` opens a Reason and `Remove tag`; the row then says so with `Undo removing <Subject>`.
 - `ev-close`: Esc and `Close evidence` close; focus returns to the opener.
-- `ev-empty`: an unknown id shows `Could not load this evidence.`; an answer with nothing cited shows `No developments in the last N days bear on this question.`
+- `ev-empty`: an unknown id shows `Could not load this evidence.`; an answer with nothing cited shows `No developments in the last N days bear on this focus area.`
 
 ## How to get to it (user POV)
 
 - Developments list: a row's title link.
 - Dashboard: a development row in `Since your last review` or `Developments`; answer links in `Monitor summary`, named like `Exposure: Watch → Needs attention. See evidence`.
-- Monitor page: `See evidence` on a standing question row; a What changed row; an indicator row that opens its development.
+- Monitor page: `See evidence` on a focus area row (Overview); a What changed row (Developments tab); an indicator row that opens its development (Data tab); a state in the Connections tab's Peers table.
 - Top bar: an alert in the `Alerts` popover; a development or document result in ⌘K search.
 - Inside an answer's drawer: a nested development's title link opens that development's drawer (Back returns to the answer).
 
@@ -47,7 +47,7 @@ Preconditions:
 - **Remove a tag.** In the answer drawer, `ab click "[data-testid=evidence-drawer] .ev-title a"`. URL switches to `?evidence=<id>` (the `answer` parameter goes). `ab click @ref` for button `UOB is wrong`: textbox `Reason` is focused. `ab keyboard type "<reason>"`, `ab press Meta+Enter` (or click `Remove tag`). `ab get text "[data-testid=evidence-drawer] [data-tag=uob]"` reads `You marked this wrong today. Removed from the next run.` and focus is on `Undo removing UOB`. Read back: `pnpm -C web verify api /developments/<id>` has `tag_feedback` `[{subject: {id: "uob"}, applied: false}]`.
 - **Undo the tag removal.** `ab press Enter`. Focus returns to `UOB is wrong`; the API shows `tag_feedback: []`. `ab back` returns to the answer drawer.
 - **Close.** `ab click @ref` for button `Close evidence`, or `ab press Escape`. The parameter goes, other parameters stay, `ab get count "[data-testid=evidence-drawer]"` is 0, and focus returns to the opener if it is still on the page.
-- **Empty and error.** `?answer=ocbc:bank.regulatory` shows `Sources` and `No developments in the last 30 days bear on this question.` `?evidence=does-not-exist` shows `Could not load this evidence.` `?answer=ocbc:custom-121cf28fb9` shows a `Custom` badge and no `Mark wrong`.
+- **Empty and error.** `?answer=ocbc:bank.regulatory` shows `Sources` and `No developments in the last 30 days bear on this focus area.` `?evidence=does-not-exist` shows `Could not load this evidence.` `?answer=ocbc:custom-121cf28fb9` shows a `Custom` badge and no `Mark wrong`.
 - **Proof.** `pnpm -C web verify shot drawer/<step>`; `snapshot -c` in the `.aria.txt` includes the chart's image name, but not the quote text, so keep an `ab get text ... mark` readout too.
 
 ## Gotchas

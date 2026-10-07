@@ -247,6 +247,11 @@ a {
 .input::placeholder {
   color: var(--ink3);
 }
+/* Disabled matches disabled buttons: --ink3 text, no grey fill. */
+.input:disabled {
+  color: var(--ink3);
+  cursor: default;
+}
 textarea.input {
   display: block;
   width: 100%;
@@ -335,6 +340,11 @@ textarea.input {
 }
 .seg button:hover {
   color: var(--ink);
+}
+.seg button[aria-disabled="true"],
+.seg button[aria-disabled="true"]:hover {
+  color: var(--ink3);
+  cursor: default;
 }
 .seg button[aria-selected="true"],
 .seg button[aria-pressed="true"] {

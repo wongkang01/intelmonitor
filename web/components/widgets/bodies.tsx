@@ -191,7 +191,7 @@ function SummaryBody({ data, widget, link }: BodyProps & { data: DataOf<"summary
   return (
     <>
       <Head
-        title="Standing questions"
+        title="Focus areas"
         link={link}
         meta={
           <>

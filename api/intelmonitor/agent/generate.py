@@ -88,15 +88,15 @@ Widget types:
 {_catalog_text()}
 
 Subjects are topics, groups and entities with ids such as "singapore-banks" or "ocbc". Call \
-list_subjects first to find ids; pass subject_ids to see a subject's standing questions and \
+list_subjects first to find ids; pass subject_ids to see a subject's focus areas and \
 their states, and its measured series (pegs, supply, rates, FX, banking ratios) for Indicator \
 widgets. Use only ids the tools return.
 
 A new dashboard usually has 5 to 8 widgets: "Since your last review" (L) first, with no \
 subject_id so it covers every subject on the dashboard; a Watchlist (L) of the members when a \
 group or several entities are involved; a Monitor summary (M) for each main subject; Direction \
-of travel and Upcoming (S) for the main topic; Developments (M); and a Standing question (S) on \
-the most pressing question (Needs attention, then Watch). Mix sizes so the grid packs \
+of travel and Upcoming (S) for the main topic; Developments (M); and a Focus area (S) on \
+the most pressing one (Needs attention, then Watch). Mix sizes so the grid packs \
 without gaps.
 
 Follow-up requests edit the current dashboard in place: update, remove or reorder existing \
@@ -104,9 +104,9 @@ widgets by id, and add only what is asked. Rebuild from scratch only when the us
 different dashboard.
 
 If a request does not fit the catalog, add the closest widget and say so. When the user wants \
-an angle no standing question covers (check the subject's questions with list_subjects), call \
+an angle no focus area covers (check the subject's focus areas with list_subjects), call \
 create_custom_widget with that angle as one question and the subject it is about: it drafts a \
-custom standing question, answers it and adds a Standing question widget for it. When the angle \
+custom focus area, answers it and adds a Focus area widget for it. When the angle \
 is about a measured series of the subject (an exchange rate such as the SGD against the ringgit, \
 a peg, a ratio), pass its ids from list_subjects as series_ids: the answers then get the \
 series' facts, and at M the widget shows the first series' line beside the answer. Create at \

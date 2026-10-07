@@ -1,5 +1,5 @@
-// Custom standing questions. CustomQuestionComposer is the write, preview, Keep or Discard flow
-// under "Add a question" on monitor pages and in the widget gallery. CustomQuestionEditor is the
+// Custom standing questions, shown as custom focus areas. CustomQuestionComposer is the write, preview, Keep or Discard flow
+// under "Add a focus area" on monitor pages and in the widget gallery. CustomQuestionEditor is the
 // dialog that edits or deletes a kept question, opened from its row or its widget's settings.
 // Both pick the subject's series whose facts the answers get with the gallery's series select.
 import { useId, useRef, useState, type FormEvent } from "react";
@@ -16,6 +16,7 @@ import {
   useKeepCustomQuestion,
   type CustomQuestion,
 } from "@/lib/api/queries";
+import { LLM_OFF, LLM_OFF_NOTE } from "@/lib/api/client";
 import { answerText, plural, SCOPE_LABEL, shortDate } from "@/lib/format";
 import { CloseButton, Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
@@ -54,7 +55,7 @@ export function CustomQuestionComposer({
     return (
       <div className="cq">
         <p className="cq-note" role="status">
-          You have {slots.data.limit} custom questions, the most allowed. Delete one to add another.
+          You have {slots.data.limit} custom focus areas, the most allowed. Delete one to add another.
         </p>
         {onCancel && (
           <div className="cq-actions">
@@ -69,7 +70,7 @@ export function CustomQuestionComposer({
 
   if (preview) {
     return (
-      <div className="cq" aria-label="Custom question preview" role="group">
+      <div className="cq" aria-label="Custom focus area preview" role="group">
         <Preview question={preview} linkCitations={linkCitations} />
         {(keep.isError || discard.isError) && (
           <p className="cq-note" role="alert">
@@ -109,7 +110,7 @@ export function CustomQuestionComposer({
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (text.trim().length < MIN_LENGTH || draft.isPending) return;
+    if (LLM_OFF || text.trim().length < MIN_LENGTH || draft.isPending) return;
     const picked = series.filter(Boolean);
     draft.mutate(
       { text: text.trim(), subject_id: subject.id, series_ids: picked.length > 0 ? picked : undefined },
@@ -120,14 +121,14 @@ export function CustomQuestionComposer({
   return (
     <form className="cq" onSubmit={submit}>
       <label className="form-field">
-        Your question about {subject.name}
+        New focus area for {subject.name}
         <textarea
           className="input"
           value={text}
           rows={2}
           maxLength={500}
-          disabled={draft.isPending}
-          placeholder="Ask about an angle the standing questions miss"
+          disabled={draft.isPending || LLM_OFF}
+          placeholder={LLM_OFF ? LLM_OFF_NOTE : "Ask about an angle the other focus areas miss"}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit(e);
@@ -135,26 +136,31 @@ export function CustomQuestionComposer({
           autoFocus={autoFocus}
         />
       </label>
-      <SeriesPicker subjectId={subject.id} value={series} onChange={setSeries} none="Named in the question" disabled={draft.isPending} />
+      <SeriesPicker subjectId={subject.id} value={series} onChange={setSeries} none="Named in the question" disabled={draft.isPending || LLM_OFF} />
       {draft.isPending && (
         <p className="cq-note" role="status">
-          Drafting the question and answering it for every run. This can take a minute.
+          Drafting the focus area and answering it for every run. This can take a minute.
         </p>
       )}
       {draft.isError && (
         <p className="cq-note" role="alert">
-          {errorMessage(draft.error, "Could not draft the question. Try again.")}
+          {errorMessage(draft.error, "Could not draft the focus area. Try again.")}
         </p>
       )}
       <div className="cq-actions">
-        {slots.data && <span className="meta grow">{plural(slots.data.left, "custom question")} left</span>}
+        {slots.data && <span className="meta grow">{plural(slots.data.left, "custom focus area")} left</span>}
         {onCancel && (
           <button type="button" className="btn btn-sm" onClick={onCancel} disabled={draft.isPending}>
             Cancel
           </button>
         )}
-        <button type="submit" className="btn btn-sm" disabled={text.trim().length < MIN_LENGTH || draft.isPending}>
-          Draft question
+        <button
+          type="submit"
+          className="btn btn-sm"
+          disabled={LLM_OFF || text.trim().length < MIN_LENGTH || draft.isPending}
+          title={LLM_OFF ? LLM_OFF_NOTE : undefined}
+        >
+          Draft focus area
         </button>
       </div>
     </form>
@@ -305,10 +311,10 @@ export function CustomQuestionEditor({
   return (
     <Modal open={questionId !== null} onClose={onClose} labelledBy="cq-edit-title" className="panel">
       <div className="sheet-head">
-        <h2 id="cq-edit-title">Edit custom question</h2>
+        <h2 id="cq-edit-title">Edit custom focus area</h2>
         <CloseButton onClick={onClose} />
       </div>
-      {question.isError && <p className="panel-body cq-note">This question could not be loaded.</p>}
+      {question.isError && <p className="panel-body cq-note">This focus area could not be loaded.</p>}
       {question.data && (
         <EditForm key={question.data.id} question={question.data} onClose={onClose} onDeleted={onDeleted} />
       )}
@@ -370,19 +376,37 @@ function EditForm({
         </span>
         <label className="form-field">
           Question
-          <textarea className="input" value={wording} rows={3} maxLength={500} onChange={(e) => setWording(e.target.value)} autoFocus />
+          <textarea
+            className="input"
+            value={wording}
+            rows={3}
+            maxLength={500}
+            disabled={LLM_OFF}
+            title={LLM_OFF ? LLM_OFF_NOTE : undefined}
+            onChange={(e) => setWording(e.target.value)}
+            autoFocus={!LLM_OFF}
+          />
         </label>
         <div className="cq-row">
           <label className="form-field grow">
             Label
-            <input className="input" value={label} maxLength={40} onChange={(e) => setLabel(e.target.value)} />
+            <input className="input" value={label} maxLength={40} onChange={(e) => setLabel(e.target.value)} autoFocus={LLM_OFF} />
           </label>
           <label className="form-field">
             Lookback in days
-            <input className="input" type="number" min={1} max={60} value={lookback} onChange={(e) => setLookback(e.target.value)} />
+            <input
+              className="input"
+              type="number"
+              min={1}
+              max={60}
+              value={lookback}
+              disabled={LLM_OFF}
+              title={LLM_OFF ? LLM_OFF_NOTE : undefined}
+              onChange={(e) => setLookback(e.target.value)}
+            />
           </label>
         </div>
-        <SeriesPicker subjectId={q.subject.id} value={series} onChange={setSeries} none="None" disabled={edit.isPending} />
+        <SeriesPicker subjectId={q.subject.id} value={series} onChange={setSeries} none="None" disabled={edit.isPending || LLM_OFF} />
         {edit.isPending && reanswers && (
           <p className="cq-note" role="status">
             Answering again for every run. This can take a minute.
@@ -397,7 +421,7 @@ function EditForm({
       <div className="panel-foot" ref={foot}>
         {confirming ? (
           <>
-            <span className="meta grow">Delete this question and every widget that shows it?</span>
+            <span className="meta grow">Delete this focus area and every widget that shows it?</span>
             <button type="button" className="btn" onClick={() => !busy && confirm(false)} aria-disabled={busy}>
               Keep it
             </button>

@@ -274,9 +274,9 @@ class WidgetTypeInfo(BaseModel):
 _CATALOG: list[tuple[type[_Widget], type[BaseModel], str, str, list[SubjectType]]] = [
     (SinceWidget, SinceSettings, "Since your last review", "What changed since you last looked",
      ["topic", "group", "entity"]),
-    (QuestionWidget, QuestionSettings, "Standing question", "One question and its change",
+    (QuestionWidget, QuestionSettings, "Focus area", "One focus area and its change",
      ["topic", "group", "entity"]),
-    (SummaryWidget, SummarySettings, "Monitor summary", "Every standing question at a glance",
+    (SummaryWidget, SummarySettings, "Monitor summary", "Every focus area at a glance",
      ["topic", "group", "entity"]),
     (DevelopmentsWidget, DevelopmentsSettings, "Developments", "Consolidated events with sources",
      ["topic", "group", "entity"]),

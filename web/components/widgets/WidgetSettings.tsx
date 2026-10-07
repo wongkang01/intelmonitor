@@ -80,7 +80,7 @@ export function WidgetSettings({
       )}
       {widget.type === "question" && (
         <label>
-          <span>Question</span>
+          <span>Focus area</span>
           <select
             className="input"
             value={widget.settings.question_id}
@@ -104,7 +104,7 @@ export function WidgetSettings({
       )}
       {custom && (
         <button type="button" className="link self-start" onClick={() => setEditing(custom.question_id)}>
-          Edit custom question
+          Edit custom focus area
         </button>
       )}
       <CustomQuestionEditor questionId={editing} onClose={() => setEditing(null)} />

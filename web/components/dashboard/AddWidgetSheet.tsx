@@ -237,7 +237,7 @@ function Offers({
   );
 }
 
-/** "Custom question": the user writes a question, previews it, and Keep adds its widget. */
+/** "Custom focus area": the user writes a question, previews it, and Keep adds its widget. */
 function CustomOffer({
   subject,
   onAdd,
@@ -247,10 +247,10 @@ function CustomOffer({
 }) {
   const [size, setSize] = useState<(typeof SIZES.question)[number]>("S");
   return (
-    <section className="offer" aria-label="Custom question">
+    <section className="offer" aria-label="Custom focus area">
       <div className="offer-side">
-        <h4>Custom question</h4>
-        <div className="seg" role="group" aria-label="Custom question size">
+        <h4>Custom focus area</h4>
+        <div className="seg" role="group" aria-label="Custom focus area size">
           {SIZES.question.map((s) => (
             <button key={s} type="button" aria-pressed={size === s} onClick={() => setSize(s)}>
               {SIZE_LABEL[s]}
@@ -259,7 +259,7 @@ function CustomOffer({
         </div>
       </div>
       <div className="offer-custom">
-        <p className="meta">Your own standing question about {subject.name}, answered for every run</p>
+        <p className="meta">Your own focus area for {subject.name}, answered for every run</p>
         <CustomQuestionComposer
         subject={subject}
         linkCitations={false}

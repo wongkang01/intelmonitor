@@ -115,7 +115,7 @@ function AnswerEvidenceView({ evidence }: { evidence: Schema<"AnswerEvidence"> }
       {correction.form}
       <h4 className="ev-label">{basedOn(evidence)}</h4>
       {evidence.developments.length === 0 && evidence.series.length === 0 && (
-        <p className="ev-empty">No developments in the last {a.lookback_days} days bear on this question.</p>
+        <p className="ev-empty">No developments in the last {a.lookback_days} days bear on this focus area.</p>
       )}
       {evidence.series.map((c) => (
         <section key={c.series.id} className="ev-dev ev-series" aria-label={c.series.name}>
