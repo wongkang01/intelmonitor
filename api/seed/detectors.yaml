@@ -14,7 +14,9 @@
 #              `for_hours` from the spell's first point
 #   move       window (previous, 1w, 1m, 3m or 1y) and beyond, or sigmas: the change over the window
 #              beyond a size (points for series in %, else percent) or beyond k standard deviations
-#              of the series' earlier changes over that window; direction up, down or either
+#              of the series' earlier changes over that window; direction up, down or either.
+#              benchmark: a series id; the change is then the series' percent change less the
+#              benchmark's over the same dates, in points
 #   release    beyond and direction: a monthly or quarterly release that changes by more than
 #              `beyond` from the previous period
 #
@@ -118,4 +120,81 @@ detectors:
     series: "mas.ltd.*"
     beyond: 2
     category: financial
+    materiality: notable
+
+  # Share prices and markets (Yahoo Finance, FRED). Sizes from the backtest in
+  # structured-data-plan.md, F8.
+  - id: share-daily-drop
+    name: Share price falls more than 3 standard deviations in a day
+    kind: move
+    series: "eq.*"
+    window: previous
+    sigmas: 3
+    direction: down
+    category: market
+    materiality: notable
+  - id: share-trails-sti
+    name: Share price trails the STI by more than 5 points in a week
+    kind: move
+    series: "eq.sgx.*"
+    benchmark: idx.sti
+    window: 1w
+    beyond: 5
+    direction: down
+    category: market
+    materiality: notable
+  - id: share-trails-klci
+    name: Share price trails the KLCI by more than 5 points in a week
+    kind: move
+    series: "eq.bursa.*"
+    benchmark: idx.klci
+    window: 1w
+    beyond: 5
+    direction: down
+    category: market
+    materiality: notable
+  - id: share-trails-set50
+    name: Share price trails the SET50 by more than 5 points in a week
+    kind: move
+    series: "eq.set.*"
+    benchmark: idx.set50
+    window: 1w
+    beyond: 5
+    direction: down
+    category: market
+    materiality: notable
+  - id: index-weekly-3sd-drop
+    name: Equity index falls more than 3 standard deviations in a week
+    kind: move
+    series: "idx.*"
+    window: 1w
+    sigmas: 3
+    direction: down
+    category: market
+    materiality: notable
+  - id: brent-weekly-3sd
+    name: Brent crude moves more than 3 standard deviations in a week
+    kind: move
+    series: fred.brent
+    window: 1w
+    sigmas: 3
+    category: market
+    materiality: notable
+  - id: asia-spread-weekly-3sd
+    name: Asia corporate spread widens more than 3 standard deviations in a week
+    kind: move
+    series: fred.asia_em_corporate_spread
+    window: 1w
+    sigmas: 3
+    direction: up
+    category: market
+    materiality: notable
+  - id: sora-weekly-3sd-up
+    name: SORA rises more than 3 standard deviations in a week
+    kind: move
+    series: mas.sora
+    window: 1w
+    sigmas: 3
+    direction: up
+    category: market
     materiality: notable

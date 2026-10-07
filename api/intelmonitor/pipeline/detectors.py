@@ -237,11 +237,37 @@ def _deviation(
     return out
 
 
-def _move(d: MoveDetector, s: SeriesDef, pts: list[Point]) -> list[Detection]:
+def _on_or_before(pts: list[Point], periods: list[date], day: date) -> Point | None:
+    at = bisect.bisect_right(periods, day) - 1
+    return pts[at] if at >= 0 else None
+
+
+def _move(
+    d: MoveDetector, s: SeriesDef, by_id: dict[str, SeriesDef], pts: list[Point], bench: list[Point]
+) -> list[Detection]:
+    """Moves beyond the rule's size. With a benchmark, each change is the series' less the
+    benchmark's between its last values on or before the same two dates."""
     refs = _references(pts, d.window)
-    changes = [
+    raw = [
         _change(s, p.obs.value, r.obs.value) if r else None for p, r in zip(pts, refs, strict=True)
     ]
+    # Each point's benchmark values (now, then) and the benchmark's own change.
+    pairs: list[tuple[Point, Point] | None] = [None] * len(pts)
+    bench_changes: list[float | None] = [None] * len(pts)
+    if d.benchmark is not None:
+        periods = [b.obs.period for b in bench]
+        for i, (p, r) in enumerate(zip(pts, refs, strict=True)):
+            now = _on_or_before(bench, periods, p.obs.period)
+            then = _on_or_before(bench, periods, r.obs.period) if r else None
+            if now and then and then.obs.value:
+                pairs[i] = (now, then)
+                bench_changes[i] = (now.obs.value / then.obs.value - 1) * 100
+        changes = [
+            c - b if c is not None and b is not None else None
+            for c, b in zip(raw, bench_changes, strict=True)
+        ]
+    else:
+        changes = raw
     hits: list[bool] = []
     sigmas: list[float | None] = []
     n, total, squares = 0, 0.0, 0.0  # earlier changes, for the standard deviation
@@ -264,7 +290,17 @@ def _move(d: MoveDetector, s: SeriesDef, pts: list[Point]) -> list[Detection]:
         p, ref, c, k = pts[first], refs[first], changes[first], sigmas[first]
         assert ref is not None and c is not None  # a hit has both
         noted = f" ({k:.1f} standard deviations of its moves)" if k is not None else ""
-        if moved := fx_move(s, c):
+        if d.benchmark is not None:
+            r, b, pair = raw[first], bench_changes[first], pairs[first]
+            assert r is not None and b is not None and pair is not None  # a hit has both
+            bench_name = by_id[d.benchmark].name
+            statement = (
+                f"{s.name} {'up' if r > 0 else 'down'} {abs(r):.2f}%{_WINDOW_PHRASE[d.window]} to "
+                f"{_stated(s, p)}, from {_stated(s, ref)}, while the {bench_name} "
+                f"{'rose' if b > 0 else 'fell'} {abs(b):.2f}%: {abs(c):.2f} points "
+                f"{'above' if c > 0 else 'below'} the index{noted}."
+            )
+        elif moved := fx_move(s, c):
             statement = (
                 f"{moved}{_WINDOW_PHRASE[d.window]}, to {_stated(s, p)}{noted}, from "
                 f"{_stated(s, ref)}{_released(s, p)}."
@@ -275,7 +311,7 @@ def _move(d: MoveDetector, s: SeriesDef, pts: list[Point]) -> list[Detection]:
                 f"{_stated(s, p)}{noted}, from {_stated(s, ref)}{_released(s, p)}."
             )
         adverse, direction = _tone(s, c)
-        known = max(ref.known_at, p.known_at)
+        known = max(ref.known_at, p.known_at, *(b.known_at for b in pairs[first] or ()))
         holds = last == len(pts) - 1
         out.append(Detection(d, s, p.obs.period, p, known, statement, adverse, direction, holds))
     return out
@@ -299,16 +335,21 @@ def _release(d: ReleaseDetector, s: SeriesDef, pts: list[Point]) -> list[Detecti
 
 
 def evaluate(
-    d: DetectorDef, s: SeriesDef, by_id: dict[str, SeriesDef], pts: list[Point]
+    d: DetectorDef,
+    s: SeriesDef,
+    by_id: dict[str, SeriesDef],
+    pts: list[Point],
+    bench: list[Point] | None = None,
 ) -> list[Detection]:
-    """Every event of one detector over one series' points, oldest first."""
+    """Every event of one detector over one series' points, oldest first. `bench` is the points of
+    a move rule's benchmark."""
     match d:
         case ThresholdDetector():
             return _threshold(d, s, pts)
         case DeviationDetector():
             return _deviation(d, s, by_id, pts)
         case MoveDetector():
-            return _move(d, s, pts)
+            return _move(d, s, by_id, pts, bench or [])
         case ReleaseDetector():
             return _release(d, s, pts)
 
@@ -317,25 +358,32 @@ def _events(
     conn: sqlite3.Connection, as_of: date, series_ids: Collection[str] | None = None
 ) -> list[Detection]:
     """Every seeded detector's events over the series (default all), from what was known by the
-    end of `as_of`. A series with no data or a stale market price as of the date fires nothing."""
+    end of `as_of`. A series with no data or a stale market price as of the date fires nothing,
+    nor does a move rule whose benchmark has none."""
     by_id = {s.id: s for s in load_series().series}
     pairs = load_detectors().matching(list(by_id))
     if series_ids is not None:
         pairs = [(d, i) for d, i in pairs if i in series_ids]
+    benchmarks = {d.benchmark for d, _ in pairs if isinstance(d, MoveDetector) and d.benchmark}
     usable = {
         i
-        for i, ind in compute_indicators(conn, {i for _, i in pairs}, as_of).items()
+        for i, ind in compute_indicators(conn, {i for _, i in pairs} | benchmarks, as_of).items()
         if ind.state not in ("no_data", "stale")
     }
     cache: dict[str, list[Point]] = {}
+
+    def cached(series_id: str) -> list[Point]:
+        if series_id not in cache:
+            cache[series_id] = points(conn, series_id, as_of)
+        return cache[series_id]
+
     out: list[Detection] = []
     for d, series_id in pairs:
-        if series_id not in usable:
+        bench = d.benchmark if isinstance(d, MoveDetector) else None
+        if series_id not in usable or (bench is not None and bench not in usable):
             continue
-        pts = cache.get(series_id)
-        if pts is None:
-            pts = cache[series_id] = points(conn, series_id, as_of)
-        out += evaluate(d, by_id[series_id], by_id, pts)
+        bench_pts = cached(bench) if bench is not None else None
+        out += evaluate(d, by_id[series_id], by_id, cached(series_id), bench_pts)
     return sorted(out, key=lambda e: (e.known_at, e.detector.id, e.series.id))
 
 
@@ -355,6 +403,10 @@ def live_events(
 
 
 # ---- documents
+
+
+def load_series_by_id() -> dict[str, SeriesDef]:
+    return {x.id: x for x in load_series().series}
 
 
 def describe(d: DetectorDef, s: SeriesDef) -> str:
@@ -385,6 +437,10 @@ def _rule(d: DetectorDef, s: SeriesDef) -> str:
                 if d.beyond is not None
                 else f"more than {d.sigmas} standard deviations of its earlier moves"
             )
+            if d.benchmark is not None:
+                bench = load_series_by_id()[d.benchmark].name
+                size = size.replace(basis, "points") if d.beyond is not None else size
+                return f"a move{ways[d.direction]} of {size} against the {bench} {over}"
             return f"a move{ways[d.direction]} of {size} {over}"
         case ReleaseDetector():
             return f"a release moving{ways[d.direction]} more than {d.beyond} {basis} on the last"

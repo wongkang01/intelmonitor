@@ -141,10 +141,10 @@ def linked_series(q: QuestionDef, mapped: list[str]) -> list[str]:
 # Series (api/seed/series.yaml). Each series has one source: a fetch from an external API, or an
 # operation over series declared above it.
 
-MasTable = Literal["i18", "i12a", "i5b", "fx"]
+MasTable = Literal["i18", "i12a", "i5b", "fx", "sora"]
 Frequency = Literal["daily", "monthly", "quarterly"]
 BadDirection = Literal["up", "down", "none"]
-SourceName = Literal["mas", "fred", "coingecko", "defillama", "derived"]
+SourceName = Literal["mas", "fred", "coingecko", "defillama", "yahoo", "derived"]
 
 
 class MasSource(BaseModel):
@@ -175,6 +175,13 @@ class DefiLlamaSource(BaseModel):
     chain: str | None = None
 
 
+class YahooSource(BaseModel):
+    """A listed share or an index: its daily close in its own currency, from Yahoo Finance."""
+
+    kind: Literal["yahoo"]
+    symbol: str  # Yahoo's ticker, e.g. U11.SI or ^STI
+
+
 class Deviation(BaseModel):
     kind: Literal["deviation"]
     input: str
@@ -192,7 +199,7 @@ class Share(BaseModel):
     total: str
 
 
-FetchSource = MasSource | FredSource | CoinGeckoSource | DefiLlamaSource
+FetchSource = MasSource | FredSource | CoinGeckoSource | DefiLlamaSource | YahooSource
 DerivedSource = Deviation | Product | Share
 SeriesSource = Annotated[FetchSource | DerivedSource, Field(discriminator="kind")]
 
@@ -242,12 +249,14 @@ _MAS_TABLE_LABEL: dict[MasTable, str] = {
     "i12a": "MAS I.12A",
     "i5b": "MAS I.5B",
     "fx": "MAS exchange rates",
+    "sora": "MAS domestic interest rates",
 }
 _PROVIDER: dict[str, str] = {
     "mas": "MAS",
     "fred": "FRED",
     "coingecko": "CoinGecko",
     "defillama": "DefiLlama",
+    "yahoo": "Yahoo Finance",
 }
 
 
@@ -261,6 +270,8 @@ def source_label(s: SeriesDef, by_id: dict[str, SeriesDef]) -> str:
             return f"FRED {s.source.series}"
         case CoinGeckoSource() | DefiLlamaSource():
             return _PROVIDER[s.source.kind]
+        case YahooSource():
+            return f"Yahoo Finance {s.source.symbol}"
         case Deviation() | Product() | Share():
             return ", ".join(dict.fromkeys(providers(s, by_id)))
 
@@ -386,13 +397,16 @@ class DeviationDetector(_Detector):
 class MoveDetector(_Detector):
     """The change over `window` (from the previous observation, or the last one on or before the
     window's start) beyond `beyond`, in points for series in % and percent otherwise, or beyond
-    `sigmas` standard deviations of the series' earlier changes over the same window."""
+    `sigmas` standard deviations of the series' earlier changes over the same window. With a
+    `benchmark` series, the change is the series' percent change less the benchmark's over the
+    same dates: a bank's share price against its home index."""
 
     kind: Literal["move"]
     window: MoveWindow
     beyond: float | None = None
     sigmas: float | None = None
     direction: MoveDirection = "either"
+    benchmark: str | None = None
 
     @model_validator(mode="after")
     def _one_size(self) -> Self:
@@ -438,6 +452,12 @@ class DetectorsSeed(BaseModel):
                     raise ValueError(f"detector {d.id}: {s.id} is daily, not a release")
                 if isinstance(d, MoveDetector) and d.window not in _MOVE_WINDOWS[s.frequency]:
                     raise ValueError(f"detector {d.id}: {d.window} is too short for {s.id}")
+                if isinstance(d, MoveDetector) and d.benchmark is not None:
+                    bench = next((b for b in catalogue if b.id == d.benchmark), None)
+                    if bench is None or bench.frequency != s.frequency:
+                        raise ValueError(f"detector {d.id}: benchmark is not {s.frequency}")
+                    if "%" in (s.unit, bench.unit):
+                        raise ValueError(f"detector {d.id}: a benchmark compares percent changes")
         return self
 
     def matching(self, series_ids: list[str]) -> list[tuple[DetectorDef, str]]:

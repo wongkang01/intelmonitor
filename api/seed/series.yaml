@@ -2,10 +2,11 @@
 # series_subjects tables; adding a series from a known source needs no code change.
 #
 # source: where the values come from, by kind.
-#   mas        table (i18, i12a, i5b or fx) and field, from the MAS statistics APIs
+#   mas        table (i18, i12a, i5b, fx or sora) and field, from the MAS statistics APIs
 #   fred       series id, plus lag_days: days after the period end a value is usually published
 #   coingecko  coin id; daily USD price for the last 365 days
 #   defillama  stablecoin id (omit for all stablecoins) and optional chain; circulating supply
+#   yahoo      symbol (Yahoo Finance ticker, e.g. U11.SI or ^STI); daily close, no key
 #   deviation  input and target: percent off the target, (value / target - 1) * 100
 #   product    inputs [a, b]: a times b, for each period both have
 #   share      part and total: percent of the total, part / total * 100, for each period both have
@@ -330,6 +331,37 @@ series:
       primary: [hkma]
       context: [singapore, mas, geopolitics]
 
+  # MAS domestic interest rates: SORA, the overnight interbank SGD rate, and its 3-month
+  # compounded rate, which SGD loans are priced on. Published the next business day at 9am SGT.
+  - id: mas.sora
+    name: SORA
+    group: SORA
+    short_name: Overnight
+    scope: market
+    unit: "%"
+    frequency: daily
+    decimals: 4
+    bad_direction: up
+    source_url: https://eservices.mas.gov.sg/statistics/dir/DomesticInterestRates.aspx
+    source: {kind: mas, table: sora, field: sora}
+    subjects:
+      primary: [mas]
+      context: [singapore, singapore-banks, dbs, ocbc, uob]
+  - id: mas.sora_3m
+    name: Compounded SORA, 3 months
+    group: SORA
+    short_name: Compounded, 3 months
+    scope: market
+    unit: "%"
+    frequency: daily
+    decimals: 4
+    bad_direction: none
+    source_url: https://eservices.mas.gov.sg/statistics/dir/DomesticInterestRates.aspx
+    source: {kind: mas, table: sora, field: comp_sora_3m}
+    subjects:
+      primary: [mas]
+      context: [singapore, singapore-banks, dbs, ocbc, uob]
+
   # FRED: policy rates and risk sentiment.
   - id: fred.fed_funds
     name: Fed funds effective rate
@@ -389,6 +421,246 @@ series:
     subjects:
       primary: [geopolitics]
       context: [central-banks]
+
+  # FRED: oil, Asian credit and the dollar, market-wide stress the region's banks feel.
+  - id: fred.brent
+    name: Brent crude oil price
+    group: Commodities
+    scope: market
+    unit: USD per barrel
+    frequency: daily
+    decimals: 2
+    bad_direction: none
+    source_url: https://fred.stlouisfed.org/series/DCOILBRENTEU
+    source: {kind: fred, series: DCOILBRENTEU, lag_days: 7}
+    subjects:
+      primary: [geopolitics]
+      context: [sea-countries]
+  - id: fred.asia_em_corporate_spread
+    name: Asia emerging markets corporate spread
+    group: Credit spreads
+    scope: market
+    unit: "%"
+    frequency: daily
+    decimals: 2
+    bad_direction: up
+    source_url: https://fred.stlouisfed.org/series/BAMLEMRACRPIASIAOAS
+    source: {kind: fred, series: BAMLEMRACRPIASIAOAS}
+    subjects:
+      primary: [sea-countries]
+      context: [singapore-banks, sea-regional-banks, dbs, ocbc, uob, maybank, cimb, bangkok-bank, geopolitics]
+  - id: fred.usd_broad
+    name: US dollar broad index
+    scope: market
+    unit: index
+    frequency: daily
+    decimals: 2
+    bad_direction: none
+    source_url: https://fred.stlouisfed.org/series/DTWEXBGS
+    source: {kind: fred, series: DTWEXBGS, lag_days: 10}
+    subjects:
+      primary: [fed]
+      context: [central-banks, geopolitics, sea-countries]
+
+  # Yahoo Finance daily closes: listed banks and issuers, and the region's equity indices. Ids name
+  # the exchange (eq.<exchange>.<subject>), so a detector compares each share with its home index.
+  # Yahoo has no daily history for the SET Index, PSEi or VN-Index: Thailand uses the SET50 ETF
+  # listed in Bangkok, and the Philippines and Vietnam the US-listed country ETFs, priced in USD.
+  - id: eq.sgx.dbs
+    name: DBS share price
+    short_name: DBS
+    group: Share prices
+    unit: SGD
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/D05.SI
+    source: {kind: yahoo, symbol: "D05.SI"}
+    subjects:
+      primary: [dbs]
+      context: [singapore-banks]
+  - id: eq.sgx.ocbc
+    name: OCBC share price
+    short_name: OCBC
+    group: Share prices
+    unit: SGD
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/O39.SI
+    source: {kind: yahoo, symbol: "O39.SI"}
+    subjects:
+      primary: [ocbc]
+      context: [singapore-banks]
+  - id: eq.sgx.uob
+    name: UOB share price
+    short_name: UOB
+    group: Share prices
+    unit: SGD
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/U11.SI
+    source: {kind: yahoo, symbol: "U11.SI"}
+    subjects:
+      primary: [uob]
+      context: [singapore-banks]
+  - id: eq.bursa.maybank
+    name: Maybank share price
+    short_name: Maybank
+    group: Share prices
+    unit: MYR
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/1155.KL
+    source: {kind: yahoo, symbol: "1155.KL"}
+    subjects:
+      primary: [maybank]
+      context: [sea-regional-banks]
+  - id: eq.bursa.cimb
+    name: CIMB share price
+    short_name: CIMB
+    group: Share prices
+    unit: MYR
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/1023.KL
+    source: {kind: yahoo, symbol: "1023.KL"}
+    subjects:
+      primary: [cimb]
+      context: [sea-regional-banks]
+  - id: eq.set.bangkok-bank
+    name: Bangkok Bank share price
+    short_name: Bangkok Bank
+    group: Share prices
+    unit: THB
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/BBL.BK
+    source: {kind: yahoo, symbol: "BBL.BK"}
+    subjects:
+      primary: [bangkok-bank]
+      context: [sea-regional-banks]
+  - id: eq.nyse.circle
+    name: Circle share price
+    short_name: Circle
+    group: Share prices
+    unit: USD
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/CRCL
+    source: {kind: yahoo, symbol: "CRCL"}
+    subjects:
+      primary: [circle]
+      context: [stablecoin-issuers, stablecoins]
+  - id: idx.sti
+    name: Straits Times Index
+    group: Equity indices
+    scope: market
+    unit: index
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/%5ESTI
+    source: {kind: yahoo, symbol: "^STI"}
+    subjects:
+      primary: [singapore]
+      context: [sea-countries, mas, singapore-banks, dbs, ocbc, uob]
+  - id: idx.klci
+    name: FTSE Bursa Malaysia KLCI
+    group: Equity indices
+    scope: market
+    unit: index
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/%5EKLSE
+    source: {kind: yahoo, symbol: "^KLSE"}
+    subjects:
+      primary: [malaysia]
+      context: [sea-countries, bnm, sea-regional-banks, maybank, cimb]
+  - id: idx.set50
+    name: SET50 (ThaiDEX SET50 ETF)
+    group: Equity indices
+    scope: market
+    unit: THB
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/TDEX.BK
+    source: {kind: yahoo, symbol: "TDEX.BK"}
+    subjects:
+      primary: [thailand]
+      context: [sea-countries, sea-regional-banks, bangkok-bank]
+  - id: idx.jci
+    name: Jakarta Composite Index
+    group: Equity indices
+    scope: market
+    unit: index
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/%5EJKSE
+    source: {kind: yahoo, symbol: "^JKSE"}
+    subjects:
+      primary: [indonesia]
+      context: [sea-countries]
+  - id: idx.ephe
+    name: Philippine equities (iShares MSCI Philippines ETF)
+    group: Equity indices
+    scope: market
+    unit: USD
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/EPHE
+    source: {kind: yahoo, symbol: "EPHE"}
+    subjects:
+      primary: [philippines]
+      context: [sea-countries]
+  - id: idx.vnm
+    name: Vietnamese equities (VanEck Vietnam ETF)
+    group: Equity indices
+    scope: market
+    unit: USD
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/VNM
+    source: {kind: yahoo, symbol: "VNM"}
+    subjects:
+      primary: [vietnam]
+      context: [sea-countries]
+  - id: idx.hsi
+    name: Hang Seng Index
+    group: Equity indices
+    scope: market
+    unit: index
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/%5EHSI
+    source: {kind: yahoo, symbol: "^HSI"}
+    subjects:
+      primary: [hkma]
+      context: [central-banks, geopolitics, singapore-banks]
+  - id: idx.sse
+    name: Shanghai Composite Index
+    group: Equity indices
+    scope: market
+    unit: index
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/000001.SS
+    source: {kind: yahoo, symbol: "000001.SS"}
+    subjects:
+      primary: [pboc]
+      context: [central-banks, geopolitics]
 
   # CoinGecko prices, and peg deviation derived from them.
   - id: cg.usdt.price

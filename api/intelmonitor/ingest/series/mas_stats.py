@@ -1,16 +1,18 @@
-"""MAS statistics APIs: Monthly Statistical Bulletin tables I.18, I.12A and I.5B, and daily
-exchange rates. Each API has its own key, sent in the `keyid` header.
+"""MAS statistics APIs: Monthly Statistical Bulletin tables I.18, I.12A and I.5B, daily exchange
+rates and daily domestic interest rates (SORA). Each API has its own key, sent in the `keyid`
+header.
 
 A table URL without a filter returns the whole table in one call (the gateway answers malformed
 OData queries with an HTML page, so none is sent). Rows carry `create_date`, and `p_ind: "P"` while
 preliminary. Exchange rates are SGD per unit, or per 100 units for fields ending in _100; values
-are stored per unit.
+are stored per unit. A SORA value is published on the next business day at 9am SGT, as its row's
+`published_date` says.
 """
 
 import calendar
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Literal
 from zoneinfo import ZoneInfo
 
@@ -30,8 +32,8 @@ from intelmonitor.store.series import Observation
 
 NAMESPACE = "mas-stats"
 _SGT = ZoneInfo("Asia/Singapore")
-# Exchange rates for a span this short are fetched one day per call; longer spans take the whole
-# table (3 MB, daily history since 2003) in one call.
+# Daily tables for a span this short are fetched one day per call; longer spans take the whole
+# table (exchange rates 3 MB since 2003, interest rates 7 MB since 1987) in one call.
 _PER_DAY_MAX_DAYS = 45
 # A day's rates may be missing or preliminary for a few days, so those days are refetched daily.
 _RECENT_DAYS = 7
@@ -80,7 +82,16 @@ TABLES: dict[MasTable, _Table] = {
         "day",
         1,
     ),
+    "sora": _Table(
+        "server/monthly_statistical_bulletin_non610mssql/domestic_interest_rates_daily/views/"
+        "domestic_interest_rates_daily",
+        lambda s: s.mas_sora_key,
+        "MAS_SORA_KEY",
+        "day",
+        1,
+    ),
 }
+_PUBLISHED_AT = time(9)  # SGT: SORA's publication time
 
 
 class _Row(BaseModel):
@@ -99,15 +110,24 @@ class _TableResponse(BaseModel):
     elements: list[_Row]
 
 
-class _FxRow(BaseModel):
+class _DayRow(BaseModel):
+    """A row of a daily table: exchange rates ("1" while preliminary) or interest rates (1)."""
+
     model_config = ConfigDict(extra="allow")
     end_of_day: date
-    preliminary: str
+    preliminary: str | int
+    published_date: datetime | None = None  # interest rates only
+
+    def known_at(self, lag_days: int) -> datetime:
+        if self.published_date is None:
+            return after(self.end_of_day, lag_days)
+        day = self.published_date.date()
+        return datetime.combine(day, _PUBLISHED_AT, _SGT).astimezone(UTC)
 
 
-class _FxResponse(BaseModel):
+class _DayResponse(BaseModel):
     name: str
-    elements: list[_FxRow]
+    elements: list[_DayRow]
 
 
 # Exchange rates come as strings, table values as numbers; both validate as floats.
@@ -171,16 +191,16 @@ def _collect(fetched: Fetched, sources: Mapping[str, MasSource], rows: _Rows, fl
         fetched.observations[series_id] = observations
 
 
-def _fx_rows(http: CachedHttp, url: str, headers: dict[str, str], window: Window) -> list[_FxRow]:
+def _day_rows(http: CachedHttp, url: str, headers: dict[str, str], window: Window) -> list[_DayRow]:
     """The whole table for a long span, else one call per weekday from window.start to today.
     Recent days carry the fetch date in their cache key, so a day not yet published is asked
     again tomorrow; older days stay cached."""
     if (window.today - window.start).days > _PER_DAY_MAX_DAYS:
         response = get_json(
-            http, NAMESPACE, url, _FxResponse, headers=headers, vary=window.today.isoformat()
+            http, NAMESPACE, url, _DayResponse, headers=headers, vary=window.today.isoformat()
         )
         return response.elements
-    rows: list[_FxRow] = []
+    rows: list[_DayRow] = []
     day = window.start
     while day <= window.today:
         if day.weekday() < 5:
@@ -189,7 +209,7 @@ def _fx_rows(http: CachedHttp, url: str, headers: dict[str, str], window: Window
                 http,
                 NAMESPACE,
                 url,
-                _FxResponse,
+                _DayResponse,
                 params={"end_of_day": day.isoformat()},
                 headers=headers,
                 vary=window.today.isoformat() if recent else None,
@@ -215,15 +235,14 @@ def fetch(
         headers = {"keyid": key}
         try:
             if table.period == "day":
-                fx = _fx_rows(http, url, headers, window)
                 rows: _Rows = [
                     (
                         d.end_of_day,
-                        d.preliminary == "1",
-                        after(d.end_of_day, table.lag_days),
+                        str(d.preliminary) == "1",
+                        d.known_at(table.lag_days),
                         d.model_extra,
                     )
-                    for d in fx
+                    for d in _day_rows(http, url, headers, window)
                 ]
             else:
                 response = get_json(

@@ -183,11 +183,15 @@ const MONEY: Record<string, { prefix: string; scale: number }> = {
   SGD: { prefix: "S$", scale: 1 },
   "SGD m": { prefix: "S$", scale: 1e6 },
 };
+// A price quoted in a currency (unit a currency code, such as a share's close): "S$42.50", "MYR 10.12".
+const CURRENCY_PREFIX: Record<string, string> = { USD: "$", SGD: "S$" };
+const CURRENCY = /^[A-Z]{3}$/;
 const MINUS = "−";
 const signed = (x: number, text: string) => `${x > 0 ? "+" : x < 0 ? MINUS : ""}${text}`;
 
 /**
- * A series value in its unit: "70.3%", "S$16.5M", "$183.4B", "0.3132" (SGD per MYR). A distance
+ * A series value in its unit: "70.3%", "S$16.5M", "$183.4B", "S$42.50", "MYR 10.12", "0.3132" (SGD
+ * per MYR). A distance
  * from a target (a peg, `baseline` set) is always signed, "+0.04%" above and "−0.01%" below; a
  * value that rounds to zero takes no sign.
  */
@@ -201,6 +205,7 @@ export function seriesValue(s: Series, v: number): string {
 function magnitude(s: Series, a: number): string {
   const money = s.decimals === 0 ? MONEY[s.unit] : undefined;
   if (s.unit === "%") return `${a.toFixed(s.decimals)}%`;
+  if (!money && CURRENCY.test(s.unit)) return `${CURRENCY_PREFIX[s.unit] ?? `${s.unit} `}${a.toFixed(s.decimals)}`;
   if (!money) return a.toFixed(s.decimals);
   const amount = a * money.scale;
   const [div, suffix] = amount >= 1e9 ? [1e9, "B"] : amount >= 1e6 ? [1e6, "M"] : [1e3, "K"];

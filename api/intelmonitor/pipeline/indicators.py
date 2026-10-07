@@ -100,16 +100,17 @@ def _stale(
     history: Callable[[str], list[Observation]],
     at: datetime,
 ) -> bool:
-    """A market feed that stopped: a daily CoinGecko or DefiLlama series whose latest point became
-    available more than a day before `at`, or a series derived from one. A derived series takes
-    its staleness from its market inputs, not from its own latest point: XSGD in SGD has no value
-    on days without a MAS rate, a gap like the rate's own, while its price feed is current."""
+    """A market feed that stopped: a daily CoinGecko, DefiLlama or Yahoo Finance series whose
+    latest point became available longer before `at` than its source allows, or a series derived
+    from one. A derived series takes its staleness from its market inputs, not from its own latest
+    point: XSGD in SGD has no value on days without a MAS rate, a gap like the rate's own, while
+    its price feed is current."""
     if isinstance(s.source, DerivedSource):
         return any(_stale(by_id[i], by_id, history, at) for i in derived_inputs(s.source))
     if s.source_name not in MARKET_SOURCES or s.frequency != "daily":
         return False
     observations = history(s.id)
-    return bool(observations) and at - observations[-1].available_at > STALE_AFTER
+    return bool(observations) and at - observations[-1].available_at > STALE_AFTER[s.source_name]
 
 
 def indicator(

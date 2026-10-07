@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     mas_bank_asset_quality_api_key: str = ""
     mas_bank_liquidity_api_key: str = ""
     mas_bank_exposure_api_key: str = ""
+    mas_sora_key: str = ""
 
 
 @lru_cache
