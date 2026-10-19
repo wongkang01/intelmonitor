@@ -1,5 +1,5 @@
 // A bordered select-style button ("Links: All") opening a checklist of filter values, for the
-// graph view's toolbar and the Related card. One value always stays checked.
+// graph view's toolbar. One value always stays checked.
 import { useEffect, useId, useRef, useState } from "react";
 
 import { ChevronDownIcon } from "@/components/ui/icons";

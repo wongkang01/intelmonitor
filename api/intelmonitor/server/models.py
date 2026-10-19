@@ -1092,11 +1092,6 @@ class RelatedNode(BaseModel):
     harmful: int = Field(description="How many of them are negative for the centre")
 
 
-class RelatedFacet(BaseModel):
-    type: RelType
-    count: int = Field(description="Links of this type between the centre and its nodes")
-
-
 class RelatedGraph(BaseModel):
     """Everything linked to a subject in the relationship store, for the Overview's Related
     graph (GET /subjects/{id}/related-graph)."""
@@ -1110,4 +1105,3 @@ class RelatedGraph(BaseModel):
     developments: list[DevelopmentSummary] = Field(
         description="Every development a node lists, in display order"
     )
-    link_types: list[RelatedFacet] = Field(description="In relationship type order")

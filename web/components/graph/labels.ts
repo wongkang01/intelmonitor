@@ -1,5 +1,5 @@
-// What each stored relationship type reads as in the Links filters of the graph view and the
-// Related card, in the API's relationship type order.
+// What each stored relationship type reads as in the graph view's Links filter, in the API's
+// relationship type order.
 import type { Schema } from "@/lib/api/client";
 
 export type RelType = Schema<"RelatedLink">["type"];

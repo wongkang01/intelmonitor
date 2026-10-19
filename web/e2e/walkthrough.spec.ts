@@ -400,7 +400,7 @@ test("IntelMonitor Phase 1 walkthrough", async ({ page }) => {
     });
 
     await step(STEPS[8], async () => {
-      for (const region of ["This week", "Top developments", "Related"]) {
+      for (const region of ["This week", "Top DBS developments", "Related to DBS"]) {
         await expect(page.getByRole("region", { name: region }), `the ${region} block`).toBeVisible();
       }
       await expect(page.getByRole("link", { name: "Open Data" })).toBeVisible();
@@ -410,7 +410,7 @@ test("IntelMonitor Phase 1 walkthrough", async ({ page }) => {
         await expect(page.getByRole("region", { name: region }), `no ${region} on the Overview`).toHaveCount(0);
       }
       const tabs = page.getByRole("navigation", { name: "Monitor views" });
-      await page.getByRole("region", { name: "Related" }).getByRole("link", { name: "See all links" }).click();
+      await page.getByRole("region", { name: "Related to DBS" }).getByRole("link", { name: "See all links" }).click();
       await expect(page).toHaveURL(/\/monitors\/dbs\/related$/);
       await expect(tabs.getByRole("link", { name: "Related" })).toHaveAttribute("aria-current", "page");
       const related = page.locator("main .mon-sec h2");
@@ -425,7 +425,7 @@ test("IntelMonitor Phase 1 walkthrough", async ({ page }) => {
 
       // The Overview shows this month's top 5 with their priority; See all opens the Developments tab.
       const month = await unwrap(api.GET("/developments", { params: { query: { subject_id: ["dbs"], days: 30, dismissed: false } } }));
-      const top = page.getByRole("region", { name: "Top developments" });
+      const top = page.getByRole("region", { name: "Top DBS developments" });
       await expect(top.locator(".frow")).toHaveCount(Math.min(month.developments.length, 5));
       await expect(top.locator(".frow .ftitle").first()).toHaveText(month.developments[0].title);
       await expect(top.locator(".frow-head")).toHaveText("PriorityFindingDate");

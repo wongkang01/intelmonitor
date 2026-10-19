@@ -1,8 +1,8 @@
 // A monitor page for a topic or entity: the head with its tabs, Overview (here), Developments
 // (SubjectDevelopments.tsx's DevelopmentsTab), Related (Related.tsx) and Data (TrendView's DataView),
 // each rendering MonitorHead with its tab. The Overview holds the summary band (the week's brief
-// beside the top Key data figures and the next date), then the subject's top 5 developments beside
-// the Related card, which a subject with no stored links (most topics) goes without. Groups have
+// beside the top Key data figures and the next date), then the subject's top 5 developments and the
+// Related card, each full width; a subject with no stored links (most topics) has no Related card. Groups have
 // no page of their own (decision S3): their URL lists the members instead.
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";

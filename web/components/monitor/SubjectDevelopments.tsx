@@ -19,7 +19,7 @@ import { Section } from "./parts";
 const TOP = 5;
 
 /**
- * The Overview's "Top developments": this month's first 5 confirmed ones, High and adverse for the
+ * The Overview's "Top <entity> developments" ("Top developments" for a topic): this month's first 5 confirmed ones, High and adverse for the
  * subject first, then other High, Medium adverse, other Medium and the rest, newest first within
  * each (the API's order). Each has its priority badge; a link to the Developments tab follows. The
  * query is the tab's default one, so the tab opens from cache.
@@ -29,7 +29,7 @@ export function TopDevelopments({ subject }: { subject: Schema<"SubjectRef"> }) 
   const rows = list.data?.developments.filter((d) => !d.dismissed) ?? [];
   const allTime = list.data?.facets.date.find((v) => v.value === "any")?.count ?? 0;
   return (
-    <Section id="developments" title="Top developments">
+    <Section id="developments" title={subject.type === "entity" ? `Top ${subject.name} developments` : "Top developments"}>
       {list.isError ? (
         <p className="mon-empty">These developments could not be loaded.</p>
       ) : !list.data ? null : rows.length === 0 ? (

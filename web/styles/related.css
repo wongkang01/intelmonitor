@@ -1,18 +1,15 @@
 /* The Overview's Related card (components/monitor/RelatedGraph.tsx) and its canvas
-   (components/graph/RelatedCanvas.tsx): filters, the graph with each node's count and its popover,
-   then the legend. */
+   (components/graph/RelatedCanvas.tsx): the window and legend, then the graph with each node's
+   count beside the list of developments by node. */
 
 /* Canvas colors. RelatedCanvas reads these at mount, so change them here, never in TSX. Red means
-   news that could hurt the subject, blue other news, an outline none. */
+   news that could hurt the subject, blue other news. */
 .rg {
   --g-center: var(--ink);
   --g-harm: var(--attn);
   --g-harm-bg: var(--attn-bg);
   --g-news: var(--new);
   --g-news-bg: var(--new-bg);
-  --g-none: var(--line-field);
-  --g-none-bg: var(--surface);
-  --g-edge: var(--line-field);
   --g-gap: var(--surface);
   --g-dim: var(--line);
   --g-label: var(--ink);
@@ -23,20 +20,33 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--s-2);
+  gap: var(--s-2) var(--s-4);
   padding-top: var(--s-3);
 }
 
+/* The graph beside its list, as the graph view's canvas beside In view; the list scrolls within
+   the graph's height. Under 900px the list goes under the graph. */
+.rg-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  height: 600px;
+  margin-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+@container main (width < 900px) {
+  .rg-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 380px 420px;
+    height: auto;
+  }
+  .rg-list {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
 .rg-canvas {
   position: relative;
-  height: 500px;
-  margin-top: var(--s-2);
-}
-/* At phone width the graph is as wide as the card is narrow, so the stage shrinks with it. */
-@container main (width < 640px) {
-  .rg-canvas {
-    height: 360px;
-  }
+  min-height: 0;
 }
 .rg-stage {
   position: absolute;
@@ -73,39 +83,42 @@
   opacity: 0.3;
 }
 
-/* A node's popover, beside its node and inside the stage. */
-.rg-pop-anchor {
-  position: absolute;
-  z-index: 5;
-  top: 0;
-  left: 0;
-  width: min(340px, calc(100% - 16px));
-}
-.rg-pop {
-  max-height: 300px;
+/* The developments by node. A group's left rule takes its node's color while the node is hovered
+   or was clicked. */
+.rg-list {
+  min-height: 0;
   overflow-y: auto;
-  padding: var(--s-3);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-widget);
-  background: var(--surface);
-  box-shadow: var(--shadow-pop);
+  padding: 0 var(--s-4) var(--s-3);
+  border-left: 1px solid var(--line);
 }
-.rg-pop-head {
+.rg-group {
+  margin: 0 calc(-1 * var(--s-4));
+  padding: var(--s-3) var(--s-4) var(--s-2) calc(var(--s-4) - 3px);
+  border-left: 3px solid transparent;
+}
+.rg-group + .rg-group {
+  border-top: 1px solid var(--line);
+}
+.rg-group:is([data-hovered], [data-selected])[data-tone="harm"] {
+  border-left-color: var(--attn);
+}
+.rg-group:is([data-hovered], [data-selected])[data-tone="news"] {
+  border-left-color: var(--new);
+}
+.rg-group h3 {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   gap: var(--s-2);
-}
-.rg-pop-head h3 {
-  flex: 1;
-  min-width: 0;
   margin: 0;
   font: 600 var(--fs-body) / var(--lh-body) var(--font);
 }
-/* The heading takes focus when the popover opens and needs no ring, as drawer headings. */
-.rg-pop-head h3:focus {
-  outline: none;
+.rg-group h3 .count {
+  margin-left: auto;
+  color: var(--ink2);
+  font: 500 var(--fs-meta) / var(--lh-meta) var(--font);
+  font-variant-numeric: tabular-nums;
 }
-.rg-pop .meta {
+.rg-group .meta {
   margin: 2px 0 0;
 }
 .rg-rows {
@@ -115,11 +128,11 @@
 }
 .rg-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
   align-items: start;
+  justify-items: start;
   column-gap: var(--s-2);
   padding: 6px 0;
-  border-top: 1px solid var(--line);
   color: var(--ink);
 }
 .rg-row:hover .rg-title {
@@ -143,7 +156,7 @@
   flex-wrap: wrap;
   gap: 4px 16px;
   margin: 0;
-  padding: var(--s-2) 0 0;
+  padding: 0;
   list-style: none;
   color: var(--ink2);
   font: 500 var(--fs-meta) / var(--lh-meta) var(--font);

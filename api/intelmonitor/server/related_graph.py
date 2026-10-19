@@ -9,14 +9,11 @@ reaches DBS through DBS Hong Kong counts for both. Routes run from the subject o
 nodes the subject links to can carry developments; nodes that link to it (banks that depend on
 Azure, Temasek holding DBS) carry none."""
 
-from collections import Counter
-
 from intelmonitor.pipeline.impact import short_label
-from intelmonitor.relationships import REL_TYPES, SCHEMA, links_of
+from intelmonitor.relationships import SCHEMA, links_of
 from intelmonitor.server.impacts import subject_impacts
 from intelmonitor.server.models import (
     RelatedDays,
-    RelatedFacet,
     RelatedGraph,
     RelatedLink,
     RelatedNode,
@@ -57,7 +54,6 @@ def related_graph(q: Queries, subject_id: str, days: RelatedDays) -> RelatedGrap
             n.development_ids.append(i.development_id)
             n.harmful += int(i.direction == "negative")
 
-    types = Counter(link.type for n in nodes.values() for link in n.links)
     return RelatedGraph(
         run=q.run,
         center=subject_ref(subject_id),
@@ -66,5 +62,4 @@ def related_graph(q: Queries, subject_id: str, days: RelatedDays) -> RelatedGrap
             nodes.values(), key=lambda n: (-len(n.development_ids), -n.harmful, n.name.lower())
         ),
         developments=[i.development for i in impacts],
-        link_types=[RelatedFacet(type=t, count=types[t]) for t in REL_TYPES if types[t]],
     )

@@ -26,7 +26,7 @@ Under 1024 px the popup fills the screen less 16 px and the columns stack in one
 
 ## How to get to it (user POV)
 
-- A feed row on the developments page, a monitor page's Developments tab or its Overview's top 5 (see [developments](developments.md)); on the Overview also the summary band's `Next:` date and a Related card popover row (the brief itself links no developments); on the Related tab a `Could affect` title and a linked institution's week line (see [monitor-page](monitor-page.md)).
+- A feed row on the developments page, a monitor page's Developments tab or its Overview's top 5 (see [developments](developments.md)); on the Overview also the summary band's `Next:` date and a Related card list row (the brief itself links no developments); on the Related tab a `Could affect` title and a linked institution's week line (see [monitor-page](monitor-page.md)).
 - A dashboard's feed row, watchlist title or upcoming date label (see [dashboard](dashboard.md)).
 - The Data tab's `View the development` rows and note cites, a graph development node, ⌘K development and document results, the answer drawer's development titles.
 

@@ -3540,19 +3540,6 @@ export interface components {
          * @enum {integer}
          */
         RelatedDays: 7 | 30 | 90;
-        /** RelatedFacet */
-        RelatedFacet: {
-            /**
-             * Type
-             * @enum {string}
-             */
-            type: "exposed_to" | "depends_on" | "participates_in" | "owns" | "subsidiary_of" | "operates_in" | "supervised_by" | "shareholder_of" | "member_of" | "listed_on";
-            /**
-             * Count
-             * @description Links of this type between the centre and its nodes
-             */
-            count: number;
-        };
         /**
          * RelatedGraph
          * @description Everything linked to a subject in the relationship store, for the Overview's Related
@@ -3572,11 +3559,6 @@ export interface components {
              * @description Every development a node lists, in display order
              */
             developments: components["schemas"]["DevelopmentSummary"][];
-            /**
-             * Link Types
-             * @description In relationship type order
-             */
-            link_types: components["schemas"]["RelatedFacet"][];
         };
         /**
          * RelatedLink

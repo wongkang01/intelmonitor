@@ -8389,37 +8389,6 @@
         "title": "RelatedDays",
         "description": "The Related graph's windows in days: the brief's week, a month and a quarter. An enum, not\na Literal, so a query string's \"7\" validates."
       },
-      "RelatedFacet": {
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "exposed_to",
-              "depends_on",
-              "participates_in",
-              "owns",
-              "subsidiary_of",
-              "operates_in",
-              "supervised_by",
-              "shareholder_of",
-              "member_of",
-              "listed_on"
-            ],
-            "title": "Type"
-          },
-          "count": {
-            "type": "integer",
-            "title": "Count",
-            "description": "Links of this type between the centre and its nodes"
-          }
-        },
-        "type": "object",
-        "required": [
-          "type",
-          "count"
-        ],
-        "title": "RelatedFacet"
-      },
       "RelatedGraph": {
         "properties": {
           "run": {
@@ -8446,14 +8415,6 @@
             "type": "array",
             "title": "Developments",
             "description": "Every development a node lists, in display order"
-          },
-          "link_types": {
-            "items": {
-              "$ref": "#/components/schemas/RelatedFacet"
-            },
-            "type": "array",
-            "title": "Link Types",
-            "description": "In relationship type order"
           }
         },
         "type": "object",
@@ -8462,8 +8423,7 @@
           "center",
           "days",
           "nodes",
-          "developments",
-          "link_types"
+          "developments"
         ],
         "title": "RelatedGraph",
         "description": "Everything linked to a subject in the relationship store, for the Overview's Related\ngraph (GET /subjects/{id}/related-graph)."

@@ -138,9 +138,8 @@
 }
 .ov-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-4);
-  align-items: start;
 }
 .ov-card.panel {
   display: block;
