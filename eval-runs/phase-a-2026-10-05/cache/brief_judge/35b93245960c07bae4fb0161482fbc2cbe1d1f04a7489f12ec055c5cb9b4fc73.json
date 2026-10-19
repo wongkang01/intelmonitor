@@ -1,0 +1,46 @@
+{
+ "group": "brief_judge",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "claims": [
+   {
+    "point": 1,
+    "supported": true,
+    "reason": "f8ef5ef2e6db7991-0 gives the 5 Oct start, the initial 11 stocks including DBS, OCBC and UOB, the cut from 100 units to 10 for stocks priced $10 to $100, and SGX's statement that eight of 11 stocks had higher average daily turnover on 5 Oct than on 2 Oct. The lower entry cost for retail investors follows reasonably from this."
+   },
+   {
+    "point": 2,
+    "supported": true,
+    "reason": "The SGX fall of 7.16% on 2 Oct and the STI fall of 1.63% on 7 Oct come from the series events. 679ece21a96862f6-0 supports OCBC's 5.90% drop and the Citi downgrade to sell. 'Record index levels' comes from the previous brief. 'Led by the banks' is a mild stretch, since UOB slipped only 1.74%, but it is a fair reading. The point correctly says no cause is given for the SGX fall."
+   },
+   {
+    "point": 3,
+    "supported": true,
+    "reason": "2bb67eec335208c5-0 supports Deluge's Mainboard IPO at 60 cents raising $23.4 million. 984eb7dc3dcb8b91-0 supports Mi Material's indicative S$168.2 million raise. The 21 FY2026 listings come from the earlier developments and the previous brief, and Mi Material is indeed the larger deal."
+   }
+  ],
+  "top_high": [
+   {
+    "development_id": "2109dda8276046f0-1",
+    "covered": false,
+    "rightly_left_out": true,
+    "reason": "The S$20 million GEMS market-making grant was announced on 29 Sep and was already in the previous week's brief. This week's sources add no new facts. The direction line notes it was covered before, and 'policy support continues' in the bottom line nods to it."
+   }
+  ],
+  "consistent": true,
+  "consistency_reason": "The bottom line matches the points and the evidence. Policy support and the IPO pipeline are in the evidence. The SGX and OCBC price falls are in the series events and 679ece21a96862f6-0. Smaller stocks trailing the STI comes from JPMorgan's Next 50 note. 'Unchanged' is the right direction, because the new items are price moves with no stated cause, analyst commentary and pipeline activity, and none of them is material harm to the subject.",
+  "stale_or_other": [],
+  "verdict": "This is a sound brief. All three points are supported, it correctly leaves out the market-making grant because last week's brief already covered it, and its direction of 'unchanged' fits the evidence. The only weak spot is that 'pullback led by the banks' overstates the case slightly, since UOB fell only 1.74%."
+ },
+ "usage": {
+  "cost_usd": 0.10033000000000002,
+  "input_tokens": 8131,
+  "output_tokens": 1955,
+  "duration_ms": 19327,
+  "turns": 2
+ }
+}

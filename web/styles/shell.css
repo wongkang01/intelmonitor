@@ -55,15 +55,38 @@ nav.side {
 .navhead:first-child {
   padding-top: var(--s-1);
 }
+/* Entities and Topics headings open and close their lists; the chevron follows the label. */
+.navhead-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  width: 100%;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+.navhead-btn:hover {
+  color: var(--ink);
+}
+.navhead-btn .chev {
+  width: 12px;
+  transition: transform 0.15s ease-out;
+}
+.navhead-btn[aria-expanded="true"] .chev {
+  transform: rotate(90deg);
+}
+/* Long names wrap; the icon and the count stay on the first line. */
 .navitem {
   width: 100%;
   min-width: 0;
-  height: 32px;
+  min-height: 32px;
   flex: none;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--s-2);
-  padding: 0 var(--s-2);
+  padding: 7px var(--s-2);
   border: 0;
   border-radius: var(--r-ctl);
   background: transparent;
@@ -73,12 +96,11 @@ nav.side {
 }
 .navitem > span:first-of-type {
   min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 .navitem svg {
   flex: none;
+  margin-top: 1px;
   color: var(--ink2);
 }
 .navitem:hover {
@@ -93,15 +115,23 @@ nav.side {
   outline-offset: -2px;
 }
 .navitem .count {
+  flex: none;
   margin-left: auto;
+  padding-top: 1px;
   font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
   font-weight: 400;
-  color: var(--ink2);
+  color: var(--ink3);
   font-variant-numeric: tabular-nums;
+}
+.navitem .count.attn {
+  color: var(--attn);
+  font-weight: 500;
 }
 /* The chevron leads the row in a 16px slot so the labels line up with the sub rows' indent. */
 .navitem .chev {
   width: 16px;
+  margin-top: 4px;
   transition: transform 0.15s ease-out;
 }
 .navitem[aria-expanded="true"] .chev {
@@ -258,6 +288,13 @@ main.main {
   flex: 1;
   min-width: 0;
 }
+.topbar .updated {
+  flex: none;
+  margin-left: var(--s-4);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}
 /* `.field` (globals.css) with the ⌘K key or the clear button at its right end. */
 .search {
   padding-right: 5px;
@@ -289,7 +326,7 @@ main.main {
   overflow-y: auto;
 }
 .search-hit {
-  height: 32px;
+  min-height: 32px;
   display: flex;
   align-items: center;
   gap: var(--s-2);
@@ -311,15 +348,17 @@ main.main {
 .search-hit .type {
   margin-left: auto;
 }
-/* Development and document rows: one line each, the title and the document's matched text clipped
-   so the date or domain stays at the right end. */
+/* Development and document rows: the title wraps in full; the document's matched text is clipped
+   to one line so the date or domain stays at the right end. */
+.search-hit.development,
+.search-hit.document {
+  align-items: baseline;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
 .search-hit.development b,
-.search-hit.document b,
-.search-hit.document .alias {
+.search-hit.document b {
   min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 .search-hit.document b {
   flex: none;
@@ -327,6 +366,10 @@ main.main {
 }
 .search-hit.document .alias {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .search-hit.development .type,
 .search-hit.document .type {
@@ -687,13 +730,28 @@ main.main {
   z-index: 1;
   left: 12px;
   top: 0;
-  bottom: 0;
+  height: 32px;
   display: flex;
   align-items: center;
   pointer-events: none;
 }
+/* The new count sits where the options button appears, and gives way to it on hover, focus or
+   while its popover is open; with no hover (touch) the button always shows, so the row keeps room. */
 .dashrow > .navitem {
   padding-right: 36px;
+}
+.dashrow > .navitem:has(.count) {
+  padding-right: var(--s-2);
+}
+.dashrow:hover .navitem .count,
+.dashrow.open .navitem .count,
+.dashrow:has(.more-btn:focus-visible) .navitem .count {
+  visibility: hidden;
+}
+@media (hover: none) {
+  .dashrow > .navitem:has(.count) {
+    padding-right: 36px;
+  }
 }
 /* The options button shows on row hover, on keyboard focus, and while its popover is open. Its hit
    area is 44px wide and the row's full height, 44px on touch. */
@@ -701,7 +759,7 @@ main.main {
   position: absolute;
   z-index: 1;
   right: 4px;
-  top: calc(50% - 12px);
+  top: 4px;
   width: 24px;
   height: 24px;
   display: grid;

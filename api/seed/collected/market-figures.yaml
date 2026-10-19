@@ -4,6 +4,7 @@
 # Numbers are exactly as published (units as in the source table). Nothing is estimated or derived.
 #
 # Schema
+#   collected: the day the figures were collected; the app treats none as known later than this.
 #   series[]: one tracked figure.
 #     id             dotted id, source prefix first (sgx., hkex., mas., mas_ams., hkma., adb.)
 #     name           human label shown on the Data tab
@@ -24,6 +25,7 @@
 #   (only sgx.ipo_funds_mainboard 2025-09 was revised: 1,030 in the Sep 2025 report, 1,114 later).
 #   SGX IPO funds include RTOs. HKEX newly listed counts include GEM to Main Board transfers.
 #   HKEX "$" is HK dollars.
+collected: 2026-10-07
 series:
 - id: sgx.sdav
   name: SGX securities daily average value

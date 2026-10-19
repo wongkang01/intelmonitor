@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { GraphView } from "@/components/graph/GraphView";
 
-// Graph view route, opened from "Open graph view" in a monitor page's Links section.
+// The full graph view, kept reachable by URL only for the TCRD session (prd.md section 12).
 export const Route = createFileRoute("/monitors/$id/graph")({
   component: GraphPage,
 });

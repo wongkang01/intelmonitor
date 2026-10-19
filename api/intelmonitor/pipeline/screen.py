@@ -21,7 +21,8 @@ from intelmonitor.pipeline.inference import (
     noul,
 )
 from intelmonitor.pipeline.params import CHARS_PER_TOKEN, ROUTE_HIGH, ROUTE_LOW, SCREEN_STATE_TOKENS
-from intelmonitor.pipeline.subjects import Subject, all_subjects
+from intelmonitor.pipeline.subjects import Subject, monitored_subjects
+from intelmonitor.seed import load_subjects
 from intelmonitor.store.documents import SourceDocument
 
 CATEGORIES: dict[str, str] = {
@@ -61,9 +62,12 @@ JURISDICTIONS: dict[str, str] = {
     "id": "Indonesia",
     "th": "Thailand",
     "vn": "Vietnam",
-    "ph": "the Philippines",
     "hk": "Hong Kong",
     "cn": "mainland China",
+    "tw": "Taiwan",
+    "in": "India",
+    "au": "Australia",
+    "kr": "South Korea",
     "us": "the United States",
     "eu": "the European Union or euro area",
     "uk": "the United Kingdom",
@@ -72,7 +76,7 @@ JURISDICTIONS: dict[str, str] = {
 }
 
 Jurisdiction = Literal[
-    "sg", "my", "id", "th", "vn", "ph", "hk", "cn", "us", "eu", "uk", "jp", "intl"
+    "sg", "my", "id", "th", "vn", "hk", "cn", "tw", "in", "au", "kr", "us", "eu", "uk", "jp", "intl"
 ]
 
 # Display names for JURISDICTIONS, which are phrased for the screening prompt.
@@ -82,9 +86,12 @@ JURISDICTION_NAMES: dict[Jurisdiction, str] = {
     "id": "Indonesia",
     "th": "Thailand",
     "vn": "Vietnam",
-    "ph": "Philippines",
     "hk": "Hong Kong",
     "cn": "China",
+    "tw": "Taiwan",
+    "in": "India",
+    "au": "Australia",
+    "kr": "South Korea",
     "us": "United States",
     "eu": "European Union",
     "uk": "United Kingdom",
@@ -92,24 +99,24 @@ JURISDICTION_NAMES: dict[Jurisdiction, str] = {
     "intl": "International",
 }
 
-DIRECTIONS: dict[str, str] = {
-    "positive": "Good news for the subject: easing, strengthening, resolution or growth",
-    "negative": "Bad news for the subject: losses, penalties, stress, escalation or tightening",
-    "neutral": "Neither clearly good nor bad",
-}
-
 
 def relevance_criterion() -> str:
-    names = ", ".join(s.name for s in all_subjects().values() if s.type == "entity")
+    """What the dashboard's users track, from subjects.yaml: each topic with what it covers, and
+    the entities by name."""
+    seed = load_subjects()
+    topics = "\n".join(f"- {t.name}: {t.covers}" for t in seed.topics)
+    countries = ", ".join(e.name for e in seed.entities if e.kind == "country")
+    sectors = ", ".join(e.name for e in seed.entities if e.kind == "sector")
+    others = ", ".join(e.name for e in seed.entities if e.kind not in ("country", "sector"))
     return (
-        "A financial supervisor at the Monetary Authority of Singapore tracks banking regulation "
-        "and supervision anywhere (capital, liquidity, AML/CFT, operational and technology "
-        "resilience, enforcement against banks), geopolitics with financial effects (US-China "
-        "relations, tariffs, sanctions, export controls, regional security), stablecoins and "
-        f"tokenised money, and these institutions and countries: {names}. A document is relevant "
+        f"Staff at the Monetary Authority of Singapore track these topics:\n{topics}\n"
+        f"They also track these institutions and systems: {others}; the economies, markets and "
+        f"financial systems of {countries}; and these sectors: {sectors}. A document is relevant "
         "if it reports a concrete development, decision, action, statement or data point on any "
-        "of these. Passing mentions, personal finance advice, generic market wraps, and "
-        "companies or topics unrelated to these are not relevant."
+        "of these, including an institution's results, incidents, regulation, management or "
+        "strategy, and an economy's markets and policy. Passing mentions, personal finance "
+        "advice, generic market wraps, and companies or topics unrelated to these are not "
+        "relevant."
     )
 
 
@@ -118,7 +125,7 @@ def screen_questions() -> dict[str, JevQuestion]:
     questions: dict[str, JevQuestion] = {
         "relevant": Noul(instructions=f"Is this document relevant? {relevance_criterion()}"),
     }
-    for s in all_subjects().values():
+    for s in monitored_subjects().values():
         questions[f"subject:{s.id}"] = Noul(
             instructions=f"Is this document materially about {s.description}?"
         )
@@ -133,19 +140,6 @@ def screen_questions() -> dict[str, JevQuestion]:
     questions["stage"] = Choice(
         instructions="If this document is about regulation, what stage has it reached?",
         criteria=dict(STAGES),
-    )
-    questions["adverse"] = Noul(
-        instructions=(
-            "Does this document report something that could hurt an institution, market or "
-            "country it covers, such as losses, penalties, incidents, stress or escalation?"
-        )
-    )
-    questions["direction"] = Choice(
-        instructions=(
-            "For the institution, country or topic this document is mostly about, is the news "
-            "positive, negative or neutral?"
-        ),
-        criteria=dict(DIRECTIONS),
     )
     return questions
 
@@ -209,9 +203,6 @@ class DocumentScreen(BaseModel):
     category_confidence: float
     stage: str | None
     stage_confidence: float | None
-    adverse: float
-    direction: str
-    direction_confidence: float
     subject_scores: dict[str, float]
     jurisdictions: dict[str, float]
     subjects: dict[str, Literal["jev", "claude"]]  # tagged subject id -> who decided
@@ -225,10 +216,9 @@ async def screen_document(inf: Inference, doc: SourceDocument) -> DocumentScreen
         "screen", f"doc:{doc.id}", state, screen_questions(), confidence_of="relevant"
     )
     relevance = noul(answers, "relevant")
-    scores = {s: noul(answers, f"subject:{s}") for s in all_subjects()}
+    scores = {s: noul(answers, f"subject:{s}") for s in monitored_subjects()}
     category = choice(answers, "category")
     stage = choice(answers, "stage")
-    direction = choice(answers, "direction")
     is_regulatory = category.choice == "regulatory"
 
     relevant = relevance >= ROUTE_HIGH
@@ -236,7 +226,7 @@ async def screen_document(inf: Inference, doc: SourceDocument) -> DocumentScreen
     subjects: dict[str, Literal["jev", "claude"]] = {
         s: "jev" for s, p in scores.items() if p >= ROUTE_HIGH
     }
-    uncertain = [all_subjects()[s] for s, p in scores.items() if ROUTE_LOW < p < ROUTE_HIGH]
+    uncertain = [monitored_subjects()[s] for s, p in scores.items() if ROUTE_LOW < p < ROUTE_HIGH]
     # A clear "not relevant" next to a clear subject tag is a conflict, so it is uncertain too.
     conflict = relevance <= ROUTE_LOW and bool(subjects)
     check_relevance = ROUTE_LOW < relevance < ROUTE_HIGH or conflict
@@ -270,9 +260,6 @@ async def screen_document(inf: Inference, doc: SourceDocument) -> DocumentScreen
         category_confidence=category.confidence,
         stage=stage.choice if is_regulatory else None,
         stage_confidence=stage.confidence if is_regulatory else None,
-        adverse=noul(answers, "adverse"),
-        direction=direction.choice,
-        direction_confidence=direction.confidence,
         subject_scores=scores,
         jurisdictions={c: noul(answers, f"jurisdiction:{c}") for c in JURISDICTIONS},
         subjects=subjects if relevant else {},
@@ -284,9 +271,9 @@ async def screen_document(inf: Inference, doc: SourceDocument) -> DocumentScreen
 def store_screen(conn: sqlite3.Connection, doc_id: str, s: DocumentScreen) -> None:
     conn.execute(
         "INSERT OR REPLACE INTO document_tags (document_id, relevance, relevant, "
-        "relevance_source, category, category_confidence, stage, stage_confidence, adverse, "
-        "direction, direction_confidence, subject_scores, jurisdictions, screened_chars, "
-        "truncated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "relevance_source, category, category_confidence, stage, stage_confidence, "
+        "subject_scores, jurisdictions, screened_chars, truncated) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             doc_id,
             s.relevance,
@@ -296,9 +283,6 @@ def store_screen(conn: sqlite3.Connection, doc_id: str, s: DocumentScreen) -> No
             s.category_confidence,
             s.stage,
             s.stage_confidence,
-            s.adverse,
-            s.direction,
-            s.direction_confidence,
             json.dumps(s.subject_scores),
             json.dumps(s.jurisdictions),
             s.screened_chars,

@@ -3,16 +3,20 @@
 News searches are limited to NEWS_DOMAINS. Gap searches for thinly covered subjects add the
 subject's own domains, whose results are stored as official disclosures.
 
-Some sites print today's date in the page header, and the search APIs take it as the publication
-date, so an article from 2014 comes back dated this week. For those sites (PAGE_DATES) the date
-is read from the article page instead, and a result whose page date is missing is dropped.
+Some sites get wrong dates from the search APIs (a page header printing today's date, or a crawl
+date), so an article from 2014 comes back dated this week. For those sites (PAGE_DATES) the date
+is read from the article page instead, and a result whose page date is missing is dropped. Sites
+that refuse our page fetches but print the date in the article text the search API returns
+(TEXT_DATES) are dated from that text, with the same rule. On any site, a /YYYY/MM/DD/ date in the
+article URL that is days earlier than the date found wins (The Register's 2016 articles came back
+dated 2026).
 """
 
 import json
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from email.utils import parsedate_to_datetime
 from urllib.parse import urlsplit
 
@@ -40,20 +44,46 @@ NEWS_DOMAINS = [
     "nationthailand.com",
     "thejakartapost.com",
     "e.vnexpress.net",
-    "inquirer.net",
     "apnews.com",
     "wsj.com",
-    "coindesk.com",
-    "theblock.co",
+    # Technology, cyber and capital markets outlets for the TCRD and FMD sessions.
+    "therecord.media",
+    "bleepingcomputer.com",
+    "theregister.com",
+    "datacenterdynamics.com",
+    "risk.net",
+    "fintechnews.sg",
+    "asiaasset.com",
+    "asianinvestor.net",
+    "mondovisione.com",
+    "economist.com",
+]
+# Outlets whose single report is enough to show a development (pipeline/corroboration.py).
+REPUTABLE_DOMAINS = [
+    "reuters.com",
+    "straitstimes.com",
+    "bloomberg.com",
+    "channelnewsasia.com",
+    "scmp.com",
+    "cnbc.com",
+    "wsj.com",
+    "ft.com",
+    "businesstimes.com.sg",
+    "apnews.com",
+    "asia.nikkei.com",
+    "economist.com",
+    "therecord.media",
+    "bleepingcomputer.com",
 ]
 EXA_RESULTS_PER_QUERY = 5
 GAP_RESULTS_PER_QUERY = 10
 GAP_NEWS_RESULTS = 25
 _TEXT_MAX_CHARS = 20000
-# Search hits that are index, tag, quote or sponsored pages rather than articles.
+# Search hits that are index, tag, topic, company, quote or sponsored pages rather than articles.
 _NOT_ARTICLE = re.compile(
     r"^https?://(search|partners|professional\.content\.[^/]+)\."
-    r"|/(tag|tags|search|blog-category|category|author)(/|$)"
+    r"|/(tag|tags|topics?|topics-and-tech|search|blog-category|category|author|company"
+    r"|organisations)(/|$)"
     r"|/markets/companies/|/presented/"
 )
 
@@ -73,22 +103,78 @@ def _edge_created(html: str) -> datetime | None:
     return datetime.fromtimestamp(created / 1000, UTC) if isinstance(created, int) else None
 
 
+_PUBLISHED_META = re.compile(r'<meta[^>]+property="article:published_time"[^>]+content="([^"]+)"')
+
+
+def _meta_published(html: str) -> datetime | None:
+    """The page's Open Graph `article:published_time` tag."""
+    match = _PUBLISHED_META.search(html)
+    if not match:
+        return None
+    try:
+        return datetime.fromisoformat(match.group(1))
+    except ValueError:
+        return None
+
+
+_MONTH_DAY_YEAR = re.compile(
+    r"(?:January|February|March|April|May|June|July|August|September|October|November|December)"
+    r" \d{1,2}, \d{4}"
+)
+
+
+def _dcd_dateline(text: str) -> datetime | None:
+    """DCD: the "October 09, 2015" line under the headline and standfirst."""
+    match = _MONTH_DAY_YEAR.search(text[:600])
+    return datetime.strptime(match.group(0), "%B %d, %Y").replace(tzinfo=UTC) if match else None
+
+
 # Domains whose search-API dates are unreliable, with how to read the date from the page.
-PAGE_DATES: dict[str, Callable[[str], datetime | None]] = {"theedgemalaysia.com": _edge_created}
+PAGE_DATES: dict[str, Callable[[str], datetime | None]] = {
+    "theedgemalaysia.com": _edge_created,
+    "asiaasset.com": _meta_published,
+}
+# The same for domains whose pages refuse our fetches (DCD sits behind a bot check): the date is
+# read from the article text the search API returned.
+TEXT_DATES: dict[str, Callable[[str], datetime | None]] = {"datacenterdynamics.com": _dcd_dateline}
+
+
+_URL_DATE = re.compile(r"/(20\d\d)/(\d\d)/(\d\d)/")
+
+
+def _url_date(url: str) -> datetime | None:
+    """The /YYYY/MM/DD/ date in an article URL, if it has a valid one."""
+    match = _URL_DATE.search(urlsplit(url).path)
+    try:
+        return datetime(*map(int, match.groups()), tzinfo=UTC) if match else None
+    except ValueError:
+        return None
+
+
+def url_dated(url: str, published: datetime) -> datetime:
+    """`published`, or the /YYYY/MM/DD/ date in the URL when that is more than 2 days earlier.
+    Applied at ingest and by `im redate` to documents already stored."""
+    dated = _url_date(url)
+    return dated if dated and dated < published - timedelta(days=2) else published
 
 
 def _with_page_date(http: CachedHttp, doc: RawDocument) -> RawDocument | None:
-    """The document dated from its own page when its domain is in PAGE_DATES; None when that
-    date cannot be read."""
-    read = PAGE_DATES.get(domain_of(doc.url))
-    if read is None:
-        return doc
-    try:
-        response = http.get("pages", doc.url)
-    except FetchError:
+    """The document dated from its own page when its domain is in PAGE_DATES or TEXT_DATES,
+    or from its URL when that date is days earlier; None when a page date cannot be read."""
+    domain = domain_of(doc.url)
+    if read_text := TEXT_DATES.get(domain):
+        published = read_text(doc.text)
+    elif read_page := PAGE_DATES.get(domain):
+        try:
+            response = http.get("pages", doc.url)
+        except FetchError:
+            return None
+        published = read_page(response.text()) if response.ok else None
+    else:
+        published = doc.published_at
+    if published is None:
         return None
-    published = read(response.text()) if response.ok else None
-    return doc.model_copy(update={"published_at": published}) if published else None
+    return doc.model_copy(update={"published_at": url_dated(doc.url, published)})
 
 
 @dataclass(frozen=True)
@@ -123,7 +209,7 @@ def gap_query(entity: Entity) -> str:
 def news_queries(seed: SubjectsSeed) -> list[SearchQuery]:
     """One query per topic keyword, one per group (its name and members), and per entity one
     general query plus one per topic linked through its groups."""
-    topic_names = {t.id: t.name.lower() for t in seed.topics}
+    topic_names = {t.id: t.name for t in seed.topics}
     queries = [SearchQuery(t.id, k) for t in seed.topics for k in t.keywords]
     queries += [SearchQuery(g.id, subject_label(seed, g.id)) for g in seed.groups]
     for e in seed.entities:
@@ -245,8 +331,12 @@ def _search_doc(
     own_domains: list[str] | None,
 ) -> RawDocument | None:
     text = text.strip()
+    # Articles sit two or more path segments deep, or at one long slug (therecord.media).
     path_segments = [p for p in urlsplit(url).path.split("/") if p]
-    if len(text) < MIN_TEXT_CHARS or len(path_segments) < 2 or _NOT_ARTICLE.search(url):
+    article_path = len(path_segments) >= 2 or (
+        len(path_segments) == 1 and path_segments[0].count("-") >= 3
+    )
+    if len(text) < MIN_TEXT_CHARS or not article_path or _NOT_ARTICLE.search(url):
         return None
     domain = domain_of(url)
     own = any(domain == d or domain.endswith("." + d) for d in own_domains or [])

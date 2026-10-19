@@ -1,27 +1,35 @@
-// A dashboard's developments list (`/developments?dashboard=<id>`): its URL parameters and its sort.
-// Facet filters, the words filter and the sort live in the URL, so a reload and the evidence drawer
-// keep them; `changed=1` lists What changed since the review.
+// A development feed's URL parameters: the period, facet filters, the words filter and whether
+// unconfirmed developments are listed. They live in the URL, so a reload and closing a development
+// popup keep them. One feed reads them per page.
 import type { Schema } from "./api/client";
 import type { DevelopmentsQuery } from "./api/queries";
 
 type Listed = Schema<"ChangedDevelopment">;
 type Category = NonNullable<DevelopmentsQuery["category"]>[number];
-type Jurisdiction = NonNullable<DevelopmentsQuery["jurisdiction"]>[number];
 type Collection = Listed["collections"][number];
+type Priority = Listed["priority"];
+type Tone = Listed["direction"];
 
-/** A facet of the list; `date` is the `days` parameter. */
-export type FacetId = keyof Schema<"DevelopmentFacets">;
+/** A facet the feed filters on; each popover lists its values with counts. */
+export type FacetId = "priority" | "adverse" | "tone" | "category" | "source";
 
-export const FACETS: { id: FacetId; label: string; param: string; single?: boolean; find?: string }[] = [
-  { id: "category", label: "Category", param: "category" },
-  { id: "materiality", label: "Materiality", param: "materiality" },
-  { id: "jurisdiction", label: "Jurisdiction", param: "jurisdiction", find: "Find a jurisdiction" },
-  { id: "date", label: "Date", param: "days", single: true },
-  { id: "source", label: "Source", param: "source" },
+export const FACETS: { id: FacetId; label: string; single?: boolean }[] = [
+  { id: "priority", label: "Priority" },
+  { id: "adverse", label: "Adverse event", single: true },
+  { id: "tone", label: "Tone" },
+  { id: "category", label: "Category" },
+  { id: "source", label: "Source type" },
 ];
 
-/** The date facet's value for no date filter. */
-export const ANY_TIME = "any";
+/** The period control: `days` in the URL, This month when absent, `any` for all time. */
+export const PERIODS = [
+  { value: "1", label: "Today" },
+  { value: "7", label: "This week" },
+  { value: "30", label: "This month" },
+  { value: "any", label: "All time" },
+] as const;
+export type Period = (typeof PERIODS)[number]["value"];
+const DEFAULT_PERIOD: Period = "30";
 
 const CATEGORY: Record<Category, true> = {
   incident: true,
@@ -34,131 +42,95 @@ const CATEGORY: Record<Category, true> = {
   market: true,
   other: true,
 };
-const JURISDICTION: Record<Jurisdiction, true> = {
-  sg: true,
-  my: true,
-  id: true,
-  th: true,
-  vn: true,
-  ph: true,
-  hk: true,
-  cn: true,
-  us: true,
-  eu: true,
-  uk: true,
-  jp: true,
-  intl: true,
-};
-const COLLECTION: Record<Collection, true> = { dms: true, official: true, data: true, news: true };
+const COLLECTION: Record<Collection, true> = { dms: true, official: true, data: true, news: true, social: true };
+const PRIORITY: Record<Priority, true> = { High: true, Medium: true, Low: true };
+const TONE: Record<Tone, true> = { negative: true, neutral: true, positive: true };
 
 const isCategory = (v: string): v is Category => Object.hasOwn(CATEGORY, v);
-const isJurisdiction = (v: string): v is Jurisdiction => Object.hasOwn(JURISDICTION, v);
 const isCollection = (v: string): v is Collection => Object.hasOwn(COLLECTION, v);
-const isLevel = (v: string) => /^[0-4]$/.test(v);
-const days = (v: string | null) => (v && /^\d+$/.test(v) && Number(v) > 0 ? Number(v) : null);
+const isPriority = (v: string): v is Priority => Object.hasOwn(PRIORITY, v);
+const isTone = (v: string): v is Tone => Object.hasOwn(TONE, v);
+const isAdverse = (v: string) => v === "true" || v === "false";
 
-/**
- * The facet's selected values as its popover lists them: the date facet always has one. Values a
- * hand-edited URL gets wrong are left out, as the API query leaves them out.
- */
+/** The period the URL asks for. */
+export function periodOf(params: URLSearchParams): Period {
+  const raw = params.get("days");
+  return PERIODS.find((p) => p.value === raw)?.value ?? DEFAULT_PERIOD;
+}
+
+/** `params` set to a period; This month, the default, leaves `days` out. */
+export function withPeriod(params: URLSearchParams, period: Period): URLSearchParams {
+  const next = new URLSearchParams(params);
+  if (period === DEFAULT_PERIOD) next.delete("days");
+  else next.set("days", period);
+  return next;
+}
+
+/** Whether the feed lists unconfirmed developments too (`unconfirmed=true`). Like the period, it is not a filter. */
+export const showsUnconfirmed = (params: URLSearchParams) => params.get("unconfirmed") === "true";
+
+/** `params` listing unconfirmed developments or not; off, the default, leaves the parameter out. */
+export function withUnconfirmed(params: URLSearchParams, on: boolean): URLSearchParams {
+  const next = new URLSearchParams(params);
+  if (on) next.set("unconfirmed", "true");
+  else next.delete("unconfirmed");
+  return next;
+}
+
+/** The facet's selected values; values a hand-edited URL gets wrong are left out, as the query leaves them out. */
 export function selected(params: URLSearchParams, facet: FacetId): string[] {
   const values = params.getAll(facet);
   switch (facet) {
+    case "priority":
+      return values.filter(isPriority);
+    case "adverse":
+      return values.filter(isAdverse).slice(0, 1);
+    case "tone":
+      return values.filter(isTone);
     case "category":
       return values.filter(isCategory);
-    case "materiality":
-      return values.filter(isLevel);
-    case "jurisdiction":
-      return values.filter(isJurisdiction);
-    case "date":
-      return [String(days(params.get("days")) ?? ANY_TIME)];
     case "source":
       return values.filter(isCollection);
   }
 }
 
-/** Whether any facet or the words filter narrows the list. */
+/** Whether any facet or the words filter narrows the list. The period is not a filter. */
 export const filtered = (params: URLSearchParams) =>
-  FACETS.some((f) => selected(params, f.id).some((v) => v !== ANY_TIME)) || Boolean(params.get("q")?.trim());
+  FACETS.some((f) => selected(params, f.id).length > 0) || Boolean(params.get("q")?.trim());
 
-/** The API query for the page's parameters: the dashboard's developments, narrowed as the URL says. */
-export function listQuery(dashboardId: string, params: URLSearchParams, changed?: DevelopmentsQuery["changed"]): DevelopmentsQuery {
+/** The feed's scope: some subjects or a dashboard. */
+export type FeedScope = { subject_id: string[] } | { dashboard_id: string };
+
+/** The API query for the feed's parameters over a scope. Dismissed ones are left out unless `dismissed`, unconfirmed ones unless the URL asks. */
+export function listQuery(scope: FeedScope, params: URLSearchParams, dismissed = false): DevelopmentsQuery {
+  const period = periodOf(params);
+  const adverse = selected(params, "adverse")[0];
   return {
-    dashboard_id: dashboardId,
-    changed,
+    ...scope,
     q: params.get("q")?.trim() || undefined,
-    category: params.getAll("category").filter(isCategory),
-    materiality: params.getAll("materiality").filter(isLevel).map(Number),
-    jurisdiction: params.getAll("jurisdiction").filter(isJurisdiction),
-    days: days(params.get("days")),
-    source: params.getAll("source").filter(isCollection),
+    days: period === "any" ? null : Number(period),
+    priority: selected(params, "priority").filter(isPriority),
+    adverse: adverse === undefined ? null : adverse === "true",
+    tone: selected(params, "tone").filter(isTone),
+    category: selected(params, "category").filter(isCategory),
+    source: selected(params, "source").filter(isCollection),
+    dismissed: dismissed ? null : false,
+    unconfirmed: showsUnconfirmed(params),
   };
 }
 
-/** `params` with a facet set to `values`; Any time clears the date. */
+/** `params` with a facet set to `values`. */
 export function withFacet(params: URLSearchParams, facet: FacetId, values: string[]): URLSearchParams {
-  const { param } = FACETS.find((f) => f.id === facet) ?? FACETS[0];
   const next = new URLSearchParams(params);
-  next.delete(param);
-  for (const v of values) if (v !== ANY_TIME) next.append(param, v);
+  next.delete(facet);
+  for (const v of values) next.append(facet, v);
   return next;
 }
 
 /** `params` without any facet or words filter. */
 export function withoutFilters(params: URLSearchParams): URLSearchParams {
   const next = new URLSearchParams(params);
-  for (const f of FACETS) next.delete(f.param);
+  for (const f of FACETS) next.delete(f.id);
   next.delete("q");
   return next;
-}
-
-export type SortKey = "status" | "subjects" | "category" | "materiality" | "jurisdiction" | "sources" | "date";
-export type SortOrder = "asc" | "desc";
-
-const text = (a: string, b: string) => a.localeCompare(b);
-
-/**
- * Each column's ascending comparison and the order a first click sorts it in. Status sorts by the
- * API's display order, which descending keeps: needing attention first, then changed, most
- * material, most recent.
- */
-const SORTS: Record<SortKey, { first: SortOrder; compare?: (a: Listed, b: Listed) => number }> = {
-  status: { first: "desc" },
-  subjects: { first: "asc", compare: (a, b) => text(a.subjects[0]?.name ?? "", b.subjects[0]?.name ?? "") },
-  category: { first: "asc", compare: (a, b) => text(a.category, b.category) },
-  materiality: { first: "desc", compare: (a, b) => a.materiality_level - b.materiality_level },
-  jurisdiction: { first: "asc", compare: (a, b) => text(a.jurisdictions.join(), b.jurisdictions.join()) },
-  sources: { first: "desc", compare: (a, b) => a.source_count - b.source_count },
-  date: { first: "desc", compare: (a, b) => text(a.last_published, b.last_published) },
-};
-
-const isSortKey = (v: string | null): v is SortKey => v !== null && Object.hasOwn(SORTS, v);
-
-/** The sort the URL asks for: `sort` (status when absent) and `order` (the column's first when absent). */
-export function sortOf(params: URLSearchParams): { key: SortKey; order: SortOrder } {
-  const raw = params.get("sort");
-  const key = isSortKey(raw) ? raw : "status";
-  const order = params.get("order");
-  return { key, order: order === "asc" || order === "desc" ? order : SORTS[key].first };
-}
-
-/** `params` sorted by `key`: its first order, or the other order when it is already sorted by it. */
-export function withSort(params: URLSearchParams, key: SortKey): URLSearchParams {
-  const current = sortOf(params);
-  const order = current.key === key ? (current.order === "asc" ? "desc" : "asc") : SORTS[key].first;
-  const next = new URLSearchParams(params);
-  next.delete("sort");
-  next.delete("order");
-  if (key !== "status") next.set("sort", key);
-  if (order !== SORTS[key].first) next.set("order", order);
-  return next;
-}
-
-/** `list`, in display order, in the sort's order; ties keep the display order. */
-export function sortList(list: Listed[], { key, order }: { key: SortKey; order: SortOrder }): Listed[] {
-  const compare = SORTS[key].compare;
-  if (!compare) return order === "desc" ? list : [...list].reverse();
-  const sign = order === "asc" ? 1 : -1;
-  // Array.prototype.sort is stable, so ties stay in display order.
-  return [...list].sort((a, b) => sign * compare(a, b));
 }

@@ -3,12 +3,13 @@
    area is the whole full-width row and cannot be taller than the row without covering its neighbours.
    Imported last, so these sizes win over each area's own. */
 @media (any-pointer: coarse) {
-  .navitem,
   .subj,
-  .search-hit,
   .menu button {
     height: 44px;
   }
+  /* Sidebar names and search titles wrap, so these only set a floor. */
+  .navitem,
+  .search-hit,
   .gmenu-item,
   .pick,
   .fopt {
@@ -31,24 +32,13 @@
     grid-template-columns: var(--stat) minmax(0, 1fr) auto;
   }
   .triage-date,
-  .row.triage:is(:hover, :focus-within) .triage-date,
-  .dtable tr.triage:is(:hover, :focus-within) .triage-date {
+  .row.triage:is(:hover, :focus-within) .triage-date {
     display: none;
   }
   .triage-acts {
     display: inline-flex;
     gap: 0;
     margin: -13px -8px -13px 0;
-  }
-  .dtable td {
-    height: 44px;
-    padding-block: 13px;
-  }
-  .dtable.triaged .c-date {
-    width: 136px;
-  }
-  .dtable .triage-acts {
-    margin: -13px 0;
   }
   .triage-acts .btn-icon,
   .alert-read {

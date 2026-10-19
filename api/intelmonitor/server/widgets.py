@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, JsonValue, model_validator
 
 from intelmonitor.pipeline.detectors import corpus_start
 from intelmonitor.pipeline.indicators import months_before
-from intelmonitor.pipeline.subjects import all_subjects, questions_for
+from intelmonitor.pipeline.subjects import all_subjects, questions_for, resolve_groups
 from intelmonitor.seed import SeriesDef, SubjectType, load_series
 from intelmonitor.server.alerts import alert_badge, watched_ids
 from intelmonitor.server.models import (
@@ -106,7 +106,7 @@ class IndicatorSettings(BaseModel):
     )
     series_id: str | None = Field(
         default=None,
-        description='A series id from list_subjects, e.g. "derived.usdc.peg"; empty for the '
+        description='A series id from list_subjects, e.g. "mas.ltd.overall"; empty for the '
         "subject's primary series",
     )
 
@@ -226,11 +226,17 @@ class DashboardContent(BaseModel):
     """What a dashboard shows; the spec and the stored dashboard add a color."""
 
     name: str = Field(min_length=1, max_length=80)
-    subject_ids: list[SubjectId] = Field(description="The subjects the dashboard follows")
+    subject_ids: list[SubjectId] = Field(
+        description="The topics and entities the dashboard follows; a group given here becomes "
+        "its members"
+    )
     widgets: list[Widget]
 
     @model_validator(mode="after")
     def _normalize(self) -> Self:
+        # Groups carry no developments of their own (phase1-decisions.md, S3 and S11), so stored,
+        # seeded and new dashboards alike follow a group's members.
+        self.subject_ids = resolve_groups(self.subject_ids)
         ids = [w.id for w in self.widgets]
         if len(ids) != len(set(ids)):
             raise ValueError("widget ids must be unique")
@@ -254,6 +260,12 @@ class Dashboard(DashboardContent):
     starter: bool
     created_at: datetime
     updated_at: datetime
+
+
+class DashboardItem(Dashboard):
+    """A dashboard in the sidebar list."""
+
+    new_count: int = Field(description="Its developments new since the last visit, unread")
 
 
 # ---- catalog

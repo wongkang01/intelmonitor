@@ -41,9 +41,9 @@ Primary user: a supervisory or policy analyst who follows a few topics, sectors 
 | --- | --- | --- |
 | Dashboards | A user's own mix of widgets across monitors | Sidebar, top section |
 | Monitor pages | One page per topic, group or entity (events in P1) | Sidebar "Monitors", search, any linked name |
-| Trend view | A subject's series over 12 months, each run's note on why they moved, and question states per run | Trend tab on a monitor page, for subjects with series |
+| Data tab | A subject's indicators, its series over 12 months, each run's note on why they moved, and question states per run | Data tab on a monitor page, for subjects with series |
 | Evidence drawer | Sources behind a finding or development | "See evidence" on any item |
-| Graph view | Linked subjects around the current page | "Open graph view" in a page's Links section |
+| Graph view | Linked subjects around the current page | Embedded in a monitor page's Connections tab; "Open full graph" there for the full page |
 | New dashboard | Popup with Build and Generate tabs | "New dashboard", first row of the sidebar's Dashboards list |
 | Profile menu | Settings, Data sources, Run history, Help | Profile button at the bottom of the sidebar |
 
@@ -77,7 +77,7 @@ The foot counts the followed subjects, and Manage lists them with Unfollow.
 Popovers are 400 px wide at the 10 px radius, with a 1 px border and the pop shadow.
 One popover is open at a time; Esc or a click outside closes it.
 
-**Moving between scopes:** every monitor page has a Links section. From OCBC, one tap goes up to Singapore banks or out to Banking regulation.
+**Moving between scopes:** every monitor page's Overview has a small Connections graph whose nodes link to their pages, and the Connections tab lists Related subjects. From OCBC, one tap goes up to Singapore banks or out to Banking regulation.
 
 ## Key screens
 
@@ -95,42 +95,60 @@ New since review is What changed for the dashboard, with the monitor page's coun
 
 ### Monitor page (topic, group or entity)
 
-Same order on every scope, so users learn it once:
+The page head shows the logo, the name and one summary line, with Mark reviewed (and when the subject was last reviewed) and Follow or Following at its right.
+Alerts cover followed subjects only.
+Mark reviewed moves the subject's review mark to the latest run, so What changed and the sidebar count only later runs' changes; flags and dismissals stay.
+The run's changes then fold behind one line, and the toast offers Undo.
 
-1. **What changed** since last review, with badges (New, Updated, Needs attention).
+Under the head, underlined tabs, left aligned, in the same order on every scope so users learn it once:
+
+1. **Overview**, in two columns that stack under 900 px.
+   The left column (about two thirds):
+   - **Summary**: the run's paragraph on the subject, its counts (developments in scope, need attention, adverse), and whether the run is more adverse, less adverse or unchanged against the previous one, with what that was measured on.
+     A run without a summary for the subject shows none.
+   - **Focus areas** (standing questions), one row each: state in the status column, label, the question as meta, the answer, then lookback, See evidence, Mark wrong and, for custom ones, Edit.
+     Custom focus areas sit in the same list with a "Custom" label, followed by "Add a focus area".
+   - Topics add the **stage track** (signal → consultation → proposed → enacted → enforced) and **Upcoming dates**.
+
+   The right column:
+   - **Key data**: indicators a detector flagged first, worst first, with the event's statement; then up to three of the subject's own series and three context series, each a compact row with the latest value, the weekly or last-release change and a small 12-month line.
+     "Open Data" goes to the Data tab.
+   - **Needs attention**: up to three of the subject's developments needing attention, and a link to all its developments on the Developments tab.
+   - **Connections**: a small static graph of the subject, its groups, peers or members and topics; each node opens its page, and "Open" goes to the Connections tab.
+   - **Notes**: add a note; deleting one shows Undo for 8 s.
+2. **Developments**: **What changed** since last review, with badges (New, Updated, Needs attention).
    Mark read, Flag and Dismiss replace a row's date while the pointer is over it or focus is in it; on a touch screen they always show, as 44 px targets.
    All, Unread, Flagged and Dismissed filter the rows, and All leaves out dismissed ones.
    A read row drops its New or Updated badge.
-2. **Indicators**, for subjects with measured series: one row per series with its status, name and latest period, source, value, change with its window, and a line over the 12 months to the run date.
-   Values are as of the page's run date, and each carries its own observation date or period ("23 Sep", "Jul 2026, preliminary").
-   Figures that are not the subject's own say so: "System-wide" for MAS banking tables, "Market-wide" for FX, US rates and total stablecoin supply.
-   A row reads Watch or Needs attention while a detector event on it holds, and opens that event's development in the evidence drawer.
-3. **Standing questions**, one row each: answer, state, change badge. Custom questions sit in the same list with a "Custom" label, followed by "Add a question".
-4. **Links**: linked subjects by type, plus "Open graph view".
-5. **Actions**: Mark reviewed, Add note.
-   Mark reviewed moves the subject's review mark to the latest run, so What changed and the sidebar count only later runs' changes; flags and dismissals stay.
-   The run's changes then fold behind one line, and the toast offers Undo.
+   Then the subject's developments in the run's scope.
+   An entity in a group with other members switches between its own developments and its peers', each peer row naming its bank; the scope lives in the URL.
+3. **Data**, for subjects with measured series: Indicators, then the Trend content (see Data tab below).
+4. **Connections**, for groups and entities: the graph view with its filters, then a Peers table (an entity's focus area states beside its peers', each linking to that answer's evidence) or, for a group, Common issues and Outliers, then Related subjects by type with "Open full graph".
+   On the embedded graph a plain wheel scrolls the page; Ctrl+wheel or pinch zooms.
 
-The page head has Follow or Following; alerts cover followed subjects only.
-Subjects with series also get Overview and Trend tabs in the head.
-
-Links and Actions share a rail that sticks under the top bar. A rail taller than the window scrolls with the page until its foot shows, then sticks, so every part of it can be reached.
 Deleting a note or a dashboard shows Undo for 8 s, paused while the pointer is over it or focus is in it; that is the only restore.
 
-Group pages add common issues and outliers. Topic pages add the stage track (signal → consultation → proposed → enacted → enforced) and upcoming dates.
+### Data tab
 
-### Trend view
+A monitor page's Data tab, for subjects with measured series.
+The old Trend address redirects to it.
 
-A monitor page's Trend tab, for subjects with measured series.
-It opens on Why it moved: a run selector (runs newest first, then "Before 27 Jul"), the run and the one it compares with, the note's headline, and its body with numbered citations that open the evidence drawer.
+**Indicators** lead it: one row per series with its status, name and latest period, source, value, change with its window, and a line over the 12 months to the run date.
+Values are as of the page's run date, and each carries its own observation date or period ("23 Sep", "Jul 2026, preliminary").
+Figures that are not the subject's own say so: "System-wide" for MAS banking tables, "Market-wide" for FX, US rates and total stablecoin supply.
+A row reads Watch or Needs attention while a detector event on it holds, and opens that event's development in the evidence drawer.
+Those rows lead the section under "Flagged", worst first, so an anomaly is the first thing in it.
+Banks show their own share price; prices read in their currency ("S$42.50", "MYR 10.12").
+
+Then Why it moved: a run selector (runs newest first, then "Before 27 Jul"), the run and the one it compares with, the note's headline, and its body with numbered citations that open the evidence drawer.
 The questions whose state changed in that run follow.
 
 Under it sit the series switcher, the window (12 months, 3 months, 1 month) and the chart.
 The chart draws the series on a fixed time axis, Watch and Needs attention developments as ticks at their event dates, the note's citations as numbered discs, and the selected week as a band.
 The stretch before the first document is shaded and named, since no development can explain a move there.
-Standing questions by run gives each question one mark per run, and the selected run's state and answer in words.
+Focus areas by run gives each question one mark per run, and the selected run's state and answer in words.
 Cited lists the note's developments.
-The rail shows the facts code gave the note for the charted series, with a link to its source table.
+The rail beside them shows the facts code gave the note for the charted series, with a link to its source table, and sticks under the top bar.
 Before the first document there is no note, and the lead says so.
 
 ### Evidence drawer
@@ -202,7 +220,7 @@ The gallery suggests it first for any subject with a primary series, with a seri
 At S, See data opens the subject's Indicators section, or See development when a detector event sets the status.
 A link to a monitor page section (`/monitors/tether#indicators`) lands on it once it renders, on a direct load too.
 
-**No Links widget.** Links are navigation, not an answer, so they live only in the Links section of monitor pages and in the graph view.
+**No Links widget.** Links are navigation, not an answer, so they live only in a monitor page's Connections card and tab and in the graph view.
 A graph widget earns a place only if it answers a question. The candidate is an **exposure map (P1)**: only the tracked subjects with new developments this run, plus the dependencies they share, to show concentration risk. It needs `DEPENDS_ON` data the MVP only has in hand-curated form.
 
 **Rules**
@@ -316,7 +334,7 @@ Example config the LLM produces:
 | Source | Example charts | How to show |
 | --- | --- | --- |
 | Jev tags in the store (category, stage, jurisdiction, adverse, materiality) | Adverse items per bank per week; regulatory stage over time; developments by jurisdiction | Lines and bars. Available from MVP data, so start here |
-| Structured data (MAS statistics, FRED, CoinGecko, DefiLlama) | Stablecoin peg deviation; SG banks loan-to-deposit ratio; SGD per ringgit | Lines, with developments marked on the dates they happened. Built in the Indicators section, the Indicator widget, the Trend view and the drawer's data sources |
+| Structured data (MAS statistics, FRED, CoinGecko, DefiLlama, Yahoo Finance) | Stablecoin peg deviation; SG banks loan-to-deposit ratio; SGD per ringgit | Lines, with developments marked on the dates they happened. Built in the Indicators section, the Indicator widget, the Data tab and the drawer's data sources |
 | Figures the LLM extracts from text ("TSMC raised prices 10%") | Timeline of reported data points | Dots with a source link on each, never a smooth line |
 
 The Trend chart also delivers the multi-month trend charts listed as P1 in the main spec.
@@ -389,7 +407,7 @@ Widgets are inset 12 px, less than the 16 px grid gap, so each widget reads as o
 Monitor sections are 32 px apart; the page title sits 24 px above the content; the page gutter is 32 px.
 
 **Charts:** one neutral line, no area fill, on a fixed time axis to the run date, so monthly and quarterly lines end at their last release and the gap shows the reporting lag.
-The drawer's and the Trend view's charts have up to four round ticks on a hairline grid and months on the axis; the drawer's labels the latest value at the line's end.
+The drawer's and the Data tab's charts have up to four round ticks on a hairline grid and months on the axis; the drawer's labels the latest value at the line's end.
 Indicators rows and the Medium widget draw the line alone; the Large widget adds its scale's top and bottom values and the axis dates.
 A preliminary tail is lighter with a hollow end; a peg gets its zero rule.
 A cited period is a band in `--mark`, the quote highlight.
@@ -423,7 +441,7 @@ All motion is off under reduced-motion settings.
 | Layout | Free grid, dense and boxy | Three fixed sizes, calm spacing, clear hierarchy |
 | Editing | Manage mode, menus per widget | Drag to rearrange, live gallery previews, edit in place |
 | Watchlists | Separate add flow inside the widget | Type-ahead add and × remove, right in the widget |
-| Connections | None visible | Links section and graph view on every page |
+| Connections | None visible | Connections card and tab, and the graph view, on every page |
 | Building by chat | Not available | Describe a dashboard; Keep or Undo each change |
 
 ## UX success metrics

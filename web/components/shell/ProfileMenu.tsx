@@ -1,32 +1,53 @@
-// Profile button pinned to the sidebar bottom; its menu opens upward and leads to four dialogs.
-// Help, last after a separator, replaces the old Keyboard shortcuts item; `?` opens it anywhere.
-import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+// Profile button pinned to the sidebar bottom. The profile is a role standing in for identity
+// (phase1-plan.md, item U3): the menu, opening upward, switches between the preloaded department
+// profiles and the user's own roles in one click, adds a role through onboarding, and leads to Data
+// sources and Help. `?` opens Help anywhere. Each app load, and each switch, logs a visit.
+import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 
-import { useProfile } from "@/lib/api/queries";
+import { logVisit, useActivateProfile, useProfile, useProfiles } from "@/lib/api/queries";
 import { typingIn } from "@/lib/dom";
-import { initials } from "@/lib/format";
-import { ChevronUpIcon, HelpIcon, HistoryIcon, SettingsIcon, SourcesIcon } from "@/components/ui/icons";
+import { roleName } from "@/lib/roles";
+import { CheckIcon, ChevronUpIcon, HelpIcon, PlusIcon, SourcesIcon } from "@/components/ui/icons";
+import { useToast } from "@/components/ui/Toast";
 
-import { DataSourcesDialog, HelpDialog, RunHistoryDialog, SettingsDialog } from "./ProfileDialogs";
-import { useStartTour } from "./Tour";
+import { DataSourcesDialog, HelpDialog } from "./ProfileDialogs";
 
-type DialogName = "settings" | "sources" | "runs" | "help";
+type DialogName = "sources" | "help";
 
-const ITEMS: { name: DialogName; label: string; icon: ReactNode; hint?: string }[] = [
-  { name: "settings", label: "Settings", icon: <SettingsIcon /> },
-  { name: "sources", label: "Data sources", icon: <SourcesIcon /> },
-  { name: "runs", label: "Run history", icon: <HistoryIcon /> },
-  { name: "help", label: "Help", icon: <HelpIcon />, hint: "?" },
-];
+/** Two letters for the avatar: "TC" for TCRD, "RS" for Regulatory supervisor, skipping "and". */
+const avatarText = (name: string) => {
+  const words = name.split(/\s+/).filter((w) => w && w !== "and");
+  return (words.length > 1 ? words.map((w) => w[0]).join("") : (words[0] ?? "")).slice(0, 2).toUpperCase();
+};
+
+// The profile a visit was last logged for in this page load, so a remount does not log twice.
+let visitLoggedFor: string | null = null;
 
 export function ProfileMenu() {
+  const navigate = useNavigate();
+  const toast = useToast();
   const profile = useProfile();
-  const startTour = useStartTour();
+  const profiles = useProfiles();
+  const activate = useActivateProfile();
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState<DialogName | null>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
+
+  const current = profile.data;
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Logged once the page settles, so a switch logs the dashboard it opens rather than the page left.
+  useEffect(() => {
+    const id = current?.id;
+    if (!id || visitLoggedFor === id) return;
+    const t = window.setTimeout(() => {
+      visitLoggedFor = id;
+      logVisit(window.location.pathname);
+    }, 500);
+    return () => window.clearTimeout(t);
+  }, [current?.id, pathname]);
 
   useEffect(() => {
     if (open) menu.current?.querySelector("button")?.focus();
@@ -66,34 +87,90 @@ export function ProfileMenu() {
     if (e.key === "Tab") setOpen(false);
   };
 
-  const name = profile.data?.display_name ?? "";
+  const switchTo = (id: string) => {
+    setOpen(false);
+    if (id === current?.id) return;
+    activate.mutate(id, {
+      onSuccess: (p) => {
+        if (p.default_dashboard_id) void navigate({ to: "/dashboards/$id", params: { id: p.default_dashboard_id } });
+        else void navigate({ to: "/" });
+      },
+      onError: () => toast({ message: "Could not switch role" }),
+    });
+  };
+
   const close = () => {
     setDialog(null);
     // The menu item that opened the dialog is gone, so return focus to the profile button.
     requestAnimationFrame(() => button.current?.focus());
   };
 
+  const name = current?.name ?? "";
+  const role = current?.role ? roleName(current.role) : "";
+
   return (
     <div className="profile-wrap" ref={wrap}>
       {open && (
         <div className="menu" id="profile-menu" role="menu" ref={menu} onKeyDown={onMenuKey}>
-          {ITEMS.map((item) => (
-            <Fragment key={item.name}>
-              {item.name === "help" && <hr />}
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false);
-                  setDialog(item.name);
-                }}
-              >
-                {item.icon}
-                {item.label}
-                {item.hint && <span className="kbd">{item.hint}</span>}
-              </button>
-            </Fragment>
-          ))}
+          <div role="group" aria-labelledby="switch-role-label">
+            <span className="menu-label" id="switch-role-label">
+              Switch role
+            </span>
+            {profiles.data?.map((p) => {
+              const sub = p.role && roleName(p.role) !== p.name ? roleName(p.role) : null;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={p.id === current?.id}
+                  className="menu-role"
+                  onClick={() => p.id && switchTo(p.id)}
+                >
+                  <span className="menu-check">{p.id === current?.id && <CheckIcon />}</span>
+                  <span>
+                    {p.name}
+                    {sub && <span className="menu-sub">{sub}</span>}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              void navigate({ to: "/setup" });
+            }}
+          >
+            <PlusIcon />
+            Add a role
+          </button>
+          <hr />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              setDialog("sources");
+            }}
+          >
+            <SourcesIcon />
+            Data sources
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              setDialog("help");
+            }}
+          >
+            <HelpIcon />
+            Help
+            <span className="kbd">?</span>
+          </button>
         </div>
       )}
       <button
@@ -106,25 +183,16 @@ export function ProfileMenu() {
         onClick={() => setOpen((o) => !o)}
       >
         <span className="avatar" aria-hidden="true">
-          {initials(name)}
+          {avatarText(name)}
         </span>
         <span className="who">
           <b>{name}</b>
-          <span>{profile.data?.role}</span>
+          <span>{role && role !== name ? role : "Your role"}</span>
         </span>
         <ChevronUpIcon />
       </button>
-      <SettingsDialog open={dialog === "settings"} onClose={close} />
       <DataSourcesDialog open={dialog === "sources"} onClose={close} />
-      <RunHistoryDialog open={dialog === "runs"} onClose={close} />
-      <HelpDialog
-        open={dialog === "help"}
-        onClose={close}
-        onReplay={() => {
-          setDialog(null);
-          startTour(button.current);
-        }}
-      />
+      <HelpDialog open={dialog === "help"} onClose={close} />
     </div>
   );
 }

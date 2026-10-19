@@ -1,0 +1,46 @@
+{
+ "group": "brief_judge",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "claims": [
+   {
+    "point": 1,
+    "supported": true,
+    "reason": "d0333fbecae99d56-3 supports the 5 Oct start for 11 stocks including DBS, OCBC and UOB. It also supports 10-share lots being the most traded and eight of 11 stocks having higher turnover than on 2 Oct. The caveat that one day of data proves little is fair."
+   },
+   {
+    "point": 2,
+    "supported": true,
+    "reason": "a16fda454ce4ff04-3 supports the 25% underperformance, and 5f8a1427ed9ebdba-1 supports the S$435m JPMorgan estimate. 7c5af91110bb0d14-1 supports the S$20m grant to end-2028. Saying these have not yet closed the gap is a reasonable reading, although the grant has only just been announced."
+   },
+   {
+    "point": 3,
+    "supported": true,
+    "reason": "1c1b646b55ad01c2-2 supports the narrower discount. 679ece21a96862f6-0 supports OCBC's 5.90% fall and the Citi downgrade to sell, and the series explanation gives the STI's 1.63% fall the same day. The why narrows 'earnings and execution' to bank earnings, a reasonable consequence given the sell-off in bank stocks."
+   }
+  ],
+  "top_high": [
+   {
+    "development_id": "7c5af91110bb0d14-1",
+    "covered": true,
+    "rightly_left_out": false,
+    "reason": "The 'why it matters' in Point 2 names the S$20m market-making grant to end-2028. The previous week's brief also covered it."
+   }
+  ],
+  "consistent": true,
+  "consistency_reason": "The bottom line matches the points and evidence: board lots went live, there are two Mainboard IPOs (Deluge and Mi Material), SGX shares fell 7.65% on the week per the series event, and small and mid-caps still lag. 'Unchanged' fits, because the negatives are analyst views and market moves rather than material harm to the subject.",
+  "stale_or_other": [],
+  "verdict": "This is a well-supported, balanced brief that covers the High market-making grant and this week's main execution steps. The direction is calibrated correctly. One weakness is that the 7.65% fall in SGX shares appears only in the bottom line and is not explained."
+ },
+ "usage": {
+  "cost_usd": 0.125217,
+  "input_tokens": 18032,
+  "output_tokens": 2431,
+  "duration_ms": 26160,
+  "turns": 3
+ }
+}

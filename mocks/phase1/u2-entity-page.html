@@ -1,0 +1,717 @@
+<title>Entity page mocks</title>
+<style>
+/* Layout: a mock page; each option is a heading, then framed entity pages. Pages reflow to one column on a phone; wide tables scroll inside their own box. */
+:root{
+  --canvas:oklch(0.972 0.004 260);
+  --surface:oklch(0.993 0.002 260);
+  --rail:oklch(0.955 0.005 260);
+  --hover:oklch(0.925 0.006 260);
+  --line:oklch(0.93 0.005 260);
+  --line-strong:oklch(0.885 0.007 260);
+  --line-field:oklch(0.80 0.01 260);
+  --ink:oklch(0.23 0.012 260);
+  --ink2:oklch(0.47 0.014 260);
+  --ink3:oklch(0.56 0.012 260);
+  --accent:oklch(0.52 0.17 258);
+  --new:oklch(0.48 0.15 258);
+  --new-bg:oklch(0.955 0.022 250);
+  --attn:oklch(0.50 0.17 28);
+  --attn-bg:oklch(0.955 0.022 25);
+  --watch:oklch(0.47 0.105 62);
+  --watch-bg:oklch(0.965 0.035 80);
+  --good:oklch(0.47 0.10 155);
+  --page:oklch(0.945 0.006 260);
+  --note:oklch(0.60 0.10 300);
+  --shadow-low:0 1px 3px oklch(0.23 0.012 260 / 0.11);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --stat:112px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --canvas:oklch(0.20 0.008 260);--surface:oklch(0.235 0.009 260);--rail:oklch(0.215 0.008 260);
+  --hover:oklch(0.29 0.01 260);--line:oklch(0.30 0.01 260);--line-strong:oklch(0.36 0.012 260);
+  --line-field:oklch(0.45 0.014 260);--ink:oklch(0.94 0.005 260);--ink2:oklch(0.76 0.01 260);
+  --ink3:oklch(0.66 0.01 260);--accent:oklch(0.70 0.14 258);--new:oklch(0.78 0.11 258);--new-bg:oklch(0.32 0.06 258);
+  --attn:oklch(0.76 0.13 28);--attn-bg:oklch(0.32 0.06 28);--watch:oklch(0.80 0.10 75);--watch-bg:oklch(0.32 0.05 75);
+  --good:oklch(0.76 0.11 155);--page:oklch(0.16 0.007 260);--note:oklch(0.75 0.09 300);
+  --shadow-low:0 1px 3px oklch(0 0 0 / 0.4);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --canvas:oklch(0.20 0.008 260);--surface:oklch(0.235 0.009 260);--rail:oklch(0.215 0.008 260);
+  --hover:oklch(0.29 0.01 260);--line:oklch(0.30 0.01 260);--line-strong:oklch(0.36 0.012 260);
+  --line-field:oklch(0.45 0.014 260);--ink:oklch(0.94 0.005 260);--ink2:oklch(0.76 0.01 260);
+  --ink3:oklch(0.66 0.01 260);--accent:oklch(0.70 0.14 258);--new:oklch(0.78 0.11 258);--new-bg:oklch(0.32 0.06 258);
+  --attn:oklch(0.76 0.13 28);--attn-bg:oklch(0.32 0.06 28);--watch:oklch(0.80 0.10 75);--watch-bg:oklch(0.32 0.05 75);
+  --good:oklch(0.76 0.11 155);--page:oklch(0.16 0.007 260);--note:oklch(0.75 0.09 300);
+  --shadow-low:0 1px 3px oklch(0 0 0 / 0.4);color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font:400 13px/18px var(--font);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,p,ul,ol{margin:0;padding:0}
+ul,ol{list-style:none}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.meta{font-size:12px;line-height:16px;color:var(--ink2)}
+
+/* Mock page around the screens */
+.doc{max-width:1200px;margin:0 auto;padding-inline:16px;padding-block:32px 64px;display:flex;flex-direction:column;gap:48px}
+.doc-head{display:flex;flex-direction:column;gap:8px;max-width:72ch}
+.doc-head h1{font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.015em}
+.doc-head p{color:var(--ink2)}
+.opt{display:flex;flex-direction:column;gap:16px}
+.opt>h2{font-size:22px;line-height:28px;font-weight:600;letter-spacing:-0.01em;text-wrap:balance}
+.opt>p{max-width:72ch;color:var(--ink2)}
+.cap{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2)}
+.mocknote{border:1px dashed var(--note);color:var(--note);border-radius:6px;padding:8px 10px;font-size:12px;line-height:16px}
+
+/* App frame */
+.app{background:var(--canvas);border:1px solid var(--line-strong);border-radius:10px;box-shadow:var(--shadow-low);overflow:hidden}
+.app-head{background:var(--surface);padding:16px 24px 0;display:flex;flex-direction:column;gap:4px;border-bottom:1px solid var(--line-strong)}
+.crumbs{font-size:12px;line-height:16px;color:var(--ink2)}
+.title-row{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px}
+.title-row h3{font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.015em}
+.tabs{display:flex;gap:20px;margin-top:8px}
+.tabs a{color:var(--ink2);font-weight:500;padding:8px 0 10px;border-bottom:2px solid transparent}
+.tabs a[aria-current]{color:var(--ink);border-color:var(--accent)}
+.app-body{padding:24px;display:flex;flex-direction:column;gap:24px}
+.panel{background:var(--surface);border-radius:10px;box-shadow:var(--shadow-low);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.sec-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;padding-bottom:8px;border-bottom:1px solid var(--line-strong)}
+.sec-h h4{font-size:15px;line-height:20px;font-weight:600}
+
+/* Controls */
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;background:var(--rail);border-radius:6px;padding:2px;height:28px}
+.seg button{height:24px;padding:0 10px;border-radius:5px;font-size:12px;font-weight:500;color:var(--ink2);border:1px solid transparent}
+.seg button[aria-pressed="true"]{background:var(--surface);border-color:var(--line-strong);color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);font-size:12px;font-weight:500}
+.btn:hover{background:var(--hover)}
+.btn .chev{color:var(--ink3)}
+.more{font-weight:500}
+
+/* Badges and flags */
+.badge{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:4px;font-size:12px;font-weight:500;white-space:nowrap}
+.b-high{background:var(--attn-bg);color:var(--attn)}
+.b-med{background:var(--watch-bg);color:var(--watch)}
+.b-low{background:var(--rail);color:var(--ink2)}
+.b-new{background:var(--new-bg);color:var(--new)}
+.b-upd{background:var(--rail);color:var(--ink2)}
+.adv{color:var(--attn);font-weight:500}
+.dir-neg{color:var(--attn);font-weight:500}
+.dir-pos{color:var(--good);font-weight:500}
+.dir-mix{color:var(--watch);font-weight:500}
+
+/* Rows */
+.rows{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:var(--stat) minmax(0,1fr) auto;gap:4px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.rows>.row:first-child{border-top:0}
+.row .stat{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.row-title{font-weight:500}
+.row-end{font-size:12px;color:var(--ink2);white-space:nowrap;text-align:right}
+.row .src{display:flex;flex-wrap:wrap;gap:2px 10px}
+.row.no-stat{grid-template-columns:minmax(0,1fr) auto}
+.go{font-weight:500;white-space:nowrap}
+.go::after{content:" \203A"}
+@media (max-width:640px){
+  .app-head{padding:12px 16px 0}.app-body{padding:16px}
+  .row{grid-template-columns:minmax(0,1fr)}
+  .row .stat{flex-direction:row}
+  .row-end{text-align:left}
+}
+
+/* Brief */
+.bl{font-size:22px;line-height:28px;font-weight:600;letter-spacing:-0.01em;max-width:70ch;text-wrap:pretty}
+.bl.sm{font-size:15px;line-height:20px}
+.dirline{display:flex;flex-wrap:wrap;gap:4px 8px;max-width:80ch}
+.dirline b{font-weight:600}
+.points{display:flex;flex-direction:column}
+.points li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 16px;padding:10px 0;border-top:1px solid var(--line)}
+.points li:first-child{border-top:0}
+.points .claim{font-weight:500;max-width:80ch}
+.points .why{color:var(--ink2);max-width:80ch;grid-column:1}
+.points .go{grid-column:2;grid-row:1 / span 2;align-self:start}
+.brief-sub{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 24px;padding-top:12px;border-top:1px solid var(--line-strong)}
+.brief-sub h5{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);margin:0 0 4px}
+.brief-sub li{padding:4px 0}
+.facts{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;line-height:16px;color:var(--ink2);padding-top:10px;border-top:1px solid var(--line)}
+.facts b{color:var(--ink);font-weight:600}
+@media (max-width:640px){.bl{font-size:17px;line-height:23px}.points li{grid-template-columns:minmax(0,1fr)}.points .go{grid-column:1;grid-row:auto}}
+
+/* Indirect impacts grouped by route */
+.groups{display:flex;flex-direction:column;gap:16px}
+.group h5{font-size:13px;line-height:18px;font-weight:600;margin:0}
+.route{display:flex;flex-wrap:wrap;gap:2px 10px;padding:6px 0 2px;color:var(--ink2);font-size:12px;line-height:16px}
+.route .via{color:var(--ink);font-weight:500;font-size:13px;line-height:18px;flex-basis:100%}
+.imp{display:grid;grid-template-columns:88px minmax(0,1fr) auto;gap:2px 12px;padding:8px 0;border-top:1px solid var(--line)}
+.imp .why{color:var(--ink2);grid-column:2}
+.imp .row-end{grid-column:3;grid-row:1}
+.empty{color:var(--ink2);padding:6px 0}
+@media (max-width:640px){.imp{grid-template-columns:minmax(0,1fr)}.imp .why,.imp .row-end{grid-column:1;grid-row:auto;text-align:left}}
+
+/* Linked institutions table */
+.tbl-wrap{overflow-x:auto;min-width:0}
+table.links{border-collapse:collapse;width:100%;min-width:760px}
+.links th{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);text-align:left;padding:6px 12px 6px 0;border-bottom:1px solid var(--line-strong);white-space:nowrap}
+.links td{padding:9px 12px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.links tr.sub td{border-bottom-color:var(--line);padding-top:0}
+.links td.inst{font-weight:600;white-space:nowrap}
+.links td.size{font-variant-numeric:tabular-nums;white-space:nowrap}
+.links .reach{font-size:12px;line-height:16px;color:var(--ink2);margin-top:2px}
+
+/* Shared with: a ladder graph, the peer's links on the right */
+.shared-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.select{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px 0 10px;border:1px solid var(--line-field);border-radius:6px;background:var(--surface);font-weight:500}
+.select .chev{color:var(--ink3)}
+.ladder{display:flex;flex-direction:column}
+.ladder .lh{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,auto) minmax(0,1fr);gap:8px;font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);padding-bottom:6px;border-bottom:1px solid var(--line-strong)}
+.ladder .lh span:nth-child(2){text-align:center}
+.lgrp{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);padding:10px 0 2px}
+.rung{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,auto) minmax(0,1fr);gap:0 8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.rung .l,.rung .r{display:flex;align-items:center;gap:8px;min-width:0}
+.rung .l{justify-content:flex-end;text-align:right}
+.rung .l::after,.rung .r::before{content:"";flex:1 1 24px;min-width:16px;max-width:64px;height:1px;background:var(--line-field)}
+.rung .l::after{order:2}
+.rung .n{font-weight:600;text-align:center;padding:2px 8px;border:1px solid var(--line-strong);border-radius:4px;background:var(--canvas);white-space:nowrap}
+.rung .s{grid-column:1 / -1;font-size:12px;line-height:16px;color:var(--ink2);text-align:center;padding-top:2px}
+@media (max-width:640px){.rung .l::after,.rung .r::before{display:none}.ladder .lh,.rung{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.rung .n{white-space:normal}}
+
+/* Two-column page */
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,380px);gap:24px;align-items:start}
+.side{display:flex;flex-direction:column;gap:24px;min-width:0}
+@media (max-width:900px){.cols{grid-template-columns:minmax(0,1fr)}.cols .side{order:-1}}
+
+/* Compact side-column impacts */
+.sim{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-top:1px solid var(--line)}
+details summary{cursor:pointer;color:var(--accent);font-size:12px;line-height:16px;font-weight:500;width:max-content}
+details p{color:var(--ink2);padding-top:4px}
+
+/* Option C: one-line brief strip and the to-scale bars */
+.strip{display:flex;flex-direction:column;gap:8px;padding-bottom:4px}
+.strip .facts{border-top:0;padding-top:0}
+.bars{display:flex;flex-direction:column}
+.bar-axis,.bar-row{display:grid;grid-template-columns:64px minmax(0,1fr) 128px;gap:4px 12px;align-items:center}
+.bar-axis{font-size:12px;line-height:16px;color:var(--ink3);padding-bottom:4px}
+.bar-axis .ax{position:relative;height:16px}
+.bar-axis i{position:absolute;font-style:normal;transform:translateX(-50%)}
+.bar-axis i:first-child{transform:none}
+.bar-axis i:last-child{transform:translateX(-100%)}
+.bar-row{padding:10px 0;border-top:1px solid var(--line)}
+.bar-row .inst{font-weight:600}
+.track{height:12px;background:var(--rail);border-radius:2px;position:relative;background-image:linear-gradient(to right,transparent calc(50% - 0.5px),var(--line-strong) calc(50% - 0.5px),var(--line-strong) calc(50% + 0.5px),transparent calc(50% + 0.5px))}
+.fill{position:absolute;left:0;top:0;bottom:0;background:var(--ink2);border-radius:2px}
+.fill.region{background:transparent;border:1.5px solid var(--ink2)}
+.val{font-weight:600}
+.bar-meta{grid-column:2 / 4;font-size:12px;line-height:16px;color:var(--ink2)}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:8px}
+.key{display:inline-block;width:14px;height:10px;background:var(--ink2);border-radius:2px}
+.key.region{background:transparent;border:1.5px solid var(--ink2);margin-left:10px}
+@media (max-width:640px){.bar-axis,.bar-row{grid-template-columns:48px minmax(0,1fr) 72px}.bar-row .val .meta{display:block}.bar-meta{grid-column:1 / -1}}
+table{font-size:inherit;line-height:inherit;color:inherit}
+.links td.num{white-space:nowrap}
+.side .rung .l::after,.side .rung .r::before{display:none}
+.side .rung .l,.side .rung .r{white-space:nowrap;font-size:12px}
+</style>
+
+<main class="doc">
+<header class="doc-head">
+<h1>Entity page: three layouts</h1>
+<p>Overview and developments merged into one page, with the Data tab kept. All rows come from the 24 Sep update, the impact step and the brief step. Hong Kong and AWS show the Singapore institutions linked to them. New and Updated assume a last visit on 17 Sep.</p>
+</header>
+
+<section class="opt" id="a">
+<h2>Option A: brief across the top, one column below</h2>
+<p>The brief is a full-width panel. Below it, in order: developments about the entity, what could affect it through its links, and what it shares with a peer. Country, sector and vendor pages add the linked institutions after the feed.</p>
+
+<p class="cap">DBS, 24 Sep</p>
+<div class="app">
+  <div class="app-head">
+    <p class="crumbs">Entities › Singapore banks</p>
+    <div class="title-row"><h3>DBS</h3><span class="meta">Bank, Singapore · Updated 24 Sep</span></div>
+    <nav class="tabs"><a href="#a" aria-current="page">Overview</a><a href="#a">Data</a></nav>
+  </div>
+  <div class="app-body">
+
+    <section class="panel" aria-label="This week">
+      <p class="bl">No material developments at DBS this week; analysts expect higher Singapore rates after the Fed hike to lift its margins, with the larger benefit in 2027.</p>
+      <p class="dirline"><b>Unchanged from last week.</b><span class="meta" style="font-size:13px;line-height:18px">Only analyst commentary on rates and margins after the Fed hike on 16 Sep; no incident, loss or approval at DBS.</span></p>
+      <ol class="points">
+        <li>
+          <p class="claim">After the Fed raised rates by 25 basis points on 16 Sep, analysts told The Business Times that higher Singapore dollar rates should lift net interest margins at DBS, OCBC and UOB, mostly in 2027.</p>
+          <p class="why">This is a forecast, not a reported result, and it eases margin pressure only if Singapore rates follow the Fed; Macquarie sees UOB gaining most.</p>
+          <a class="go" href="#a">1 development</a>
+        </li>
+      </ol>
+      <div class="brief-sub">
+        <div>
+          <h5>Could also affect DBS</h5>
+          <ul>
+            <li><a href="#a">MAS's annual Financial Stability Review stress test found about 32 per cent of Singapore-listed companies, accounting for about 16 per cent of corporate debt, would be at risk under a severe AI investment downturn.</a><p class="meta">Through its Singapore loans, 44.4% of total</p></li>
+            <li><a href="#a">Central bank watchers are cautious about MAS tightening monetary policy in October despite the US Fed's mid-September rate rise, as Singapore's labour market shows continued softness.</a><p class="meta">Through its Singapore loans, 44.4% of total</p></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Coming up</h5>
+          <p class="meta" style="font-size:13px">No dates in this week's news.</p>
+        </div>
+      </div>
+      <p class="facts num"><span><b>3</b> developments this week</span><span><b>0</b> High</span><span><b>0</b> adverse</span><span>Latest news <b>22 Sep</b></span></p>
+    </section>
+
+    <section class="panel" id="dbs-feed">
+      <div class="sec-h"><h4>Developments about DBS</h4><span class="meta num">15 this month, highest priority first</span></div>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Period"><button aria-pressed="false">This week</button><button aria-pressed="true">This month</button><button aria-pressed="false">3 months</button></div>
+        <button class="btn">Priority <span class="chev">▾</span></button>
+        <button class="btn">Adverse <span class="chev">▾</span></button>
+        <button class="btn">Category <span class="chev">▾</span></button>
+        <button class="btn">Source type <span class="chev">▾</span></button>
+      </div>
+      <div class="rows">
+        <div class="row"><div class="stat"><span class="badge b-high">High</span></div>
+          <div><p class="row-title">Liquidators are suing DBS Bank for an estimated S$1.298 billion (US$1.03 billion) in damages linked to the 1MDB scandal, as reported on 9 September 2026.</p>
+          <p class="meta src"><span class="adv">Adverse, negative</span><span>Regulatory</span><span>Reuters, news</span><a class="go" href="#a">View 1 source</a></p></div>
+          <span class="row-end num">9 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-high">High</span></div>
+          <div><p class="row-title">DBS rejected the 1MDB-linked claim and assessed that no provisions are required at this stage.</p>
+          <p class="meta src"><span>Neutral</span><span>Financial</span><span>Reuters, news</span><a class="go" href="#a">View 1 source</a></p></div>
+          <span class="row-end num">9 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-high">High</span></div>
+          <div><p class="row-title">DBS said a PayLah! customer's transfers went to an unintended recipient because the mobile number was still linked to another user's wallet; DBS refunded the customer and co-workers and found no unauthorised transactions.</p>
+          <p class="meta src"><span class="adv">Adverse, negative</span><span>Incident</span><span>The Straits Times, news</span><a class="go" href="#a">View 1 source</a></p></div>
+          <span class="row-end num">26 Aug</span></div>
+        <div class="row"><div class="stat"><span class="badge b-med">Medium</span><span class="badge b-upd">Updated</span></div>
+          <div><p class="row-title">Following the Fed's 25 basis point hike on Sep 16, analysts told The Business Times that higher Singapore dollar rates should lift net interest margins at DBS, OCBC and UOB, with the larger benefit in 2027.</p>
+          <p class="meta src"><span>Positive</span><span>Policy</span><span>The Straits Times, The Business Times, news</span><a class="go" href="#a">View 6 sources</a></p></div>
+          <span class="row-end num">20 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-med">Medium</span></div>
+          <div><p class="row-title">DBS's US dollar book remains negatively sensitive to higher rates, which could partly offset Singapore dollar gains, though Morningstar still sees DBS as a net beneficiary of higher rates.</p>
+          <p class="meta src"><span>Negative</span><span>Financial</span><span>The Business Times, news</span><a class="go" href="#a">View 2 sources</a></p></div>
+          <span class="row-end num">17 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-med">Medium</span></div>
+          <div><p class="row-title">DBS said on 2026-09-16 that it increased its bullion vaulting space this year to meet growing private wealth and institutional demand, supporting Singapore's push to become a major gold hub.</p>
+          <p class="meta src"><span>Positive</span><span>Strategy</span><span>Bloomberg, news</span><a class="go" href="#a">View 1 source</a></p></div>
+          <span class="row-end num">17 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-med">Medium</span></div>
+          <div><p class="row-title">UOB Kay Hian downgraded DBS to sell and OCBC to hold, and removed OCBC from its conviction buy list, citing risks of slower economy and loan growth from the Middle East conflict.</p>
+          <p class="meta src"><span class="adv">Adverse, negative</span><span>Market</span><span>The Business Times, news</span><a class="go" href="#a">View 1 source</a></p></div>
+          <span class="row-end num">16 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-med">Medium</span></div>
+          <div><p class="row-title">A Bain, DBS and Vriens &amp; Partners report projects Southeast Asia's six largest economies will grow 4.8% annually over the next decade, below the earlier 5.1% forecast, with widening divergence.</p>
+          <p class="meta src"><span>Neutral</span><span>Other</span><span>Bloomberg, The Straits Times, The Edge Malaysia, VnExpress, news</span><a class="go" href="#a">View 4 sources</a></p></div>
+          <span class="row-end num">16 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-med">Medium</span></div>
+          <div><p class="row-title">DBS said in August 2026 that it expects its investment in tokenised finance to catch up with or overtake traditional payment and custody spending within two to three years.</p>
+          <p class="meta src"><span>Positive</span><span>Strategy</span><span>The Straits Times, news</span><a class="go" href="#a">View 1 source</a></p></div>
+          <span class="row-end num">7 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-med">Medium</span></div>
+          <div><p class="row-title">BI and MAS appointed banks including DBS Bank, OCBC and their Indonesian units as Appointed Cross Currency Dealers to operationalise the Rupiah-Singapore Dollar local currency transaction framework.</p>
+          <p class="meta src"><span>Positive</span><span>Regulatory</span><span>MAS, official</span><a class="go" href="#a">View 1 source</a></p></div>
+          <span class="row-end num">31 Aug</span></div>
+        <div class="row"><div class="stat"><span class="badge b-low">Low</span><span class="badge b-new">New</span></div>
+          <div><p class="row-title">Jefferies initiated coverage of Singapore banks on 22 September 2026, rating DBS and UOB buy and OCBC hold, with target prices of $91, $48 and $35 respectively.</p>
+          <p class="meta src"><span>Positive</span><span>Market</span><span>The Edge Singapore, news</span><a class="go" href="#a">View 1 source</a></p></div>
+          <span class="row-end num">22 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-low">Low</span><span class="badge b-new">New</span></div>
+          <div><p class="row-title">DBS Group Research cut its target price for UltraGreen.ai from 80 US cents to 65 US cents, after a competing US product confirmed pricing pressure for the surgical-dye maker.</p>
+          <p class="meta src"><span>Neutral</span><span>Market</span><span>The Straits Times, news</span><a class="go" href="#a">View 1 source</a></p></div>
+          <span class="row-end num">20 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-low">Low</span></div>
+          <div><p class="row-title">Bloomberg Intelligence says Singapore banks' asset quality should stay resilient, with a 0.96 per cent system gross NPL ratio in the second quarter, and expects DBS to outperform peers if rates stay elevated.</p>
+          <p class="meta src"><span>Positive</span><span>Financial</span><span>The Business Times, news</span><a class="go" href="#a">View 2 sources</a></p></div>
+          <span class="row-end num">17 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-low">Low</span></div>
+          <div><p class="row-title">DBS and Citigroup completed a cross-border US dollar payment on Sept 5, 2026 using tokenised deposits over the Swift Digital Ledger, settling in minutes outside traditional banking hours.</p>
+          <p class="meta src"><span>Positive</span><span>Strategy</span><span>The Straits Times, CoinDesk, news</span><a class="go" href="#a">View 2 sources</a></p></div>
+          <span class="row-end num">7 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-low">Low</span></div>
+          <div><p class="row-title">DBS stated on 26 August 2026 that it will delink a mobile number from a previous user's PayLah! wallet once it learns the user has not delinked it, and will keep reviewing the PayLah! experience.</p>
+          <p class="meta src"><span>Neutral</span><span>Other</span><span>The Straits Times, news</span><a class="go" href="#a">View 1 source</a></p></div>
+          <span class="row-end num">26 Aug</span></div>
+      </div>
+    </section>
+
+    <section class="panel" id="dbs-impacts">
+      <div class="sec-h"><h4>Could affect DBS</h4><span class="meta">News about places, sectors and suppliers DBS is linked to</span></div>
+      <div class="groups">
+        <div class="group">
+          <h5>Through its loans</h5>
+          <div class="route"><span class="via">Lends in Singapore, 44.4% of loans</span><span>Public</span><span>Checked 7 Oct</span><a href="#a">DBS 2Q26 Performance Summary, p. 20</a></div>
+          <div class="imp"><span class="dir-mix">Mixed</span><a class="row-title" href="#a">Central bank watchers are cautious about MAS tightening monetary policy in October despite the US Fed's mid-September rate rise, as Singapore's labour market shows continued softness.</a>
+            <p class="why">DBS has 44.4% of its loans in Singapore, so the MAS policy path bears on its lending environment. Analysts call October a toss-up between a hold and slight tightening, with a soft labour market, so the effect is modest and uncertain.</p><span class="row-end num">23 Sep</span></div>
+          <div class="imp"><span class="dir-mix">Mixed</span><a class="row-title" href="#a">MAS's annual Financial Stability Review stress test found about 32 per cent of Singapore-listed companies, accounting for about 16 per cent of corporate debt, would be at risk under a severe AI investment downturn.</a>
+            <p class="why">DBS has 44.4% of its loans in Singapore, where the stress test found 32 per cent of listed firms, holding 16 per cent of corporate debt, at risk in a severe AI downturn. MAS said banks have sufficient capital and buffers, with corporate NPLs at 1.2 per cent, so the effect is a flagged scenario risk. The Singapore loan figure covers all borrowers, so it is an upper bound for corporate exposure.</p><span class="row-end num">22 Sep</span></div>
+          <div class="route"><span class="via">Lends in Greater China excluding Hong Kong, 12.9% of loans (one figure for the whole region)</span><span>Public</span><span>Checked 7 Oct</span><a href="#a">DBS 2Q26 Performance Summary, p. 20</a></div>
+          <div class="imp"><span class="dir-pos">Could help</span><a class="row-title" href="#a">Reuters reports China's exports are booming and defying Trump's tariff campaign, with China's trade with the world surging over the four months since the two leaders last met.</a>
+            <p class="why">The reported export boom points to resilient trade flows for borrowers in DBS's Rest of Greater China book, 12.9% of loans. The figure covers the whole region, so it is an upper bound for Mainland China, and the effect is indirect.</p><span class="row-end num">21 Sep</span></div>
+        </div>
+        <div class="group">
+          <h5>Through its suppliers</h5>
+          <div class="route"><span class="via">Uses Microsoft 365 for staff email and collaboration</span><span>Public</span><span>Source dated 27 Jun 2016, checked 7 Oct</span><a href="#a">DBS newsroom: first Singapore bank to adopt cloud-based productivity technology</a></div>
+          <div class="imp"><span class="dir-neg">Could hurt</span><a class="row-title" href="#a">Microsoft began investigating a widespread Microsoft 365 outage on 31 August 2026, centred on Exchange Online and also hitting Teams, Graph, Purview, OneDrive, SharePoint, Copilot and Defender XDR, with authentication failures.</a>
+            <p class="why">The evidence shows DBS moved its workforce to Office 365 in 2016, so a multi-day Microsoft 365 outage with authentication failures and Exchange Online disruption plausibly hit its staff email and collaboration. The evidence is old and does not show which services DBS uses today or any impact on DBS, so the effect is uncertain and likely limited to internal productivity.</p><span class="row-end num">31 Aug</span></div>
+          <div class="imp"><span class="dir-neg">Could hurt</span><a class="row-title" href="#a">Microsoft acknowledged an Exchange Online outage (EX1467029) at 02:19 AM EDT on 4 September 2026, causing intermittent 'Server busy' errors and delaying email to and from external domains.</a>
+            <p class="why">DBS adopted Office 365 for its workforce, so an Exchange Online outage that delays email with external domains could slow its staff communication with clients and counterparties. The evidence is from 2016 and covers workplace productivity use only, and the outage is intermittent email delay, so the effect is likely small.</p><span class="row-end num">4 Sep</span></div>
+        </div>
+        <div class="group">
+          <h5>Through its subsidiaries</h5>
+          <div class="route"><span class="via">Owns 100% of DBS Bank (Hong Kong), which operates in Hong Kong</span><span>Public</span><span>As of 31 Dec 2025, checked 7 Oct</span><a href="#a">DBS Annual Report 2025, Note 22.1</a></div>
+          <div class="imp"><span class="dir-neg">Could hurt</span><a class="row-title" href="#a">The HKMA plans a 2027 survey of how banks use its sustainable finance taxonomy and will explore requiring banks to make more climate finance disclosures, according to its banking policy director.</a>
+            <p class="why">DBS Bank (Hong Kong) is a Hong Kong bank, so it would fall under the HKMA survey of taxonomy use in 2027 and any later climate finance disclosure requirements. The plan is only exploratory with details yet to be decided, so the effect is a possible added reporting burden.</p><span class="row-end num">21 Sep</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="dbs-shared-uob">
+      <div class="sec-h"><h4 class="shared-h">Shared with <button class="select" aria-label="Choose a peer">UOB <span class="chev">▾</span></button></h4><span class="meta num">31 links in common</span></div>
+      <div class="ladder">
+        <div class="lh"><span style="text-align:right">DBS</span><span>Both linked to</span><span>UOB</span></div>
+        <p class="lgrp">Suppliers</p>
+        <div class="rung"><span class="l">uses for cloud</span><span class="n">AWS</span><span class="r">uses for cloud</span>
+          <p class="s">DBS: <a href="#a">DBS newsroom, 27 Jul 2016</a>, public · UOB: <a href="#a">Frontier Enterprise, 23 Apr 2019</a>, reported</p></div>
+        <div class="rung"><span class="l">uses for telecoms</span><span class="n">Singtel</span><span class="r">uses for telecoms</span>
+          <p class="s">Both: <a href="#a">Mothership, 8 Oct 2024</a>, reported</p></div>
+        <p class="lgrp">Payment systems</p>
+        <div class="rung"><span class="l">takes part in</span><span class="n">FAST</span><span class="r">takes part in</span>
+          <p class="s">Both: <a href="#a">ABS FAST fact sheet, 7 Jul 2026</a>, public</p></div>
+        <div class="rung"><span class="l">takes part in</span><span class="n">PayNow</span><span class="r">takes part in</span>
+          <p class="s">Both: <a href="#a">ABS PayNow page</a>, public</p></div>
+        <div class="rung"><span class="l">takes part in</span><span class="n">MEPS+</span><span class="r">takes part in</span>
+          <p class="s">Both: <a href="#a">MAS, MEPS+ page, 26 Jun 2026</a>, public</p></div>
+        <div class="rung"><span class="l">owns 33.3%, takes part in</span><span class="n">NETS</span><span class="r">owns 33.3%, takes part in</span>
+          <p class="s">Both: <a href="#a">NETS chairman announcement, 30 Aug 2024</a>; <a href="#a">About NETS Group</a>, public</p></div>
+        <p class="lgrp">Lending</p>
+        <div class="rung"><span class="l num">44.4% of loans</span><span class="n">Singapore</span><span class="r num">49.8% of loans</span>
+          <p class="s">DBS: <a href="#a">2Q26 Performance Summary, p. 20</a> · UOB: <a href="#a">1H2026 Condensed Interim Financial Statements, p. 12</a>, public</p></div>
+        <div class="rung"><span class="l num">12.2% of loans</span><span class="n">Hong Kong</span><span class="r">share not disclosed</span>
+          <p class="s">DBS: <a href="#a">2Q26 Performance Summary, p. 20</a> · UOB: <a href="#a">Pillar 3 Disclosure Report, p. 18</a>, credit RWA S$15.5b, public</p></div>
+        <div class="rung"><span class="l num">17.8% of loans</span><span class="n">Housing</span><span class="r num">23.8% of loans</span>
+          <p class="s">DBS: <a href="#a">2Q26 Performance Summary, p. 20</a> · UOB: <a href="#a">1H2026 Condensed Interim Financial Statements, p. 12</a>, public</p></div>
+        <div class="rung"><span class="l num">24.4% of loans</span><span class="n">Real estate and construction</span><span class="r num">24.5% of loans</span>
+          <p class="s">DBS: <a href="#a">2Q26 Performance Summary, p. 20</a> · UOB: <a href="#a">1H2026 Condensed Interim Financial Statements, p. 12</a>, public</p></div>
+      </div>
+      <button class="btn" style="align-self:flex-start">Show 21 more: supervisors, industry groups, card schemes and other sectors <span class="chev">▾</span></button>
+    </section>
+
+  </div>
+</div>
+
+<p class="cap">Hong Kong, 24 Sep</p>
+<div class="app">
+  <div class="app-head">
+    <p class="crumbs">Entities › Places</p>
+    <div class="title-row"><h3>Hong Kong</h3><span class="meta">Country or territory · Updated 24 Sep</span></div>
+    <nav class="tabs"><a href="#a" aria-current="page">Overview</a><a href="#a">Data</a></nav>
+  </div>
+  <div class="app-body">
+    <section class="panel" aria-label="This week">
+      <p class="mocknote">Brief goes here. The brief step has no Hong Kong brief for 24 Sep in the sample, so only the footer facts are shown, counted from the store.</p>
+      <p class="facts num"><span><b>15</b> developments this week</span><span><b>0</b> High</span><span><b>0</b> adverse</span><span>Latest news <b>24 Sep</b></span></p>
+    </section>
+
+    <section class="panel" id="hk-feed">
+      <div class="sec-h"><h4>Developments about Hong Kong</h4><span class="meta num">45 this month, highest priority first</span></div>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Period"><button aria-pressed="false">This week</button><button aria-pressed="true">This month</button><button aria-pressed="false">3 months</button></div>
+        <button class="btn">Priority <span class="chev">▾</span></button>
+        <button class="btn">Adverse <span class="chev">▾</span></button>
+        <button class="btn">Category <span class="chev">▾</span></button>
+        <button class="btn">Source type <span class="chev">▾</span></button>
+      </div>
+      <div class="rows" id="hk-rows">
+        <div class="row"><div class="stat"><span class="badge b-med">Medium</span><span class="badge b-new">New</span></div>
+          <div><p class="row-title">China plans to expand Swap Connect with Hong Kong by 2028, adding standard interest rate swaps and standard bond forwards for global investors, with CFETS and Shanghai Clearing House working with OTC Clearing Hong Kong, per Bloomberg sources.</p>
+          <p class="meta src"><span>Positive</span><span>Strategy</span><span>The Edge Malaysia, news</span><a class="go" href="#a">View 1 source</a></p></div>
+          <span class="row-end num">24 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-med">Medium</span><span class="badge b-new">New</span></div>
+          <div><p class="row-title">On 24 September 2026, the HKMA and Bank Indonesia signed an MoU to strengthen cooperation on QR code-based cross-border payments, including exploring interoperability arrangements between Hong Kong and Indonesia.</p>
+          <p class="meta src"><span>Positive</span><span>Strategy</span><span>HKMA, official</span><a class="go" href="#a">View 1 source</a></p></div>
+          <span class="row-end num">24 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-med">Medium</span><span class="badge b-new">New</span></div>
+          <div><p class="row-title">The HKMA announced in a September 22, 2026 circular that Hong Kong banking institutions should have net-zero transition planning documentation in place by July 1, 2030, following two rounds of industry consultation.</p>
+          <p class="meta src"><span>Neutral</span><span>Regulatory</span><span>The Asset, news</span><a class="go" href="#a">View 1 source</a></p></div>
+          <span class="row-end num">24 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-med">Medium</span><span class="badge b-new">New</span></div>
+          <div><p class="row-title">HKEX will consult stakeholders on extending trading hours, starting with derivatives and consulting on the cash market alongside, SFC chief executive Julia Leung said on 23 September 2026.</p>
+          <p class="meta src"><span>Neutral</span><span>Regulatory</span><span>The Edge Malaysia, The Business Times, news</span><a class="go" href="#a">View 2 sources</a></p></div>
+          <span class="row-end num">23 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-med">Medium</span><span class="badge b-new">New</span></div>
+          <div><p class="row-title">HKMA Chief Executive Eddie Yue outlined initiatives at the Treasury Markets Summit on 23 September 2026 to encourage bond issuance and participation, deepen offshore RMB liquidity and modernise market infrastructure in Hong Kong.</p>
+          <p class="meta src"><span>Positive</span><span>Policy</span><span>SCMP, news · HKMA, official</span><a class="go" href="#a">View 4 sources</a></p></div>
+          <span class="row-end num">23 Sep</span></div>
+        <div class="row"><div class="stat"><span class="badge b-med">Medium</span><span class="badge b-new">New</span></div>
+          <div><p class="row-title">The HKMA plans a 2027 survey of how banks use its sustainable finance taxonomy and will explore requiring banks to make more climate finance disclosures, according to its banking policy director.</p>
+          <p class="meta src"><span>Neutral</span><span>Regulatory</span><span>The Straits Times, The Business Times, The Star, news</span><span>Also affects DBS, OCBC</span><a class="go" href="#a">View 3 sources</a></p></div>
+          <span class="row-end num">21 Sep</span></div>
+      </div>
+      <button class="btn more" style="align-self:flex-start">Show 39 more <span class="chev">▾</span></button>
+    </section>
+
+    <section class="panel" id="hk-links">
+      <div class="sec-h"><h4>Institutions linked to Hong Kong</h4><span class="meta">Direct Hong Kong loans first, then figures for the whole region</span></div>
+      <div class="tbl-wrap">
+        <table class="links">
+          <thead><tr><th>Institution</th><th>Link</th><th>Size</th><th>Evidence</th><th>Figure date</th><th>Checked</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td class="inst"><a href="#a">DBS</a></td><td>Lends in Hong Kong
+              <p class="reach">This week: <a href="#a">HKMA plans a 2027 survey of banks' taxonomy use</a>, through DBS Bank (Hong Kong). Could hurt.</p></td>
+              <td class="size">12.2% of loans<br><span class="meta">S$58.0b</span></td><td>Public</td><td class="num">30 Jun 2026</td><td class="num">7 Oct</td><td><a href="#a">DBS 2Q26 Performance Summary, p. 20</a></td></tr>
+            <tr class="sub"><td></td><td>Owns 100% of DBS Bank (Hong Kong)</td><td class="size meta">No size</td><td>Public</td><td class="num">31 Dec 2025</td><td class="num">7 Oct</td><td><a href="#a">DBS Annual Report 2025, Note 22.1</a></td></tr>
+            <tr><td class="inst"><a href="#a">OCBC</a></td><td>Lends in Hong Kong
+              <p class="reach">This week: <a href="#a">HKMA plans a 2027 survey of banks' taxonomy use</a>, through OCBC Bank (Hong Kong). Could hurt.</p></td>
+              <td class="size">9.3% of loans<br><span class="meta">S$34b</span></td><td>Public</td><td class="num">30 Jun 2026</td><td class="num">7 Oct</td><td><a href="#a">OCBC 1H2026 Results Presentation, p. 13</a></td></tr>
+            <tr class="sub"><td></td><td>Lends in Greater China, the whole region</td><td class="size">19.6% of loans<br><span class="meta">S$71.4b</span></td><td>Public</td><td class="num">30 Jun 2026</td><td class="num">7 Oct</td><td><a href="#a">OCBC 1H2026 Media Release, p. 14</a></td></tr>
+            <tr class="sub"><td></td><td>Owns 100% of OCBC Bank (Hong Kong)</td><td class="size meta">No size</td><td>Public</td><td class="num">31 Dec 2025</td><td class="num">7 Oct</td><td><a href="#a">OCBC Annual Report 2025, Note 33.1</a></td></tr>
+            <tr><td class="inst"><a href="#a">UOB</a></td><td>Lends in Greater China, which includes Hong Kong
+              <p class="reach">The share covers the whole region, so Hong Kong alone is smaller.</p></td>
+              <td class="size">13.5% of loans<br><span class="meta">S$48.7b</span></td><td>Public</td><td class="num">30 Jun 2026</td><td class="num">7 Oct</td><td><a href="#a">UOB 1H2026 Condensed Interim Financial Statements, p. 12</a></td></tr>
+            <tr class="sub"><td></td><td>Credit exposure in Hong Kong, no loan share disclosed</td><td class="size">S$15.5b<br><span class="meta">risk-weighted assets</span></td><td>Public</td><td class="num">30 Jun 2026</td><td class="num">7 Oct</td><td><a href="#a">UOB Pillar 3 Disclosure Report, p. 18</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+</section>
+
+<section class="opt" id="b">
+<h2>Option B: feed on the left, brief and links on the right</h2>
+<p>The feed takes the main column. A side column holds the brief, what could affect the entity, and what it shares with a peer, so both are visible without scrolling. On a narrow screen the side column moves above the feed.</p>
+
+<p class="cap">DBS, 24 Sep</p>
+<div class="app">
+  <div class="app-head">
+    <p class="crumbs">Entities › Singapore banks</p>
+    <div class="title-row"><h3>DBS</h3><span class="meta">Bank, Singapore · Updated 24 Sep</span></div>
+    <nav class="tabs"><a href="#b" aria-current="page">Overview</a><a href="#b">Data</a></nav>
+  </div>
+  <div class="app-body">
+    <div class="cols">
+      <div data-clone="dbs-feed"></div>
+      <aside class="side">
+        <section class="panel" aria-label="This week">
+          <p class="bl sm">No material developments at DBS this week; analysts expect higher Singapore rates after the Fed hike to lift its margins, with the larger benefit in 2027.</p>
+          <p><b>Unchanged from last week.</b> <span class="meta" style="font-size:13px">Only analyst commentary on rates and margins after the Fed hike on 16 Sep; no incident, loss or approval at DBS.</span></p>
+          <ol class="points">
+            <li><p class="claim">After the Fed raised rates by 25 basis points on 16 Sep, analysts told The Business Times that higher Singapore dollar rates should lift net interest margins at DBS, OCBC and UOB, mostly in 2027.</p>
+              <p class="why">This is a forecast, not a reported result, and it eases margin pressure only if Singapore rates follow the Fed; Macquarie sees UOB gaining most.</p>
+              <a class="go" href="#b">1 development</a></li>
+          </ol>
+          <p class="meta">Coming up: no dates in this week's news.</p>
+          <p class="facts num"><span><b>3</b> this week</span><span><b>0</b> High</span><span><b>0</b> adverse</span><span>Latest <b>22 Sep</b></span></p>
+        </section>
+
+        <section class="panel">
+          <div class="sec-h"><h4>Could affect DBS</h4><span class="meta num">6 this month</span></div>
+          <div class="groups">
+            <div class="group">
+              <h5>Through its loans</h5>
+              <div class="route"><span class="via">Singapore, 44.4% of loans</span><span>Public, checked 7 Oct</span><a href="#b">2Q26 Performance Summary, p. 20</a></div>
+              <div class="sim"><a class="row-title" href="#b">Central bank watchers are cautious about MAS tightening monetary policy in October despite the US Fed's mid-September rate rise, as Singapore's labour market shows continued softness.</a>
+                <p class="meta"><span class="dir-mix">Mixed</span> · 23 Sep</p>
+                <details><summary>Why it matters</summary><p>DBS has 44.4% of its loans in Singapore, so the MAS policy path bears on its lending environment. Analysts call October a toss-up between a hold and slight tightening, with a soft labour market, so the effect is modest and uncertain.</p></details></div>
+              <div class="sim"><a class="row-title" href="#b">MAS's annual Financial Stability Review stress test found about 32 per cent of Singapore-listed companies, accounting for about 16 per cent of corporate debt, would be at risk under a severe AI investment downturn.</a>
+                <p class="meta"><span class="dir-mix">Mixed</span> · 22 Sep</p>
+                <details><summary>Why it matters</summary><p>DBS has 44.4% of its loans in Singapore, where the stress test found 32 per cent of listed firms, holding 16 per cent of corporate debt, at risk in a severe AI downturn. MAS said banks have sufficient capital and buffers, with corporate NPLs at 1.2 per cent, so the effect is a flagged scenario risk.</p></details></div>
+              <div class="route"><span class="via">Greater China excluding Hong Kong, 12.9% of loans, whole region</span><span>Public, checked 7 Oct</span><a href="#b">2Q26 Performance Summary, p. 20</a></div>
+              <div class="sim"><a class="row-title" href="#b">Reuters reports China's exports are booming and defying Trump's tariff campaign, with China's trade with the world surging over the four months since the two leaders last met.</a>
+                <p class="meta"><span class="dir-pos">Could help</span> · 21 Sep</p></div>
+            </div>
+            <div class="group">
+              <h5>Through its suppliers</h5>
+              <div class="route"><span class="via">Microsoft 365, staff email and collaboration</span><span>Public, source dated 27 Jun 2016</span><a href="#b">DBS newsroom</a></div>
+              <div class="sim"><a class="row-title" href="#b">Microsoft began investigating a widespread Microsoft 365 outage on 31 August 2026, centred on Exchange Online and also hitting Teams, Graph, Purview, OneDrive, SharePoint, Copilot and Defender XDR, with authentication failures.</a>
+                <p class="meta"><span class="dir-neg">Could hurt</span> · 31 Aug</p></div>
+              <div class="sim"><a class="row-title" href="#b">Microsoft acknowledged an Exchange Online outage (EX1467029) at 02:19 AM EDT on 4 September 2026, causing intermittent 'Server busy' errors and delaying email to and from external domains.</a>
+                <p class="meta"><span class="dir-neg">Could hurt</span> · 4 Sep</p></div>
+            </div>
+            <div class="group">
+              <h5>Through its subsidiaries</h5>
+              <div class="route"><span class="via">DBS Bank (Hong Kong), owned 100%</span><span>Public, as of 31 Dec 2025</span><a href="#b">Annual Report 2025, Note 22.1</a></div>
+              <div class="sim"><a class="row-title" href="#b">The HKMA plans a 2027 survey of how banks use its sustainable finance taxonomy and will explore requiring banks to make more climate finance disclosures, according to its banking policy director.</a>
+                <p class="meta"><span class="dir-neg">Could hurt</span> · 21 Sep</p></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="sec-h"><h4 class="shared-h">Shared with <button class="select" aria-label="Choose a peer">OCBC <span class="chev">▾</span></button></h4><span class="meta num">31 in common</span></div>
+          <div class="ladder">
+            <div class="lh"><span style="text-align:right">DBS</span><span>Both</span><span>OCBC</span></div>
+            <div class="rung"><span class="l num">12.2% of loans</span><span class="n">Hong Kong</span><span class="r num">9.3% of loans</span>
+              <p class="s"><a href="#b">DBS 2Q26, p. 20</a> · <a href="#b">OCBC 1H2026 Results Presentation, p. 13</a> · public</p></div>
+            <div class="rung"><span class="l num">44.4% of loans</span><span class="n">Singapore</span><span class="r num">43.5% of loans</span>
+              <p class="s"><a href="#b">DBS 2Q26, p. 20</a> · <a href="#b">OCBC 1H2026 Media Release, p. 14</a> · public</p></div>
+            <div class="rung"><span class="l num">17.8% of loans</span><span class="n">Housing</span><span class="r num">20.7% of loans</span>
+              <p class="s"><a href="#b">DBS 2Q26, p. 20</a> · <a href="#b">OCBC 1H2026 Media Release, p. 14</a> · public</p></div>
+            <div class="rung"><span class="l">not disclosed</span><span class="n">Mainland China</span><span class="r num">8.2% of loans</span>
+              <p class="s"><a href="#b">DBS 2Q26, p. 20</a> · <a href="#b">OCBC 1H2026 Results Presentation, p. 13</a> · public</p></div>
+            <div class="rung"><span class="l">takes part in</span><span class="n">FAST</span><span class="r">takes part in</span>
+              <p class="s"><a href="#b">ABS FAST fact sheet, 7 Jul 2026</a> · public</p></div>
+            <div class="rung"><span class="l">owns 33.3%</span><span class="n">NETS</span><span class="r">owns 33.3%</span>
+              <p class="s"><a href="#b">NETS chairman announcement, 30 Aug 2024</a> · public</p></div>
+          </div>
+          <button class="btn" style="align-self:flex-start">Show 25 more <span class="chev">▾</span></button>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<p class="cap">AWS, 24 Sep</p>
+<div class="app">
+  <div class="app-head">
+    <p class="crumbs">Entities › Technology providers</p>
+    <div class="title-row"><h3>AWS</h3><span class="meta">Cloud provider · Updated 24 Sep</span></div>
+    <nav class="tabs"><a href="#b" aria-current="page">Overview</a><a href="#b">Data</a></nav>
+  </div>
+  <div class="app-body">
+    <div class="cols">
+      <section class="panel" id="aws-feed">
+        <div class="sec-h"><h4>Developments about AWS</h4><span class="meta num">4 this month, highest priority first</span></div>
+        <div class="controls">
+          <div class="seg" role="group" aria-label="Period"><button aria-pressed="false">This week</button><button aria-pressed="true">This month</button><button aria-pressed="false">3 months</button></div>
+          <button class="btn">Priority <span class="chev">▾</span></button>
+          <button class="btn">Adverse <span class="chev">▾</span></button>
+          <button class="btn">Category <span class="chev">▾</span></button>
+          <button class="btn">Source type <span class="chev">▾</span></button>
+        </div>
+        <div class="rows">
+          <div class="row"><div class="stat"><span class="badge b-high">High</span></div>
+            <div><p class="row-title">AWS said on 15 September 2026 it cannot restore access to resources and data hosted exclusively in the mec1-az2 Availability Zone of its UAE (me-central-1) Region, disrupted since March.</p>
+            <p class="meta src"><span class="adv">Adverse, negative</span><span>Incident</span><span>WSJ, Bloomberg, news · AWS status page, official</span><a class="go" href="#b">View 4 sources</a></p></div>
+            <span class="row-end num">15 Sep</span></div>
+          <div class="row"><div class="stat"><span class="badge b-low">Low</span></div>
+            <div><p class="row-title">Equinix announced Equinix Fabric One on 2 September 2026, a managed any-to-any connectivity service for cloud, network and AI environments, built on open specifications from AWS and Google Cloud, with beta later this year and general availability in 2027.</p>
+            <p class="meta src"><span>Positive</span><span>Strategy</span><span>Equinix, CNBC</span><a class="go" href="#b">View 5 sources</a></p></div>
+            <span class="row-end num">10 Sep</span></div>
+          <div class="row"><div class="stat"><span class="badge b-low">Low</span></div>
+            <div><p class="row-title">Microsoft unveiled Azure Multicloud Interconnect, in preview, working with AWS to let customers privately link Azure and AWS infrastructure at up to 100 Gbps.</p>
+            <p class="meta src"><span>Positive</span><span>Strategy</span><span>The Register, news</span><a class="go" href="#b">View 1 source</a></p></div>
+            <span class="row-end num">1 Sep</span></div>
+          <div class="row"><div class="stat"><span class="badge b-low">Low</span></div>
+            <div><p class="row-title">AWS said its AWS Interconnect – multicloud service now covers Azure, Google Cloud and Oracle Cloud Infrastructure, extending private cross-cloud connectivity to all three major rival platforms.</p>
+            <p class="meta src"><span>Positive</span><span>Strategy</span><span>The Register, news</span><a class="go" href="#b">View 1 source</a></p></div>
+            <span class="row-end num">1 Sep</span></div>
+        </div>
+      </section>
+      <aside class="side">
+        <section class="panel" aria-label="This week">
+          <p class="bl sm">No material developments this week; the last notable item was the 15 Sep statement that AWS cannot restore access to resources and data hosted only in the mec1-az2 zone of its UAE Region.</p>
+          <p><b>Unchanged from last week.</b> <span class="meta" style="font-size:13px">No developments about AWS or reaching it from 18 Sep to 24 Sep; the UAE Region position stands as covered earlier.</span></p>
+          <p class="facts num"><span><b>0</b> this week</span><span><b>0</b> High</span><span><b>0</b> adverse</span><span>Latest <b>15 Sep</b></span></p>
+        </section>
+        <section class="panel" id="aws-links-list">
+          <div class="sec-h"><h4>Institutions that use AWS</h4><span class="meta num">3 tracked</span></div>
+          <div class="rows">
+            <div class="row no-stat"><div><p class="row-title"><a href="#b">DBS</a> · uses AWS for cloud</p>
+              <p class="meta">Part of its compute on AWS in a hybrid cloud, starting with Treasury and Markets pricing</p>
+              <p class="meta">Public · source dated 27 Jul 2016 · checked 7 Oct · <a href="#b">DBS newsroom</a></p></div><span class="row-end">No size</span></div>
+            <div class="row no-stat"><div><p class="row-title"><a href="#b">UOB</a> · uses VMware Cloud on AWS</p>
+              <p class="meta">Part of its hybrid infrastructure</p>
+              <p class="meta">Reported · source dated 23 Apr 2019 · checked 7 Oct · <a href="#b">Frontier Enterprise</a></p></div><span class="row-end">No size</span></div>
+            <div class="row no-stat"><div><p class="row-title"><a href="#b">Singtel</a> · through GXS Bank, which runs on AWS</p>
+              <p class="meta">Grab runs its digibanks, including GXS Bank, on AWS; Singtel is a GXS Bank shareholder</p>
+              <p class="meta">Reported · source dated 14 Jan 2025 · checked 7 Oct · <a href="#b">Intelligent CIO APAC</a>, <a href="#b">About GXS Bank</a></p></div><span class="row-end">No size</span></div>
+          </div>
+          <p class="meta">Also using AWS, not tracked: GXS Bank, HSBC Singapore (group-level deal), Singlife, Trust Bank.</p>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="opt" id="c">
+<h2>Option C: short brief, linked institutions first</h2>
+<p>On country, sector, vendor and payment-system pages the brief shrinks to one line and the institutions linked to the page lead, drawn to scale where a loan share exists. Bank pages keep Option A's order.</p>
+
+<p class="cap">Hong Kong, 24 Sep</p>
+<div class="app">
+  <div class="app-head">
+    <p class="crumbs">Entities › Places</p>
+    <div class="title-row"><h3>Hong Kong</h3><span class="meta">Country or territory · Updated 24 Sep</span></div>
+    <nav class="tabs"><a href="#c" aria-current="page">Overview</a><a href="#c">Data</a></nav>
+  </div>
+  <div class="app-body">
+    <div class="strip">
+      <p class="mocknote">One-line bottom line goes here. No Hong Kong brief for 24 Sep in the sample.</p>
+      <p class="facts num"><span><b>15</b> developments this week</span><span><b>0</b> High</span><span><b>0</b> adverse</span><span>Latest news <b>24 Sep</b></span></p>
+    </div>
+
+    <section class="panel">
+      <div class="sec-h"><h4>Singapore banks with loans in Hong Kong</h4><span class="meta">Share of each bank's total loans, 30 Jun 2026</span></div>
+      <div class="bars">
+        <div class="bar-axis num" aria-hidden="true"><span></span><span class="ax"><i style="left:0">0%</i><i style="left:50%">10%</i><i style="left:100%">20%</i></span><span></span></div>
+        <div class="bar-row">
+          <a class="inst" href="#c">DBS</a>
+          <div class="track"><span class="fill" style="width:61%"></span></div>
+          <span class="val num">12.2% <span class="meta">S$58.0b</span></span>
+          <p class="bar-meta">Hong Kong loans · public · <a href="#c">DBS 2Q26 Performance Summary, p. 20</a> · checked 7 Oct. Also owns 100% of DBS Bank (Hong Kong), <a href="#c">Annual Report 2025</a>.</p>
+          <p class="bar-meta">This week: <a href="#c">HKMA plans a 2027 survey of banks' taxonomy use</a> reaches DBS through DBS Bank (Hong Kong). Could hurt.</p>
+        </div>
+        <div class="bar-row">
+          <a class="inst" href="#c">OCBC</a>
+          <div class="track"><span class="fill" style="width:46.5%"></span></div>
+          <span class="val num">9.3% <span class="meta">S$34b</span></span>
+          <p class="bar-meta">Hong Kong loans · public · <a href="#c">OCBC 1H2026 Results Presentation, p. 13</a> · checked 7 Oct. Greater China as a whole 19.6%, S$71.4b. Also owns 100% of OCBC Bank (Hong Kong), <a href="#c">Annual Report 2025</a>.</p>
+          <p class="bar-meta">This week: <a href="#c">HKMA plans a 2027 survey of banks' taxonomy use</a> reaches OCBC through OCBC Bank (Hong Kong). Could hurt.</p>
+        </div>
+        <div class="bar-row">
+          <a class="inst" href="#c">UOB</a>
+          <div class="track"><span class="fill region" style="width:67.5%"></span></div>
+          <span class="val num">13.5% <span class="meta">S$48.7b</span></span>
+          <p class="bar-meta">Greater China loans, the whole region, so Hong Kong alone is smaller · public · <a href="#c">UOB 1H2026 Condensed Interim Financial Statements, p. 12</a> · checked 7 Oct. Hong Kong credit exposure S$15.5b in risk-weighted assets, <a href="#c">Pillar 3 report, p. 18</a>.</p>
+        </div>
+        <p class="meta legend"><span class="key"></span> Hong Kong figure <span class="key region"></span> Figure for all of Greater China</p>
+      </div>
+    </section>
+
+    <div data-clone="hk-feed"></div>
+  </div>
+</div>
+
+<p class="cap">AWS, 24 Sep</p>
+<div class="app">
+  <div class="app-head">
+    <p class="crumbs">Entities › Technology providers</p>
+    <div class="title-row"><h3>AWS</h3><span class="meta">Cloud provider · Updated 24 Sep</span></div>
+    <nav class="tabs"><a href="#c" aria-current="page">Overview</a><a href="#c">Data</a></nav>
+  </div>
+  <div class="app-body">
+    <div class="strip">
+      <p class="bl sm">No material developments this week; the last notable item was the 15 Sep statement that AWS cannot restore access to resources and data hosted only in the mec1-az2 zone of its UAE Region.</p>
+      <p class="facts num"><span>Unchanged from last week</span><span><b>0</b> developments this week</span><span><b>0</b> High</span><span><b>0</b> adverse</span><span>Latest news <b>15 Sep</b></span></p>
+    </div>
+
+    <section class="panel">
+      <div class="sec-h"><h4>Institutions that use AWS</h4><span class="meta">From public and press sources; no institution discloses how much it relies on AWS</span></div>
+      <div class="tbl-wrap">
+        <table class="links">
+          <thead><tr><th>Institution</th><th>How it uses AWS</th><th>Evidence</th><th>Source date</th><th>Checked</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td class="inst"><a href="#c">DBS</a></td><td>Part of its compute in a hybrid cloud, starting with Treasury and Markets pricing</td><td>Public</td><td class="num">27 Jul 2016</td><td class="num">7 Oct</td><td><a href="#c">DBS newsroom: DBS to leverage Amazon Web Services Cloud</a></td></tr>
+            <tr><td class="inst"><a href="#c">UOB</a></td><td>VMware Cloud on AWS, part of its hybrid infrastructure</td><td>Reported</td><td class="num">23 Apr 2019</td><td class="num">7 Oct</td><td><a href="#c">Frontier Enterprise</a></td></tr>
+            <tr><td class="inst"><a href="#c">Singtel</a></td><td>Shareholder in GXS Bank, which Grab runs on AWS</td><td>Reported</td><td class="num">14 Jan 2025</td><td class="num">7 Oct</td><td><a href="#c">Intelligent CIO APAC</a>; <a href="#c">About GXS Bank</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="meta">Also using AWS, not tracked: GXS Bank, HSBC Singapore (group-level deal), Singlife, Trust Bank.</p>
+    </section>
+
+    <div data-clone="aws-feed"></div>
+  </div>
+</div>
+</section>
+
+</main>
+
+<script>
+// Static mock: repeat a block shown earlier instead of duplicating its markup.
+document.querySelectorAll('[data-clone]').forEach(function(el){
+  var src=document.getElementById(el.dataset.clone);
+  if(!src) return;
+  var c=src.cloneNode(true);
+  c.removeAttribute('id');
+  c.querySelectorAll('[id]').forEach(function(n){n.removeAttribute('id')});
+  el.replaceWith(c);
+});
+</script>

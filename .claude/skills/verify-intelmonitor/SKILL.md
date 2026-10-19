@@ -1,6 +1,6 @@
 ---
 name: verify-intelmonitor
-description: "Drive the running IntelMonitor web app (Vite and TanStack Router dashboard over the FastAPI store) the way an analyst does, and keep proof. Use to verify any UI or API change, reproduce a reported bug, check a feature still works, or take screenshots and recordings of dashboards, monitor pages and their tabs, developments, the evidence drawer, the Data tab and graph views."
+description: "Drive the running IntelMonitor web app (Vite and TanStack Router dashboard over the FastAPI store) the way an analyst does, and keep proof. Use to verify any UI or API change, reproduce a reported bug, check a feature still works, or take screenshots and recordings of dashboards, monitor pages and their tabs, development feeds and the development popup, the evidence drawer, the Data tab and graph views."
 ---
 
 # Verify IntelMonitor
@@ -37,7 +37,7 @@ Two agents driving at once each set `VERIFY_SESSION=<name>` for their own browse
 
 1. Match the change to a file in [`features/`](features/README.md) and read it. It lists every entry point, stable handles and gotchas.
 2. `pnpm -C web verify open <target> [args]` to reach the starting page.
-   Targets: `home`, `dashboard <dashboard>`, `monitor <subject>`, `monitor-developments <subject> [peers]`, `data <subject>`, `connections <subject>`, `graph <subject>`, `developments <dashboard> [query]`, `evidence <development-id> [dashboard]`.
+   Targets: `home`, `dashboard <dashboard>`, `monitor <subject>`, `monitor-developments <subject> [query]`, `related <subject>`, `data <subject>`, `graph <subject>`, `developments <dashboard> [query]`, `development <development-id> [dashboard]`, `answer <subject:question> [dashboard]`.
    A dashboard or subject is an id or a name; a name that matches several items fails and lists their ids.
 3. Find ids from the API when a recipe needs one: `pnpm -C web verify api /subjects`, `/dashboards`, `/developments?limit=5`, `/runs`.
 4. Drive with `agent-browser --session im-verify snapshot -i`, then `click @eN`, `fill @eN "text"`, `press "Meta+k"`, `wait --load networkidle`.
@@ -47,9 +47,9 @@ Two agents driving at once each set `VERIFY_SESSION=<name>` for their own browse
    `eval` shares one global scope across calls, so wrap each script as `(() => { ... })()`.
 5. After the user action, read the side effect back from the API (`verify api ...`) or a reload, not just the pixels.
 
-Pipeline behavior with no UI entry point has scripted checks: `pnpm -C web verify check series|past-run|depeg`, each printing JSON.
-The full regression walkthrough is `pnpm -C web e2e` (Playwright, 26 steps, writes `artifacts/e2e/<timestamp>/index.html`).
-It is one test, so steps cannot run alone; it calls Claude (Generate, the custom question) and writes to the live store until its own cleanup at the end.
+Pipeline behavior with no UI entry point has scripted checks: `pnpm -C web verify check series|past-run|detector`, each printing JSON.
+The full regression walkthrough is `pnpm -C web e2e` (Playwright, 14 steps, about 15 s, writes `artifacts/e2e/<timestamp>/index.html`).
+It is one test, so steps cannot run alone; it calls no model, and it backs the store up first (`data/verify-snapshots/<timestamp>-e2e.db`) and restores it at the end, so anything written to the store during the run, by it or anyone else, is undone.
 
 ## Evidence
 
@@ -64,7 +64,7 @@ Proof bar:
 - Show the trigger and the stable end state in the same recording, or a shot before and after.
 - Verify side effects: the API returns the new state, a reload keeps it, Undo restores it.
 - Cover every entry point, and the empty, error, cancel and persistence paths the change can affect, per the feature file.
-- Name a path you could not reach and why (for example, Generate and custom questions call Claude and cost money; Run now recomputes the live run).
+- Name a path you could not reach and why (for example, a path behind a parked control such as Run now or custom questions).
 
 ## Mutations and cleanup
 

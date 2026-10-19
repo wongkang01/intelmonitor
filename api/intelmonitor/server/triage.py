@@ -5,6 +5,7 @@ state. Queries reads it back (baseline, is_read) to count what is new."""
 import sqlite3
 from datetime import datetime
 
+from intelmonitor.pipeline.subjects import all_subjects
 from intelmonitor.server.models import Review, SubjectRef, Triage, TriageChange
 from intelmonitor.server.queries import NotFoundError, Queries, now, subject, subject_ref
 from intelmonitor.store.db import get_meta, set_meta
@@ -50,10 +51,13 @@ def set_triage(q: Queries, development_id: str, change: TriageChange) -> Triage:
     q.conn.execute(
         "INSERT OR IGNORE INTO development_triage (development_id) VALUES (?)", (development_id,)
     )
+    # Not relevant hides the development too.
+    dismissed = True if change.not_relevant else change.dismissed
     for column, value, on in (
         ("read_run_id", change.read, q.run.id),
         ("flagged_at", change.flagged, at),
-        ("dismissed_at", change.dismissed, at),
+        ("dismissed_at", dismissed, at),
+        ("not_relevant_at", change.not_relevant, at),
     ):
         if value is not None:
             q.conn.execute(
@@ -73,6 +77,7 @@ def triage(q: Queries, development_id: str) -> Triage:
         read=row is not None and q.is_read(development_id, row["read_run_id"]),
         flagged=row is not None and row["flagged_at"] is not None,
         dismissed=row is not None and row["dismissed_at"] is not None,
+        not_relevant=row is not None and row["not_relevant_at"] is not None,
     )
 
 
@@ -89,10 +94,12 @@ def mark_read(q: Queries, development_ids: list[str]) -> None:
 
 
 def followed_ids(conn: sqlite3.Connection) -> list[str]:
-    """Followed subjects, oldest follow first."""
+    """Followed subjects still in the seed, oldest follow first."""
+    seeded = all_subjects()
     return [
         str(r["subject_id"])
         for r in conn.execute("SELECT subject_id FROM follows ORDER BY created_at, rowid")
+        if r["subject_id"] in seeded
     ]
 
 

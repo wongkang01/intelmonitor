@@ -1,13 +1,13 @@
-"""Detectors: developments from data (structured-data-plan.md, F3).
+"""Detectors: developments from data (docs/archive/structured-data-plan.md, F3).
 
 Rules in api/seed/detectors.yaml watch the measured series. `detect` evaluates them over what was
 known by the end of a date and returns each event: a condition that starts holding (a level
 crossing, a spell off the peg lasting long enough, a move beyond a size, a release changing by
 more than a size), keyed by its detector, series and first period. `store_detections` writes each
 event once as a source document in the data collection, with a sentence written by code and one
-finding tagged to the series' primary subjects, so the run's merge, materiality, answers, triage,
-alerts and search take it like any other development. Only the rule's materiality differs:
-developments.py reads it from the seed instead of asking Jev.
+finding tagged to the series' primary subjects (a group's members for a group), so the run's
+merge, materiality, triage, alerts and search take it like any other development. Only the rule's
+materiality differs: developments.py reads it from the seed instead of asking Jev.
 """
 
 import bisect
@@ -23,6 +23,7 @@ from intelmonitor.ingest.models import WINDOW_DAYS, Window
 from intelmonitor.ingest.parse import content_hash, document_id, domain_of
 from intelmonitor.pipeline.indicators import change_basis, compute_indicators, window_start
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS
+from intelmonitor.pipeline.subjects import resolve_groups
 from intelmonitor.pipeline.wording import day, fx_move, peg_side, period, value
 from intelmonitor.seed import (
     DetectorDef,
@@ -65,7 +66,6 @@ class Detection:
     trigger: Point
     known_at: datetime  # when every value it rests on was known: the document's publication
     statement: str
-    adverse: float
     direction: Direction
     holds: bool  # the condition still holds at the series' latest point
 
@@ -151,13 +151,11 @@ def _references(pts: list[Point], window: MoveWindow) -> list[Point | None]:
     return out
 
 
-def _tone(s: SeriesDef, change: float) -> tuple[float, Direction]:
-    """Adverse and direction from the series' bad direction and which way it went."""
+def _tone(s: SeriesDef, change: float) -> Direction:
+    """The move's tone from the series' bad direction and which way it went."""
     if s.bad_direction == "none" or change == 0:
-        return 0.0, "neutral"
-    if (change > 0) == (s.bad_direction == "up"):
-        return 1.0, "negative"
-    return 0.0, "positive"
+        return "neutral"
+    return "negative" if (change > 0) == (s.bad_direction == "up") else "positive"
 
 
 def _at(s: SeriesDef) -> str:
@@ -195,14 +193,14 @@ def _threshold(d: ThresholdDetector, s: SeriesDef, pts: list[Point]) -> list[Det
         if first == 0:
             continue  # the history starts beyond the level: no crossing seen
         before, p = pts[first - 1], pts[first]
-        adverse, direction = _tone(s, p.obs.value - before.obs.value)
+        direction = _tone(s, p.obs.value - before.obs.value)
         crossed = f"rose above {value(s, level)}" if rising else f"fell below {value(s, level)}"
         statement = (
             f"{s.name} {crossed} to {_stated(s, p)}, from {_stated(s, before)}{_released(s, p)}."
         )
         known = max(before.known_at, p.known_at)
         holds = last == len(pts) - 1
-        out.append(Detection(d, s, p.obs.period, p, known, statement, adverse, direction, holds))
+        out.append(Detection(d, s, p.obs.period, p, known, statement, direction, holds))
     return out
 
 
@@ -233,7 +231,7 @@ def _deviation(
         )
         known = max(q.known_at for q in pts[first : at + 1])
         holds = last == len(pts) - 1
-        out.append(Detection(d, s, start, p, known, statement, 1.0, "negative", holds))
+        out.append(Detection(d, s, start, p, known, statement, "negative", holds))
     return out
 
 
@@ -310,10 +308,10 @@ def _move(
                 f"{s.name} {'up' if c > 0 else 'down'} {_size(s, c)}{_WINDOW_PHRASE[d.window]} to "
                 f"{_stated(s, p)}{noted}, from {_stated(s, ref)}{_released(s, p)}."
             )
-        adverse, direction = _tone(s, c)
+        direction = _tone(s, c)
         known = max(ref.known_at, p.known_at, *(b.known_at for b in pairs[first] or ()))
         holds = last == len(pts) - 1
-        out.append(Detection(d, s, p.obs.period, p, known, statement, adverse, direction, holds))
+        out.append(Detection(d, s, p.obs.period, p, known, statement, direction, holds))
     return out
 
 
@@ -327,10 +325,10 @@ def _release(d: ReleaseDetector, s: SeriesDef, pts: list[Point]) -> list[Detecti
             f"{s.name} {'up' if c > 0 else 'down'} {_size(s, c)} to {_stated(s, p)}, from "
             f"{_stated(s, before)}{_released(s, p)}."
         )
-        adverse, direction = _tone(s, c)
+        direction = _tone(s, c)
         known = max(before.known_at, p.known_at)
         holds = p is pts[-1]  # the latest release is the one that moved
-        out.append(Detection(d, s, p.obs.period, p, known, statement, adverse, direction, holds))
+        out.append(Detection(d, s, p.obs.period, p, known, statement, direction, holds))
     return out
 
 
@@ -503,6 +501,7 @@ def store_detections(conn: sqlite3.Connection, as_of: date) -> Detected:
                 ),
             )
             quote = {"text": e.statement, "start": 0, "end": len(e.statement)}
+            tagged = resolve_groups(s.subjects.primary)
             conn.execute(
                 "INSERT INTO findings (id, document_id, statement, category, event_date, "
                 "subjects, quotes, dates) VALUES (?, ?, ?, ?, ?, ?, ?, '[]')",
@@ -512,18 +511,18 @@ def store_detections(conn: sqlite3.Connection, as_of: date) -> Detected:
                     e.statement,
                     e.detector.category,
                     e.event_date.isoformat(),
-                    json.dumps(s.subjects.primary),
+                    json.dumps(tagged),
                     json.dumps([quote]),
                 ),
             )
             conn.executemany(
                 "INSERT INTO document_subjects (document_id, subject_id, confidence, source) "
                 "VALUES (?, ?, 1.0, 'detector')",
-                [(doc_id, subject) for subject in s.subjects.primary],
+                [(doc_id, subject) for subject in tagged],
             )
             conn.execute(
                 "INSERT INTO detections (document_id, detector_id, series_id, start, period, "
-                "value, adverse, direction) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                "value, direction) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (
                     doc_id,
                     e.detector.id,
@@ -531,7 +530,6 @@ def store_detections(conn: sqlite3.Connection, as_of: date) -> Detected:
                     e.start.isoformat(),
                     e.trigger.obs.period.isoformat(),
                     e.trigger.obs.value,
-                    e.adverse,
                     e.direction,
                 ),
             )

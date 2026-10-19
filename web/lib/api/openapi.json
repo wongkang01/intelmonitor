@@ -127,6 +127,204 @@
         }
       }
     },
+    "/subjects/{subject_id}/impacts": {
+      "get": {
+        "summary": "Get Subject Impacts",
+        "description": "Developments in the latest run that reach the subject indirectly through stored\nrelationships, last published within `days` of the run date (day, week or month filters).\nNever news about the subject itself.",
+        "operationId": "get_subject_impacts",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "default": 7,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SubjectImpact"
+                  },
+                  "title": "Response Get Subject Impacts"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subjects/{subject_id}/linked": {
+      "get": {
+        "summary": "Get Linked Institutions",
+        "description": "For a country, sector, technology provider or payment system: the banks and other\ninstitutions linked to it in the relationship store, directly or through a company they own,\nwith the developments of the last 7 days that reach them that way. Empty for other subjects.",
+        "operationId": "get_linked_institutions",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Subject Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LinkedInstitution"
+                  },
+                  "title": "Response Get Linked Institutions"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subjects/{subject_id}/related-graph": {
+      "get": {
+        "summary": "Get Related Graph",
+        "description": "Every subject and endpoint linked to the subject in the relationship store, either\ndirection, each with its links and the shown developments of the last `days` (7, as the\nbrief, 30 or 90) that reach the subject through it, with link-type counts for filters.",
+        "operationId": "get_related_graph",
+        "parameters": [
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/RelatedDays",
+              "default": 7
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelatedGraph"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shared": {
+      "get": {
+        "summary": "Get Shared",
+        "description": "What links both entities in the relationship store: shared vendors, payment systems,\nmarkets, ventures and memberships, each link with its type and source.",
+        "operationId": "get_shared",
+        "parameters": [
+          {
+            "name": "a",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "A"
+            }
+          },
+          {
+            "name": "b",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "B"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedRelationships"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/subjects/{subject_id}/trend": {
       "get": {
         "summary": "Get Subject Trend",
@@ -487,6 +685,55 @@
             "description": "review: only What changed since the review; run: only those the latest run added or updated"
           },
           {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "New and Updated count from this date; when absent, the last visit before today, else the previous run's date",
+              "title": "Since"
+            },
+            "description": "New and Updated count from this date; when absent, the last visit before today, else the previous run's date"
+          },
+          {
+            "name": "dismissed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "false: leave dismissed ones out; true: only dismissed ones",
+              "title": "Dismissed"
+            },
+            "description": "false: leave dismissed ones out; true: only dismissed ones"
+          },
+          {
+            "name": "unconfirmed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "true: list unconfirmed developments too, and count them",
+              "default": false,
+              "title": "Unconfirmed"
+            },
+            "description": "true: list unconfirmed developments too, and count them"
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -501,6 +748,58 @@
                 }
               ],
               "title": "Limit"
+            }
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "High",
+                  "Medium",
+                  "Low"
+                ],
+                "type": "string"
+              },
+              "title": "Priority"
+            }
+          },
+          {
+            "name": "adverse",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Adverse to a subject in scope or not",
+              "title": "Adverse"
+            },
+            "description": "Adverse to a subject in scope or not"
+          },
+          {
+            "name": "tone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "positive",
+                  "negative",
+                  "neutral"
+                ],
+                "type": "string"
+              },
+              "title": "Tone"
             }
           },
           {
@@ -555,9 +854,12 @@
                   "id",
                   "th",
                   "vn",
-                  "ph",
                   "hk",
                   "cn",
+                  "tw",
+                  "in",
+                  "au",
+                  "kr",
                   "us",
                   "eu",
                   "uk",
@@ -599,7 +901,8 @@
                   "dms",
                   "official",
                   "news",
-                  "data"
+                  "data",
+                  "social"
                 ],
                 "type": "string"
               },
@@ -768,6 +1071,7 @@
     "/developments/{development_id}": {
       "get": {
         "summary": "Get Development",
+        "description": "One development with its sources and who it impacts. Priority, adverse and tone are for\nthe subjects in view (some subjects or a dashboard's) when given, else over all its\nsubjects.",
         "operationId": "get_development",
         "parameters": [
           {
@@ -777,6 +1081,41 @@
             "schema": {
               "type": "string",
               "title": "Development Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "dashboard_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dashboard Id"
             }
           }
         ],
@@ -932,6 +1271,7 @@
                       "topic",
                       "group",
                       "entity",
+                      "endpoint",
                       "development"
                     ],
                     "type": "string"
@@ -954,9 +1294,18 @@
                   "type": "array",
                   "items": {
                     "enum": [
-                      "MEMBER_OF",
                       "EXPOSED_TO",
-                      "AFFECTS"
+                      "DEPENDS_ON",
+                      "PARTICIPATES_IN",
+                      "OWNS",
+                      "SUBSIDIARY_OF",
+                      "OPERATES_IN",
+                      "SUPERVISED_BY",
+                      "SHAREHOLDER_OF",
+                      "MEMBER_OF",
+                      "LISTED_ON",
+                      "AFFECTS",
+                      "IMPACTS"
                     ],
                     "type": "string"
                   }
@@ -1114,6 +1463,7 @@
     "/dashboards": {
       "get": {
         "summary": "List Dashboards",
+        "description": "The active profile's dashboards and those no profile made, in sidebar order, each with\nits new count.",
         "operationId": "list_dashboards",
         "responses": {
           "200": {
@@ -1122,7 +1472,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/Dashboard"
+                    "$ref": "#/components/schemas/DashboardItem"
                   },
                   "type": "array",
                   "title": "Response List Dashboards"
@@ -1134,7 +1484,7 @@
       },
       "post": {
         "summary": "Create Dashboard",
-        "description": "Creates a dashboard and follows its subjects.",
+        "description": "Creates a dashboard for the active profile and follows its subjects.",
         "operationId": "create_dashboard",
         "requestBody": {
           "content": {
@@ -1357,6 +1707,46 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboards/{dashboard_id}/overview": {
+      "get": {
+        "summary": "Get Dashboard Overview",
+        "description": "The new count, watchlist and upcoming dates that sit beside the dashboard's feed.",
+        "operationId": "get_dashboard_overview",
+        "parameters": [
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Dashboard Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardOverview"
                 }
               }
             }
@@ -2209,6 +2599,7 @@
     "/profile": {
       "get": {
         "summary": "Get Profile",
+        "description": "The active profile; id and role are null until the first visit picks a role.",
         "operationId": "get_profile",
         "responses": {
           "200": {
@@ -2225,6 +2616,7 @@
       },
       "put": {
         "summary": "Update Profile",
+        "description": "Sets the active profile's default dashboard and when the tour was seen.",
         "operationId": "update_profile",
         "requestBody": {
           "content": {
@@ -2260,10 +2652,195 @@
         }
       }
     },
+    "/profiles": {
+      "get": {
+        "summary": "List Profiles",
+        "description": "Every profile for the profile menu's role switch, preloaded departments first.",
+        "operationId": "list_profiles",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Profile"
+                  },
+                  "type": "array",
+                  "title": "Response List Profiles"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Profile",
+        "description": "Onboarding: makes the role's first dashboard from the picks and switches to the role.",
+        "operationId": "create_profile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profiles/{profile_id}/activate": {
+      "post": {
+        "summary": "Activate Profile",
+        "description": "Switches role: the sidebar then lists that profile's dashboards.",
+        "operationId": "activate_profile",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/visits": {
+      "post": {
+        "summary": "Log Visit",
+        "description": "Logs an app load with the active role, for counting days with a visit per role.",
+        "operationId": "log_visit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Visit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/onboarding/suggestions": {
+      "get": {
+        "summary": "Onboarding Suggestions",
+        "description": "The subject picker for a role: groups in the role's order and the picks ticked at the\nstart, with who uses each provider. Without a role, every group and nothing ticked.",
+        "operationId": "onboarding_suggestions",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "regulatory_supervisor",
+                    "tech_cyber_supervisor",
+                    "development_staff",
+                    "other"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Suggestions"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/materiality-levels": {
       "get": {
         "summary": "Materiality Levels",
-        "description": "Materiality levels for Help, most material first, with the latest run's count at each.",
+        "description": "Materiality levels for Help, most material first, with the latest run's count of shown\ndevelopments at each.",
         "operationId": "materiality_levels",
         "responses": {
           "200": {
@@ -2299,6 +2876,25 @@
                   },
                   "type": "array",
                   "title": "Response List Runs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs/latest": {
+      "get": {
+        "summary": "Latest Run",
+        "description": "The latest complete run and the date of the latest news it covers.",
+        "operationId": "latest_run",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LatestRun"
                 }
               }
             }
@@ -2510,7 +3106,25 @@
           "meta": {
             "type": "string",
             "title": "Meta",
-            "description": "\"OCBC, financial, 3 sources\""
+            "description": "\"OCBC, financial\": the lead entity (else subject) and category"
+          },
+          "outlet_count": {
+            "type": "integer",
+            "title": "Outlet Count",
+            "description": "As on the development's summary"
+          },
+          "social_count": {
+            "type": "integer",
+            "title": "Social Count",
+            "description": "As on the development's summary"
+          },
+          "source_types": {
+            "items": {
+              "$ref": "#/components/schemas/SourceTypeCount"
+            },
+            "type": "array",
+            "title": "Source Types",
+            "description": "As on the development's summary"
           },
           "read": {
             "type": "boolean",
@@ -2524,6 +3138,9 @@
           "title",
           "badge",
           "meta",
+          "outlet_count",
+          "social_count",
+          "source_types",
           "read"
         ],
         "title": "Alert"
@@ -2966,6 +3583,66 @@
         "title": "AudioPart",
         "description": "An audio part."
       },
+      "BriefConcern": {
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label",
+            "description": "2 to 4 words naming its topic, shown bold before the text; None for a brief written before labels"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "A risk or an opening for the subject and why it matters"
+          },
+          "development_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Development Ids",
+            "description": "The developments, open matters and indirect impacts behind it, kept for checks; the page does not list them"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "text",
+          "development_ids"
+        ],
+        "title": "BriefConcern"
+      },
+      "BriefDate": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "development_id": {
+            "type": "string",
+            "title": "Development Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "label",
+          "development_id"
+        ],
+        "title": "BriefDate"
+      },
       "ChangedDevelopment": {
         "properties": {
           "id": {
@@ -3034,6 +3711,24 @@
             "type": "boolean",
             "title": "Needs Attention"
           },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "High",
+              "Medium",
+              "Low"
+            ],
+            "title": "Priority",
+            "description": "High, Medium or Low for the subjects in scope"
+          },
+          "priority_for": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Priority For",
+            "description": "The subjects in scope at that priority, when others in scope rank lower; empty when they all agree"
+          },
           "adverse": {
             "type": "boolean",
             "title": "Adverse"
@@ -3045,18 +3740,59 @@
               "negative",
               "neutral"
             ],
-            "title": "Direction"
+            "title": "Direction",
+            "description": "Its tone: the most telling over the subjects in scope"
           },
           "subjects": {
             "items": {
               "$ref": "#/components/schemas/SubjectRef"
             },
             "type": "array",
-            "title": "Subjects"
+            "title": "Subjects",
+            "description": "What it happened to or who did it, highest priority first"
+          },
+          "actors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Actors",
+            "description": "Ids of the subjects that did it, among `subjects`"
+          },
+          "also_affects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Also Affects",
+            "description": "Tracked subjects it reaches indirectly through stored relationships"
           },
           "source_count": {
             "type": "integer",
             "title": "Source Count"
+          },
+          "source_types": {
+            "items": {
+              "$ref": "#/components/schemas/SourceTypeCount"
+            },
+            "type": "array",
+            "title": "Source Types",
+            "description": "Sources per collection"
+          },
+          "outlet_count": {
+            "type": "integer",
+            "title": "Outlet Count",
+            "description": "Distinct news outlets among its sources, one per parent domain"
+          },
+          "social_count": {
+            "type": "integer",
+            "title": "Social Count",
+            "description": "Social posts among its sources"
+          },
+          "unconfirmed": {
+            "type": "boolean",
+            "title": "Unconfirmed",
+            "description": "Its sources do not pass the source gate (pipeline/corroboration.py), so lists leave it out unless asked"
           },
           "collections": {
             "items": {
@@ -3065,7 +3801,8 @@
                 "dms",
                 "official",
                 "news",
-                "data"
+                "data",
+                "social"
               ]
             },
             "type": "array",
@@ -3130,10 +3867,18 @@
           "materiality_level",
           "materiality_label",
           "needs_attention",
+          "priority",
+          "priority_for",
           "adverse",
           "direction",
           "subjects",
+          "actors",
+          "also_affects",
           "source_count",
+          "source_types",
+          "outlet_count",
+          "social_count",
+          "unconfirmed",
           "collections",
           "jurisdictions",
           "change",
@@ -3499,7 +4244,7 @@
             },
             "type": "array",
             "title": "Subject Ids",
-            "description": "The subjects the dashboard follows"
+            "description": "The topics and entities the dashboard follows; a group given here becomes its members"
           },
           "widgets": {
             "items": {
@@ -3593,6 +4338,160 @@
         ],
         "title": "Dashboard"
       },
+      "DashboardItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "subject_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Subject Ids",
+            "description": "The topics and entities the dashboard follows; a group given here becomes its members"
+          },
+          "widgets": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/SinceWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/QuestionWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/SummaryWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/DevelopmentsWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/DirectionWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/WatchlistWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/UpcomingWidget"
+                },
+                {
+                  "$ref": "#/components/schemas/IndicatorWidget"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "developments": "#/components/schemas/DevelopmentsWidget",
+                  "direction": "#/components/schemas/DirectionWidget",
+                  "indicator": "#/components/schemas/IndicatorWidget",
+                  "question": "#/components/schemas/QuestionWidget",
+                  "since": "#/components/schemas/SinceWidget",
+                  "summary": "#/components/schemas/SummaryWidget",
+                  "upcoming": "#/components/schemas/UpcomingWidget",
+                  "watchlist": "#/components/schemas/WatchlistWidget"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Widgets"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "blue",
+              "teal",
+              "purple",
+              "pink",
+              "orange",
+              "olive",
+              "slate",
+              "brown"
+            ],
+            "title": "Color",
+            "description": "Sidebar dot; reordering never changes it"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "starter": {
+            "type": "boolean",
+            "title": "Starter"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "new_count": {
+            "type": "integer",
+            "title": "New Count",
+            "description": "Its developments new since the last visit, unread"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "subject_ids",
+          "widgets",
+          "color",
+          "id",
+          "starter",
+          "created_at",
+          "updated_at",
+          "new_count"
+        ],
+        "title": "DashboardItem",
+        "description": "A dashboard in the sidebar list."
+      },
+      "DashboardOverview": {
+        "properties": {
+          "since": {
+            "type": "string",
+            "format": "date",
+            "title": "Since",
+            "description": "New counts from this date (the last visit, else the run)"
+          },
+          "new_count": {
+            "type": "integer",
+            "title": "New Count",
+            "description": "Developments first published after it, unread"
+          },
+          "watchlist": {
+            "items": {
+              "$ref": "#/components/schemas/WatchItem"
+            },
+            "type": "array",
+            "title": "Watchlist",
+            "description": "Its entities in dashboard order, groups resolved to their members"
+          },
+          "upcoming": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingItem"
+            },
+            "type": "array",
+            "title": "Upcoming"
+          }
+        },
+        "type": "object",
+        "required": [
+          "since",
+          "new_count",
+          "watchlist",
+          "upcoming"
+        ],
+        "title": "DashboardOverview",
+        "description": "What a dashboard shows beside its feed (the feed is GET /developments?dashboard_id=)."
+      },
       "DashboardSpec": {
         "properties": {
           "name": {
@@ -3607,7 +4506,7 @@
             },
             "type": "array",
             "title": "Subject Ids",
-            "description": "The subjects the dashboard follows"
+            "description": "The topics and entities the dashboard follows; a group given here becomes its members"
           },
           "widgets": {
             "items": {
@@ -3723,7 +4622,8 @@
               "dms",
               "official",
               "news",
-              "data"
+              "data",
+              "social"
             ],
             "title": "Collection"
           },
@@ -3981,6 +4881,24 @@
             "type": "boolean",
             "title": "Needs Attention"
           },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "High",
+              "Medium",
+              "Low"
+            ],
+            "title": "Priority",
+            "description": "High, Medium or Low for the subjects in scope"
+          },
+          "priority_for": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Priority For",
+            "description": "The subjects in scope at that priority, when others in scope rank lower; empty when they all agree"
+          },
           "adverse": {
             "type": "boolean",
             "title": "Adverse"
@@ -3992,18 +4910,59 @@
               "negative",
               "neutral"
             ],
-            "title": "Direction"
+            "title": "Direction",
+            "description": "Its tone: the most telling over the subjects in scope"
           },
           "subjects": {
             "items": {
               "$ref": "#/components/schemas/SubjectRef"
             },
             "type": "array",
-            "title": "Subjects"
+            "title": "Subjects",
+            "description": "What it happened to or who did it, highest priority first"
+          },
+          "actors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Actors",
+            "description": "Ids of the subjects that did it, among `subjects`"
+          },
+          "also_affects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Also Affects",
+            "description": "Tracked subjects it reaches indirectly through stored relationships"
           },
           "source_count": {
             "type": "integer",
             "title": "Source Count"
+          },
+          "source_types": {
+            "items": {
+              "$ref": "#/components/schemas/SourceTypeCount"
+            },
+            "type": "array",
+            "title": "Source Types",
+            "description": "Sources per collection"
+          },
+          "outlet_count": {
+            "type": "integer",
+            "title": "Outlet Count",
+            "description": "Distinct news outlets among its sources, one per parent domain"
+          },
+          "social_count": {
+            "type": "integer",
+            "title": "Social Count",
+            "description": "Social posts among its sources"
+          },
+          "unconfirmed": {
+            "type": "boolean",
+            "title": "Unconfirmed",
+            "description": "Its sources do not pass the source gate (pipeline/corroboration.py), so lists leave it out unless asked"
           },
           "collections": {
             "items": {
@@ -4012,7 +4971,8 @@
                 "dms",
                 "official",
                 "news",
-                "data"
+                "data",
+                "social"
               ]
             },
             "type": "array",
@@ -4095,6 +5055,25 @@
             },
             "type": "array",
             "title": "Notes"
+          },
+          "direct_subjects": {
+            "items": {
+              "$ref": "#/components/schemas/DirectSubject"
+            },
+            "type": "array",
+            "title": "Direct Subjects",
+            "description": "What it happened to or who did it, highest priority first"
+          },
+          "impacts": {
+            "items": {
+              "$ref": "#/components/schemas/IndirectImpact"
+            },
+            "type": "array",
+            "title": "Impacts",
+            "description": "Entities it reaches indirectly: direct links with a loan share, largest first, then region-level ones, then links without a share"
+          },
+          "triage": {
+            "$ref": "#/components/schemas/Triage"
           }
         },
         "type": "object",
@@ -4109,10 +5088,18 @@
           "materiality_level",
           "materiality_label",
           "needs_attention",
+          "priority",
+          "priority_for",
           "adverse",
           "direction",
           "subjects",
+          "actors",
+          "also_affects",
           "source_count",
+          "source_types",
+          "outlet_count",
+          "social_count",
+          "unconfirmed",
           "collections",
           "jurisdictions",
           "change",
@@ -4123,12 +5110,39 @@
           "subject_confidence",
           "tag_feedback",
           "sources",
-          "notes"
+          "notes",
+          "direct_subjects",
+          "impacts",
+          "triage"
         ],
         "title": "DevelopmentDetail"
       },
       "DevelopmentFacets": {
         "properties": {
+          "priority": {
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "type": "array",
+            "title": "Priority",
+            "description": "High, Medium, Low"
+          },
+          "adverse": {
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "type": "array",
+            "title": "Adverse",
+            "description": "'true' (adverse) and 'false'"
+          },
+          "tone": {
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "type": "array",
+            "title": "Tone",
+            "description": "Negative, neutral, positive"
+          },
           "category": {
             "items": {
               "$ref": "#/components/schemas/FacetValue"
@@ -4159,7 +5173,7 @@
             },
             "type": "array",
             "title": "Date",
-            "description": "Last 7, 30 and 90 days before the run date as day counts, then 'any'"
+            "description": "Today, this week and this month (1, 7 and 30 days to the run date), then 'any'"
           },
           "source": {
             "items": {
@@ -4167,11 +5181,14 @@
             },
             "type": "array",
             "title": "Source",
-            "description": "Collections: official, DMS, data, news"
+            "description": "Collections: official, research, data, news"
           }
         },
         "type": "object",
         "required": [
+          "priority",
+          "adverse",
+          "tone",
           "category",
           "materiality",
           "jurisdiction",
@@ -4208,13 +5225,29 @@
             "title": "Matching",
             "description": "Developments in scope matching the filters"
           },
+          "since": {
+            "type": "string",
+            "format": "date",
+            "title": "Since",
+            "description": "New and Updated count from this date: a development is new when first published after it, updated when first published before and last published after"
+          },
+          "dismissed": {
+            "type": "integer",
+            "title": "Dismissed",
+            "description": "Dismissed developments matching the filters"
+          },
+          "unconfirmed": {
+            "type": "integer",
+            "title": "Unconfirmed",
+            "description": "Unconfirmed developments the list would show with `unconfirmed`, whether it is on or not"
+          },
           "developments": {
             "items": {
               "$ref": "#/components/schemas/ChangedDevelopment"
             },
             "type": "array",
             "title": "Developments",
-            "description": "Needing attention first, then changed this run, most material, most recent"
+            "description": "High adverse first, then other High, Medium adverse, other Medium and the rest; most recent first within each"
           },
           "facets": {
             "$ref": "#/components/schemas/DevelopmentFacets"
@@ -4227,6 +5260,9 @@
           "needs_attention_count",
           "in_scope",
           "matching",
+          "since",
+          "dismissed",
+          "unconfirmed",
           "developments",
           "facets"
         ],
@@ -4301,6 +5337,24 @@
             "type": "boolean",
             "title": "Needs Attention"
           },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "High",
+              "Medium",
+              "Low"
+            ],
+            "title": "Priority",
+            "description": "High, Medium or Low for the subjects in scope"
+          },
+          "priority_for": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Priority For",
+            "description": "The subjects in scope at that priority, when others in scope rank lower; empty when they all agree"
+          },
           "adverse": {
             "type": "boolean",
             "title": "Adverse"
@@ -4312,18 +5366,59 @@
               "negative",
               "neutral"
             ],
-            "title": "Direction"
+            "title": "Direction",
+            "description": "Its tone: the most telling over the subjects in scope"
           },
           "subjects": {
             "items": {
               "$ref": "#/components/schemas/SubjectRef"
             },
             "type": "array",
-            "title": "Subjects"
+            "title": "Subjects",
+            "description": "What it happened to or who did it, highest priority first"
+          },
+          "actors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Actors",
+            "description": "Ids of the subjects that did it, among `subjects`"
+          },
+          "also_affects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRef"
+            },
+            "type": "array",
+            "title": "Also Affects",
+            "description": "Tracked subjects it reaches indirectly through stored relationships"
           },
           "source_count": {
             "type": "integer",
             "title": "Source Count"
+          },
+          "source_types": {
+            "items": {
+              "$ref": "#/components/schemas/SourceTypeCount"
+            },
+            "type": "array",
+            "title": "Source Types",
+            "description": "Sources per collection"
+          },
+          "outlet_count": {
+            "type": "integer",
+            "title": "Outlet Count",
+            "description": "Distinct news outlets among its sources, one per parent domain"
+          },
+          "social_count": {
+            "type": "integer",
+            "title": "Social Count",
+            "description": "Social posts among its sources"
+          },
+          "unconfirmed": {
+            "type": "boolean",
+            "title": "Unconfirmed",
+            "description": "Its sources do not pass the source gate (pipeline/corroboration.py), so lists leave it out unless asked"
           },
           "collections": {
             "items": {
@@ -4332,7 +5427,8 @@
                 "dms",
                 "official",
                 "news",
-                "data"
+                "data",
+                "social"
               ]
             },
             "type": "array",
@@ -4380,16 +5476,25 @@
           "materiality_level",
           "materiality_label",
           "needs_attention",
+          "priority",
+          "priority_for",
           "adverse",
           "direction",
           "subjects",
+          "actors",
+          "also_affects",
           "source_count",
+          "source_types",
+          "outlet_count",
+          "social_count",
+          "unconfirmed",
           "collections",
           "jurisdictions",
           "change",
           "new_source_count"
         ],
-        "title": "DevelopmentSummary"
+        "title": "DevelopmentSummary",
+        "description": "A development as a scope sees it: priority, adverse and tone are over the subjects in\nscope that it is tagged to (over all its subjects when unscoped)."
       },
       "DevelopmentsData": {
         "properties": {
@@ -4533,6 +5638,53 @@
         ],
         "title": "DeviationRule",
         "description": "Fixes the answer's state when a series is more than `beyond` away from zero, either way, for\nat least `for_hours` within the question's lookback: a peg series more than 0.5% off for 24\nhours. A spell runs from its first to its last observation in a row beyond the threshold."
+      },
+      "DirectSubject": {
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "affected",
+              "actor"
+            ],
+            "title": "Role"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "High",
+              "Medium",
+              "Low"
+            ],
+            "title": "Priority"
+          },
+          "adverse": {
+            "type": "boolean",
+            "title": "Adverse"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "negative",
+              "neutral"
+            ],
+            "title": "Tone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "role",
+          "priority",
+          "adverse",
+          "tone"
+        ],
+        "title": "DirectSubject",
+        "description": "A subject the development happened to (affected) or that did it (actor)."
       },
       "DirectionData": {
         "properties": {
@@ -4683,7 +5835,8 @@
               "dms",
               "official",
               "news",
-              "data"
+              "data",
+              "social"
             ],
             "title": "Collection"
           },
@@ -4829,6 +5982,100 @@
         "title": "DocumentPart",
         "description": "A document part."
       },
+      "EntityBrief": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "title": "State",
+            "description": "One sentence on the subject's situation now"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "worse",
+              "better",
+              "unchanged",
+              "mixed"
+            ],
+            "title": "Direction",
+            "description": "Against the previous brief; unchanged when the model's direction disagreed with the evidence and was flagged"
+          },
+          "direction_reason": {
+            "type": "string",
+            "title": "Direction Reason",
+            "description": "Empty when the direction was flagged"
+          },
+          "direction_flagged": {
+            "type": "boolean",
+            "title": "Direction Flagged",
+            "description": "The model's direction disagreed with code's signals after a retry"
+          },
+          "concerns": {
+            "items": {
+              "$ref": "#/components/schemas/BriefConcern"
+            },
+            "type": "array",
+            "title": "Concerns",
+            "description": "At most 2, most serious first; none on a quiet week unless a matter High and adverse to the subject is open, which a concern then cites. A brief written before concerns gives its points' claims"
+          },
+          "coming_up": {
+            "items": {
+              "$ref": "#/components/schemas/BriefDate"
+            },
+            "type": "array",
+            "title": "Coming Up"
+          },
+          "developments": {
+            "type": "integer",
+            "title": "Developments",
+            "description": "Developments with a source in the last 7 days"
+          },
+          "high": {
+            "type": "integer",
+            "title": "High",
+            "description": "Of those, High for the subject"
+          },
+          "adverse": {
+            "type": "integer",
+            "title": "Adverse",
+            "description": "Of those, adverse to the subject"
+          },
+          "latest_news": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest News",
+            "description": "The last source of its latest development"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "description": "none when code wrote it, with no evidence to brief on"
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "direction",
+          "direction_reason",
+          "direction_flagged",
+          "concerns",
+          "coming_up",
+          "developments",
+          "high",
+          "adverse",
+          "latest_news",
+          "model"
+        ],
+        "title": "EntityBrief",
+        "description": "The brief at the top of a subject's page (pipeline/summaries.py): written by Claude from\nthe last 7 days of developments, indirect impacts, series events and upcoming dates and the\nsubject's standing position (Key data, main links, open matters), checked and counted by\ncode."
+      },
       "EvidenceFinding": {
         "properties": {
           "id": {
@@ -4901,7 +6148,8 @@
               "dms",
               "official",
               "news",
-              "data"
+              "data",
+              "social"
             ],
             "title": "Collection"
           },
@@ -5156,20 +6404,58 @@
           "type": {
             "type": "string",
             "enum": [
-              "MEMBER_OF",
               "EXPOSED_TO",
-              "AFFECTS"
+              "DEPENDS_ON",
+              "PARTICIPATES_IN",
+              "OWNS",
+              "SUBSIDIARY_OF",
+              "OPERATES_IN",
+              "SUPERVISED_BY",
+              "SHAREHOLDER_OF",
+              "MEMBER_OF",
+              "LISTED_ON",
+              "AFFECTS",
+              "IMPACTS"
             ],
             "title": "Type"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "description": "The link in plain words: \"depends on, for cloud services\""
           },
           "origin": {
             "type": "string",
             "title": "Origin",
-            "description": "seed, jev or claude"
+            "description": "relationships, seed, jev, claude or detector"
           },
           "confidence": {
             "type": "number",
             "title": "Confidence"
+          },
+          "relationship_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship Id",
+            "description": "A stored relationship's id"
+          },
+          "route": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route",
+            "description": "IMPACTS: the route in plain words"
           }
         },
         "type": "object",
@@ -5177,8 +6463,11 @@
           "source",
           "target",
           "type",
+          "label",
           "origin",
-          "confidence"
+          "confidence",
+          "relationship_id",
+          "route"
         ],
         "title": "GraphEdge"
       },
@@ -5187,7 +6476,7 @@
           "id": {
             "type": "string",
             "title": "Id",
-            "description": "Subject id, or dev:<development id>"
+            "description": "Subject or endpoint id, or dev:<development id>"
           },
           "type": {
             "type": "string",
@@ -5195,6 +6484,7 @@
               "topic",
               "group",
               "entity",
+              "endpoint",
               "development"
             ],
             "title": "Type"
@@ -5210,8 +6500,41 @@
                 "enum": [
                   "bank",
                   "central_bank",
+                  "regulator",
+                  "agency",
+                  "market_infrastructure",
+                  "payment_system",
+                  "tech_provider",
+                  "asset_manager",
+                  "insurer",
                   "stablecoin_issuer",
-                  "country"
+                  "digital_asset_firm",
+                  "country",
+                  "sector"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bank",
+                  "insurer",
+                  "broker",
+                  "investor",
+                  "person",
+                  "association",
+                  "central_bank",
+                  "regulator",
+                  "market_infrastructure",
+                  "payment_system",
+                  "payment_institution",
+                  "tech_provider",
+                  "stablecoin_issuer",
+                  "digital_asset_firm",
+                  "blockchain",
+                  "country",
+                  "region",
+                  "sector",
+                  "group"
                 ]
               },
               {
@@ -5393,6 +6716,36 @@
         "title": "ImagePart",
         "description": "An image part."
       },
+      "ImpactPassage": {
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "title": "Document Id"
+          },
+          "domain": {
+            "type": "string",
+            "title": "Domain"
+          },
+          "published": {
+            "type": "string",
+            "format": "date",
+            "title": "Published"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "document_id",
+          "domain",
+          "published",
+          "text"
+        ],
+        "title": "ImpactPassage",
+        "description": "A passage from the development's sources that the impact's reason relies on."
+      },
       "IndicatorChange": {
         "properties": {
           "window": {
@@ -5439,7 +6792,7 @@
               }
             ],
             "title": "Change",
-            "description": "In the indicator's change_basis; null when the window does not apply to the series' frequency, reaches before its history, or starts from zero"
+            "description": "In the indicator's change_basis; null when the window does not apply to the series (its frequency, or a year-to-date total's shorter windows), reaches before its history, or starts from zero"
           }
         },
         "type": "object",
@@ -5564,7 +6917,7 @@
               }
             ],
             "title": "Series Id",
-            "description": "A series id from list_subjects, e.g. \"derived.usdc.peg\"; empty for the subject's primary series"
+            "description": "A series id from list_subjects, e.g. \"mas.ltd.overall\"; empty for the subject's primary series"
           }
         },
         "type": "object",
@@ -5613,7 +6966,200 @@
         ],
         "title": "IndicatorWidget"
       },
+      "IndirectImpact": {
+        "properties": {
+          "development_id": {
+            "type": "string",
+            "title": "Development Id"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "negative",
+              "positive",
+              "mixed"
+            ],
+            "title": "Direction"
+          },
+          "route": {
+            "type": "string",
+            "title": "Route",
+            "description": "Plain words: \"via its Hong Kong loans, 12.2% of total\""
+          },
+          "why": {
+            "type": "string",
+            "title": "Why",
+            "description": "One or two sentences citing the development"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Confidence"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight",
+            "description": "The route's exposure share, if it has an exposure"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region",
+            "description": "The region's name when the share covers a whole region (Greater China)"
+          },
+          "evidence": {
+            "type": "string",
+            "enum": [
+              "public",
+              "reported",
+              "assumed"
+            ],
+            "title": "Evidence",
+            "description": "The weakest grade along the route"
+          },
+          "last_confirmed": {
+            "type": "string",
+            "format": "date",
+            "title": "Last Confirmed",
+            "description": "The oldest last confirmation along the route"
+          },
+          "relationships": {
+            "items": {
+              "$ref": "#/components/schemas/RelationshipLink"
+            },
+            "type": "array",
+            "title": "Relationships",
+            "description": "From the entity outward"
+          },
+          "finding_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Finding Ids",
+            "description": "The development's findings the reason relies on"
+          },
+          "passages": {
+            "items": {
+              "$ref": "#/components/schemas/ImpactPassage"
+            },
+            "type": "array",
+            "title": "Passages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "development_id",
+          "subject",
+          "direction",
+          "route",
+          "why",
+          "confidence",
+          "weight",
+          "region",
+          "evidence",
+          "last_confirmed",
+          "relationships",
+          "finding_ids",
+          "passages"
+        ],
+        "title": "IndirectImpact",
+        "description": "An entity a development reaches through stored relationships, as judged by Claude. Code\nwrites the route from the relationships; Claude only judged it and wrote why."
+      },
       "JsonValue": {},
+      "KeyData": {
+        "properties": {
+          "flagged": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Flagged",
+            "description": "Listed series a live detector event flags, from a feed that still has data, worst event first"
+          },
+          "rows": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rows",
+            "description": "Then up to 3 of the subject's own (primary) series and up to 3 context series, one per series group, daily ones first among the context; a series with no data yet included"
+          }
+        },
+        "type": "object",
+        "required": [
+          "flagged",
+          "rows"
+        ],
+        "title": "KeyData",
+        "description": "The series an Overview's Key data shows, by id, in order. The brief states the same ones\n(pipeline/summaries.py)."
+      },
+      "LatestRun": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "previous_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Run Id"
+          },
+          "latest_news": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest News",
+            "description": "The latest last-published date among its developments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "as_of",
+          "previous_run_id",
+          "latest_news"
+        ],
+        "title": "LatestRun",
+        "description": "The latest complete run, for the top bar's \"Week to\" date."
+      },
       "LinePoint": {
         "properties": {
           "period": {
@@ -5637,6 +7183,146 @@
           "preliminary"
         ],
         "title": "LinePoint"
+      },
+      "LinkedInstitution": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "bank",
+                  "central_bank",
+                  "regulator",
+                  "agency",
+                  "market_infrastructure",
+                  "payment_system",
+                  "tech_provider",
+                  "asset_manager",
+                  "insurer",
+                  "stablecoin_issuer",
+                  "digital_asset_firm",
+                  "country",
+                  "sector"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bank",
+                  "insurer",
+                  "broker",
+                  "investor",
+                  "person",
+                  "association",
+                  "central_bank",
+                  "regulator",
+                  "market_infrastructure",
+                  "payment_system",
+                  "payment_institution",
+                  "tech_provider",
+                  "stablecoin_issuer",
+                  "digital_asset_firm",
+                  "blockchain",
+                  "country",
+                  "region",
+                  "sector",
+                  "group"
+                ]
+              }
+            ],
+            "title": "Kind"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubjectRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None when the institution is not tracked"
+          },
+          "region": {
+            "type": "boolean",
+            "title": "Region",
+            "description": "Its largest figure covers a whole region, not the subject"
+          },
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/LinkedRoute"
+            },
+            "type": "array",
+            "title": "Routes",
+            "description": "Direct links first, then through a company it owns, then region-level"
+          },
+          "impacts": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectImpact"
+            },
+            "type": "array",
+            "title": "Impacts",
+            "description": "Developments in the last 7 days that reach it through these routes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "subject",
+          "region",
+          "routes",
+          "impacts"
+        ],
+        "title": "LinkedInstitution",
+        "description": "A bank or other financial institution linked to a country, sector, supplier or payment\nsystem in the relationship store (GET /subjects/{id}/linked)."
+      },
+      "LinkedRoute": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "\"Has 12.2% of its loans in Hong Kong\"; \"Owns 100% of DBS Bank (Hong Kong), which operates in Hong Kong\"; region-level routes end \", a figure for the whole region\""
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region",
+            "description": "The region's name when the route ends in a region"
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/RelationshipLink"
+            },
+            "type": "array",
+            "title": "Links",
+            "description": "From the institution outward"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "region",
+          "links"
+        ],
+        "title": "LinkedRoute",
+        "description": "How an institution links to the subject: one stored link, or two through a company it\nowns, written in plain words by code."
       },
       "MarkedDevelopment": {
         "properties": {
@@ -5695,7 +7381,7 @@
           "developments": {
             "type": "integer",
             "title": "Developments",
-            "description": "Developments at this level in the latest run"
+            "description": "Developments at this level in the latest run, unconfirmed ones left out"
           }
         },
         "type": "object",
@@ -5775,16 +7461,24 @@
             "title": "Trend",
             "description": "The subject has measured series for a Trend view"
           },
-          "summary": {
+          "brief": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/RunSummary"
+                "$ref": "#/components/schemas/EntityBrief"
               },
               {
                 "type": "null"
               }
             ],
             "description": "None until the run has one for the subject"
+          },
+          "impacts": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectImpact"
+            },
+            "type": "array",
+            "title": "Impacts",
+            "description": "Developments in the last 7 days that reach the subject indirectly"
           }
         },
         "type": "object",
@@ -5799,7 +7493,8 @@
           "group",
           "notes",
           "trend",
-          "summary"
+          "brief",
+          "impacts"
         ],
         "title": "MonitorPage"
       },
@@ -5931,6 +7626,51 @@
         "title": "Observation",
         "description": "One value of a series for one period, normalised to the series' unit."
       },
+      "ObservationSource": {
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date",
+            "title": "Period"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "The publication"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote",
+            "description": "The verbatim sentence or table row"
+          },
+          "chart_reading": {
+            "type": "boolean",
+            "title": "Chart Reading",
+            "description": "The value was read from a chart"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "url",
+          "title",
+          "quote",
+          "chart_reading"
+        ],
+        "title": "ObservationSource",
+        "description": "Where one hand-collected figure comes from (a manual series)."
+      },
       "Outlier": {
         "properties": {
           "member": {
@@ -5992,14 +7732,116 @@
         "title": "Passage",
         "description": "An excerpt of the source around a finding's quotes; highlights are offsets into `text`."
       },
+      "PickerGroup": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "A group id, \"topics\", or \"mas-supervised\""
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/PickerRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "suggested": {
+            "type": "boolean",
+            "title": "Suggested",
+            "description": "Shown open; the others sit under More to add"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "rows",
+          "suggested"
+        ],
+        "title": "PickerGroup"
+      },
+      "PickerRow": {
+        "properties": {
+          "subject_id": {
+            "type": "string",
+            "title": "Subject Id"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Provider rows only, from the relationship store: \"Used by DBS and UOB, for cloud services\""
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "public",
+                  "reported",
+                  "assumed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence",
+            "description": "The weakest grade among the links behind it"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_id",
+          "reason",
+          "evidence"
+        ],
+        "title": "PickerRow"
+      },
       "Profile": {
         "properties": {
-          "display_name": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
             "type": "string",
-            "title": "Display Name"
+            "title": "Name",
+            "description": "On the profile button: \"TCRD\", \"FMD\" or the role in words"
           },
           "role": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "regulatory_supervisor",
+                  "tech_cyber_supervisor",
+                  "development_staff",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Role"
           },
           "default_dashboard_id": {
@@ -6012,6 +7854,19 @@
               }
             ],
             "title": "Default Dashboard Id"
+          },
+          "last_visit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Visit",
+            "description": "The role's latest visit before today; New counts from it when set"
           },
           "tour_seen_at": {
             "anyOf": [
@@ -6029,11 +7884,49 @@
         },
         "type": "object",
         "required": [
-          "display_name",
+          "id",
+          "name",
           "role",
           "default_dashboard_id"
         ],
-        "title": "Profile"
+        "title": "Profile",
+        "description": "Who is using the app: a role with its own dashboards. Before the first visit picks a role,\nid and role are null and the web shows onboarding."
+      },
+      "ProfileCreate": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "regulatory_supervisor",
+              "tech_cyber_supervisor",
+              "development_staff",
+              "other"
+            ],
+            "title": "Role"
+          },
+          "dashboard_name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Dashboard Name"
+          },
+          "subject_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Subject Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "dashboard_name",
+          "subject_ids"
+        ],
+        "title": "ProfileCreate",
+        "description": "Onboarding's answer: the role and the picks for its first dashboard. Creating it makes the\ndashboard the profile's default and the profile the active one."
       },
       "QuestionAnswerView": {
         "properties": {
@@ -6485,6 +8378,569 @@
         ],
         "title": "Record",
         "description": "The latest value is the highest (or lowest) since `since`: the last earlier period with a\nvalue at least as high (as low), or the start of the stored history."
+      },
+      "RelatedDays": {
+        "type": "integer",
+        "enum": [
+          7,
+          30,
+          90
+        ],
+        "title": "RelatedDays",
+        "description": "The Related graph's windows in days: the brief's week, a month and a quarter. An enum, not\na Literal, so a query string's \"7\" validates."
+      },
+      "RelatedFacet": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "exposed_to",
+              "depends_on",
+              "participates_in",
+              "owns",
+              "subsidiary_of",
+              "operates_in",
+              "supervised_by",
+              "shareholder_of",
+              "member_of",
+              "listed_on"
+            ],
+            "title": "Type"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "description": "Links of this type between the centre and its nodes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "count"
+        ],
+        "title": "RelatedFacet"
+      },
+      "RelatedGraph": {
+        "properties": {
+          "run": {
+            "$ref": "#/components/schemas/RunRef"
+          },
+          "center": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "days": {
+            "$ref": "#/components/schemas/RelatedDays"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/RelatedNode"
+            },
+            "type": "array",
+            "title": "Nodes",
+            "description": "Most developments first, then most harmful, then by name"
+          },
+          "developments": {
+            "items": {
+              "$ref": "#/components/schemas/DevelopmentSummary"
+            },
+            "type": "array",
+            "title": "Developments",
+            "description": "Every development a node lists, in display order"
+          },
+          "link_types": {
+            "items": {
+              "$ref": "#/components/schemas/RelatedFacet"
+            },
+            "type": "array",
+            "title": "Link Types",
+            "description": "In relationship type order"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run",
+          "center",
+          "days",
+          "nodes",
+          "developments",
+          "link_types"
+        ],
+        "title": "RelatedGraph",
+        "description": "Everything linked to a subject in the relationship store, for the Overview's Related\ngraph (GET /subjects/{id}/related-graph)."
+      },
+      "RelatedLink": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "exposed_to",
+              "depends_on",
+              "participates_in",
+              "owns",
+              "subsidiary_of",
+              "operates_in",
+              "supervised_by",
+              "shareholder_of",
+              "member_of",
+              "listed_on"
+            ],
+            "title": "Type"
+          },
+          "outbound": {
+            "type": "boolean",
+            "title": "Outbound",
+            "description": "The centre is the link's from end: DBS owns DBS India"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "description": "A few words from the centre: \"owns 100%\", \"24.4% of loans\", \"depended on by\""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "outbound",
+          "label"
+        ],
+        "title": "RelatedLink",
+        "description": "A stored link between the Related graph's centre and one of its nodes."
+      },
+      "RelatedNode": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "bank",
+                  "central_bank",
+                  "regulator",
+                  "agency",
+                  "market_infrastructure",
+                  "payment_system",
+                  "tech_provider",
+                  "asset_manager",
+                  "insurer",
+                  "stablecoin_issuer",
+                  "digital_asset_firm",
+                  "country",
+                  "sector"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bank",
+                  "insurer",
+                  "broker",
+                  "investor",
+                  "person",
+                  "association",
+                  "central_bank",
+                  "regulator",
+                  "market_infrastructure",
+                  "payment_system",
+                  "payment_institution",
+                  "tech_provider",
+                  "stablecoin_issuer",
+                  "digital_asset_firm",
+                  "blockchain",
+                  "country",
+                  "region",
+                  "sector",
+                  "group"
+                ]
+              }
+            ],
+            "title": "Kind"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubjectRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None when the node is not tracked"
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/RelatedLink"
+            },
+            "type": "array",
+            "title": "Links",
+            "description": "Its links to the centre, either direction"
+          },
+          "development_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Development Ids",
+            "description": "Shown developments in the window that reach the centre through this node, in display order"
+          },
+          "harmful": {
+            "type": "integer",
+            "title": "Harmful",
+            "description": "How many of them are negative for the centre"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "subject",
+          "links",
+          "development_ids",
+          "harmful"
+        ],
+        "title": "RelatedNode",
+        "description": "A subject or endpoint linked to the centre, with the developments that reach the centre\nthrough it."
+      },
+      "RelationshipFigure": {
+        "properties": {
+          "measure": {
+            "type": "string",
+            "enum": [
+              "gross_customer_loans",
+              "loans_by_currency",
+              "rwa",
+              "reserve_assets",
+              "repo_principal",
+              "revenue",
+              "distribution_costs",
+              "token_supply",
+              "assets_on_platform",
+              "stablecoin_holdings",
+              "card_volume",
+              "npl",
+              "npl_ratio",
+              "npa_coverage"
+            ],
+            "title": "Measure"
+          },
+          "segment": {
+            "type": "string",
+            "title": "Segment",
+            "description": "The row label in the source table"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "SGD m",
+              "SGD b",
+              "USD m",
+              "m tokens",
+              "%",
+              "% of loans",
+              "% of gross loans"
+            ],
+            "title": "Unit"
+          },
+          "share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share"
+          },
+          "period": {
+            "type": "string",
+            "format": "date",
+            "title": "Period"
+          },
+          "chart_reading": {
+            "type": "boolean",
+            "title": "Chart Reading"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          },
+          "source_title": {
+            "type": "string",
+            "title": "Source Title"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "quote": {
+            "type": "string",
+            "title": "Quote"
+          }
+        },
+        "type": "object",
+        "required": [
+          "measure",
+          "segment",
+          "value",
+          "unit",
+          "share",
+          "period",
+          "chart_reading",
+          "source_url",
+          "source_title",
+          "page",
+          "quote"
+        ],
+        "title": "RelationshipFigure",
+        "description": "A further figure behind an exposure, such as loans by currency, risk-weighted assets or\nNPLs, with its own source."
+      },
+      "RelationshipLink": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "exposed_to",
+              "depends_on",
+              "participates_in",
+              "owns",
+              "subsidiary_of",
+              "operates_in",
+              "supervised_by",
+              "shareholder_of",
+              "member_of",
+              "listed_on"
+            ],
+            "title": "Type"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "description": "The type in plain words: \"depends on, for cloud services\""
+          },
+          "from_id": {
+            "type": "string",
+            "title": "From Id"
+          },
+          "from_name": {
+            "type": "string",
+            "title": "From Name"
+          },
+          "to_id": {
+            "type": "string",
+            "title": "To Id"
+          },
+          "to_name": {
+            "type": "string",
+            "title": "To Name"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight",
+            "description": "Exposures: the headline figure's share of its total (a bank's loans, an issuer's reserves, a firm's revenue). Ownership: the share held. Else null; an exposure with no weight discloses no share"
+          },
+          "measure": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "gross_customer_loans",
+                  "loans_by_currency",
+                  "rwa",
+                  "reserve_assets",
+                  "repo_principal",
+                  "revenue",
+                  "distribution_costs",
+                  "token_supply",
+                  "assets_on_platform",
+                  "stablecoin_holdings",
+                  "card_volume"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Measure"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "SGD m",
+                  "SGD b",
+                  "USD m",
+                  "m tokens"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "evidence": {
+            "type": "string",
+            "enum": [
+              "public",
+              "reported",
+              "assumed"
+            ],
+            "title": "Evidence"
+          },
+          "chart_reading": {
+            "type": "boolean",
+            "title": "Chart Reading",
+            "description": "The figure was read off a chart"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of",
+            "description": "When the link is known to hold"
+          },
+          "last_confirmed": {
+            "type": "string",
+            "format": "date",
+            "title": "Last Confirmed"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "source_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Title"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote",
+            "description": "Verbatim from the source"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "figures": {
+            "items": {
+              "$ref": "#/components/schemas/RelationshipFigure"
+            },
+            "type": "array",
+            "title": "Figures"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "label",
+          "from_id",
+          "from_name",
+          "to_id",
+          "to_name",
+          "weight",
+          "measure",
+          "value",
+          "unit",
+          "evidence",
+          "chart_reading",
+          "as_of",
+          "last_confirmed",
+          "source_url",
+          "source_title",
+          "page",
+          "quote",
+          "detail",
+          "figures"
+        ],
+        "title": "RelationshipLink",
+        "description": "A stored relationship as evidence: its type, ends, size, grade and source."
       },
       "ResumeEntry": {
         "properties": {
@@ -7056,66 +9512,6 @@
         ],
         "title": "RunStatus"
       },
-      "RunSummary": {
-        "properties": {
-          "text": {
-            "type": "string",
-            "title": "Text",
-            "description": "Written by Claude from the run's stored rows"
-          },
-          "direction": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "more_adverse",
-                  "less_adverse",
-                  "unchanged"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Direction",
-            "description": "Against the previous run, by code: focus areas at Needs attention (2 each) and Watch (1 each) plus adverse developments needing attention; null on a first run"
-          },
-          "direction_basis": {
-            "type": "string",
-            "title": "Direction Basis",
-            "description": "The comparison in words"
-          },
-          "developments_in_scope": {
-            "type": "integer",
-            "title": "Developments In Scope",
-            "description": "The subject's developments in the run"
-          },
-          "needs_attention": {
-            "type": "integer",
-            "title": "Needs Attention"
-          },
-          "adverse": {
-            "type": "integer",
-            "title": "Adverse"
-          },
-          "model": {
-            "type": "string",
-            "title": "Model"
-          }
-        },
-        "type": "object",
-        "required": [
-          "text",
-          "direction",
-          "direction_basis",
-          "developments_in_scope",
-          "needs_attention",
-          "adverse",
-          "model"
-        ],
-        "title": "RunSummary",
-        "description": "The latest run's summary of a subject (pipeline/summaries.py)."
-      },
       "SearchHit": {
         "properties": {
           "subject": {
@@ -7463,9 +9859,15 @@
             "enum": [
               "daily",
               "monthly",
-              "quarterly"
+              "quarterly",
+              "yearly"
             ],
             "title": "Frequency"
+          },
+          "year_to_date": {
+            "type": "boolean",
+            "title": "Year To Date",
+            "description": "A running total since January: only its 1y change, against the same period a year earlier, is given"
           },
           "decimals": {
             "type": "integer",
@@ -7501,6 +9903,7 @@
               "coingecko",
               "defillama",
               "yahoo",
+              "manual",
               "derived"
             ],
             "title": "Source"
@@ -7533,6 +9936,7 @@
           "listed",
           "unit",
           "frequency",
+          "year_to_date",
           "decimals",
           "bad_direction",
           "baseline",
@@ -7576,6 +9980,17 @@
             ],
             "description": "The latest value known by the end of `since`"
           },
+          "base": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Observation"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What change compares latest with: start, or for a year-to-date total the same period a year earlier; null in notes stored before it was kept"
+          },
           "change": {
             "anyOf": [
               {
@@ -7586,7 +10001,7 @@
               }
             ],
             "title": "Change",
-            "description": "Latest against start, in the change basis"
+            "description": "Latest against base, in the change basis"
           },
           "largest_day": {
             "anyOf": [
@@ -7634,7 +10049,7 @@
                 "type": "null"
               }
             ],
-            "description": "A standing question's rule on the series"
+            "description": "An alert threshold on the series"
           },
           "text": {
             "type": "string",
@@ -7679,6 +10094,120 @@
           "role"
         ],
         "title": "SeriesSubject"
+      },
+      "SharedEndpoint": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "bank",
+                  "central_bank",
+                  "regulator",
+                  "agency",
+                  "market_infrastructure",
+                  "payment_system",
+                  "tech_provider",
+                  "asset_manager",
+                  "insurer",
+                  "stablecoin_issuer",
+                  "digital_asset_firm",
+                  "country",
+                  "sector"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bank",
+                  "insurer",
+                  "broker",
+                  "investor",
+                  "person",
+                  "association",
+                  "central_bank",
+                  "regulator",
+                  "market_infrastructure",
+                  "payment_system",
+                  "payment_institution",
+                  "tech_provider",
+                  "stablecoin_issuer",
+                  "digital_asset_firm",
+                  "blockchain",
+                  "country",
+                  "region",
+                  "sector",
+                  "group"
+                ]
+              }
+            ],
+            "title": "Kind"
+          },
+          "subject": {
+            "type": "boolean",
+            "title": "Subject",
+            "description": "A tracked subject; otherwise a relationship endpoint"
+          },
+          "a_links": {
+            "items": {
+              "$ref": "#/components/schemas/RelationshipLink"
+            },
+            "type": "array",
+            "title": "A Links"
+          },
+          "b_links": {
+            "items": {
+              "$ref": "#/components/schemas/RelationshipLink"
+            },
+            "type": "array",
+            "title": "B Links"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "subject",
+          "a_links",
+          "b_links"
+        ],
+        "title": "SharedEndpoint",
+        "description": "A subject or endpoint both entities link to, with each one's links to it."
+      },
+      "SharedRelationships": {
+        "properties": {
+          "a": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "b": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "endpoints": {
+            "items": {
+              "$ref": "#/components/schemas/SharedEndpoint"
+            },
+            "type": "array",
+            "title": "Endpoints",
+            "description": "By name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "a",
+          "b",
+          "endpoints"
+        ],
+        "title": "SharedRelationships"
       },
       "SinceData": {
         "properties": {
@@ -7773,6 +10302,31 @@
           "settings"
         ],
         "title": "SinceWidget"
+      },
+      "SourceTypeCount": {
+        "properties": {
+          "collection": {
+            "type": "string",
+            "enum": [
+              "dms",
+              "official",
+              "news",
+              "data",
+              "social"
+            ],
+            "title": "Collection"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "collection",
+          "count"
+        ],
+        "title": "SourceTypeCount"
       },
       "Span": {
         "properties": {
@@ -7895,8 +10449,17 @@
                 "enum": [
                   "bank",
                   "central_bank",
+                  "regulator",
+                  "agency",
+                  "market_infrastructure",
+                  "payment_system",
+                  "tech_provider",
+                  "asset_manager",
+                  "insurer",
                   "stablecoin_issuer",
-                  "country"
+                  "digital_asset_firm",
+                  "country",
+                  "sector"
                 ]
               },
               {
@@ -7935,8 +10498,15 @@
                 "type": "string",
                 "enum": [
                   "landmark",
-                  "coins",
-                  "globe"
+                  "server",
+                  "shield",
+                  "network",
+                  "scale",
+                  "trending-up",
+                  "briefcase",
+                  "banknote",
+                  "umbrella",
+                  "building-2"
                 ]
               },
               {
@@ -7953,6 +10523,14 @@
             "type": "array",
             "title": "Aliases"
           },
+          "members": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Members",
+            "description": "Member entity ids, for a group; else empty"
+          },
           "new_developments": {
             "type": "integer",
             "title": "New Developments",
@@ -7961,7 +10539,22 @@
           "needs_attention": {
             "type": "integer",
             "title": "Needs Attention",
-            "description": "Developments needing attention in the latest run"
+            "description": "High-priority developments in the latest run"
+          },
+          "recent": {
+            "type": "integer",
+            "title": "Recent",
+            "description": "Developments it happened to or that it did, last published in the 30 days to the run date"
+          },
+          "recent_high": {
+            "type": "integer",
+            "title": "Recent High",
+            "description": "Of those, the ones at High priority for it"
+          },
+          "new_high": {
+            "type": "integer",
+            "title": "New High",
+            "description": "High for it, first published after the last visit (else the previous run), and not read or dismissed"
           },
           "description": {
             "type": "string",
@@ -7985,8 +10578,12 @@
           "type",
           "kind",
           "aliases",
+          "members",
           "new_developments",
           "needs_attention",
+          "recent",
+          "recent_high",
+          "new_high",
           "description",
           "domains",
           "links"
@@ -8029,6 +10626,130 @@
         ],
         "title": "SubjectFacts",
         "description": "What the subject's standing answers are told about their series as of a date."
+      },
+      "SubjectImpact": {
+        "properties": {
+          "development_id": {
+            "type": "string",
+            "title": "Development Id"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "negative",
+              "positive",
+              "mixed"
+            ],
+            "title": "Direction"
+          },
+          "route": {
+            "type": "string",
+            "title": "Route",
+            "description": "Plain words: \"via its Hong Kong loans, 12.2% of total\""
+          },
+          "why": {
+            "type": "string",
+            "title": "Why",
+            "description": "One or two sentences citing the development"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Confidence"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight",
+            "description": "The route's exposure share, if it has an exposure"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region",
+            "description": "The region's name when the share covers a whole region (Greater China)"
+          },
+          "evidence": {
+            "type": "string",
+            "enum": [
+              "public",
+              "reported",
+              "assumed"
+            ],
+            "title": "Evidence",
+            "description": "The weakest grade along the route"
+          },
+          "last_confirmed": {
+            "type": "string",
+            "format": "date",
+            "title": "Last Confirmed",
+            "description": "The oldest last confirmation along the route"
+          },
+          "relationships": {
+            "items": {
+              "$ref": "#/components/schemas/RelationshipLink"
+            },
+            "type": "array",
+            "title": "Relationships",
+            "description": "From the entity outward"
+          },
+          "finding_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Finding Ids",
+            "description": "The development's findings the reason relies on"
+          },
+          "passages": {
+            "items": {
+              "$ref": "#/components/schemas/ImpactPassage"
+            },
+            "type": "array",
+            "title": "Passages"
+          },
+          "development": {
+            "$ref": "#/components/schemas/DevelopmentSummary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "development_id",
+          "subject",
+          "direction",
+          "route",
+          "why",
+          "confidence",
+          "weight",
+          "region",
+          "evidence",
+          "last_confirmed",
+          "relationships",
+          "finding_ids",
+          "passages",
+          "development"
+        ],
+        "title": "SubjectImpact",
+        "description": "An indirect impact on a subject, with the development that causes it."
       },
       "SubjectIndicator": {
         "properties": {
@@ -8140,6 +10861,14 @@
             "type": "array",
             "title": "Line",
             "description": "Observations over the 12 months to the date, as known by then; none for a series not listed"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/ObservationSource"
+            },
+            "type": "array",
+            "title": "Sources",
+            "description": "Where the latest figure and each figure in the line come from, by period, for a series collected by hand; empty for one fetched from an API"
           }
         },
         "type": "object",
@@ -8156,7 +10885,8 @@
           "role",
           "status",
           "events",
-          "line"
+          "line",
+          "sources"
         ],
         "title": "SubjectIndicator"
       },
@@ -8177,13 +10907,18 @@
             "type": "array",
             "title": "Indicators",
             "description": "Primary series first, then context, each in catalogue order"
+          },
+          "key_data": {
+            "$ref": "#/components/schemas/KeyData",
+            "description": "The series the Overview's Key data shows, in order"
           }
         },
         "type": "object",
         "required": [
           "subject",
           "as_of",
-          "indicators"
+          "indicators",
+          "key_data"
         ],
         "title": "SubjectIndicators"
       },
@@ -8245,8 +10980,17 @@
                 "enum": [
                   "bank",
                   "central_bank",
+                  "regulator",
+                  "agency",
+                  "market_infrastructure",
+                  "payment_system",
+                  "tech_provider",
+                  "asset_manager",
+                  "insurer",
                   "stablecoin_issuer",
-                  "country"
+                  "digital_asset_firm",
+                  "country",
+                  "sector"
                 ]
               },
               {
@@ -8285,8 +11029,15 @@
                 "type": "string",
                 "enum": [
                   "landmark",
-                  "coins",
-                  "globe"
+                  "server",
+                  "shield",
+                  "network",
+                  "scale",
+                  "trending-up",
+                  "briefcase",
+                  "banknote",
+                  "umbrella",
+                  "building-2"
                 ]
               },
               {
@@ -8332,8 +11083,17 @@
                 "enum": [
                   "bank",
                   "central_bank",
+                  "regulator",
+                  "agency",
+                  "market_infrastructure",
+                  "payment_system",
+                  "tech_provider",
+                  "asset_manager",
+                  "insurer",
                   "stablecoin_issuer",
-                  "country"
+                  "digital_asset_firm",
+                  "country",
+                  "sector"
                 ]
               },
               {
@@ -8372,8 +11132,15 @@
                 "type": "string",
                 "enum": [
                   "landmark",
-                  "coins",
-                  "globe"
+                  "server",
+                  "shield",
+                  "network",
+                  "scale",
+                  "trending-up",
+                  "briefcase",
+                  "banknote",
+                  "umbrella",
+                  "building-2"
                 ]
               },
               {
@@ -8390,6 +11157,14 @@
             "type": "array",
             "title": "Aliases"
           },
+          "members": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Members",
+            "description": "Member entity ids, for a group; else empty"
+          },
           "new_developments": {
             "type": "integer",
             "title": "New Developments",
@@ -8398,7 +11173,22 @@
           "needs_attention": {
             "type": "integer",
             "title": "Needs Attention",
-            "description": "Developments needing attention in the latest run"
+            "description": "High-priority developments in the latest run"
+          },
+          "recent": {
+            "type": "integer",
+            "title": "Recent",
+            "description": "Developments it happened to or that it did, last published in the 30 days to the run date"
+          },
+          "recent_high": {
+            "type": "integer",
+            "title": "Recent High",
+            "description": "Of those, the ones at High priority for it"
+          },
+          "new_high": {
+            "type": "integer",
+            "title": "New High",
+            "description": "High for it, first published after the last visit (else the previous run), and not read or dismissed"
           }
         },
         "type": "object",
@@ -8408,8 +11198,12 @@
           "type",
           "kind",
           "aliases",
+          "members",
           "new_developments",
-          "needs_attention"
+          "needs_attention",
+          "recent",
+          "recent_high",
+          "new_high"
         ],
         "title": "SubjectSummary"
       },
@@ -8478,6 +11272,56 @@
           "questions"
         ],
         "title": "SubjectTrend"
+      },
+      "Suggestions": {
+        "properties": {
+          "role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "regulatory_supervisor",
+                  "tech_cyber_supervisor",
+                  "development_staff",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "The dashboard name the picks suggest"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/PickerGroup"
+            },
+            "type": "array",
+            "title": "Groups"
+          },
+          "picks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Picks",
+            "description": "Subject ids ticked at the start"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "name",
+          "groups",
+          "picks"
+        ],
+        "title": "Suggestions",
+        "description": "What the subject picker shows for a role, written by code: groups in the role's order and\nthe picks ticked at the start. Without a role, every group is open and nothing is ticked."
       },
       "SummaryData": {
         "properties": {
@@ -9021,6 +11865,11 @@
           "dismissed": {
             "type": "boolean",
             "title": "Dismissed"
+          },
+          "not_relevant": {
+            "type": "boolean",
+            "title": "Not Relevant",
+            "description": "Marked as wrongly matched, kept for the eval set"
           }
         },
         "type": "object",
@@ -9028,7 +11877,8 @@
           "development_id",
           "read",
           "flagged",
-          "dismissed"
+          "dismissed",
+          "not_relevant"
         ],
         "title": "Triage"
       },
@@ -9066,11 +11916,22 @@
               }
             ],
             "title": "Dismissed"
+          },
+          "not_relevant": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Not Relevant"
           }
         },
         "type": "object",
         "title": "TriageChange",
-        "description": "Only the states given change."
+        "description": "Only the states given change. Not relevant also dismisses."
       },
       "UpcomingData": {
         "properties": {
@@ -9436,6 +12297,70 @@
         "title": "VideoPart",
         "description": "A video part."
       },
+      "Visit": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Path",
+            "description": "The page the app opened on"
+          }
+        },
+        "type": "object",
+        "required": [
+          "path"
+        ],
+        "title": "Visit"
+      },
+      "WatchItem": {
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/SubjectRef"
+          },
+          "new_high": {
+            "type": "integer",
+            "title": "New High",
+            "description": "High developments first published after `since`, not read or dismissed"
+          },
+          "month_count": {
+            "type": "integer",
+            "title": "Month Count",
+            "description": "Developments last published in the 30 days to the run"
+          },
+          "top": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DevelopmentSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The highest priority of those, then the most recent; dismissed ones skipped"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DevelopmentSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The most recent development, only when `top` is null"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "new_high",
+          "month_count",
+          "top",
+          "latest"
+        ],
+        "title": "WatchItem",
+        "description": "One entity on a dashboard's watchlist. Priorities are the entity's own."
+      },
       "WatchlistData": {
         "properties": {
           "widget_id": {
@@ -9654,7 +12579,7 @@
             },
             "type": "array",
             "title": "Developments",
-            "description": "Needing attention first, then changed this run, most material, most recent"
+            "description": "Highest priority first, then most recent"
           },
           "question_changes": {
             "items": {

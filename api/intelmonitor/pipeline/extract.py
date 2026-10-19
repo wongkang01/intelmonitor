@@ -1,21 +1,32 @@
 """Step 4: Claude extracts findings from each relevant document, and code keeps only the quotes it
-can find verbatim in the document text (findings left without one are dropped)."""
+can find verbatim in the document text (findings left without one are dropped). Each finding says
+how it involves each subject (its role, whether it reports the cause of harm to it, and the
+tone) and whether it is promotional (prd.md sections 7 and 8)."""
 
 import asyncio
 import json
 import sqlite3
 from dataclasses import dataclass
 from datetime import date
+from typing import Literal
 
 from pydantic import BaseModel
 
 from intelmonitor.pipeline.inference import ClaudeRefused, Inference, StepFailed
 from intelmonitor.pipeline.params import EXTRACT_MAX_CHARS
 from intelmonitor.pipeline.screen import CATEGORIES, Category, DocumentScreen
-from intelmonitor.pipeline.subjects import all_subjects
+from intelmonitor.pipeline.subjects import monitored_subjects
 from intelmonitor.store.documents import SourceDocument
 
 MIN_QUOTE_CHARS = 20
+
+# Affected and actor make a subject's development: it is listed, scored and flagged for them.
+# Commentator and mentioned links are kept apart and never drive a page, priority or impact.
+Role = Literal["affected", "actor", "commentator", "mentioned"]
+DIRECT_ROLES: tuple[Role, ...] = ("affected", "actor")
+Tone = Literal["positive", "negative", "neutral"]
+# Where tones disagree evenly, the more telling one wins.
+TONE_ORDER: list[Tone] = ["negative", "positive", "neutral"]
 
 
 class MentionedDate(BaseModel):
@@ -23,9 +34,25 @@ class MentionedDate(BaseModel):
     label: str
 
 
+class FindingRole(BaseModel):
+    """How a finding involves one subject, as stored per subject on the finding."""
+
+    role: Role
+    adverse: bool
+    tone: Tone
+
+
+class SubjectRole(BaseModel):
+    subject: str
+    role: Role
+    adverse: bool
+    tone: Tone
+
+
 class ExtractedFinding(BaseModel):
     statement: str
-    subjects: list[str]
+    subjects: list[SubjectRole]
+    promotional: bool
     category: Category
     event_date: str | None
     dates: list[MentionedDate]
@@ -43,7 +70,7 @@ EXTRACT_SYSTEM = (
 
 
 def extract_prompt(doc: SourceDocument, subject_ids: list[str]) -> str:
-    subjects = all_subjects()
+    subjects = monitored_subjects()
     listed = "\n".join(f"- {sid}: {subjects[sid].description}" for sid in subject_ids)
     categories = "\n".join(f"- {k}: {v}" for k, v in CATEGORIES.items())
     return f"""<document>
@@ -61,7 +88,48 @@ anything not about the listed subjects. Return no findings if nothing material i
 
 For each finding:
 - statement: one factual, self-contained sentence of at most 35 words (who did what, when).
-- subjects: the ids above that the finding is about. Use only these ids.
+- subjects: each listed subject the finding involves, with:
+  - subject: its id above. Use only these ids.
+  - role, one of:
+    - affected: the development happened to the subject or directly changes its business,
+      finances, operations or obligations, such as an outage at it, a penalty on it, its
+      results, or a rule it must follow. For a topic: a development within the topic.
+    - actor: the subject did it: decided, announced, launched, issued, bought or set policy.
+    - commentator: the subject only gives a view on something else, such as its economists'
+      forecast or its chief executive's remarks on another event.
+    - mentioned: the subject is named in passing, such as a price line in a market wrap or one
+      name in a list.
+  - adverse: true when this finding reports an event or change that harms the subject or
+    materially threatens it: the cause itself, not a reaction to it. Count it when:
+    - something happened at the subject: an outage, breach, fraud, loss, penalty,
+      enforcement action, rating downgrade, failure, a key departure under pressure;
+    - a harmful trend or change bears directly on the subject: fraud or scam cases against
+      its customers rising, defaults or NPLs rising in its book, deposits leaving it, a new
+      rule or tax that raises its costs or limits its business.
+    Ask: is this finding the cause of harm, or someone describing, forecasting or reacting
+    to harm whose cause was reported elsewhere? Only the cause is adverse. Never adverse:
+    - commentary, forecasts or outlooks, including the subject's own economists or
+      analysts on the economy or another event;
+    - market reactions and analyst views: share price moves, price-target changes,
+      "investors worry";
+    - follow-up reporting on an event already reported, unless it adds a new harm (more
+      customers affected, a penalty now imposed);
+    - good news, and anything for a commentator or a mentioned subject.
+  - tone: positive, negative or neutral, for this subject. Tone is separate from adverse: an
+    outlook can be negative in tone without being adverse.
+  For example:
+  - "DBS economists expect 2026 growth to slow on the Middle East crisis": DBS is a
+    commentator, not adverse, and as a forecast it is not adverse for a tagged country either.
+  - "DBS shares fell 2% after the outage": a reaction, not adverse; the outage finding is
+    adverse.
+  - "DBS digital banking down for 5 hours": DBS affected, adverse.
+  - "Phishing scams targeting DBS customers doubled this quarter": DBS affected, adverse.
+  - "MAS raises capital requirements for D-SIBs from 2027": DBS, OCBC and UOB affected,
+    adverse, tone negative.
+  - "Net profit rose 9% at DBS": DBS affected, not adverse, tone positive.
+- promotional: true when the finding is marketing or routine product news: a product, service
+  or campaign launch, an award, a sponsorship, a customer offer, or a pilot or partnership with
+  no material consequence yet.
 - category, one of:
 {categories}
 - event_date: the date the development happened, YYYY-MM-DD, or null if the text does not say.
@@ -140,18 +208,24 @@ class Finding:
     statement: str
     category: str
     event_date: str | None
-    subjects: list[str]
+    roles: dict[str, FindingRole]  # by subject id, in the order Claude gave them
+    promotional: bool
     quotes: list[VerifiedQuote]
     dates: list[MentionedDate]
 
 
 def verify(doc: SourceDocument, allowed: set[str], extraction: Extraction) -> list[Finding]:
-    """Keep verified quotes and known subjects; drop findings left without either."""
+    """Keep verified quotes and known subjects; drop findings left without either. Only an
+    affected subject or an actor can be adverse."""
     kept: list[Finding] = []
     for f in extraction.findings:
         quotes = [q for raw in f.quotes if (q := locate_quote(doc.text, raw))]
-        subjects = [s for s in dict.fromkeys(f.subjects) if s in allowed]
-        if not quotes or not subjects:
+        roles: dict[str, FindingRole] = {}
+        for s in f.subjects:
+            if s.subject in allowed and s.subject not in roles:
+                adverse = s.adverse and s.role in DIRECT_ROLES
+                roles[s.subject] = FindingRole(role=s.role, adverse=adverse, tone=s.tone)
+        if not quotes or not roles:
             continue
         dates = [
             MentionedDate(date=d, label=m.label) for m in f.dates if (d := _valid_date(m.date))
@@ -163,7 +237,8 @@ def verify(doc: SourceDocument, allowed: set[str], extraction: Extraction) -> li
                 statement=f.statement.strip(),
                 category=f.category,
                 event_date=_valid_date(f.event_date),
-                subjects=subjects,
+                roles=roles,
+                promotional=f.promotional,
                 quotes=quotes,
                 dates=dates,
             )
@@ -175,7 +250,7 @@ def store_findings(conn: sqlite3.Connection, doc_id: str, findings: list[Finding
     conn.execute("DELETE FROM findings WHERE document_id = ?", (doc_id,))
     conn.executemany(
         "INSERT INTO findings (id, document_id, statement, category, event_date, subjects, "
-        "quotes, dates) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "roles, promotional, quotes, dates) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
             (
                 f.id,
@@ -183,7 +258,9 @@ def store_findings(conn: sqlite3.Connection, doc_id: str, findings: list[Finding
                 f.statement,
                 f.category,
                 f.event_date,
-                json.dumps(f.subjects),
+                json.dumps(list(f.roles)),
+                json.dumps({s: r.model_dump() for s, r in f.roles.items()}),
+                int(f.promotional),
                 json.dumps([q.__dict__ for q in f.quotes]),
                 json.dumps([d.model_dump() for d in f.dates]),
             )

@@ -1,35 +1,36 @@
-// Evidence drawer over the current page. `?evidence=<development id>` shows a development's
-// sources; `?answer=<subject id>:<question id>` shows a standing question answer with the
-// developments it relies on. Build links with evidenceLink. Esc or Close drops the parameter.
-// The page's own parameters (the developments view's scope) stay as they are.
+// Evidence drawer over the current page for a standing question's answer:
+// `?answer=<subject id>:<question id>` shows the answer with the developments it relies on. A
+// development opens in its popup (components/developments/DevelopmentPopup.tsx), which also takes
+// old `?evidence=<id>` links. Build links with evidenceLink. Esc or Close drops the parameter.
 import { Link, linkOptions, useNavigate, useSearch } from "@tanstack/react-router";
-import { Fragment, useEffect, useEffectEvent, useRef, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useRef } from "react";
 
 import type { Schema } from "@/lib/api/client";
-import { useAnswerEvidence, useDevelopment } from "@/lib/api/queries";
-import { answerText, COLLECTION_LABEL, longDate, percent, plural, tagger } from "@/lib/format";
+import { useAnswerEvidence } from "@/lib/api/queries";
+import { answerText, longDate, plural } from "@/lib/format";
 import { typingIn } from "@/lib/dom";
 import { CloseButton } from "@/components/ui/Modal";
 import { Dotted, StateChange } from "@/components/monitor/parts";
-import { DevelopmentBadge } from "@/components/widgets/parts";
+import { PriorityBadge } from "@/components/developments/labels";
+import { developmentLink } from "@/components/developments/link";
+import { SourceBlock } from "@/components/developments/Sources";
 
-import { TagList, useAnswerCorrection } from "./Feedback";
-import { Notes } from "./Notes";
+import { useAnswerCorrection } from "./Feedback";
 import { factSentence, SeriesSource } from "./SeriesSource";
 import { SubjectLink } from "./SubjectLink";
 
-/** The current page with the drawer set to `open`, or closed when `open` is empty. */
-const drawerLink = (open: { evidence?: string; answer?: string }) =>
+/** The current page with the drawer set to `answer`, or closed when it is empty. */
+const drawerLink = (answer?: string) =>
   linkOptions({
     to: ".",
-    search: (prev) => ({ ...prev, evidence: open.evidence, answer: open.answer }),
+    search: (prev) => ({ ...prev, answer }),
     resetScroll: false,
   });
 
-/** Links that open the evidence drawer over the current page; spread into a Link or navigate. */
+/** Links to a development's popup or the answer drawer over the current page; spread into a Link or navigate. */
 export const evidenceLink = {
-  development: (id: string) => drawerLink({ evidence: id }),
-  answer: (subjectId: string, questionId: string) => drawerLink({ answer: `${subjectId}:${questionId}` }),
+  development: (id: string) => developmentLink(id),
+  answer: (subjectId: string, questionId: string) => drawerLink(`${subjectId}:${questionId}`),
 };
 
 function answerTarget(param: string | undefined) {
@@ -41,19 +42,15 @@ function answerTarget(param: string | undefined) {
 export function EvidenceDrawer() {
   const search = useSearch({ from: "__root__" });
   const navigate = useNavigate();
-  const developmentId = search.evidence ?? null;
   const answerParam = search.answer;
   const answer = answerTarget(answerParam);
-  const development = useDevelopment(developmentId);
-  const answerEvidence = useAnswerEvidence(developmentId ? null : answer);
+  const answerEvidence = useAnswerEvidence(answer);
   const heading = useRef<HTMLHeadingElement>(null);
-  const open = developmentId !== null || answer !== null;
-  const opened = developmentId ?? answerParam;
-  const close = () => void navigate({ ...drawerLink({}), replace: true });
+  const close = () => void navigate({ ...drawerLink(), replace: true });
   const closeOnEscape = useEffectEvent(close);
 
   useEffect(() => {
-    if (!opened) return;
+    if (!answerParam) return;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     heading.current?.focus();
     const onKey = (e: KeyboardEvent) => {
@@ -66,10 +63,9 @@ export function EvidenceDrawer() {
       document.removeEventListener("keydown", onKey);
       if (opener?.isConnected && !opener.closest(".drawer")) opener.focus();
     };
-  }, [opened]);
+  }, [answerParam]);
 
-  if (!open) return null;
-  const failed = developmentId ? development.isError : answerEvidence.isError;
+  if (answer === null) return null;
 
   return (
     <aside className="drawer" aria-labelledby="evidence-title" data-testid="evidence-drawer" data-tour="evidence">
@@ -80,9 +76,8 @@ export function EvidenceDrawer() {
         <CloseButton onClick={close} label="Close evidence" />
       </div>
       <div className="drawer-body">
-        {failed && <p className="ev-empty">Could not load this evidence.</p>}
-        {developmentId && development.data && <DevelopmentEvidence development={development.data} />}
-        {!developmentId && answerEvidence.data && <AnswerEvidenceView evidence={answerEvidence.data} />}
+        {answerEvidence.isError && <p className="ev-empty">Could not load this evidence.</p>}
+        {answerEvidence.data && <AnswerEvidenceView evidence={answerEvidence.data} />}
       </div>
     </aside>
   );
@@ -123,7 +118,7 @@ function AnswerEvidenceView({ evidence }: { evidence: Schema<"AnswerEvidence"> }
         </section>
       ))}
       {evidence.developments.map((d) => (
-        <DevelopmentEvidence key={d.id} development={d} nested />
+        <DevelopmentEvidence key={d.id} development={d} />
       ))}
     </>
   );
@@ -136,141 +131,22 @@ function basedOn({ developments, series }: Schema<"AnswerEvidence">): string {
   return cited.length ? `Based on ${cited.join(" and ")}` : "Sources";
 }
 
-/**
- * One development: badge and facts, its title, who it is tagged to, and each source with its
- * highlighted quotes. Nested inside an answer it links to its own drawer, where notes and the
- * tag list with Wrong live.
- */
-function DevelopmentEvidence({ development: d, nested = false }: { development: Schema<"DevelopmentDetail">; nested?: boolean }) {
-  const head = (
-    <>
+/** One development an answer relies on: its labels, its title opening its popup, and its sources. */
+function DevelopmentEvidence({ development: d }: { development: Schema<"DevelopmentDetail"> }) {
+  return (
+    <section className="ev-dev" aria-label={d.title}>
       <p className="ev-facts">
-        <DevelopmentBadge development={d} />
+        <PriorityBadge priority={d.priority} />
         <span className="meta">
-          <Dotted parts={[d.materiality_label, d.category, d.stage, longDate(d.last_published)]} />
+          <Dotted parts={[d.category, longDate(d.last_published)]} />
         </span>
       </p>
-      {nested ? (
-        <h5 className="ev-title">
-          <Link {...evidenceLink.development(d.id)}>
-            {d.title}
-          </Link>
-        </h5>
-      ) : (
-        <h3 className="ev-answer">{d.title}</h3>
-      )}
-      {nested ? (
-        <Confidence development={d} />
-      ) : (
-        <>
-          <p className="meta ev-conf">
-            {d.materiality_rule ? (
-              <>
-                Materiality set by rule: <span>{d.materiality_rule}</span>
-              </>
-            ) : (
-              <>
-                Materiality: <MaterialityConfidence development={d} />
-              </>
-            )}
-          </p>
-          <TagList development={d} />
-        </>
-      )}
-    </>
-  );
-  const sources = d.sources.map((s) => <Source key={s.document_id} source={s} title={d.title} />);
-  if (nested)
-    return (
-      <section className="ev-dev" aria-label={d.title}>
-        {head}
-        {sources}
-      </section>
-    );
-  return (
-    <>
-      {head}
-      <h4 className="ev-label">{plural(d.sources.length, "source")}</h4>
-      {sources}
-      <h4 className="ev-label">Notes</h4>
-      <Notes target={{ development_id: d.id }} notes={d.notes} />
-    </>
-  );
-}
-
-const confidenceWord = (x: number) => (x >= 0.7 ? "high" : x >= 0.4 ? "medium" : "low");
-
-/**
- * One line under a nested development: who it is tagged to, then materiality confidence in words
- * (percentages show on hover), or the detector whose rule set the level.
- */
-function Confidence({ development: d }: { development: Schema<"DevelopmentDetail"> }) {
-  return (
-    <p className="meta ev-conf">
-      {d.subject_confidence.length > 0 && (
-        <>
-          Tagged to{" "}
-          {d.subject_confidence.map((c, i) => (
-            <Fragment key={c.subject.id}>
-              {i > 0 && ", "}
-              <span title={`${percent(c.confidence)} confidence, tagged by ${tagger(c.source)}`}>
-                <SubjectLink subject={c.subject} />
-              </span>
-            </Fragment>
-          ))}
-          {" · "}
-        </>
-      )}
-      {d.materiality_rule ? `materiality set by rule: ${d.materiality_rule}` : <MaterialityConfidence development={d} />}
-    </p>
-  );
-}
-
-function MaterialityConfidence({ development: d }: { development: Schema<"DevelopmentDetail"> }) {
-  return (
-    <span title={`Materiality confidence ${percent(d.materiality_confidence)}`}>
-      {confidenceWord(d.materiality_confidence)} confidence
-    </span>
-  );
-}
-
-/** One source with its findings; a detector's document is its series, with the event highlighted. */
-function Source({ source: s, title }: { source: Schema<"EvidenceSource">; title: string }) {
-  if (s.series) {
-    const sentence = s.findings.find((f) => f.statement !== title)?.statement ?? null;
-    return <SeriesSource chart={s.series} known={s.published_at} sentence={sentence} newInRun={s.new_in_run} />;
-  }
-  const kind = s.doc_type.toLowerCase() === s.collection ? COLLECTION_LABEL[s.collection] : `${COLLECTION_LABEL[s.collection]}, ${s.doc_type}`;
-  return (
-    <article className="source">
-      <a href={s.url} target="_blank" rel="noreferrer">
-        {s.title}
-      </a>
-      <p className="meta">
-        <Dotted parts={[longDate(s.published_at), kind, s.domain, s.new_in_run && "new this run"]} />
-      </p>
-      {s.findings.map((f) => (
-        <div key={f.id} className="finding">
-          {f.statement !== title && <p>{f.statement}</p>}
-          <blockquote>
-            <Highlighted passage={f.passage} />
-          </blockquote>
-        </div>
+      <h5 className="ev-title">
+        <Link {...developmentLink(d.id)}>{d.title}</Link>
+      </h5>
+      {d.sources.map((s) => (
+        <SourceBlock key={s.document_id} source={s} title={d.title} />
       ))}
-    </article>
+    </section>
   );
-}
-
-/** A passage with its quote spans wrapped in <mark>, and an ellipsis where the document goes on. */
-function Highlighted({ passage }: { passage: Schema<"Passage"> }) {
-  const parts: ReactNode[] = [passage.clipped_start && "…"];
-  let at = 0;
-  for (const h of [...passage.highlights].sort((a, b) => a.start - b.start)) {
-    if (h.start < at) continue;
-    parts.push(passage.text.slice(at, h.start));
-    parts.push(<mark key={h.start}>{passage.text.slice(h.start, h.end)}</mark>);
-    at = h.end;
-  }
-  parts.push(passage.text.slice(at), passage.clipped_end && "…");
-  return <>{parts}</>;
 }

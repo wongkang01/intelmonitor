@@ -5,11 +5,12 @@ import { Link } from "@tanstack/react-router";
 import { Fragment, type ReactNode } from "react";
 
 import type { Schema } from "@/lib/api/client";
-import { plural, shortDate, STATE_LABEL, STATE_TONE, type State } from "@/lib/format";
+import { shortDate, STATE_LABEL, STATE_TONE, type State } from "@/lib/format";
 import type { WidgetLink } from "@/lib/widgets";
 import { evidenceLink } from "@/components/shell/Evidence";
 import { SubjectLinks } from "@/components/shell/SubjectLink";
 import { Dotted } from "@/components/monitor/parts";
+import { ChangeMark, PriorityBadge, sourceCountText } from "@/components/developments/labels";
 
 /** Widget header: 12px grey title top-left, optional link target, meta on the right. */
 export function Head({
@@ -69,15 +70,18 @@ export function StateWords({ answer }: { answer: Schema<"QuestionAnswerView"> })
   );
 }
 
+/** A development's priority badge, then New or Updated (prd.md section 12: one label per question). */
 export function DevelopmentBadge({ development: d }: { development: Schema<"DevelopmentSummary"> }) {
-  if (d.needs_attention) return <span className="badge b-attn">Needs attention</span>;
-  if (d.change === "new") return <span className="badge b-new">New</span>;
-  if (d.change === "updated") return <span className="badge b-neutral">Updated</span>;
-  return null;
+  return (
+    <>
+      <PriorityBadge priority={d.priority} />
+      <ChangeMark change={d.change} />
+    </>
+  );
 }
 
 /**
- * A development as a list row that opens its evidence: status column, title (two lines at most),
+ * A development as a list row that opens its popup: status column, title (two lines at most),
  * a meta line, and the date right-aligned. Subject names link to their pages; pass `subjects` to
  * name others (a group's members) than the development's first two. Widgets pass `meta={false}`
  * for the compact row, and `status={false}` when a group label above the rows carries the status.
@@ -135,7 +139,7 @@ export function DevelopmentRow({
                   </Fragment>
                 ),
                 d.category,
-                plural(d.source_count, "source"),
+                sourceCountText(d),
               ]}
             />
           </span>

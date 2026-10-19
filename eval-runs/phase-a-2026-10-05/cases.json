@@ -1,0 +1,52 @@
+[
+  {
+    "id": "dbs-economists-middle-east",
+    "run_id": "2026-10-08",
+    "ok": true,
+    "findings": [
+      "1530c1f6f8a5346d-4 {\"singapore-equities\": {\"role\": \"affected\", \"adverse\": false, \"tone\": \"negative\"}}: UOB Kay Hian downgraded Singapore Airlines to \"sell\", cut its price target to $6.16 and lowered its second-quarter profit guidance, and SIA shares fell 2.25 per cent to $6.51."
+    ],
+    "detail": "not adverse",
+    "reason": "DBS economists' view on the Middle East crisis is commentary, not the cause of harm to DBS"
+  },
+  {
+    "id": "dbs-share-move",
+    "run_id": "2026-10-08",
+    "ok": true,
+    "findings": [
+      "1530c1f6f8a5346d-1 {\"uob\": {\"role\": \"affected\", \"adverse\": false, \"tone\": \"positive\"}, \"dbs\": {\"role\": \"affected\", \"adverse\": false, \"tone\": \"neutral\"}, \"singapore-equities\": {\"role\": \"affected\", \"adverse\": false, \"tone\": \"neutral\"}}: In the week to Sept 18, UOB shares rose about 1.26 per cent to $41.78 while DBS slipped 0.18 per cent to $76.86 and OCBC fell 0.7 per cent."
+    ],
+    "detail": "not adverse",
+    "reason": "A 0.18% share move in a weekly market wrap is a market reaction, not adverse"
+  },
+  {
+    "id": "dbs-profit-rise",
+    "run_id": "2026-10-08",
+    "ok": true,
+    "findings": [
+      "8a3ae517d4e1e649-3 {\"dbs\": {\"role\": \"affected\", \"adverse\": false, \"tone\": \"neutral\"}, \"ocbc\": {\"role\": \"affected\", \"adverse\": false, \"tone\": \"neutral\"}, \"uob\": {\"role\": \"affected\", \"adverse\": false, \"tone\": \"neutral\"}}: In the second quarter, net interest income fell at DBS (2%), OCBC (1%) and UOB (2%), yet net profits rose 9%, 22% and 10% respectively."
+    ],
+    "detail": "not adverse",
+    "reason": "A 9% rise in quarterly net profit is good news, not adverse"
+  },
+  {
+    "id": "dbs-share-move-low",
+    "run_id": "2026-10-08",
+    "ok": true,
+    "findings": [
+      "1530c1f6f8a5346d-1 {\"uob\": {\"role\": \"affected\", \"adverse\": false, \"tone\": \"positive\"}, \"dbs\": {\"role\": \"affected\", \"adverse\": false, \"tone\": \"neutral\"}, \"singapore-equities\": {\"role\": \"affected\", \"adverse\": false, \"tone\": \"neutral\"}}: In the week to Sept 18, UOB shares rose about 1.26 per cent to $41.78 while DBS slipped 0.18 per cent to $76.86 and OCBC fell 0.7 per cent."
+    ],
+    "detail": "1530c1f6f8a5346d-1 dbs: Low (affected); 1530c1f6f8a5346d-1 singapore-equities: Low (affected); 1530c1f6f8a5346d-1 uob: Low (affected)",
+    "reason": "A 0.18% share move in a weekly market wrap is routine"
+  },
+  {
+    "id": "ubs-capital-vote",
+    "run_id": "2026-10-08",
+    "ok": true,
+    "findings": [
+      "ed7d0023d140a394-0 {\"banking-regulation\": {\"role\": \"affected\", \"adverse\": false, \"tone\": \"neutral\"}}: Switzerland's upper house of parliament voted on 23 September 2026 for capital rules requiring UBS to back its foreign units with 90% CET1 capital, against the bank's lobbying."
+    ],
+    "detail": "ed7d0023d140a394-0 banking-regulation: Medium (affected)",
+    "reason": "A Swiss parliamentary vote on UBS's capital rules has no route to the Singapore banks"
+  }
+]

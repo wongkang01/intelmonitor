@@ -1,0 +1,34 @@
+{
+ "group": "brief_judge",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "claims": [
+   {
+    "point": 1,
+    "supported": true,
+    "reason": "679ece21a96862f6-0 reports Citi downgrading OCBC to sell on 7 Oct and reiterating its sell on UOB. The series event gives UOB's 2.93% fall on 7 Oct as its biggest daily move and says the link to OCBC is timing only. The 'why it matters' is a fair reading: a sentiment hit, not a change in UOB's finances."
+   },
+   {
+    "point": 2,
+    "supported": true,
+    "reason": "84f1a66d9fa57aca-2 supports the overweight call, UOB ranked second with a buy, and UOB as a likely beneficiary of rising rates. 'Brokers are split' follows from Citi's sell versus RHB's buy. The Macquarie rate-sensitivity upgrade appears in the previous week's bottom line."
+   }
+  ],
+  "top_high": [],
+  "consistent": true,
+  "consistency_reason": "This week's evidence is only broker views, a share price fall and indirect regulatory or macro items, with no incident, loss or enforcement at UOB. 'Unchanged' fits. The bottom line presents the earlier financings as background framing, not as this week's news.",
+  "stale_or_other": [],
+  "verdict": "This is an accurate, well-supported brief. It correctly treats the Citi and RHB broker views and the 7 Oct share fall as sentiment, not a change at UOB. It keeps OCBC's downgrade separate from UOB's own position and names the TLAC and One Raffles Place indirect items."
+ },
+ "usage": {
+  "cost_usd": 0.116533,
+  "input_tokens": 12133,
+  "output_tokens": 1030,
+  "duration_ms": 10826,
+  "turns": 2
+ }
+}

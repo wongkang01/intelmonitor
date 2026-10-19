@@ -1,48 +1,109 @@
-# Subjects tracked by the POC: 3 topics, 5 groups, 22 entities (30 subjects).
+# Subjects tracked by the POC: 10 topics and 47 entities, in 9 groups.
+# Topics and entities are monitored. Groups are peer sets: sidebar headings, dashboard watchlists
+# (a dashboard listing a group shows its members), peer comparison and search queries; nothing is
+# screened for or tagged to a group (phase1-decisions.md, S3).
 # Every entity sits in at least one group; every group links to at least one topic.
 # Aliases drive entity resolution and search query generation. Domains are the subject's own
 # site, used for gap searches limited to that domain.
+# Entity ids that are relationship targets match the ids in seed/collected/, so the relationship
+# store can link them (china there is mainland-china here).
+# Screening's cache key includes every subject's description, so any change here re-screens the
+# whole corpus. An entity's optional `covers` says what counts as news about it, or what does not.
 
 topics:
   - id: banking-regulation
     name: Banking regulation
-    covers: Basel III implementation, capital and liquidity, AML/CFT, operational and technology resilience, supervisory enforcement
-    keywords: [Basel III, capital requirements, liquidity coverage ratio, AML/CFT, anti-money laundering, operational resilience, technology risk, supervisory enforcement, bank penalty]
+    covers: Prudential rules for banks (Basel III, capital, liquidity, large exposures, recovery and resolution), AML/CFT, and supervisory findings, penalties and enforcement against banks
+    keywords: [Basel III, capital requirements, liquidity coverage ratio, AML/CFT, anti-money laundering, supervisory enforcement, bank penalty]
     icon: landmark
-  - id: geopolitics
-    name: Geopolitics
-    covers: US-China relations, tariffs, sanctions and export controls, South China Sea, regional security events with financial effects
-    keywords: [US-China relations, tariffs, sanctions, export controls, South China Sea, regional security, trade war]
-    icon: globe
-  - id: stablecoins
-    name: Stablecoins
-    covers: Stablecoin regulation and licensing, reserves and pegs, issuer activity, bank involvement, tokenised deposits
-    keywords: [stablecoin regulation, stablecoin licensing, stablecoin reserves, depeg, stablecoin issuer, tokenised deposits, tokenization]
-    icon: coins
+  - id: tech-outages
+    name: IT outages
+    covers: Unplanned IT outages and degraded service at financial institutions and their systems (digital banking, ATMs, payments, trading, clearing) or at the cloud, data centre, telco and software providers they rely on, even when the outage also hit other sectors; recovery against MAS downtime limits, root causes and supervisory penalties
+    keywords: [bank outage, service disruption, digital banking outage, system outage, data centre outage, ATM outage, payment disruption, trading halt, unscheduled downtime, recovery time objective]
+    icon: server
+  - id: cyber-threats
+    name: Cyber threats
+    covers: Cyberattacks, ransomware, data breaches and extortion, state-linked threat campaigns, exploited vulnerabilities and zero-days, DDoS, AI-enabled attacks and deepfake impersonation, hitting financial institutions, their vendors or critical infrastructure in Singapore or overseas
+    keywords: [cyberattack, ransomware, data breach, APT, UNC3886, zero-day, vulnerability exploited, DDoS, deepfake fraud, AI-enabled attack, post-quantum]
+    icon: shield
+  - id: third-party-risk
+    name: Third-party and cloud risk
+    covers: Financial institutions' dependence on cloud, data centre, software, telco and outsourced service providers; concentration risk; outsourcing and third-party risk rules and oversight; how a vendor's outage or breach spreads to the institutions that use it
+    keywords: [cloud outage, third-party risk, vendor breach, outsourcing, concentration risk, supply chain attack, critical third parties, data centre]
+    icon: network
+  - id: tech-risk-regulation
+    name: Technology risk regulation
+    covers: MAS Technology Risk Management Guidelines and Notices, cyber hygiene, incident reporting, business continuity, third-party risk guidelines, AI risk management, Cybersecurity Act and CII codes, and peer rules such as EU DORA, UK critical third parties, BCBS, FSB and CPMI standards
+    keywords: [technology risk management, TRM notice, cyber hygiene, incident reporting, business continuity, DORA, operational resilience, Cybersecurity Act, AI risk management]
+    icon: scale
+  - id: singapore-equities
+    name: Singapore equities market
+    covers: SGX listings, IPOs, delistings and privatisations, secondary and Global Listing Board dual listings, Equities Market Review Group and EQDP measures, valuations, liquidity, market making and research coverage, and competition from other Asian exchanges
+    keywords: [SGX IPO, SGX listing, delisting, Global Listing Board, dual listing, EQDP, Equities Market Review Group, Value Unlock, STI, market making, Catalist]
+    icon: trending-up
+  - id: asset-management
+    name: Asset management
+    covers: Fund management industry in Singapore and Asia, AUM and flows, fund launches and domiciliation (VCC), manager relocations and hiring, ETFs, private markets and private credit, fund tax incentives, and rival hubs
+    keywords: [assets under management, fund management, VCC, fund domiciliation, ETF launch, private credit, private equity, family office, fund tax incentive]
+    icon: briefcase
+  - id: fixed-income-fx
+    name: Fixed income and FX
+    covers: Bond issuance and listing in Singapore (SGS, corporate, Asian G3, green bonds), FX, rates and commodity derivatives volumes, and global rate or FX moves that shift Singapore market activity
+    keywords: [bond issuance, SGS, Asian dollar bond, green bond, FX turnover, FX derivatives, interest rate derivatives, commodity derivatives]
+    icon: banknote
+  # The FMD session tests one of the next two (phase1-plan.md, Q7); the other is parked at the gate.
+  - id: insurance-risk-financing
+    name: Insurance and risk financing
+    covers: Insurance and reinsurance hub activity, insurance-linked securities and catastrophe bonds, captives and protected cell companies, reinsurer entry or exit, Asian protection gaps and natural catastrophe losses
+    keywords: [catastrophe bond, insurance-linked securities, reinsurance, captive insurance, protected cell company, protection gap, natural catastrophe losses]
+    icon: umbrella
+  - id: infrastructure-finance
+    name: Infrastructure and transition finance
+    covers: Financing of Asian infrastructure and energy transition, project and blended finance (FAST-P), green and transition bonds and loans, ASEAN Power Grid, and insurer or institutional investment in infrastructure
+    keywords: [infrastructure finance, project finance, blended finance, FAST-P, transition finance, ASEAN Power Grid, green loan, infrastructure bond]
+    icon: building-2
 
 groups:
   - id: singapore-banks
     name: Singapore banks
-    topics: [banking-regulation, stablecoins, geopolitics]
+    topics: [banking-regulation, tech-outages, cyber-threats, third-party-risk]
     members: [dbs, ocbc, uob]
-  - id: sea-regional-banks
-    name: SEA regional banks
-    topics: [banking-regulation, geopolitics]
-    members: [maybank, cimb, bangkok-bank]
   - id: central-banks
-    name: Central banks
-    topics: [banking-regulation, stablecoins]
-    members: [mas, fed, ecb, pboc, hkma, bnm]
-  - id: stablecoin-issuers
-    name: Stablecoin issuers
-    topics: [stablecoins]
-    members: [circle, tether, paxos, straitsx]
+    name: Central banks and regulators
+    topics: [banking-regulation, tech-risk-regulation, fixed-income-fx]
+    members: [mas, hkma, bnm, bank-of-thailand, ojk]
+  - id: exchanges
+    name: Exchanges
+    topics: [singapore-equities, fixed-income-fx, tech-outages]
+    members: [sgx, hkex]
+  - id: payment-systems
+    name: Payment systems
+    topics: [tech-outages, cyber-threats]
+    members: [meps-plus, fast, paynow, giro, nets, bcs, swift, visa, mastercard]
+  - id: tech-providers
+    name: Technology providers
+    topics: [tech-outages, cyber-threats, third-party-risk]
+    members: [aws, microsoft-azure, microsoft-365, google-cloud, oracle-cloud, equinix, crowdstrike, singtel, thought-machine, toppan-next-tech]
+  # Exchange hacks and outages, custody and reserve bank concentration, AML/CFT enforcement.
+  - id: digital-assets
+    name: Digital assets
+    topics: [cyber-threats, tech-outages, third-party-risk, banking-regulation]
+    members: [circle, straitsx, okx, coinbase]
   - id: sea-countries
     name: SEA countries
-    topics: [geopolitics]
-    members: [singapore, malaysia, indonesia, thailand, vietnam, philippines]
+    topics: [banking-regulation, fixed-income-fx, infrastructure-finance]
+    members: [singapore, malaysia, indonesia, thailand, vietnam]
+  - id: other-countries
+    name: Other countries and territories
+    topics: [banking-regulation, fixed-income-fx]
+    members: [hong-kong, mainland-china, taiwan, india, united-kingdom, australia, south-korea]
+  - id: sectors
+    name: Sectors
+    topics: [banking-regulation]
+    members: [building-construction, housing]
 
-# kind selects the entity question set in questions.yaml.
+# kind sets how the models are told what the entity is (pipeline/subjects.py) and which question
+# set in questions.yaml applies.
 entities:
   - id: dbs
     name: DBS
@@ -51,6 +112,7 @@ entities:
     domains: [dbs.com]
     logo: /logos/dbs.svg
     logo_full: /logos/full/dbs.svg
+    home: singapore
   - id: ocbc
     name: OCBC
     kind: bank
@@ -58,6 +120,7 @@ entities:
     domains: [ocbc.com]
     logo: /logos/ocbc.svg
     logo_full: /logos/full/ocbc.svg
+    home: singapore
   - id: uob
     name: UOB
     kind: bank
@@ -65,27 +128,7 @@ entities:
     domains: [uobgroup.com]
     logo: /logos/uob.svg
     logo_full: /logos/full/uob.svg
-  - id: maybank
-    name: Maybank
-    kind: bank
-    aliases: [Malayan Banking, Malayan Banking Berhad, Maybank Group]
-    domains: [maybank.com]
-    logo: /logos/maybank.svg
-    logo_full: /logos/full/maybank.svg
-  - id: cimb
-    name: CIMB
-    kind: bank
-    aliases: [CIMB Group, CIMB Group Holdings, CIMB Bank]
-    domains: [cimb.com]
-    logo: /logos/cimb.svg
-    logo_full: /logos/full/cimb.svg
-  - id: bangkok-bank
-    name: Bangkok Bank
-    kind: bank
-    aliases: [Bangkok Bank PCL, Bangkok Bank Public Company Limited, BBL]
-    domains: [bangkokbank.com]
-    logo: /logos/bangkok-bank.svg
-    logo_full: /logos/full/bangkok-bank.svg
+    home: singapore
 
   - id: mas
     name: MAS
@@ -94,27 +137,6 @@ entities:
     domains: [mas.gov.sg]
     logo: /logos/mas.svg
     logo_full: /logos/full/mas.svg
-  - id: fed
-    name: Fed
-    kind: central_bank
-    aliases: [Federal Reserve, Federal Reserve Board, Federal Reserve System, FOMC, US Federal Reserve]
-    domains: [federalreserve.gov]
-    logo: /logos/fed.svg
-    logo_full: /logos/full/fed.svg
-  - id: ecb
-    name: ECB
-    kind: central_bank
-    aliases: [European Central Bank, ECB Banking Supervision, SSM]
-    domains: [ecb.europa.eu, bankingsupervision.europa.eu]
-    logo: /logos/ecb.svg
-    logo_full: /logos/full/ecb.svg
-  - id: pboc
-    name: PBoC
-    kind: central_bank
-    aliases: [People's Bank of China, PBOC]
-    domains: [pbc.gov.cn]
-    logo: /logos/pboc.png
-    logo_full: /logos/full/pboc.png
   - id: hkma
     name: HKMA
     kind: central_bank
@@ -129,35 +151,167 @@ entities:
     domains: [bnm.gov.my]
     logo: /logos/bnm.svg
     logo_full: /logos/full/bnm.svg
+  - id: bank-of-thailand
+    name: Bank of Thailand
+    kind: central_bank
+    aliases: [BOT]
+    domains: [bot.or.th]
+  - id: ojk
+    name: OJK
+    kind: regulator
+    aliases: [Otoritas Jasa Keuangan, Indonesian Financial Services Authority]
+    domains: [ojk.go.id]
 
+  - id: sgx
+    name: SGX
+    kind: market_infrastructure
+    aliases: [Singapore Exchange, SGX Group, SGX RegCo, SGX-CDP]
+    domains: [sgx.com]
+  - id: hkex
+    name: HKEX
+    kind: market_infrastructure
+    aliases: [Hong Kong Exchanges and Clearing, Hong Kong stock exchange]
+    domains: [hkex.com.hk]
+
+  - id: meps-plus
+    name: MEPS+
+    kind: payment_system
+    aliases: [MAS Electronic Payment System, MEPS Plus, MEPS]
+    covers: Singapore's real-time gross settlement system for interbank Singapore dollar payments and government securities, run by MAS
+    domains: []
+  - id: fast
+    name: FAST
+    kind: payment_system
+    aliases: [Fast And Secure Transfers]
+    covers: Singapore's real-time interbank funds transfer system, which also carries PayNow
+    domains: [abs.org.sg]
+  - id: paynow
+    name: PayNow
+    kind: payment_system
+    aliases: [PayNow Corporate, PayNow QR]
+    covers: Singapore's instant transfer service addressed by mobile number, NRIC or UEN, and its links with other countries' fast payment systems
+    domains: [abs.org.sg]
+  - id: giro
+    name: GIRO
+    kind: payment_system
+    aliases: [Interbank GIRO, IBG, Inter-bank GIRO]
+    covers: Singapore's interbank direct debit and credit system, including eGIRO
+    domains: [abs.org.sg]
+  - id: nets
+    name: NETS
+    kind: payment_system
+    aliases: [Network for Electronic Transfers, NETS Group]
+    covers: Singapore's electronic payment network for debit cards, ATMs and QR payments
+    domains: [nets.com.sg]
+  - id: bcs
+    name: Banking Computer Services
+    kind: payment_system
+    aliases: [BCS, Banking Computer Services Pte Ltd]
+    covers: the Singapore company that runs the interbank clearing house behind cheque clearing, GIRO and FAST
+    domains: []
+  - id: swift
+    name: SWIFT
+    kind: payment_system
+    aliases: [Society for Worldwide Interbank Financial Telecommunication, Swift]
+    covers: the global messaging network banks use for cross-border payments
+    domains: [swift.com]
+  - id: visa
+    name: Visa
+    kind: payment_system
+    aliases: [Visa Inc]
+    covers: the card payment network
+    domains: [visa.com]
+  - id: mastercard
+    name: Mastercard
+    kind: payment_system
+    aliases: [Mastercard Inc]
+    covers: the card payment network
+    domains: [mastercard.com]
+
+  - id: aws
+    name: AWS
+    kind: tech_provider
+    aliases: [Amazon Web Services]
+    domains: [aws.amazon.com]
+  - id: microsoft-azure
+    name: Microsoft Azure
+    kind: tech_provider
+    aliases: [Azure]
+    covers: Microsoft's cloud computing platform, its regions, services, outages and incidents
+    domains: [azure.microsoft.com, azure.status.microsoft]
+  - id: microsoft-365
+    name: Microsoft 365
+    kind: tech_provider
+    aliases: [Office 365, M365]
+    covers: Microsoft's productivity and collaboration services (Outlook, Teams, Exchange Online, SharePoint, OneDrive), their outages, incidents and security events, and their effect on the organisations that use them
+    domains: []
+  - id: google-cloud
+    name: Google Cloud
+    kind: tech_provider
+    aliases: [Google Cloud Platform, GCP]
+    domains: [cloud.google.com]
+  - id: oracle-cloud
+    name: Oracle Cloud
+    kind: tech_provider
+    aliases: [Oracle Cloud Infrastructure, OCI, Oracle Exadata]
+    domains: [oracle.com, oraclecloud.com]
+  - id: equinix
+    name: Equinix
+    kind: tech_provider
+    aliases: [Equinix data centre]
+    domains: [equinix.com]
+  - id: crowdstrike
+    name: CrowdStrike
+    kind: tech_provider
+    aliases: [CrowdStrike Falcon]
+    domains: [crowdstrike.com]
+  - id: singtel
+    name: Singtel
+    kind: tech_provider
+    aliases: [Singapore Telecommunications]
+    domains: [singtel.com]
+  - id: thought-machine
+    name: Thought Machine
+    kind: tech_provider
+    aliases: [Vault Core]
+    domains: [thoughtmachine.net]
+  - id: toppan-next-tech
+    name: Toppan Next Tech
+    kind: tech_provider
+    aliases: [Toppan Next Tech Pte Ltd]
+    domains: []
+
+  # Stablecoin issuers and crypto platforms with MAS-licensed units (seed/collected/ftig-links.yaml).
   - id: circle
     name: Circle
     kind: stablecoin_issuer
-    aliases: [Circle Internet Financial, Circle Internet Group, USDC, EURC]
+    aliases: [Circle Internet Group, Circle Internet Financial, Circle Internet Singapore, CRCL, USDC, USD Coin, EURC, Circle Payments Network, Circle Reserve Fund]
     domains: [circle.com]
+    covers: "Circle Internet Group, the NYSE-listed issuer of the USDC and EURC stablecoins: its reserves and attestations, licences (including its Singapore entity), distribution deals, Arc blockchain, and USDC depegs, freezes and enforcement; not circle shapes, Circle K stores, the Circles.Life telco or the Circle MRT line"
     logo: /logos/circle.svg
     logo_full: /logos/full/circle.svg
-  - id: tether
-    name: Tether
-    kind: stablecoin_issuer
-    aliases: [Tether Holdings, Tether Limited, USDT]
-    domains: [tether.to]
-    logo: /logos/tether.svg
-    logo_full: /logos/full/tether.svg
-  - id: paxos
-    name: Paxos
-    kind: stablecoin_issuer
-    aliases: [Paxos Trust Company, USDP, PYUSD, USDG]
-    domains: [paxos.com]
-    logo: /logos/paxos.svg
-    logo_full: /logos/full/paxos.svg
   - id: straitsx
     name: StraitsX
     kind: stablecoin_issuer
-    aliases: [XSGD, XUSD, Xfers]
+    # Fazz is left out: its news is mostly Indonesian agent banking.
+    aliases: [StraitsX Group, Xfers, Xfers Pte Ltd, XSGD, XUSD, XIDR, StraitsX SGD Issuance, StraitsX USD Issuance, StraitsX Payment Services]
     domains: [straitsx.com]
+    covers: "StraitsX, the Singapore stablecoin issuer and payments firm behind XSGD, XUSD and XIDR, formerly Xfers and part of the Fazz group, including its MAS licences, reserves, card issuing and partnerships; not the Straits Times, Straits Trading, the Malacca Strait or other companies named Straits"
     logo: /logos/straitsx.svg
     logo_full: /logos/full/straitsx.svg
+    home: singapore
+  - id: okx
+    name: OKX
+    kind: digital_asset_firm
+    aliases: [OKX SG, OKX Singapore, OKX SG Pte Ltd, OKEx, Aux Cayes Fintech, OKX Middle East, OKX Europe, OKX Pay, OKX Wallet, OKB, X Layer, OKXICE]
+    domains: [okx.com]
+    covers: "OKX, the global crypto exchange and Web3 wallet group (formerly OKEx), and its licensed entities including OKX SG in Singapore; its products such as OKX Pay, OKX Card, OKX Wallet, the OKB token and the X Layer blockchain; and its licences, enforcement, hacks, outages and funding; not the word 'ok' or unrelated companies with OK in their name"
+  - id: coinbase
+    name: Coinbase
+    kind: digital_asset_firm
+    aliases: [Coinbase Global, Coinbase Global Inc, Coinbase Inc, Coinbase Singapore, Coinbase Exchange, Coinbase International Exchange, Coinbase Custody, Coinbase Prime, Deribit]
+    domains: [coinbase.com]
+    covers: "Coinbase Global, the Nasdaq-listed crypto exchange, custodian and USDC partner, including Coinbase Singapore, Deribit and its Base network; its licences, enforcement, outages, data breaches, earnings and stablecoin revenue; not the generic word base or unrelated coin businesses"
 
   - id: singapore
     name: Singapore
@@ -194,10 +348,52 @@ entities:
     domains: [gov.vn]
     logo: /logos/vietnam.svg
     logo_full: /logos/full/vietnam.svg
-  - id: philippines
-    name: Philippines
+  - id: hong-kong
+    name: Hong Kong
     kind: country
-    aliases: [Republic of the Philippines]
-    domains: [gov.ph]
-    logo: /logos/philippines.svg
-    logo_full: /logos/full/philippines.svg
+    aliases: [Hong Kong SAR, HKSAR, HK]
+    domains: [gov.hk]
+  - id: mainland-china
+    name: Mainland China
+    kind: country
+    aliases: [China, PRC, People's Republic of China]
+    covers: news only about Hong Kong, Macau or Taiwan is not about Mainland China
+    domains: [gov.cn]
+  - id: taiwan
+    name: Taiwan
+    kind: country
+    aliases: []
+    domains: [gov.tw]
+  - id: india
+    name: India
+    kind: country
+    aliases: [Republic of India]
+    domains: [gov.in]
+  - id: united-kingdom
+    name: United Kingdom
+    kind: country
+    aliases: [UK, Britain]
+    domains: [gov.uk]
+  - id: australia
+    name: Australia
+    kind: country
+    aliases: []
+    domains: [gov.au]
+  - id: south-korea
+    name: South Korea
+    kind: country
+    aliases: [Republic of Korea, Korea]
+    covers: news only about North Korea is not about South Korea
+    domains: [go.kr]
+
+  # Lending sectors in the banks' loan books (seed/collected/bank-exposures.yaml).
+  - id: building-construction
+    name: Real estate and construction
+    kind: sector
+    aliases: [property market, real estate, property developers, building and construction, construction]
+    domains: []
+  - id: housing
+    name: Housing
+    kind: sector
+    aliases: [residential property, housing market, home prices, housing loans, mortgages]
+    domains: []

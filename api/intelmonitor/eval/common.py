@@ -40,13 +40,12 @@ EXPOSURE_TEXT = (
 )
 EXPOSURE_ID = "uob/custom.exposure"
 
-# (subject, standing question): topic, group and entity scopes; 7-day news flow, 30-day state,
-# a series-driven question with numbers, and an incident question on a bank.
+# (subject, standing question): topic and entity scopes; 7-day news flow, 30-day state, and an
+# incident question on a bank. The phase A run also asked a geopolitics question and two group
+# questions; their subjects are parked and groups get no questions (phase1-decisions.md, S2 and
+# S3), so they are left out and their cached answers are no longer scored.
 STANDING = [
     ("banking-regulation", "topic.new-developments"),
-    ("geopolitics", "geopolitics.financial-channels"),
-    ("singapore-banks", "group.peer-moves"),
-    ("sea-regional-banks", "group.common-issues"),
     ("mas", "central-bank.regulation"),
     ("ocbc", "bank.incidents"),
 ]
@@ -89,7 +88,7 @@ EXPOSURE_CONFIG = EVAL_DIR / "v2" / "exposure-config.json"
 
 
 def all_questions() -> list[EvalQuestion]:
-    """The 6 standing questions and, once V2 has drafted it, the exposure question as the custom
+    """The standing questions and, once V2 has drafted it, the exposure question as the custom
     path worded it (question and lookback)."""
     out = standing_questions()
     if EXPOSURE_CONFIG.exists():
@@ -107,7 +106,7 @@ def all_questions() -> list[EvalQuestion]:
     return out
 
 
-# ---- the shared answer format (eval-plan.md, "Code needed")
+# ---- the shared answer format (docs/archive/eval-plan.md, "Code needed")
 
 
 class Citation(BaseModel):

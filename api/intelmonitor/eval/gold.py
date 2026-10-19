@@ -1,5 +1,5 @@
-"""Silver gold: Opus 5.5 stands in for the analyst (eval-plan.md, "Gold set"). Built after the
-variants have answered and before any judging, blind to which variant cited what.
+"""Silver gold: Opus 5.5 stands in for the analyst (docs/archive/eval-plan.md, "Gold set"). Built
+after the variants have answered and before any judging, blind to which variant cited what.
 
 1. Pool per question, by script: documents any variant cites, documents an independent Opus pass
    over the raw window marks as about the subject (title and opening only, no pipeline tags), and
@@ -46,10 +46,7 @@ SCREEN_CHARS = 800
 GOLD_CHARS = 1500
 SCREEN_BATCH = 40
 KEYWORD_HITS = 25
-CONSISTENCY_QUESTIONS = [
-    "banking-regulation/topic.new-developments",
-    "singapore-banks/group.peer-moves",
-]
+CONSISTENCY_QUESTIONS = ["banking-regulation/topic.new-developments"]
 
 # The exposure question asks about markets, not about UOB itself, so the screen also marks
 # documents on adverse developments in the markets UOB lends to.

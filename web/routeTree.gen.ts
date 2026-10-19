@@ -10,13 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AskRouteImport } from './routes/ask'
 import { Route as DevelopmentsRouteImport } from './routes/developments'
+import { Route as SetupRouteImport } from './routes/setup'
 import { Route as DashboardsIdRouteImport } from './routes/dashboards/$id'
+import { Route as DevelopmentsIdRouteImport } from './routes/developments_.$id'
 import { Route as MonitorsIdIndexRouteImport } from './routes/monitors/$id/index'
 import { Route as MonitorsIdConnectionsRouteImport } from './routes/monitors/$id/connections'
 import { Route as MonitorsIdDataRouteImport } from './routes/monitors/$id/data'
 import { Route as MonitorsIdDevelopmentsRouteImport } from './routes/monitors/$id/developments'
 import { Route as MonitorsIdGraphRouteImport } from './routes/monitors/$id/graph'
+import { Route as MonitorsIdRelatedRouteImport } from './routes/monitors/$id/related'
 import { Route as MonitorsIdTrendRouteImport } from './routes/monitors/$id/trend'
 
 const IndexRoute = IndexRouteImport.update({
@@ -24,14 +28,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AskRoute = AskRouteImport.update({
+  id: '/ask',
+  path: '/ask',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevelopmentsRoute = DevelopmentsRouteImport.update({
   id: '/developments',
   path: '/developments',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SetupRoute = SetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardsIdRoute = DashboardsIdRouteImport.update({
   id: '/dashboards/$id',
   path: '/dashboards/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevelopmentsIdRoute = DevelopmentsIdRouteImport.update({
+  id: '/developments_/$id',
+  path: '/developments/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MonitorsIdIndexRoute = MonitorsIdIndexRouteImport.update({
@@ -59,6 +78,11 @@ const MonitorsIdGraphRoute = MonitorsIdGraphRouteImport.update({
   path: '/monitors/$id/graph',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MonitorsIdRelatedRoute = MonitorsIdRelatedRouteImport.update({
+  id: '/monitors/$id/related',
+  path: '/monitors/$id/related',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MonitorsIdTrendRoute = MonitorsIdTrendRouteImport.update({
   id: '/monitors/$id/trend',
   path: '/monitors/$id/trend',
@@ -67,35 +91,47 @@ const MonitorsIdTrendRoute = MonitorsIdTrendRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ask': typeof AskRoute
   '/developments': typeof DevelopmentsRoute
+  '/setup': typeof SetupRoute
   '/dashboards/$id': typeof DashboardsIdRoute
+  '/developments/$id': typeof DevelopmentsIdRoute
   '/monitors/$id/connections': typeof MonitorsIdConnectionsRoute
   '/monitors/$id/data': typeof MonitorsIdDataRoute
   '/monitors/$id/developments': typeof MonitorsIdDevelopmentsRoute
   '/monitors/$id/graph': typeof MonitorsIdGraphRoute
+  '/monitors/$id/related': typeof MonitorsIdRelatedRoute
   '/monitors/$id/trend': typeof MonitorsIdTrendRoute
   '/monitors/$id/': typeof MonitorsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ask': typeof AskRoute
   '/developments': typeof DevelopmentsRoute
+  '/setup': typeof SetupRoute
   '/dashboards/$id': typeof DashboardsIdRoute
+  '/developments/$id': typeof DevelopmentsIdRoute
   '/monitors/$id/connections': typeof MonitorsIdConnectionsRoute
   '/monitors/$id/data': typeof MonitorsIdDataRoute
   '/monitors/$id/developments': typeof MonitorsIdDevelopmentsRoute
   '/monitors/$id/graph': typeof MonitorsIdGraphRoute
+  '/monitors/$id/related': typeof MonitorsIdRelatedRoute
   '/monitors/$id/trend': typeof MonitorsIdTrendRoute
   '/monitors/$id': typeof MonitorsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ask': typeof AskRoute
   '/developments': typeof DevelopmentsRoute
+  '/setup': typeof SetupRoute
   '/dashboards/$id': typeof DashboardsIdRoute
+  '/developments_/$id': typeof DevelopmentsIdRoute
   '/monitors/$id/connections': typeof MonitorsIdConnectionsRoute
   '/monitors/$id/data': typeof MonitorsIdDataRoute
   '/monitors/$id/developments': typeof MonitorsIdDevelopmentsRoute
   '/monitors/$id/graph': typeof MonitorsIdGraphRoute
+  '/monitors/$id/related': typeof MonitorsIdRelatedRoute
   '/monitors/$id/trend': typeof MonitorsIdTrendRoute
   '/monitors/$id/': typeof MonitorsIdIndexRoute
 }
@@ -103,46 +139,62 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ask'
     | '/developments'
+    | '/setup'
     | '/dashboards/$id'
+    | '/developments/$id'
     | '/monitors/$id/connections'
     | '/monitors/$id/data'
     | '/monitors/$id/developments'
     | '/monitors/$id/graph'
+    | '/monitors/$id/related'
     | '/monitors/$id/trend'
     | '/monitors/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ask'
     | '/developments'
+    | '/setup'
     | '/dashboards/$id'
+    | '/developments/$id'
     | '/monitors/$id/connections'
     | '/monitors/$id/data'
     | '/monitors/$id/developments'
     | '/monitors/$id/graph'
+    | '/monitors/$id/related'
     | '/monitors/$id/trend'
     | '/monitors/$id'
   id:
     | '__root__'
     | '/'
+    | '/ask'
     | '/developments'
+    | '/setup'
     | '/dashboards/$id'
+    | '/developments_/$id'
     | '/monitors/$id/connections'
     | '/monitors/$id/data'
     | '/monitors/$id/developments'
     | '/monitors/$id/graph'
+    | '/monitors/$id/related'
     | '/monitors/$id/trend'
     | '/monitors/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AskRoute: typeof AskRoute
   DevelopmentsRoute: typeof DevelopmentsRoute
+  SetupRoute: typeof SetupRoute
   DashboardsIdRoute: typeof DashboardsIdRoute
+  DevelopmentsIdRoute: typeof DevelopmentsIdRoute
   MonitorsIdConnectionsRoute: typeof MonitorsIdConnectionsRoute
   MonitorsIdDataRoute: typeof MonitorsIdDataRoute
   MonitorsIdDevelopmentsRoute: typeof MonitorsIdDevelopmentsRoute
   MonitorsIdGraphRoute: typeof MonitorsIdGraphRoute
+  MonitorsIdRelatedRoute: typeof MonitorsIdRelatedRoute
   MonitorsIdTrendRoute: typeof MonitorsIdTrendRoute
   MonitorsIdIndexRoute: typeof MonitorsIdIndexRoute
 }
@@ -156,6 +208,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ask': {
+      id: '/ask'
+      path: '/ask'
+      fullPath: '/ask'
+      preLoaderRoute: typeof AskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/developments': {
       id: '/developments'
       path: '/developments'
@@ -163,11 +222,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevelopmentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboards/$id': {
       id: '/dashboards/$id'
       path: '/dashboards/$id'
       fullPath: '/dashboards/$id'
       preLoaderRoute: typeof DashboardsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/developments_/$id': {
+      id: '/developments_/$id'
+      path: '/developments/$id'
+      fullPath: '/developments/$id'
+      preLoaderRoute: typeof DevelopmentsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/monitors/$id/': {
@@ -205,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MonitorsIdGraphRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/monitors/$id/related': {
+      id: '/monitors/$id/related'
+      path: '/monitors/$id/related'
+      fullPath: '/monitors/$id/related'
+      preLoaderRoute: typeof MonitorsIdRelatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/monitors/$id/trend': {
       id: '/monitors/$id/trend'
       path: '/monitors/$id/trend'
@@ -217,12 +297,16 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AskRoute: AskRoute,
   DevelopmentsRoute: DevelopmentsRoute,
+  SetupRoute: SetupRoute,
   DashboardsIdRoute: DashboardsIdRoute,
+  DevelopmentsIdRoute: DevelopmentsIdRoute,
   MonitorsIdConnectionsRoute: MonitorsIdConnectionsRoute,
   MonitorsIdDataRoute: MonitorsIdDataRoute,
   MonitorsIdDevelopmentsRoute: MonitorsIdDevelopmentsRoute,
   MonitorsIdGraphRoute: MonitorsIdGraphRoute,
+  MonitorsIdRelatedRoute: MonitorsIdRelatedRoute,
   MonitorsIdTrendRoute: MonitorsIdTrendRoute,
   MonitorsIdIndexRoute: MonitorsIdIndexRoute,
 }

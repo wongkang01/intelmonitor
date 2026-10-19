@@ -1,6 +1,18 @@
 // Subject icons in a small tile: a topic's glyph, an entity's logo or country flag, or a monogram.
 // Groups have none.
-import { Coins, Globe, Landmark, type LucideIcon } from "lucide-react";
+import {
+  Banknote,
+  Briefcase,
+  Building2,
+  Landmark,
+  Network,
+  Scale,
+  Server,
+  Shield,
+  TrendingUp,
+  Umbrella,
+  type LucideIcon,
+} from "lucide-react";
 
 import type { Schema } from "@/lib/api/client";
 import { initials } from "@/lib/format";
@@ -9,8 +21,15 @@ type Ref = Pick<Schema<"SubjectRef">, "name" | "type" | "kind" | "logo" | "icon"
 
 const TOPIC_GLYPHS: Record<NonNullable<Ref["icon"]>, LucideIcon> = {
   landmark: Landmark,
-  coins: Coins,
-  globe: Globe,
+  server: Server,
+  shield: Shield,
+  network: Network,
+  scale: Scale,
+  "trending-up": TrendingUp,
+  briefcase: Briefcase,
+  banknote: Banknote,
+  umbrella: Umbrella,
+  "building-2": Building2,
 };
 
 /** Decorative: the subject's name always sits beside it. */

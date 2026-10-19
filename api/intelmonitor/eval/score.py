@@ -313,7 +313,7 @@ def markdown(r: dict[str, Any]) -> str:
             f"| {row['eval_id']} | {row['variant']} | {corr} | {cov} | {state} | {nums} "
             f"| {change} |"
         )
-    for label, key in (("6 standing questions", "standing"), ("All 7 questions", "all")):
+    for label, key in (("standing questions", "standing"), ("all questions", "all")):
         lines += [
             "",
             f"**Overall, {label}** (macro mean over questions; n/a items skipped)",

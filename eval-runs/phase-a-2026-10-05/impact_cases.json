@@ -1,0 +1,256 @@
+[
+  {
+    "id": "bcs-outage-fast-banks",
+    "ok": true,
+    "problems": [],
+    "impacts": [
+      {
+        "subject": "dbs",
+        "direction": "negative",
+        "route": "takes part in FAST, which depends on Banking Computer Services for payments",
+        "why": "DBS is a FAST participant, and FAST transfers failed for about four hours across Singapore banks during the outage. Customers of several banks also saw failed payments and GIRO deductions delayed to the next day, which bears on DBS customer service and operations.",
+        "confidence": "high",
+        "evidence": "public",
+        "relationship_ids": [
+          "dbs:participates_in:fast",
+          "fast:depends_on:bcs"
+        ]
+      },
+      {
+        "subject": "fast",
+        "direction": "negative",
+        "route": "depends on Banking Computer Services for payments",
+        "why": "The outage at the operator left FAST transfers failing for about four hours across Singapore banks, so the service itself was disrupted.",
+        "confidence": "high",
+        "evidence": "public",
+        "relationship_ids": [
+          "fast:depends_on:bcs"
+        ]
+      },
+      {
+        "subject": "giro",
+        "direction": "negative",
+        "route": "depends on Banking Computer Services for payments",
+        "why": "The operator of the GIRO clearing system had the outage, and GIRO deductions were delayed to the next day.",
+        "confidence": "high",
+        "evidence": "public",
+        "relationship_ids": [
+          "giro:depends_on:bcs"
+        ]
+      },
+      {
+        "subject": "nets",
+        "direction": "negative",
+        "route": "owns Banking Computer Services",
+        "why": "The outage hit Banking Computer Services, the NETS subsidiary that runs the FAST and GIRO systems, so NETS faces reputational and oversight pressure over its payment services. Ownership alone usually passes on little, so the effect is indirect and confidence is lower.",
+        "confidence": "low",
+        "evidence": "public",
+        "relationship_ids": [
+          "nets:owns:bcs"
+        ]
+      },
+      {
+        "subject": "ocbc",
+        "direction": "negative",
+        "route": "takes part in FAST, which depends on Banking Computer Services for payments",
+        "why": "OCBC is a FAST participant, and FAST transfers failed for about four hours across Singapore banks during the outage. Customers of several banks also saw failed payments and GIRO deductions delayed to the next day, which bears on OCBC customer service and operations.",
+        "confidence": "high",
+        "evidence": "public",
+        "relationship_ids": [
+          "ocbc:participates_in:fast",
+          "fast:depends_on:bcs"
+        ]
+      },
+      {
+        "subject": "paynow",
+        "direction": "negative",
+        "route": "depends on Banking Computer Services for payments",
+        "why": "Customers of several banks reported failed PayNow payments during the outage at the operator, and PayNow transfers are settled through FAST, which was failing.",
+        "confidence": "high",
+        "evidence": "public",
+        "relationship_ids": [
+          "paynow:depends_on:bcs"
+        ]
+      },
+      {
+        "subject": "uob",
+        "direction": "negative",
+        "route": "takes part in FAST, which depends on Banking Computer Services for payments",
+        "why": "UOB is a FAST participant, and FAST transfers failed for about four hours across Singapore banks during the outage. Customers of several banks also saw failed payments and GIRO deductions delayed to the next day, which bears on UOB customer service and operations.",
+        "confidence": "high",
+        "evidence": "public",
+        "relationship_ids": [
+          "uob:participates_in:fast",
+          "fast:depends_on:bcs"
+        ]
+      }
+    ],
+    "reason": "DBS, OCBC and UOB take part in FAST and GIRO, which depend on BCS"
+  },
+  {
+    "id": "hong-kong-property-three-banks",
+    "ok": true,
+    "problems": [],
+    "impacts": [
+      {
+        "subject": "dbs",
+        "direction": "negative",
+        "route": "via its Hong Kong loans, 12.2% of total",
+        "why": "Hong Kong home prices fell 4.1 per cent in September, the sharpest monthly drop since 2008, and office and retail values fell 6 per cent in the quarter, with developers cutting prices. With 12.2% of loans in Hong Kong, DBS faces higher risk of weaker collateral values and borrower stress there, though not all of those loans are property related.",
+        "confidence": "medium",
+        "evidence": "public",
+        "relationship_ids": [
+          "dbs:exposed_to:hong-kong"
+        ]
+      },
+      {
+        "subject": "ocbc",
+        "direction": "negative",
+        "route": "via its Hong Kong loans, 9.3% of total",
+        "why": "Hong Kong home prices fell 4.1 per cent in September, the sharpest monthly drop since 2008, and office and retail values fell 6 per cent in the quarter. This can weaken collateral values and borrower repayment capacity on the 9.3% of loans OCBC has in Hong Kong, though not all of those loans are property related.",
+        "confidence": "medium",
+        "evidence": "public",
+        "relationship_ids": [
+          "ocbc:exposed_to:hong-kong"
+        ]
+      },
+      {
+        "subject": "uob",
+        "direction": "negative",
+        "route": "via its Greater China loans, 13.5% of total, a figure for the whole region including Hong Kong",
+        "why": "Hong Kong home prices fell 4.1 per cent in September and commercial property values fell 6 per cent in the quarter, which can strain property related lending there. UOB reports only a Greater China figure of 13.5%, which is an upper bound for Hong Kong, so the effect may be smaller.",
+        "confidence": "low",
+        "evidence": "public",
+        "relationship_ids": [
+          "uob:exposed_to:greater-china"
+        ]
+      }
+    ],
+    "reason": "Hong Kong loans are 12.2% of DBS's and 9.3% of OCBC's; UOB reports only Greater China (13.5%), a region-level figure ranked after the direct links (D5b)"
+  },
+  {
+    "id": "azure-outage-ocbc",
+    "ok": true,
+    "problems": [],
+    "impacts": [
+      {
+        "subject": "ocbc",
+        "direction": "negative",
+        "route": "depends on Microsoft Azure for cloud services",
+        "why": "The Southeast Asia Azure region went down for about six hours, and OCBC is shown running its staff generative AI chatbot in its private Azure environment, so that internal tool was plausibly unavailable. The evidence shows only this narrow staff-facing use, not customer banking systems, so the operational effect is likely small.",
+        "confidence": "low",
+        "evidence": "public",
+        "relationship_ids": [
+          "ocbc:depends_on:microsoft-azure"
+        ]
+      }
+    ],
+    "reason": "OCBC's stored cloud dependency is on Azure"
+  },
+  {
+    "id": "m365-outage-dbs",
+    "ok": true,
+    "problems": [],
+    "impacts": [
+      {
+        "subject": "dbs",
+        "direction": "negative",
+        "route": "depends on Microsoft 365 for cloud services",
+        "why": "A nine hour global outage of Outlook, Teams and Exchange Online would have disrupted staff email and collaboration at a bank that moved its workforce to Office 365. The evidence of use is from 2016, so current use and the actual impact on DBS are unconfirmed, and the effect is likely limited to internal productivity.",
+        "confidence": "medium",
+        "evidence": "public",
+        "relationship_ids": [
+          "dbs:depends_on:microsoft-365"
+        ]
+      }
+    ],
+    "reason": "DBS's stored dependency is on Microsoft 365, not Azure (decision S9)"
+  },
+  {
+    "id": "aws-launch-no-impact",
+    "ok": true,
+    "problems": [],
+    "impacts": [],
+    "reason": "A product launch does not flow through a bank's cloud dependency"
+  },
+  {
+    "id": "singapore-home-prices-housing-loans",
+    "ok": true,
+    "problems": [],
+    "impacts": [
+      {
+        "subject": "uob",
+        "direction": "negative",
+        "route": "via its housing loans, 23.8% of total",
+        "why": "Private home prices fell 3.2 per cent in the third quarter, a second straight decline, with new launches unsold and mortgage rates high. Housing loans are 23.8% of UOB's loans, so weaker collateral values and borrower stress could raise credit risk. The housing figure may include non-Singapore lending, so it is an upper bound for Singapore.",
+        "confidence": "medium",
+        "evidence": "public",
+        "relationship_ids": [
+          "uob:exposed_to:housing"
+        ]
+      },
+      {
+        "subject": "ocbc",
+        "direction": "negative",
+        "route": "via its housing loans, 20.7% of total",
+        "why": "Private home prices fell 3.2 per cent in the third quarter, a second straight decline, with unsold launches and high mortgage rates. Housing loans are 20.7% of OCBC's loans, so falling collateral values could weigh on asset quality. The housing figure may include non-Singapore lending, so it is an upper bound for Singapore.",
+        "confidence": "medium",
+        "evidence": "public",
+        "relationship_ids": [
+          "ocbc:exposed_to:housing"
+        ]
+      },
+      {
+        "subject": "dbs",
+        "direction": "negative",
+        "route": "via its housing loans, 17.8% of total",
+        "why": "Private home prices fell 3.2 per cent in the third quarter, a second straight decline, with unsold launches and high mortgage rates. Housing loans are 17.8% of DBS's loans, a smaller share than at peers, so the effect is plausible but more limited. The housing figure may include non-Singapore lending, so it is an upper bound for Singapore.",
+        "confidence": "medium",
+        "evidence": "public",
+        "relationship_ids": [
+          "dbs:exposed_to:housing"
+        ]
+      }
+    ],
+    "reason": "Housing is 17.8% of DBS's loans, 20.7% of OCBC's and 23.8% of UOB's; their Singapore loans are home exposures and carry no impact"
+  },
+  {
+    "id": "mas-rule-no-bank",
+    "ok": true,
+    "problems": [],
+    "impacts": [],
+    "reason": "Singapore is the banks' home, and loans carry no regulatory news; MAS's own rules reach a bank only when extraction names it"
+  },
+  {
+    "id": "hkma-rule-hong-kong-units",
+    "ok": true,
+    "problems": [],
+    "impacts": [
+      {
+        "subject": "dbs",
+        "direction": "negative",
+        "route": "owns 100% of DBS Bank (Hong Kong) Limited, which operates in Hong Kong",
+        "why": "DBS Bank (Hong Kong), wholly owned by DBS, operates in Hong Kong and falls under the new higher risk weights on commercial property loans, so it must hold more capital against that lending from January 2027. The size of its property loan book is not given, so the scale of the effect is unclear.",
+        "confidence": "medium",
+        "evidence": "public",
+        "relationship_ids": [
+          "dbs:owns:dbs-hong-kong",
+          "dbs-hong-kong:operates_in:hong-kong"
+        ]
+      },
+      {
+        "subject": "ocbc",
+        "direction": "negative",
+        "route": "owns 100% of OCBC Bank (Hong Kong) Limited, which operates in Hong Kong",
+        "why": "OCBC Bank (Hong Kong), wholly owned by OCBC, operates in Hong Kong and falls under the new higher risk weights on commercial property loans, so it must hold more capital against that lending from January 2027. The size of its property loan book is not given, so the scale of the effect is unclear.",
+        "confidence": "medium",
+        "evidence": "public",
+        "relationship_ids": [
+          "ocbc:owns:ocbc-hong-kong",
+          "ocbc-hong-kong:operates_in:hong-kong"
+        ]
+      }
+    ],
+    "reason": "DBS and OCBC own Hong Kong banks the rule binds; UOB's only link is its Greater China loans, which carry no regulatory news"
+  }
+]

@@ -1,0 +1,57 @@
+[
+  {
+    "id": "dbs-economists-outlook",
+    "ok": true,
+    "problems": [],
+    "findings": [
+      "case-dbs-economists-outlook-0 [dbs commentator neutral, singapore affected negative]: DBS Group Research economists cut their 2026 Singapore growth forecast to 1.8 per cent from 2.4 per cent on Oct 6, citing high oil prices and weaker trade from the Middle East crisis."
+    ],
+    "reason": "An outlook from the bank's own economists describes harm caused elsewhere; DBS only comments on it, and a forecast is not adverse for the country either"
+  },
+  {
+    "id": "dbs-shares-after-outage",
+    "ok": true,
+    "problems": [],
+    "findings": [
+      "case-dbs-shares-after-outage-0 [dbs affected adverse negative]: DBS's digital banking services were disrupted on Monday 5 October 2026; the bank has since restored them.",
+      "case-dbs-shares-after-outage-1 [dbs affected negative]: DBS shares fell 2 per cent to $38.10 on Tuesday, the worst of the three local banks, while Maybank Securities analysts called the sell-off an overreaction and kept their buy call."
+    ],
+    "reason": "A share move after the outage is a market reaction; the outage finding is the adverse one"
+  },
+  {
+    "id": "dbs-digital-banking-down",
+    "ok": true,
+    "problems": [],
+    "findings": [
+      "case-dbs-digital-banking-down-0 [dbs affected adverse negative, tech-outages affected adverse negative]: DBS and POSB customers could not log in to digibank or make PayNow transfers for about five hours on Oct 5 after a data centre system fault; DBS said it would report to MAS."
+    ],
+    "reason": "An outage at the bank is the cause of harm to it"
+  },
+  {
+    "id": "dbs-phishing-doubled",
+    "ok": true,
+    "problems": [],
+    "findings": [
+      "case-dbs-phishing-doubled-0 [dbs affected adverse negative, cyber-threats affected adverse negative]: Police reported on Oct 6 that phishing scams targeting DBS customers doubled in the third quarter to 1,240 cases from 610, with victims losing at least $8.2 million via fake SMS links."
+    ],
+    "reason": "A harmful trend that bears directly on the bank's customers is adverse to it"
+  },
+  {
+    "id": "mas-dsib-capital",
+    "ok": true,
+    "problems": [],
+    "findings": [
+      "case-mas-dsib-capital-0 [mas actor neutral, dbs affected adverse negative, ocbc affected adverse negative, uob affected adverse negative, banking-regulation affected neutral]: MAS announced on Oct 7, 2026 that it will raise the additional capital buffer for domestic systemically important banks by one percentage point from Jan 1, 2027, covering DBS, OCBC and UOB."
+    ],
+    "reason": "A new rule that raises the banks' costs bears directly on each of them"
+  },
+  {
+    "id": "dbs-profit-rise",
+    "ok": true,
+    "problems": [],
+    "findings": [
+      "case-dbs-profit-rise-0 [dbs affected positive]: DBS reported third-quarter net profit of $3.1 billion on Oct 7, up 9 per cent year on year, with return on equity of 18.2 per cent, and kept its full-year guidance."
+    ],
+    "reason": "Good news is never adverse"
+  }
+]

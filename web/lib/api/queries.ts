@@ -35,8 +35,12 @@ export const keys = {
   subject: (id: string) => ["subject", id],
   dashboards: ["dashboards"],
   dashboard: (id: string) => ["dashboard", id],
+  overview: (id: string) => ["dashboard-overview", id],
+  latestRun: ["latest-run"],
   catalog: ["catalog"],
   profile: ["profile"],
+  profiles: ["profiles"],
+  suggestions: (role: Role | null) => ["suggestions", role],
   runs: ["runs"],
   runStatus: ["run-status"],
   alerts: ["alerts"],
@@ -44,10 +48,13 @@ export const keys = {
   whatChanged: (query: WhatChangedQuery) => ["what-changed", query],
   dataSources: ["data-sources"],
   materialityLevels: ["materiality-levels"],
-  development: (id: string) => ["development", id],
+  development: (id: string, scope?: DevelopmentScope) => ["development", id, scope],
   developments: (query: DevelopmentsQuery) => ["developments", query],
   answerEvidence: (subjectId: string, questionId: string) => ["answer-evidence", subjectId, questionId],
   monitorPage: (id: string) => ["monitor-page", id],
+  linked: (id: string) => ["linked", id],
+  relatedGraph: (id: string, days: RelatedDays) => ["related-graph", id, days],
+  shared: (a: string, b: string) => ["shared", a, b],
   trend: (id: string) => ["trend", id],
   indicators: (id: string, asOf?: string) => ["indicators", id, asOf],
   series: (id: string, range: SeriesRange) => ["series", id, range],
@@ -60,11 +67,17 @@ export const keys = {
 /** Query parameters of GET /developments: a scope (subjects or a dashboard) and filters. */
 export type DevelopmentsQuery = NonNullable<operations["list_developments"]["parameters"]["query"]>;
 
+/** The subjects in view in a development popup (some subjects or a dashboard's), for its priority. */
+export type DevelopmentScope = NonNullable<operations["get_development"]["parameters"]["query"]>;
+
 /** Query parameters of GET /what-changed: subjects or a dashboard. */
 export type WhatChangedQuery = NonNullable<operations["get_what_changed"]["parameters"]["query"]>;
 
 /** Query parameters of GET /series/{series_id}: `from` and `to` period dates, both optional. */
 export type SeriesRange = NonNullable<operations["get_series"]["parameters"]["query"]>;
+
+/** The Related graph's window in days: 7 (the brief's week), 30 or 90. */
+export type RelatedDays = Schema<"RelatedDays">;
 
 /** Query parameters of GET /graph: center subject, hops (1 or 2) and optional filters. */
 export type GraphQuery = NonNullable<operations["get_graph"]["parameters"]["query"]>;
@@ -88,7 +101,19 @@ export const dashboardOptions = (id: string) =>
       unwrap(api.GET("/dashboards/{dashboard_id}", { params: { path: { dashboard_id: id } } })),
   });
 
-export const useDashboard = (id: string) => useQuery(dashboardOptions(id));
+export const useDashboard = (id: string, enabled = true) => useQuery({ ...dashboardOptions(id), enabled });
+
+/** The new count, watchlist and upcoming dates beside a dashboard's feed. */
+export const useDashboardOverview = (id: string) =>
+  useQuery({
+    queryKey: keys.overview(id),
+    queryFn: () =>
+      unwrap(api.GET("/dashboards/{dashboard_id}/overview", { params: { path: { dashboard_id: id } } })),
+  });
+
+/** The latest run, with the date of the latest news it covers for the top bar's "Updated". */
+export const useLatestRun = () =>
+  useQuery({ queryKey: keys.latestRun, queryFn: () => unwrap(api.GET("/runs/latest")) });
 
 export const useCatalog = () =>
   useQuery({
@@ -187,7 +212,7 @@ export const useWhatChanged = (query: WhatChangedQuery) =>
 /** Everything that counts or lists what is new: reviews, reads and dismissals change it. */
 function invalidateNew(client: QueryClient) {
   return Promise.all(
-    [["monitor-page"], keys.widgetData, ["what-changed"], ["developments"], keys.subjects, ["subject"], keys.alerts].map((queryKey) =>
+    [["monitor-page"], keys.widgetData, ["what-changed"], ["developments"], ["dashboard-overview"], keys.dashboards, keys.subjects, ["subject"], keys.alerts].map((queryKey) =>
       client.invalidateQueries({ queryKey }),
     ),
   );
@@ -198,8 +223,14 @@ type WhatChanged = Schema<"WhatChanged">;
 
 /** `list` (What changed or a developments list) with the change applied to one development's triage state. */
 function patchTriage<L extends { developments: Schema<"ChangedDevelopment">[] }>(list: L, id: string, change: TriageChange): L {
-  const set = Object.fromEntries(Object.entries(change).filter(([, v]) => typeof v === "boolean"));
+  const set = triageSet(change);
   return { ...list, developments: list.developments.map((d) => (d.id === id ? { ...d, ...set } : d)) };
+}
+
+/** The states a change sets; Not relevant also dismisses. */
+function triageSet(change: TriageChange) {
+  const set = Object.fromEntries(Object.entries(change).filter(([, v]) => typeof v === "boolean"));
+  return change.not_relevant ? { ...set, dismissed: true } : set;
 }
 
 /**
@@ -218,6 +249,9 @@ export function useSetTriage() {
       client.setQueriesData<WhatChanged>({ queryKey: ["what-changed"] }, (wc) => (wc ? patchTriage(wc, id, change) : wc));
       client.setQueriesData<Schema<"DevelopmentList">>({ queryKey: ["developments"] }, (list) =>
         list ? patchTriage(list, id, change) : list,
+      );
+      client.setQueriesData<Schema<"DevelopmentDetail">>({ queryKey: ["development", id] }, (d) =>
+        d ? { ...d, triage: { ...d.triage, ...triageSet(change) } } : d,
       );
       client.setQueriesData<WidgetData>({ queryKey: keys.widgetData }, (data) =>
         data?.type === "since" ? { ...data, what_changed: patchTriage(data.what_changed, id, change) } : data,
@@ -240,13 +274,14 @@ export const useDataSources = () =>
 export const useMaterialityLevels = () =>
   useQuery({ queryKey: keys.materialityLevels, queryFn: () => unwrap(api.GET("/materiality-levels")) });
 
-export const useDevelopment = (id: string | null) =>
+/** One development with its sources and who it impacts; its priority is for the subjects in `scope`. */
+export const useDevelopment = (id: string | null, scope?: DevelopmentScope) =>
   useQuery({
-    queryKey: keys.development(id ?? ""),
+    queryKey: keys.development(id ?? "", scope),
     queryFn: () =>
       unwrap(
         api.GET("/developments/{development_id}", {
-          params: { path: { development_id: id ?? "" } },
+          params: { path: { development_id: id ?? "" }, query: scope },
         }),
       ),
     enabled: id !== null,
@@ -285,6 +320,38 @@ export const monitorPageOptions = (id: string) =>
   });
 
 export const useMonitorPage = (id: string) => useQuery(monitorPageOptions(id));
+
+/** The institutions linked to a country, sector, technology provider or payment system. */
+export const useLinked = (id: string, enabled = true) =>
+  useQuery({
+    queryKey: keys.linked(id),
+    enabled,
+    queryFn: () => unwrap(api.GET("/subjects/{subject_id}/linked", { params: { path: { subject_id: id } } })),
+  });
+
+/**
+ * Everything linked to a subject in the relationship store, with the developments of the last
+ * `days` that reach it through each node. Keeps the previous graph while the window refetches.
+ */
+export const useRelatedGraph = (id: string, days: RelatedDays) =>
+  useQuery({
+    queryKey: keys.relatedGraph(id, days),
+    queryFn: () =>
+      unwrap(
+        api.GET("/subjects/{subject_id}/related-graph", {
+          params: { path: { subject_id: id }, query: { days } },
+        }),
+      ),
+    placeholderData: keepPreviousData,
+  });
+
+/** What links two entities in the relationship store; idle until both are known. */
+export const useShared = (a: string, b: string | null) =>
+  useQuery({
+    queryKey: keys.shared(a, b ?? ""),
+    enabled: b !== null,
+    queryFn: () => unwrap(api.GET("/shared", { params: { query: { a, b: b ?? "" } } })),
+  });
 
 /**
  * A subject's Trend view: its series over the 12 months to the latest run with its marked
@@ -389,6 +456,8 @@ export const useAnswers = (subjectId: string | null) =>
 export type DataOf<T extends WidgetData["type"]> = Extract<WidgetData, { type: T }>;
 
 export type Dashboard = Schema<"Dashboard">;
+/** A sidebar dashboard: the dashboard and its new count. */
+export type DashboardItem = Schema<"DashboardItem">;
 
 function putDashboard(dashboard: Dashboard) {
   const body: Schema<"DashboardSpec"> = {
@@ -407,8 +476,8 @@ function putDashboard(dashboard: Dashboard) {
 
 function storeDashboard(client: QueryClient, dashboard: Dashboard) {
   client.setQueryData(keys.dashboard(dashboard.id), dashboard);
-  client.setQueryData<Dashboard[]>(keys.dashboards, (list) =>
-    list?.map((d) => (d.id === dashboard.id ? dashboard : d)),
+  client.setQueryData<DashboardItem[]>(keys.dashboards, (list) =>
+    list?.map((d) => (d.id === dashboard.id ? { ...d, ...dashboard } : d)),
   );
 }
 
@@ -421,6 +490,13 @@ export function useSaveDashboard(onError?: () => void) {
   const { mutate } = useMutation({
     mutationFn: putDashboard,
     scope: { id: "dashboard-save" },
+    // The feed, overview and new count are computed from the stored subjects.
+    onSuccess: (_, dashboard) =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: keys.overview(dashboard.id) }),
+        client.invalidateQueries({ queryKey: ["developments"] }),
+        client.invalidateQueries({ queryKey: keys.dashboards }),
+      ]),
     onError: (_, dashboard) => {
       void client.invalidateQueries({ queryKey: keys.dashboard(dashboard.id) });
       void client.invalidateQueries({ queryKey: keys.dashboards });
@@ -449,7 +525,7 @@ export function useReorderDashboards() {
   });
   return useCallback(
     (ids: string[]) => {
-      client.setQueryData<Dashboard[]>(keys.dashboards, (list) => {
+      client.setQueryData<DashboardItem[]>(keys.dashboards, (list) => {
         if (!list) return list;
         const byId = new Map(list.map((d) => [d.id, d]));
         return ids.flatMap((id) => byId.get(id) ?? []);
@@ -476,6 +552,49 @@ export function useCreateDashboard() {
     },
   });
 }
+
+export type Role = NonNullable<Schema<"Profile">["role"]>;
+
+/** Every profile, for the profile menu's role switch. */
+export const useProfiles = () =>
+  useQuery({ queryKey: keys.profiles, queryFn: () => unwrap(api.GET("/profiles")) });
+
+/** The subject picker's groups and starting picks for a role; without one, every group, none picked. */
+export const useSuggestions = (role: Role | null) =>
+  useQuery({
+    queryKey: keys.suggestions(role),
+    queryFn: () => unwrap(api.GET("/onboarding/suggestions", { params: { query: role ? { role } : {} } })),
+    staleTime: Infinity,
+  });
+
+/** After a role switch or onboarding everything refetches: the sidebar lists the profile's
+ * dashboards, and New and Updated count from that role's last visit wherever they show. */
+function profileChanged(client: QueryClient, profile: Schema<"Profile">) {
+  client.setQueryData(keys.profile, profile);
+  return client.invalidateQueries({ predicate: (q) => q.queryKey[0] !== keys.profile[0] });
+}
+
+/** Onboarding's end: the role's first dashboard from the picks; the new profile becomes active. */
+export function useCreateProfile() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Schema<"ProfileCreate">) => unwrap(api.POST("/profiles", { body })),
+    onSuccess: (profile) => profileChanged(client, profile),
+  });
+}
+
+/** Switches to another profile's role and dashboards. */
+export function useActivateProfile() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      unwrap(api.POST("/profiles/{profile_id}/activate", { params: { path: { profile_id: id } } })),
+    onSuccess: (profile) => profileChanged(client, profile),
+  });
+}
+
+/** Logs an app load with the active role. Failures are ignored: a lost visit row breaks nothing. */
+export const logVisit = (path: string) => void api.POST("/visits", { body: { path } }).catch(() => undefined);
 
 export function useSaveProfile() {
   const client = useQueryClient();
@@ -541,7 +660,7 @@ export function useDeleteDashboard() {
       if (error !== undefined || !response.ok) throw new ApiError(response.status, error);
     },
     onSuccess: (_, dashboardId) => {
-      client.setQueryData<Dashboard[]>(keys.dashboards, (list) => list?.filter((d) => d.id !== dashboardId));
+      client.setQueryData<DashboardItem[]>(keys.dashboards, (list) => list?.filter((d) => d.id !== dashboardId));
       client.removeQueries({ queryKey: keys.dashboard(dashboardId) });
     },
   });

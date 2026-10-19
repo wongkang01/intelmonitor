@@ -1,4 +1,4 @@
-// E2E against the Portless dev servers (poc-plan.md, Verification > E2E). Start the proxy and both
+// E2E against the Portless dev servers (docs/archive/poc-plan.md, Verification > E2E). Start the proxy and both
 // dev servers first, then `pnpm e2e`. Each run writes video, trace, per-step screenshots and an
 // index.html into artifacts/e2e/<timestamp>/.
 import { defineConfig } from "@playwright/test";

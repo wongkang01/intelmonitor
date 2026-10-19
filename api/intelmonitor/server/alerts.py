@@ -1,6 +1,7 @@
 """Alerts: the latest run's new or updated developments on followed subjects that need attention,
 then those to watch. Read is the development's triage read, which holds the run it was read in,
-so a development that a later run changes alerts again. Dismissed developments do not alert."""
+so a development that a later run changes alerts again. Dismissed and unconfirmed developments
+(pipeline/corroboration.py) do not alert."""
 
 from intelmonitor.server.models import Alert, AlertBadge, AlertCounts, Alerts, DevelopmentSummary
 from intelmonitor.server.queries import MATERIAL_LEVEL, Queries
@@ -30,12 +31,12 @@ def alert_badge(d: DevelopmentSummary, watched: set[str]) -> AlertBadge | None:
 
 
 def _meta(d: DevelopmentSummary) -> str:
-    """ "OCBC, financial, 3 sources": the lead entity (else subject), category and sources."""
+    """ "OCBC, financial": the lead entity (else subject) and category. The web adds the source
+    counts in the words rows use."""
     lead = next(
         (s for s in d.subjects if s.type == "entity"), d.subjects[0] if d.subjects else None
     )
-    sources = f"{d.source_count} source{'' if d.source_count == 1 else 's'}"
-    return ", ".join(p for p in (lead.name if lead else "", d.category, sources) if p)
+    return ", ".join(p for p in (lead.name if lead else "", d.category) if p)
 
 
 def alerts(q: Queries) -> Alerts:
@@ -47,10 +48,20 @@ def alerts(q: Queries) -> Alerts:
             continue
         if badge := alert_badge(d, watched):
             flagged.append((badge, d))
-    # Stable sort keeps display order (most material, most recent) within each badge.
+    # Stable sort keeps display order within each badge: High adverse, other High, Medium
+    # adverse, other Medium, the rest, most recent first in each (server/queries.py).
     flagged.sort(key=lambda t: t[0] != "needs_attention")
     items = [
-        Alert(id=d.id, title=d.title, badge=badge, meta=_meta(d), read=q.is_read(d.id))
+        Alert(
+            id=d.id,
+            title=d.title,
+            badge=badge,
+            meta=_meta(d),
+            outlet_count=d.outlet_count,
+            social_count=d.social_count,
+            source_types=d.source_types,
+            read=q.is_read(d.id),
+        )
         for badge, d in flagged
     ]
     attention = sum(a.badge == "needs_attention" and not a.read for a in items)

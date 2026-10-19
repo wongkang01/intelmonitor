@@ -1,5 +1,5 @@
 """Measured series: one series' observations and revisions, and a subject's indicators
-(structured-data-plan.md, F1). The catalogue comes from api/seed/series.yaml."""
+(docs/archive/structured-data-plan.md, F1). The catalogue comes from api/seed/series.yaml."""
 
 import sqlite3
 from datetime import date, timedelta
@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, TypeAdapter
 
 from intelmonitor.ingest.parse import document_id
 from intelmonitor.pipeline.detectors import Detection, live_events, materiality_level
-from intelmonitor.pipeline.facts import FixedState, SeriesFact, subject_facts
+from intelmonitor.pipeline.facts import FixedState, KeyData, SeriesFact, key_data, subject_facts
 from intelmonitor.pipeline.indicators import Indicator, compute_indicators, months_before
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS, NEEDS_ATTENTION_LEVEL, RUN_SPACING_DAYS
 from intelmonitor.pipeline.subjects import questions_for
@@ -24,7 +24,14 @@ from intelmonitor.server.models import (
     SubjectRef,
 )
 from intelmonitor.server.queries import NotFoundError, subject, subject_ref
-from intelmonitor.store.series import Observation, Revision, read_observations, read_revisions
+from intelmonitor.store.series import (
+    Observation,
+    ObservationSource,
+    Revision,
+    read_observations,
+    read_revisions,
+    read_sources,
+)
 
 _FACTS = TypeAdapter(list[SeriesFact])
 
@@ -72,6 +79,10 @@ class SubjectIndicator(Indicator):
         description="Observations over the 12 months to the date, as known by then; none for "
         "a series not listed"
     )
+    sources: list[ObservationSource] = Field(
+        description="Where the latest figure and each figure in the line come from, by period, "
+        "for a series collected by hand; empty for one fetched from an API"
+    )
 
 
 class SubjectIndicators(BaseModel):
@@ -80,6 +91,7 @@ class SubjectIndicators(BaseModel):
     indicators: list[SubjectIndicator] = Field(
         description="Primary series first, then context, each in catalogue order"
     )
+    key_data: KeyData = Field(description="The series the Overview's Key data shows, in order")
 
 
 class SubjectFacts(BaseModel):
@@ -130,6 +142,7 @@ def series_info(s: SeriesDef) -> SeriesInfo:
         listed=s.listed,
         unit=s.unit,
         frequency=s.frequency,
+        year_to_date=s.year_to_date,
         decimals=s.decimals,
         bad_direction=s.bad_direction,
         baseline=0.0 if isinstance(s.source, Deviation) else None,
@@ -211,20 +224,28 @@ def subject_indicators(
 ) -> SubjectIndicators:
     """The indicators of every series mapped to the subject, or only `series_id`, from what was
     available by the end of `as_of`: each with its status from the detector events known since
-    the previous run or still holding, and its line over the 12 months to the date."""
+    the previous run or still holding and its line over the 12 months to the date; and which of
+    them Key data shows."""
     subject(subject_id)
     mapped: list[tuple[SeriesDef, SeriesRole]] = [
         (s, r) for s, r in mapped_series(subject_id) if series_id in (None, s.id)
     ]
     ids = [s.id for s, _ in mapped]
     computed = compute_indicators(conn, ids, as_of)
-    events = _event_views(
-        conn, live_events(conn, ids, as_of, _previous_run_date(conn, as_of)), as_of
-    )
+    live = live_events(conn, ids, as_of, _previous_run_date(conn, as_of))
+    events = _event_views(conn, live, as_of)
     start = months_before(as_of, 12)
     indicators: list[SubjectIndicator] = []
     for s, role in mapped:
         own = events.get(s.id, [])
+        latest = computed[s.id].latest
+        line = [
+            LinePoint(period=o.period, value=o.value, preliminary=o.preliminary)
+            for o in (read_observations(conn, s.id, as_of) if s.listed else [])
+            if o.period >= start
+        ]
+        shown = {p.period for p in line} | ({latest.period} if latest else set[date]())
+        sources = read_sources(conn, s.id)
         indicators.append(
             SubjectIndicator(
                 **computed[s.id].model_dump(),
@@ -232,14 +253,16 @@ def subject_indicators(
                 role=role,
                 status=_status(own),
                 events=own,
-                line=[
-                    LinePoint(period=o.period, value=o.value, preliminary=o.preliminary)
-                    for o in (read_observations(conn, s.id, as_of) if s.listed else [])
-                    if o.period >= start
-                ],
+                line=line,
+                sources=[sources[p] for p in sorted(shown) if p in sources],
             )
         )
-    return SubjectIndicators(subject=subject_ref(subject_id), as_of=as_of, indicators=indicators)
+    return SubjectIndicators(
+        subject=subject_ref(subject_id),
+        as_of=as_of,
+        indicators=indicators,
+        key_data=key_data(subject_id, computed, live),
+    )
 
 
 def facts_as_of(conn: sqlite3.Connection, subject_id: str, as_of: date) -> SubjectFacts:
@@ -260,7 +283,7 @@ def facts_as_of(conn: sqlite3.Connection, subject_id: str, as_of: date) -> Subje
 
 def chart_start(s: SeriesDef, history: list[Observation], as_of: date) -> date:
     """Where a cited series' chart starts: 12 months before the run date for a daily series, 24
-    for a monthly one, and the start of the stored history for a quarterly one."""
+    for a monthly one, and the start of the stored history for a quarterly or yearly one."""
     if s.frequency == "daily":
         return months_before(as_of, 12)
     if s.frequency == "monthly":

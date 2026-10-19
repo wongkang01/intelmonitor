@@ -1,20 +1,22 @@
 // Graph view around one subject: opens at 1 hop, expands to 2, with filters for node type, link
 // type and time window. Clicking a subject node opens its monitor page; clicking a development
-// opens its evidence over the graph. Developments are coloured and grouped by theme. The In view
-// list shows the same nodes as links. The full page (/monitors/$id/graph) has its own head;
-// `embedded` drops it and sizes the region to a monitor tab.
+// opens its popup over the graph. Developments are coloured and grouped by theme. The In view
+// list shows the same nodes as links. The page (/monitors/$id/graph) is reachable by URL only, for
+// the TCRD session (prd.md section 12).
 import { Link } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
-import { Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useGraph, type GraphQuery } from "@/lib/api/queries";
 import { plural } from "@/lib/format";
 import { monitorLink } from "@/lib/widgets";
 import { evidenceLink } from "@/components/shell/Evidence";
-import { ChevronDownIcon } from "@/components/ui/icons";
+import { PriorityBadge } from "@/components/developments/labels";
 
+import { FilterMenu, toggle } from "./FilterMenu";
 import { GraphCanvas, THEME_LABEL, THEMES } from "./GraphCanvas";
+import { LINK_LABEL, type RelType } from "./labels";
 
 type GraphNode = Schema<"GraphNode">;
 type NodeType = GraphNode["type"];
@@ -24,12 +26,13 @@ const NODE_TYPES: { value: NodeType; label: string }[] = [
   { value: "topic", label: "Topics" },
   { value: "group", label: "Groups" },
   { value: "entity", label: "Entities" },
+  { value: "endpoint", label: "Linked parties" },
   { value: "development", label: "Developments" },
 ];
 const LINK_TYPES: { value: LinkType; label: string }[] = [
-  { value: "MEMBER_OF", label: "Member of" },
-  { value: "EXPOSED_TO", label: "Exposed to" },
-  { value: "AFFECTS", label: "Affects" },
+  { value: "AFFECTS", label: "Affects directly" },
+  { value: "IMPACTS", label: "Affects indirectly" },
+  ...(Object.keys(LINK_LABEL) as RelType[]).map((t) => ({ value: t.toUpperCase() as Uppercase<RelType>, label: LINK_LABEL[t] })),
 ];
 const WINDOWS: { days: number | null; label: string }[] = [
   { days: null, label: "All time" },
@@ -40,13 +43,7 @@ const WINDOWS: { days: number | null; label: string }[] = [
 
 const DEV_PREFIX = "dev:";
 
-/** Toggles `item` in `list`, never leaving it empty (the API reads an empty filter as "all"). */
-function toggle<T>(list: T[], item: T): T[] {
-  if (!list.includes(item)) return [...list, item];
-  return list.length > 1 ? list.filter((x) => x !== item) : list;
-}
-
-export function GraphView({ id, embedded = false }: { id: string; embedded?: boolean }) {
+export function GraphView({ id }: { id: string }) {
   const navigate = useNavigate();
   const [hops, setHops] = useState<1 | 2>(1);
   const [nodeTypes, setNodeTypes] = useState<NodeType[]>(NODE_TYPES.map((t) => t.value));
@@ -67,26 +64,23 @@ export function GraphView({ id, embedded = false }: { id: string; embedded?: boo
   const open = useCallback((nodeId: string) => void navigate(linkOf(nodeId)), [navigate]);
 
   if (graph.isError) return <p className="page-message">This graph could not be loaded.</p>;
-  // Embedded, an empty region holds the tab's height while the graph loads.
-  if (!g) return embedded ? <div className="graph-page embedded" aria-busy="true" /> : null;
+  if (!g) return null;
   const center = g.nodes.find((n) => n.id === g.center);
 
   return (
     <>
-      {!embedded && (
-        <div className="pagehead">
-          <div className="grow">
-            <h1>{center?.label ?? id}</h1>
-            <p>
-              Graph view.{" "}
-              <Link {...monitorLink(id)} className="subject-link">
-                Open monitor page
-              </Link>
-            </p>
-          </div>
+      <div className="pagehead">
+        <div className="grow">
+          <h1>{center?.label ?? id}</h1>
+          <p>
+            Graph view.{" "}
+            <Link {...monitorLink(id)} className="subject-link">
+              Open page
+            </Link>
+          </p>
         </div>
-      )}
-      <div className={embedded ? "graph-page embedded" : "graph-page"}>
+      </div>
+      <div className="graph-page">
         <div className="graph-bar" role="group" aria-label="Graph filters">
           <div className="seg" role="group" aria-label="Hops">
             {([1, 2] as const).map((h) => (
@@ -117,7 +111,7 @@ export function GraphView({ id, embedded = false }: { id: string; embedded?: boo
           </div>
         </div>
         <div className="graph-region">
-          <GraphCanvas data={g} hovered={hovered} onHover={setHovered} onOpen={open} embedded={embedded}>
+          <GraphCanvas data={g} hovered={hovered} onHover={setHovered} onOpen={open}>
             <ul className="graph-legend" aria-label="Legend">
               {/* Themed developments are labelled beside their sectors, so only other types are listed. */}
               {NODE_TYPES.filter((t) => g.nodes.some((n) => n.type === t.value && !n.theme)).map((t) => (
@@ -142,98 +136,16 @@ export function GraphView({ id, embedded = false }: { id: string; embedded?: boo
   );
 }
 
-/** A bordered select-style button ("Nodes: All") opening a checklist; closes on Escape or outside click. */
-function FilterMenu<T extends string>({
-  name,
-  options,
-  selected,
-  onToggle,
-  dot = false,
-}: {
-  name: string;
-  options: { value: T; label: string }[];
-  selected: T[];
-  onToggle: (value: T) => void;
-  /** Show each option's graph color dot (node types). */
-  dot?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const wrap = useRef<HTMLDivElement>(null);
-  const button = useRef<HTMLButtonElement>(null);
-  const menuId = useId();
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (e: PointerEvent) => {
-      if (e.target instanceof Node && !wrap.current?.contains(e.target)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      e.stopPropagation();
-      setOpen(false);
-      button.current?.focus();
-    };
-    document.addEventListener("pointerdown", onPointer);
-    document.addEventListener("keydown", onKey, true);
-    return () => {
-      document.removeEventListener("pointerdown", onPointer);
-      document.removeEventListener("keydown", onKey, true);
-    };
-  }, [open]);
-
-  const chosen = options.filter((o) => selected.includes(o.value));
-  const summary =
-    chosen.length === options.length
-      ? "All"
-      : chosen.length <= 2
-        ? chosen.map((o) => o.label).join(", ")
-        : `${chosen.length} of ${options.length}`;
-
-  return (
-    <div className="gmenu" ref={wrap}>
-      <button
-        ref={button}
-        type="button"
-        className="gsel"
-        aria-expanded={open}
-        aria-controls={menuId}
-        onClick={() => setOpen((o) => !o)}
-      >
-        <span className="gsel-name">{name}:</span> {summary}
-        <ChevronDownIcon />
-      </button>
-      {open && (
-        <div className="gmenu-pop" id={menuId} role="group" aria-label={`${name} shown`}>
-          {options.map((o) => {
-            const on = selected.includes(o.value);
-            return (
-              <label key={o.value} className="gmenu-item">
-                <input
-                  type="checkbox"
-                  checked={on}
-                  disabled={on && selected.length === 1}
-                  onChange={() => onToggle(o.value)}
-                />
-                {dot && <span className={`gdot ${o.value}`} aria-hidden="true" />}
-                {o.label}
-              </label>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-const ORDER: Record<NodeType, number> = { topic: 0, group: 1, entity: 2, development: 3 };
+const ORDER: Record<NodeType, number> = { topic: 0, group: 1, entity: 2, endpoint: 3, development: 4 };
 const GROUP_LABEL: Record<NodeType, string> = {
   topic: "Topics",
   group: "Groups",
   entity: "Entities",
+  endpoint: "Linked parties",
   development: "Developments",
 };
 
-/** A node's link: a development opens the evidence drawer over the graph, a subject its monitor page. */
+/** A node's link: a development opens its popup over the graph, a subject its monitor page. */
 const linkOf = (nodeId: string) =>
   nodeId.startsWith(DEV_PREFIX)
     ? evidenceLink.development(nodeId.slice(DEV_PREFIX.length))
@@ -304,7 +216,7 @@ function NodeList({
                   </span>
                   {n.needs_attention && (
                     <span className="row-meta">
-                      <span className="badge b-attn">Needs attention</span>
+                      <PriorityBadge priority="High" />
                     </span>
                   )}
                 </span>

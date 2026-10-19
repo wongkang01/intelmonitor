@@ -1,9 +1,11 @@
-// The Indicators section of a monitor page's Data tab (structured-data-plan.md, F4): one row per
-// measured series mapped to the subject, as of the page's run date. Status from the detector rules,
-// the latest value with its period, the change with its window, and a line over 12 months. Series a
-// detector flagged (Watch or Needs attention) lead under "Flagged", worst first. The rest that
+// The Indicators section of a monitor page's Data tab (docs/archive/structured-data-plan.md, F4): one row per
+// measured series mapped to the subject, as of the page's run date: the latest value with its
+// period, the change with its window, and a line over 12 months; No data or Stale when the feed has
+// nothing usable. Series a detector flagged lead under "Notable changes", worst first, and open the
+// development that carries the detection, with a visible "View the development" cue. The rest that
 // share a group heading in api/seed/series.yaml sit under it when two or more are on the page;
-// the others lead, under their full names.
+// the others lead, under their full names. A figure collected by hand links its publication and
+// says when it was read from a chart.
 import { Link } from "@tanstack/react-router";
 import { useState, type PointerEvent, type ReactNode } from "react";
 
@@ -21,7 +23,7 @@ import {
   shortDate,
 } from "@/lib/format";
 import { evidenceLink } from "@/components/shell/Evidence";
-import { StateBadge } from "@/components/widgets/parts";
+import { ChevronIcon } from "@/components/ui/icons";
 
 import { Dotted } from "./parts";
 
@@ -34,8 +36,11 @@ interface Group {
 
 const STATUS_RANK: Record<Indicator["status"], number> = { needs_attention: 0, watch: 1, stable: 2 };
 
+/** A row whose feed has nothing usable: No data or Stale. */
+const unusable = (i: Indicator) => i.state === "no_data" || i.state === "stale";
+
 /** A row a detector flagged, from a feed that still has data. */
-const flagged = (i: Indicator) => i.status !== "stable" && i.state !== "no_data" && i.state !== "stale";
+const flagged = (i: Indicator) => i.status !== "stable" && !unusable(i);
 
 /**
  * Flagged rows first, worst first, under their full names; then lead rows (ungrouped, or alone in
@@ -43,7 +48,7 @@ const flagged = (i: Indicator) => i.status !== "stable" && i.state !== "no_data"
  */
 function grouped(all: Indicator[]): Group[] {
   const top: Group = {
-    heading: "Flagged",
+    heading: "Notable changes",
     rows: all
       .filter(flagged)
       .sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status])
@@ -82,8 +87,10 @@ export function Indicators({ subjectId, asOf }: { subjectId: string; asOf: strin
   const query = useIndicators(subjectId, asOf);
   const listed = query.data?.indicators.filter((i) => i.series.listed) ?? [];
   if (listed.length === 0) return null;
+  // The status column holds only No data or Stale, so it takes no room when no row needs it.
+  const status = listed.some(unusable);
   return (
-    <section className="mon-sec ind" aria-labelledby="indicators">
+    <section className={`mon-sec ind${status ? "" : " no-stat"}`} aria-labelledby="indicators">
       <div className="mon-sec-head">
         <h2 id="indicators">Indicators</h2>
         <span className="meta">{sectionMeta(listed)}</span>
@@ -126,30 +133,44 @@ function IndicatorRow({ ind, name, asOf }: { ind: Indicator; name: string; asOf:
   ) : (
     `No data by ${shortDate(asOf)}`
   );
-  const unusable = ind.state === "no_data" || ind.state === "stale";
+  const noData = unusable(ind);
+  // A row whose status comes from a detector event opens the development that carries it.
+  const developmentId = noData ? null : ind.events.find((e) => e.development_id)?.development_id;
+  // A figure collected by hand links its publication, unless the whole row is a link.
+  const figure = ind.latest && ind.sources.find((x) => x.period === ind.latest?.period);
+  const source =
+    figure && !developmentId ? (
+      <a href={figure.url} target="_blank" rel="noreferrer" title={figure.title}>
+        {s.source_label}
+      </a>
+    ) : (
+      s.source_label
+    );
   const cells: ReactNode = (
     <>
-      <span className="stat">
-        {unusable ? (
-          <span className="badge b-neutral">{INDICATOR_STATE_LABEL[ind.state]}</span>
-        ) : (
-          <span title={ind.events.map((e) => e.statement).join("\n") || undefined}>
-            <StateBadge state={ind.status} />
-          </span>
-        )}
-      </span>
+      <span className="stat">{noData && <span className="badge b-neutral">{INDICATOR_STATE_LABEL[ind.state]}</span>}</span>
       <span className="ind-name">
         <span className="row-title one">{name}</span>
         <span className="row-meta">
           {/* Each part wraps whole: "System-wide" never breaks at its hyphen. */}
-          <Dotted parts={[when, s.source_label, s.scope && SCOPE_LABEL[s.scope]].map((p, i) => p && <span key={i}>{p}</span>)} />
+          <Dotted
+            parts={[when, source, figure?.chart_reading && "read from a chart", s.scope && SCOPE_LABEL[s.scope]].map(
+              (p, i) => p && <span key={i}>{p}</span>,
+            )}
+          />
         </span>
+        {developmentId && (
+          <span className="fopen" aria-hidden="true">
+            View the development
+            <ChevronIcon />
+          </span>
+        )}
       </span>
       <span className="ind-val">{ind.latest ? seriesValue(s, ind.latest.value) : null}</span>
       <span className="ind-chg">
         {change && (
           <>
-            {change.value}
+            <span className={change.tone ? `chg-${change.tone}` : undefined}>{change.value}</span>
             <span className="row-meta">{change.window}</span>
           </>
         )}
@@ -157,8 +178,6 @@ function IndicatorRow({ ind, name, asOf }: { ind: Indicator; name: string; asOf:
       <IndicatorLine ind={ind} name={name} asOf={asOf} />
     </>
   );
-  // A row whose status comes from a detector event opens the development that carries it.
-  const developmentId = unusable ? null : ind.events.find((e) => e.development_id)?.development_id;
   return developmentId ? (
     <Link {...evidenceLink.development(developmentId)} className="row ind-row" data-series-id={s.id}>
       {cells}
@@ -216,6 +235,7 @@ export function IndicatorLine({
   const y = (v: number) => PAD + ((hi - v) / (hi - lo)) * (100 - 2 * PAD);
   const last = pts[pts.length - 1];
   const at = hover ? pts[hover.i] : null;
+  const atSource = at && ind.sources.find((x) => x.period === at.period);
 
   const onMove = (e: PointerEvent<HTMLSpanElement>) => {
     const box = e.currentTarget.getBoundingClientRect();
@@ -273,6 +293,12 @@ export function IndicatorLine({
             <b>{seriesValue(s, at.value)}</b>
             <span>{s.frequency === "daily" ? longDate(at.period) : seriesPeriod(s, at.period)}</span>
             <span>{name}</span>
+            {atSource && (
+              <span>
+                {atSource.title}
+                {atSource.chart_reading && ", read from a chart"}
+              </span>
+            )}
           </span>
         </>
       )}

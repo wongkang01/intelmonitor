@@ -1,4 +1,4 @@
-# Series catalogue v1 (structured-data-plan.md). `im series fetch` loads it into the series and
+# Series catalogue v1 (docs/archive/structured-data-plan.md). `im series fetch` loads it into the series and
 # series_subjects tables; adding a series from a known source needs no code change.
 #
 # source: where the values come from, by kind.
@@ -7,6 +7,9 @@
 #   coingecko  coin id; daily USD price for the last 365 days
 #   defillama  stablecoin id (omit for all stablecoins) and optional chain; circulating supply
 #   yahoo      symbol (Yahoo Finance ticker, e.g. U11.SI or ^STI); daily close, no key
+#   manual     label (the publication in a few words) and lag_days (days after the period end a
+#              figure is usually published, negative if before): figures collected by hand into
+#              api/seed/collected/market-figures.yaml under the series' id, each with its source
 #   deviation  input and target: percent off the target, (value / target - 1) * 100
 #   product    inputs [a, b]: a times b, for each period both have
 #   share      part and total: percent of the total, part / total * 100, for each period both have
@@ -16,8 +19,14 @@
 # direction. MAS quotes Asian currencies per 100 units (fields ending in _100); they are stored per
 # unit. The FX ids, units and fields must agree (checked when the seed loads).
 #
+# frequency: daily, monthly, quarterly or yearly.
+# year_to_date: true for a running total since January (funds raised year to date); its change is
+# given only against the same period a year earlier.
+#
 # subjects: primary series belong to the subject itself; context series are shown on its page as
-# system-wide or market-wide context.
+# system-wide or market-wide context. A detector firing on a series is tagged to its primary
+# subjects, so a system-wide banking figure is Singapore's, with the banks as context. Groups are
+# not monitored subjects and may not be named (phase1-decisions.md, S3).
 #
 # How a series shows on monitor pages (Indicators, Trend) and in the evidence drawer:
 #   short_name  the row name under its group heading, when shorter than the name
@@ -41,7 +50,7 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i18, field: overall_nb_ltd_ratio}
     subjects:
-      primary: [singapore-banks, singapore]
+      primary: [singapore]
       context: [dbs, ocbc, uob, mas]
   - id: mas.ltd.sgd
     name: Loan-to-deposit ratio, SGD
@@ -55,7 +64,7 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i18, field: sgd_nb_ltd_ratio}
     subjects:
-      primary: [singapore-banks, singapore]
+      primary: [singapore]
       context: [dbs, ocbc, uob, mas]
   - id: mas.ltd.fc
     name: Loan-to-deposit ratio, foreign currency
@@ -69,7 +78,7 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i18, field: for_curr_nb_ltd_ratio}
     subjects:
-      primary: [singapore-banks, singapore]
+      primary: [singapore]
       context: [dbs, ocbc, uob, mas]
 
   # MAS I.12A: non-performing loan ratios by sector, quarterly.
@@ -84,7 +93,7 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i12a, field: overall}
     subjects:
-      primary: [singapore-banks, singapore]
+      primary: [singapore]
       context: [dbs, ocbc, uob, mas, banking-regulation]
   - id: mas.npl.construction
     name: NPL ratio, construction
@@ -97,7 +106,7 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i12a, field: bc_construction}
     subjects:
-      primary: [singapore-banks, singapore]
+      primary: [singapore]
       context: [dbs, ocbc, uob, mas, banking-regulation]
   - id: mas.npl.transport
     name: NPL ratio, transport and storage
@@ -110,7 +119,7 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i12a, field: tsc_trns_strg}
     subjects:
-      primary: [singapore-banks, singapore]
+      primary: [singapore]
       context: [dbs, ocbc, uob, mas, banking-regulation]
   - id: mas.npl.manufacturing
     name: NPL ratio, manufacturing
@@ -123,7 +132,7 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i12a, field: manufactring}
     subjects:
-      primary: [singapore-banks, singapore]
+      primary: [singapore]
       context: [dbs, ocbc, uob, mas, banking-regulation]
   - id: mas.npl.wholesale
     name: NPL ratio, wholesale trade
@@ -136,7 +145,7 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i12a, field: gc_whsl_trd}
     subjects:
-      primary: [singapore-banks, singapore]
+      primary: [singapore]
       context: [dbs, ocbc, uob, mas, banking-regulation]
 
   # MAS I.5B: loans and advances to non-residents by industry, S$ million, monthly.
@@ -152,8 +161,8 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i5b, field: ln_adv_tot}
     subjects:
-      primary: [singapore-banks]
-      context: [geopolitics]
+      primary: [singapore]
+      context: [dbs, ocbc, uob]
   - id: mas.nrl.financial
     name: Loans to non-residents, financial and insurance
     short_name: Financial and insurance
@@ -166,8 +175,8 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i5b, field: fnc_ins_act}
     subjects:
-      primary: [singapore-banks]
-      context: [geopolitics]
+      primary: [singapore]
+      context: [dbs, ocbc, uob]
   - id: mas.nrl.manufacturing
     name: Loans to non-residents, manufacturing
     short_name: Manufacturing
@@ -180,8 +189,8 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i5b, field: manufactring}
     subjects:
-      primary: [singapore-banks]
-      context: [geopolitics]
+      primary: [singapore]
+      context: [dbs, ocbc, uob]
   - id: mas.nrl.transport
     name: Loans to non-residents, transport, storage and communications
     short_name: Transport, storage and communications
@@ -194,8 +203,8 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i5b, field: tsc_tot}
     subjects:
-      primary: [singapore-banks]
-      context: [geopolitics]
+      primary: [singapore]
+      context: [dbs, ocbc, uob]
   - id: mas.nrl.commerce
     name: Loans to non-residents, general commerce
     short_name: General commerce
@@ -208,8 +217,8 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i5b, field: gc_tot}
     subjects:
-      primary: [singapore-banks]
-      context: [geopolitics]
+      primary: [singapore]
+      context: [dbs, ocbc, uob]
   - id: mas.nrl.construction
     name: Loans to non-residents, building and construction
     short_name: Building and construction
@@ -222,8 +231,8 @@ series:
     source_url: https://www.mas.gov.sg/statistics/monthly-statistical-bulletin
     source: {kind: mas, table: i5b, field: bc_tot}
     subjects:
-      primary: [singapore-banks]
-      context: [geopolitics]
+      primary: [singapore]
+      context: [dbs, ocbc, uob]
 
   # MAS exchange rates, end of day, SGD per unit of the foreign currency.
   - id: fx.sgd.usd
@@ -238,7 +247,7 @@ series:
     source: {kind: mas, table: fx, field: usd_sgd}
     subjects:
       primary: [singapore]
-      context: [mas, fed, geopolitics]
+      context: [mas, fixed-income-fx]
   - id: fx.sgd.myr
     name: SGD per Malaysian ringgit
     group: Exchange rates
@@ -251,7 +260,7 @@ series:
     source: {kind: mas, table: fx, field: myr_sgd_100}
     subjects:
       primary: [malaysia]
-      context: [sea-countries, singapore, mas, bnm, geopolitics]
+      context: [singapore, mas, bnm]
   - id: fx.sgd.thb
     name: SGD per Thai baht
     group: Exchange rates
@@ -264,7 +273,7 @@ series:
     source: {kind: mas, table: fx, field: thb_sgd_100}
     subjects:
       primary: [thailand]
-      context: [sea-countries, singapore, mas, geopolitics]
+      context: [singapore, mas, bank-of-thailand]
   - id: fx.sgd.idr
     name: SGD per Indonesian rupiah
     group: Exchange rates
@@ -277,20 +286,7 @@ series:
     source: {kind: mas, table: fx, field: idr_sgd_100}
     subjects:
       primary: [indonesia]
-      context: [sea-countries, singapore, mas, geopolitics]
-  - id: fx.sgd.php
-    name: SGD per Philippine peso
-    group: Exchange rates
-    scope: market
-    unit: SGD per PHP
-    frequency: daily
-    decimals: 5
-    bad_direction: none
-    source_url: https://eservices.mas.gov.sg/Statistics/msb/ExchangeRates.aspx
-    source: {kind: mas, table: fx, field: php_sgd_100}
-    subjects:
-      primary: [philippines]
-      context: [sea-countries, singapore, mas, geopolitics]
+      context: [singapore, mas]
   - id: fx.sgd.vnd
     name: SGD per Vietnamese dong
     group: Exchange rates
@@ -303,20 +299,7 @@ series:
     source: {kind: mas, table: fx, field: vnd_sgd_100}
     subjects:
       primary: [vietnam]
-      context: [sea-countries, singapore, mas, geopolitics]
-  - id: fx.sgd.cny
-    name: SGD per Chinese yuan
-    group: Exchange rates
-    scope: market
-    unit: SGD per CNY
-    frequency: daily
-    decimals: 4
-    bad_direction: none
-    source_url: https://eservices.mas.gov.sg/Statistics/msb/ExchangeRates.aspx
-    source: {kind: mas, table: fx, field: cny_sgd_100}
-    subjects:
-      primary: [pboc]
-      context: [singapore, mas, geopolitics]
+      context: [singapore, mas]
   - id: fx.sgd.hkd
     name: SGD per Hong Kong dollar
     group: Exchange rates
@@ -328,9 +311,22 @@ series:
     source_url: https://eservices.mas.gov.sg/Statistics/msb/ExchangeRates.aspx
     source: {kind: mas, table: fx, field: hkd_sgd_100}
     subjects:
-      primary: [hkma]
-      context: [singapore, mas, geopolitics]
+      primary: [hong-kong]
+      context: [hkma, singapore, mas]
 
+  - id: fx.sgd.cny
+    name: SGD per Chinese yuan
+    group: Exchange rates
+    scope: market
+    unit: SGD per CNY
+    frequency: daily
+    decimals: 4
+    bad_direction: none
+    source_url: https://eservices.mas.gov.sg/Statistics/msb/ExchangeRates.aspx
+    source: {kind: mas, table: fx, field: cny_sgd_100}
+    subjects:
+      primary: [mainland-china]
+      context: [singapore, mas]
   # MAS domestic interest rates: SORA, the overnight interbank SGD rate, and its 3-month
   # compounded rate, which SGD loans are priced on. Published the next business day at 9am SGT.
   - id: mas.sora
@@ -346,7 +342,7 @@ series:
     source: {kind: mas, table: sora, field: sora}
     subjects:
       primary: [mas]
-      context: [singapore, singapore-banks, dbs, ocbc, uob]
+      context: [singapore, fixed-income-fx, dbs, ocbc, uob]
   - id: mas.sora_3m
     name: Compounded SORA, 3 months
     group: SORA
@@ -360,11 +356,12 @@ series:
     source: {kind: mas, table: sora, field: comp_sora_3m}
     subjects:
       primary: [mas]
-      context: [singapore, singapore-banks, dbs, ocbc, uob]
+      context: [singapore, fixed-income-fx, dbs, ocbc, uob]
 
-  # FRED: policy rates and risk sentiment.
+  # FRED: policy rates and risk sentiment, for fixed income and FX.
   - id: fred.fed_funds
     name: Fed funds effective rate
+    group: Rates
     unit: "%"
     frequency: daily
     decimals: 2
@@ -372,10 +369,11 @@ series:
     source_url: https://fred.stlouisfed.org/series/DFF
     source: {kind: fred, series: DFF}
     subjects:
-      primary: [fed]
-      context: [central-banks, banking-regulation]
+      primary: [fixed-income-fx]
+      context: [dbs, ocbc, uob]
   - id: fred.ecb_deposit
     name: ECB deposit facility rate
+    group: Rates
     unit: "%"
     frequency: daily
     decimals: 2
@@ -383,10 +381,10 @@ series:
     source_url: https://fred.stlouisfed.org/series/ECBDFR
     source: {kind: fred, series: ECBDFR}
     subjects:
-      primary: [ecb]
-      context: [central-banks]
+      primary: [fixed-income-fx]
   - id: fred.us10y
     name: US 10-year Treasury yield
+    group: Rates
     scope: market
     unit: "%"
     frequency: daily
@@ -395,10 +393,11 @@ series:
     source_url: https://fred.stlouisfed.org/series/DGS10
     source: {kind: fred, series: DGS10}
     subjects:
-      primary: [geopolitics]
-      context: [central-banks]
+      primary: [fixed-income-fx]
+      context: [infrastructure-finance]
   - id: fred.us_hy_spread
     name: US high-yield spread
+    group: Credit spreads
     scope: market
     unit: "%"
     frequency: daily
@@ -407,8 +406,7 @@ series:
     source_url: https://fred.stlouisfed.org/series/BAMLH0A0HYM2
     source: {kind: fred, series: BAMLH0A0HYM2}
     subjects:
-      primary: [geopolitics]
-      context: [central-banks]
+      primary: [fixed-income-fx]
   - id: fred.vix
     name: VIX
     scope: market
@@ -419,8 +417,8 @@ series:
     source_url: https://fred.stlouisfed.org/series/VIXCLS
     source: {kind: fred, series: VIXCLS}
     subjects:
-      primary: [geopolitics]
-      context: [central-banks]
+      primary: [fixed-income-fx]
+      context: [singapore-equities]
 
   # FRED: oil, Asian credit and the dollar, market-wide stress the region's banks feel.
   - id: fred.brent
@@ -434,8 +432,7 @@ series:
     source_url: https://fred.stlouisfed.org/series/DCOILBRENTEU
     source: {kind: fred, series: DCOILBRENTEU, lag_days: 7}
     subjects:
-      primary: [geopolitics]
-      context: [sea-countries]
+      context: [fixed-income-fx, infrastructure-finance]
   - id: fred.asia_em_corporate_spread
     name: Asia emerging markets corporate spread
     group: Credit spreads
@@ -447,8 +444,8 @@ series:
     source_url: https://fred.stlouisfed.org/series/BAMLEMRACRPIASIAOAS
     source: {kind: fred, series: BAMLEMRACRPIASIAOAS}
     subjects:
-      primary: [sea-countries]
-      context: [singapore-banks, sea-regional-banks, dbs, ocbc, uob, maybank, cimb, bangkok-bank, geopolitics]
+      primary: [fixed-income-fx]
+      context: [singapore, dbs, ocbc, uob]
   - id: fred.usd_broad
     name: US dollar broad index
     scope: market
@@ -459,13 +456,12 @@ series:
     source_url: https://fred.stlouisfed.org/series/DTWEXBGS
     source: {kind: fred, series: DTWEXBGS, lag_days: 10}
     subjects:
-      primary: [fed]
-      context: [central-banks, geopolitics, sea-countries]
+      context: [fixed-income-fx]
 
-  # Yahoo Finance daily closes: listed banks and issuers, and the region's equity indices. Ids name
-  # the exchange (eq.<exchange>.<subject>), so a detector compares each share with its home index.
-  # Yahoo has no daily history for the SET Index, PSEi or VN-Index: Thailand uses the SET50 ETF
-  # listed in Bangkok, and the Philippines and Vietnam the US-listed country ETFs, priced in USD.
+  # Yahoo Finance daily closes: listed banks and exchanges, and the region's equity indices. Ids
+  # name the exchange (eq.<exchange>.<subject>), so a detector compares each share with its home
+  # index. Yahoo has no daily history for the SET Index or VN-Index: Thailand uses the SET50 ETF
+  # listed in Bangkok, and Vietnam the US-listed country ETF, priced in USD.
   - id: eq.sgx.dbs
     name: DBS share price
     short_name: DBS
@@ -478,7 +474,6 @@ series:
     source: {kind: yahoo, symbol: "D05.SI"}
     subjects:
       primary: [dbs]
-      context: [singapore-banks]
   - id: eq.sgx.ocbc
     name: OCBC share price
     short_name: OCBC
@@ -491,7 +486,6 @@ series:
     source: {kind: yahoo, symbol: "O39.SI"}
     subjects:
       primary: [ocbc]
-      context: [singapore-banks]
   - id: eq.sgx.uob
     name: UOB share price
     short_name: UOB
@@ -504,59 +498,32 @@ series:
     source: {kind: yahoo, symbol: "U11.SI"}
     subjects:
       primary: [uob]
-      context: [singapore-banks]
-  - id: eq.bursa.maybank
-    name: Maybank share price
-    short_name: Maybank
+  - id: eq.sgx.sgx
+    name: SGX share price
+    short_name: SGX
     group: Share prices
-    unit: MYR
+    unit: SGD
     frequency: daily
     decimals: 2
     bad_direction: down
-    source_url: https://finance.yahoo.com/quote/1155.KL
-    source: {kind: yahoo, symbol: "1155.KL"}
+    source_url: https://finance.yahoo.com/quote/S68.SI
+    source: {kind: yahoo, symbol: "S68.SI"}
     subjects:
-      primary: [maybank]
-      context: [sea-regional-banks]
-  - id: eq.bursa.cimb
-    name: CIMB share price
-    short_name: CIMB
+      primary: [sgx]
+      context: [singapore-equities]
+  - id: eq.hkex.hkex
+    name: HKEX share price
+    short_name: HKEX
     group: Share prices
-    unit: MYR
+    unit: HKD
     frequency: daily
     decimals: 2
     bad_direction: down
-    source_url: https://finance.yahoo.com/quote/1023.KL
-    source: {kind: yahoo, symbol: "1023.KL"}
+    source_url: https://finance.yahoo.com/quote/0388.HK
+    source: {kind: yahoo, symbol: "0388.HK"}
     subjects:
-      primary: [cimb]
-      context: [sea-regional-banks]
-  - id: eq.set.bangkok-bank
-    name: Bangkok Bank share price
-    short_name: Bangkok Bank
-    group: Share prices
-    unit: THB
-    frequency: daily
-    decimals: 2
-    bad_direction: down
-    source_url: https://finance.yahoo.com/quote/BBL.BK
-    source: {kind: yahoo, symbol: "BBL.BK"}
-    subjects:
-      primary: [bangkok-bank]
-      context: [sea-regional-banks]
-  - id: eq.nyse.circle
-    name: Circle share price
-    short_name: Circle
-    group: Share prices
-    unit: USD
-    frequency: daily
-    decimals: 2
-    bad_direction: down
-    source_url: https://finance.yahoo.com/quote/CRCL
-    source: {kind: yahoo, symbol: "CRCL"}
-    subjects:
-      primary: [circle]
-      context: [stablecoin-issuers, stablecoins]
+      primary: [hkex]
+      context: [hong-kong]
   - id: idx.sti
     name: Straits Times Index
     group: Equity indices
@@ -568,8 +535,8 @@ series:
     source_url: https://finance.yahoo.com/quote/%5ESTI
     source: {kind: yahoo, symbol: "^STI"}
     subjects:
-      primary: [singapore]
-      context: [sea-countries, mas, singapore-banks, dbs, ocbc, uob]
+      primary: [singapore, singapore-equities]
+      context: [sgx, mas, dbs, ocbc, uob]
   - id: idx.klci
     name: FTSE Bursa Malaysia KLCI
     group: Equity indices
@@ -582,7 +549,7 @@ series:
     source: {kind: yahoo, symbol: "^KLSE"}
     subjects:
       primary: [malaysia]
-      context: [sea-countries, bnm, sea-regional-banks, maybank, cimb]
+      context: [bnm, singapore-equities]
   - id: idx.set50
     name: SET50 (ThaiDEX SET50 ETF)
     group: Equity indices
@@ -595,7 +562,7 @@ series:
     source: {kind: yahoo, symbol: "TDEX.BK"}
     subjects:
       primary: [thailand]
-      context: [sea-countries, sea-regional-banks, bangkok-bank]
+      context: [singapore-equities]
   - id: idx.jci
     name: Jakarta Composite Index
     group: Equity indices
@@ -608,20 +575,7 @@ series:
     source: {kind: yahoo, symbol: "^JKSE"}
     subjects:
       primary: [indonesia]
-      context: [sea-countries]
-  - id: idx.ephe
-    name: Philippine equities (iShares MSCI Philippines ETF)
-    group: Equity indices
-    scope: market
-    unit: USD
-    frequency: daily
-    decimals: 2
-    bad_direction: down
-    source_url: https://finance.yahoo.com/quote/EPHE
-    source: {kind: yahoo, symbol: "EPHE"}
-    subjects:
-      primary: [philippines]
-      context: [sea-countries]
+      context: [singapore-equities]
   - id: idx.vnm
     name: Vietnamese equities (VanEck Vietnam ETF)
     group: Equity indices
@@ -634,7 +588,6 @@ series:
     source: {kind: yahoo, symbol: "VNM"}
     subjects:
       primary: [vietnam]
-      context: [sea-countries]
   - id: idx.hsi
     name: Hang Seng Index
     group: Equity indices
@@ -646,8 +599,21 @@ series:
     source_url: https://finance.yahoo.com/quote/%5EHSI
     source: {kind: yahoo, symbol: "^HSI"}
     subjects:
-      primary: [hkma]
-      context: [central-banks, geopolitics, singapore-banks]
+      primary: [hong-kong]
+      context: [hkex, hkma, singapore-equities]
+  - id: idx.hscei
+    name: Hang Seng China Enterprises Index
+    group: Equity indices
+    scope: market
+    unit: index
+    frequency: daily
+    decimals: 2
+    bad_direction: down
+    source_url: https://finance.yahoo.com/quote/%5EHSCE
+    source: {kind: yahoo, symbol: "^HSCE"}
+    subjects:
+      primary: [mainland-china]
+      context: [hong-kong, hkex]
   - id: idx.sse
     name: Shanghai Composite Index
     group: Equity indices
@@ -659,413 +625,505 @@ series:
     source_url: https://finance.yahoo.com/quote/000001.SS
     source: {kind: yahoo, symbol: "000001.SS"}
     subjects:
-      primary: [pboc]
-      context: [central-banks, geopolitics]
+      primary: [mainland-china]
 
-  # CoinGecko prices, and peg deviation derived from them.
-  - id: cg.usdt.price
-    name: USDT price
-    listed: false
-    unit: USD
-    frequency: daily
-    decimals: 4
-    bad_direction: none
-    source_url: https://www.coingecko.com/en/coins/tether
-    source: {kind: coingecko, coin: tether}
-    subjects:
-      context: [tether, stablecoin-issuers, stablecoins]
-  - id: derived.usdt.peg
-    name: USDT off its USD peg
-    unit: "%"
-    frequency: daily
-    decimals: 2
-    bad_direction: down
-    source_url: https://www.coingecko.com/en/coins/tether
-    source: {kind: deviation, input: cg.usdt.price, target: 1}
-    subjects:
-      primary: [tether]
-      context: [stablecoin-issuers, stablecoins]
-  - id: cg.usdc.price
-    name: USDC price
-    listed: false
-    unit: USD
-    frequency: daily
-    decimals: 4
-    bad_direction: none
-    source_url: https://www.coingecko.com/en/coins/usdc
-    source: {kind: coingecko, coin: usd-coin}
-    subjects:
-      context: [circle, stablecoin-issuers, stablecoins]
-  - id: derived.usdc.peg
-    name: USDC off its USD peg
-    unit: "%"
-    frequency: daily
-    decimals: 2
-    bad_direction: down
-    source_url: https://www.coingecko.com/en/coins/usdc
-    source: {kind: deviation, input: cg.usdc.price, target: 1}
-    subjects:
-      primary: [circle]
-      context: [stablecoin-issuers, stablecoins]
-  - id: cg.pyusd.price
-    name: PYUSD price
-    listed: false
-    unit: USD
-    frequency: daily
-    decimals: 4
-    bad_direction: none
-    source_url: https://www.coingecko.com/en/coins/paypal-usd
-    source: {kind: coingecko, coin: paypal-usd}
-    subjects:
-      context: [paxos, stablecoin-issuers, stablecoins]
-  - id: derived.pyusd.peg
-    name: PYUSD off its USD peg
-    unit: "%"
-    frequency: daily
-    decimals: 2
-    bad_direction: down
-    source_url: https://www.coingecko.com/en/coins/paypal-usd
-    source: {kind: deviation, input: cg.pyusd.price, target: 1}
-    subjects:
-      primary: [paxos]
-      context: [stablecoin-issuers, stablecoins]
-  - id: cg.usdp.price
-    name: USDP price
-    listed: false
-    unit: USD
-    frequency: daily
-    decimals: 4
-    bad_direction: none
-    source_url: https://www.coingecko.com/en/coins/pax-dollar
-    source: {kind: coingecko, coin: paxos-standard}
-    subjects:
-      context: [paxos, stablecoin-issuers, stablecoins]
-  - id: derived.usdp.peg
-    name: USDP off its USD peg
-    unit: "%"
-    frequency: daily
-    decimals: 2
-    bad_direction: down
-    source_url: https://www.coingecko.com/en/coins/pax-dollar
-    source: {kind: deviation, input: cg.usdp.price, target: 1}
-    subjects:
-      primary: [paxos]
-      context: [stablecoin-issuers, stablecoins]
-  - id: cg.xsgd.price
-    name: XSGD price in USD
-    listed: false
-    unit: USD
-    frequency: daily
-    decimals: 4
-    bad_direction: none
-    source_url: https://www.coingecko.com/en/coins/xsgd
-    source: {kind: coingecko, coin: xsgd}
-    subjects:
-      context: [straitsx, stablecoin-issuers, stablecoins]
-  # XSGD's 00:00 UTC price in USD times the same day's MAS rate, so days without a MAS rate
-  # (weekends, Singapore holidays) have no value. An earlier day's rate turns FX moves into false
-  # depegs; CoinGecko's own SGD price converts at a rate out of step with its USD price and is 0.5%
-  # off on ten days a year, where this is never more than 0.45% off.
-  - id: derived.xsgd.price_sgd
-    name: XSGD price in SGD
-    listed: false
-    unit: SGD
-    frequency: daily
-    decimals: 4
-    bad_direction: none
-    source_url: https://www.coingecko.com/en/coins/xsgd
-    source: {kind: product, inputs: [cg.xsgd.price, fx.sgd.usd]}
-    subjects:
-      context: [straitsx, stablecoin-issuers, stablecoins]
-  - id: derived.xsgd.peg
-    name: XSGD off its SGD peg
-    unit: "%"
-    frequency: daily
-    decimals: 2
-    bad_direction: down
-    source_url: https://www.coingecko.com/en/coins/xsgd
-    source: {kind: deviation, input: derived.xsgd.price_sgd, target: 1}
-    subjects:
-      primary: [straitsx]
-      context: [stablecoin-issuers, stablecoins]
-
-  # DefiLlama circulating supply, per coin and on its largest chains, with each chain's share.
-  - id: llama.usdt.supply
-    name: USDT circulating supply
-    unit: USD
-    frequency: daily
-    decimals: 0
-    bad_direction: down
-    source_url: https://defillama.com/stablecoin/tether
-    source: {kind: defillama, stablecoin: 1}
-    subjects:
-      primary: [tether]
-      context: [stablecoin-issuers, stablecoins]
-  - id: llama.usdt.supply.tron
-    name: USDT supply on Tron
-    listed: false
-    unit: USD
-    frequency: daily
-    decimals: 0
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/tether
-    source: {kind: defillama, stablecoin: 1, chain: Tron}
-    subjects:
-      context: [tether]
-  - id: llama.usdt.supply.ethereum
-    name: USDT supply on Ethereum
-    listed: false
-    unit: USD
-    frequency: daily
-    decimals: 0
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/tether
-    source: {kind: defillama, stablecoin: 1, chain: Ethereum}
-    subjects:
-      context: [tether]
-  - id: derived.usdt.share.tron
-    name: Share of USDT on Tron
-    short_name: Share on Tron
-    group: Supply by chain
-    unit: "%"
-    frequency: daily
-    decimals: 1
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/tether
-    source: {kind: share, part: llama.usdt.supply.tron, total: llama.usdt.supply}
-    subjects:
-      context: [tether]
-  - id: derived.usdt.share.ethereum
-    name: Share of USDT on Ethereum
-    short_name: Share on Ethereum
-    group: Supply by chain
-    unit: "%"
-    frequency: daily
-    decimals: 1
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/tether
-    source: {kind: share, part: llama.usdt.supply.ethereum, total: llama.usdt.supply}
-    subjects:
-      context: [tether]
-
-  - id: llama.usdc.supply
-    name: USDC circulating supply
-    unit: USD
-    frequency: daily
-    decimals: 0
-    bad_direction: down
-    source_url: https://defillama.com/stablecoin/usd-coin
-    source: {kind: defillama, stablecoin: 2}
-    subjects:
-      primary: [circle]
-      context: [stablecoin-issuers, stablecoins]
-  - id: llama.usdc.supply.ethereum
-    name: USDC supply on Ethereum
-    listed: false
-    unit: USD
-    frequency: daily
-    decimals: 0
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/usd-coin
-    source: {kind: defillama, stablecoin: 2, chain: Ethereum}
-    subjects:
-      context: [circle]
-  - id: llama.usdc.supply.solana
-    name: USDC supply on Solana
-    listed: false
-    unit: USD
-    frequency: daily
-    decimals: 0
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/usd-coin
-    source: {kind: defillama, stablecoin: 2, chain: Solana}
-    subjects:
-      context: [circle]
-  - id: derived.usdc.share.ethereum
-    name: Share of USDC on Ethereum
-    short_name: Share on Ethereum
-    group: Supply by chain
-    unit: "%"
-    frequency: daily
-    decimals: 1
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/usd-coin
-    source: {kind: share, part: llama.usdc.supply.ethereum, total: llama.usdc.supply}
-    subjects:
-      context: [circle]
-  - id: derived.usdc.share.solana
-    name: Share of USDC on Solana
-    short_name: Share on Solana
-    group: Supply by chain
-    unit: "%"
-    frequency: daily
-    decimals: 1
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/usd-coin
-    source: {kind: share, part: llama.usdc.supply.solana, total: llama.usdc.supply}
-    subjects:
-      context: [circle]
-
-  - id: llama.pyusd.supply
-    name: PYUSD circulating supply
-    unit: USD
-    frequency: daily
-    decimals: 0
-    bad_direction: down
-    source_url: https://defillama.com/stablecoin/paypal-usd
-    source: {kind: defillama, stablecoin: 120}
-    subjects:
-      primary: [paxos]
-      context: [stablecoin-issuers, stablecoins]
-  - id: llama.pyusd.supply.ethereum
-    name: PYUSD supply on Ethereum
-    listed: false
-    unit: USD
-    frequency: daily
-    decimals: 0
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/paypal-usd
-    source: {kind: defillama, stablecoin: 120, chain: Ethereum}
-    subjects:
-      context: [paxos]
-  - id: llama.pyusd.supply.solana
-    name: PYUSD supply on Solana
-    listed: false
-    unit: USD
-    frequency: daily
-    decimals: 0
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/paypal-usd
-    source: {kind: defillama, stablecoin: 120, chain: Solana}
-    subjects:
-      context: [paxos]
-  - id: derived.pyusd.share.ethereum
-    name: Share of PYUSD on Ethereum
-    short_name: Share on Ethereum
-    group: Supply by chain
-    unit: "%"
-    frequency: daily
-    decimals: 1
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/paypal-usd
-    source: {kind: share, part: llama.pyusd.supply.ethereum, total: llama.pyusd.supply}
-    subjects:
-      context: [paxos]
-  - id: derived.pyusd.share.solana
-    name: Share of PYUSD on Solana
-    short_name: Share on Solana
-    group: Supply by chain
-    unit: "%"
-    frequency: daily
-    decimals: 1
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/paypal-usd
-    source: {kind: share, part: llama.pyusd.supply.solana, total: llama.pyusd.supply}
-    subjects:
-      context: [paxos]
-
-  - id: llama.usdp.supply
-    name: USDP circulating supply
-    unit: USD
-    frequency: daily
-    decimals: 0
-    bad_direction: down
-    source_url: https://defillama.com/stablecoin/pax-dollar
-    source: {kind: defillama, stablecoin: 11}
-    subjects:
-      primary: [paxos]
-      context: [stablecoin-issuers, stablecoins]
-  - id: llama.usdp.supply.ethereum
-    name: USDP supply on Ethereum
-    listed: false
-    unit: USD
-    frequency: daily
-    decimals: 0
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/pax-dollar
-    source: {kind: defillama, stablecoin: 11, chain: Ethereum}
-    subjects:
-      context: [paxos]
-  - id: derived.usdp.share.ethereum
-    name: Share of USDP on Ethereum
-    short_name: Share on Ethereum
-    group: Supply by chain
-    unit: "%"
-    frequency: daily
-    decimals: 1
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/pax-dollar
-    source: {kind: share, part: llama.usdp.supply.ethereum, total: llama.usdp.supply}
-    subjects:
-      context: [paxos]
-
-  - id: llama.xsgd.supply
-    name: XSGD circulating supply
-    unit: SGD
-    frequency: daily
-    decimals: 0
-    bad_direction: down
-    source_url: https://defillama.com/stablecoin/xsgd
-    source: {kind: defillama, stablecoin: 289}
-    subjects:
-      primary: [straitsx]
-      context: [stablecoin-issuers, stablecoins]
-  - id: llama.xsgd.supply.ethereum
-    name: XSGD supply on Ethereum
-    listed: false
-    unit: SGD
-    frequency: daily
-    decimals: 0
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/xsgd
-    source: {kind: defillama, stablecoin: 289, chain: Ethereum}
-    subjects:
-      context: [straitsx]
-  - id: llama.xsgd.supply.polygon
-    name: XSGD supply on Polygon
-    listed: false
-    unit: SGD
-    frequency: daily
-    decimals: 0
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/xsgd
-    source: {kind: defillama, stablecoin: 289, chain: Polygon}
-    subjects:
-      context: [straitsx]
-  - id: derived.xsgd.share.ethereum
-    name: Share of XSGD on Ethereum
-    short_name: Share on Ethereum
-    group: Supply by chain
-    unit: "%"
-    frequency: daily
-    decimals: 1
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/xsgd
-    source: {kind: share, part: llama.xsgd.supply.ethereum, total: llama.xsgd.supply}
-    subjects:
-      context: [straitsx]
-  - id: derived.xsgd.share.polygon
-    name: Share of XSGD on Polygon
-    short_name: Share on Polygon
-    group: Supply by chain
-    unit: "%"
-    frequency: daily
-    decimals: 1
-    bad_direction: none
-    source_url: https://defillama.com/stablecoin/xsgd
-    source: {kind: share, part: llama.xsgd.supply.polygon, total: llama.xsgd.supply}
-    subjects:
-      context: [straitsx]
-
-  - id: llama.total.supply
-    name: Total stablecoin supply
+  # Figures collected by hand for the FMD session (api/seed/collected/market-figures.yaml): SGX and
+  # HKEX monthly statistics, the MAS asset management survey, EQDP placements, BIS FX turnover and
+  # bond market figures, in the units they are published in. Each figure keeps its source.
+  - id: sgx.sdav
+    name: SGX securities daily average value
+    short_name: Securities daily average value
+    group: SGX market activity
     scope: market
-    unit: USD
-    frequency: daily
+    unit: SGD m
+    frequency: monthly
     decimals: 0
     bad_direction: down
-    source_url: https://defillama.com/stablecoins
-    source: {kind: defillama}
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    source: {kind: manual, label: "SGX monthly statistics", lag_days: 10}
     subjects:
-      primary: [stablecoins]
-      context: [stablecoin-issuers]
+      primary: [sgx, singapore-equities]
+  - id: sgx.securities_turnover
+    name: SGX securities turnover in the month
+    short_name: Securities turnover in the month
+    group: SGX market activity
+    scope: market
+    unit: SGD m
+    frequency: monthly
+    decimals: 0
+    bad_direction: down
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    source: {kind: manual, label: "SGX monthly statistics", lag_days: 10}
+    subjects:
+      primary: [sgx, singapore-equities]
+  - id: sgx.derivatives_dav
+    name: SGX derivatives daily average volume
+    short_name: Derivatives daily average volume
+    group: SGX market activity
+    scope: market
+    unit: contracts
+    frequency: monthly
+    decimals: 0
+    bad_direction: down
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    source: {kind: manual, label: "SGX monthly statistics", lag_days: 10}
+    subjects:
+      primary: [sgx]
+      context: [fixed-income-fx]
+  - id: sgx.market_cap
+    name: SGX market capitalisation
+    short_name: Market capitalisation
+    group: SGX market activity
+    scope: market
+    unit: SGD m
+    frequency: monthly
+    decimals: 0
+    bad_direction: down
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    source: {kind: manual, label: "SGX monthly statistics", lag_days: 10}
+    subjects:
+      primary: [sgx, singapore-equities]
+  - id: sgx.listed_securities
+    name: SGX listed securities
+    short_name: Listed securities
+    group: SGX listings
+    scope: market
+    unit: count
+    frequency: monthly
+    decimals: 0
+    bad_direction: down
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    source: {kind: manual, label: "SGX monthly statistics", lag_days: 10}
+    subjects:
+      primary: [sgx, singapore-equities]
+  - id: sgx.ipos_mainboard
+    name: SGX Mainboard IPOs in the month
+    short_name: Mainboard IPOs
+    group: SGX listings
+    scope: market
+    unit: count
+    frequency: monthly
+    decimals: 0
+    bad_direction: down
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    source: {kind: manual, label: "SGX monthly statistics", lag_days: 10}
+    subjects:
+      primary: [sgx, singapore-equities]
+  - id: sgx.ipos_catalist
+    name: SGX Catalist IPOs in the month
+    short_name: Catalist IPOs
+    group: SGX listings
+    scope: market
+    unit: count
+    frequency: monthly
+    decimals: 0
+    bad_direction: down
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    source: {kind: manual, label: "SGX monthly statistics", lag_days: 10}
+    subjects:
+      primary: [sgx, singapore-equities]
+  - id: sgx.ipo_funds_mainboard
+    name: SGX Mainboard IPO and RTO funds raised
+    short_name: Mainboard IPO and RTO funds raised
+    group: SGX listings
+    scope: market
+    unit: SGD m
+    frequency: monthly
+    decimals: 0
+    bad_direction: down
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    source: {kind: manual, label: "SGX monthly statistics", lag_days: 10}
+    subjects:
+      primary: [sgx, singapore-equities]
+  - id: sgx.ipo_funds_catalist
+    name: SGX Catalist IPO and RTO funds raised
+    short_name: Catalist IPO and RTO funds raised
+    group: SGX listings
+    scope: market
+    unit: SGD m
+    frequency: monthly
+    decimals: 0
+    bad_direction: down
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    source: {kind: manual, label: "SGX monthly statistics", lag_days: 10}
+    subjects:
+      primary: [sgx, singapore-equities]
+  - id: sgx.delistings_mainboard
+    name: SGX Mainboard delistings in the month
+    short_name: Mainboard delistings
+    group: SGX listings
+    scope: market
+    unit: count
+    frequency: monthly
+    decimals: 0
+    bad_direction: up
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    source: {kind: manual, label: "SGX monthly statistics", lag_days: 10}
+    subjects:
+      primary: [sgx, singapore-equities]
+  - id: sgx.delistings_catalist
+    name: SGX Catalist delistings in the month
+    short_name: Catalist delistings
+    group: SGX listings
+    scope: market
+    unit: count
+    frequency: monthly
+    decimals: 0
+    bad_direction: up
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    source: {kind: manual, label: "SGX monthly statistics", lag_days: 10}
+    subjects:
+      primary: [sgx, singapore-equities]
+  - id: sgx.secondary_fundraising_ytd
+    name: SGX secondary fundraising, year to date
+    short_name: Secondary fundraising, year to date
+    group: SGX listings
+    scope: market
+    unit: SGD bn
+    frequency: monthly
+    year_to_date: true
+    decimals: 2
+    bad_direction: down
+    source_url: https://mondovisione.com/news/sgx-group-reports-resilient-multi-asset-performance-for-august-2026910/
+    source: {kind: manual, label: "SGX monthly news release", lag_days: 10}
+    subjects:
+      primary: [sgx, singapore-equities]
+  - id: sgx.new_bond_listings_funds
+    name: SGX new bond listings, funds raised
+    short_name: New bond listings, funds raised
+    group: SGX market activity
+    scope: market
+    unit: SGD m
+    frequency: monthly
+    decimals: 0
+    bad_direction: down
+    source_url: https://links.sgx.com/FileOpen/SGX%20Monthly%20Statistics%20Report%20Update_Aug%202026.ashx?App=Announcement&FileID=903915
+    source: {kind: manual, label: "SGX monthly statistics", lag_days: 10}
+    subjects:
+      primary: [sgx, fixed-income-fx]
+  - id: hkex.adt
+    name: HKEX securities average daily turnover
+    short_name: Securities average daily turnover
+    group: HKEX market activity
+    scope: market
+    unit: HKD m
+    frequency: monthly
+    decimals: 0
+    bad_direction: none
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B0313FF24-82C0-4802-A7D5-5E90470EC17D%7D
+    source: {kind: manual, label: "HKEX market highlights", lag_days: 5}
+    subjects:
+      primary: [hkex]
+      context: [hong-kong, singapore-equities]
+  - id: hkex.market_cap
+    name: HKEX market capitalisation
+    short_name: Market capitalisation
+    group: HKEX market activity
+    scope: market
+    unit: HKD bn
+    frequency: monthly
+    decimals: 1
+    bad_direction: none
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B0313FF24-82C0-4802-A7D5-5E90470EC17D%7D
+    source: {kind: manual, label: "HKEX market highlights", lag_days: 5}
+    subjects:
+      primary: [hkex]
+      context: [hong-kong, singapore-equities]
+  - id: hkex.newly_listed
+    name: HKEX newly listed companies in the month
+    short_name: Newly listed companies
+    group: HKEX market activity
+    scope: market
+    unit: count
+    frequency: monthly
+    decimals: 0
+    bad_direction: none
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B0313FF24-82C0-4802-A7D5-5E90470EC17D%7D
+    source: {kind: manual, label: "HKEX market highlights", lag_days: 5}
+    subjects:
+      primary: [hkex]
+      context: [hong-kong, singapore-equities]
+  - id: hkex.ipo_funds_ytd
+    name: HKEX IPO funds raised, year to date
+    short_name: IPO funds raised, year to date
+    group: HKEX market activity
+    scope: market
+    unit: HKD bn
+    frequency: monthly
+    year_to_date: true
+    decimals: 1
+    bad_direction: none
+    source_url: https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights?sc_lang=en&select=%7B0313FF24-82C0-4802-A7D5-5E90470EC17D%7D
+    source: {kind: manual, label: "HKEX market highlights", lag_days: 5}
+    subjects:
+      primary: [hkex]
+      context: [hong-kong, singapore-equities]
+  - id: mas_ams.aum
+    name: Singapore assets under management
+    short_name: Assets under management
+    group: Asset management survey
+    scope: market
+    unit: SGD bn
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    source: {kind: manual, label: "MAS asset management survey", lag_days: 209}
+    subjects:
+      primary: [asset-management]
+  - id: mas_ams.net_inflows
+    name: Singapore net AUM inflows
+    short_name: Net inflows
+    group: Asset management survey
+    scope: market
+    unit: SGD bn
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    source: {kind: manual, label: "MAS asset management survey", lag_days: 209}
+    subjects:
+      primary: [asset-management]
+  - id: mas_ams.licensed_fmcs
+    name: Licensed fund management companies in Singapore
+    short_name: Licensed fund management companies
+    group: Asset management survey
+    scope: market
+    unit: count
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    source: {kind: manual, label: "MAS asset management survey", lag_days: 209}
+    subjects:
+      primary: [asset-management]
+  - id: mas_ams.aum_sourced_outside_sg_pct
+    name: Singapore AUM sourced from outside Singapore
+    short_name: Sourced from outside Singapore
+    group: Asset management survey
+    scope: market
+    unit: "%"
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    source: {kind: manual, label: "MAS asset management survey", lag_days: 209}
+    subjects:
+      primary: [asset-management]
+  - id: mas_ams.aum_sourced_apac_ex_sg_pct
+    name: Singapore AUM sourced from Asia Pacific ex-Singapore
+    short_name: Sourced from Asia Pacific ex-Singapore
+    group: Asset management survey
+    scope: market
+    unit: "%"
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    source: {kind: manual, label: "MAS asset management survey", lag_days: 209}
+    subjects:
+      primary: [asset-management]
+  - id: mas_ams.aum_sourced_north_america_pct
+    name: Singapore AUM sourced from North America
+    short_name: Sourced from North America
+    group: Asset management survey
+    scope: market
+    unit: "%"
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    source: {kind: manual, label: "MAS asset management survey", lag_days: 209}
+    subjects:
+      primary: [asset-management]
+  - id: mas_ams.aum_sourced_europe_pct
+    name: Singapore AUM sourced from Europe
+    short_name: Sourced from Europe
+    group: Asset management survey
+    scope: market
+    unit: "%"
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    source: {kind: manual, label: "MAS asset management survey", lag_days: 209}
+    subjects:
+      primary: [asset-management]
+  - id: mas_ams.aum_invested_outside_sg_pct
+    name: Singapore AUM invested outside Singapore
+    short_name: Invested outside Singapore
+    group: Asset management survey
+    scope: market
+    unit: "%"
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    source: {kind: manual, label: "MAS asset management survey", lag_days: 209}
+    subjects:
+      primary: [asset-management]
+  - id: mas_ams.aum_invested_apac_ex_sg_pct
+    name: Singapore AUM invested in Asia Pacific ex-Singapore
+    short_name: Invested in Asia Pacific ex-Singapore
+    group: Asset management survey
+    scope: market
+    unit: "%"
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-asset-management-survey/asset-management-survey-report-2025.pdf
+    source: {kind: manual, label: "MAS asset management survey", lag_days: 209}
+    subjects:
+      primary: [asset-management]
+  - id: mas.eqdp_batch_placement
+    name: EQDP placement per batch of asset managers
+    short_name: Placement per batch
+    group: Equity Market Development Programme
+    scope: market
+    unit: SGD bn
+    frequency: monthly
+    decimals: 2
+    bad_direction: none
+    source_url: https://www.mas.gov.sg/news/media-releases/2026/mas-appoints-third-batch-of-eqdp-asset-managers
+    source: {kind: manual, label: "MAS media releases", lag_days: 0}
+    subjects:
+      primary: [singapore-equities]
+      context: [asset-management, mas]
+  - id: mas.eqdp_total_allocation
+    name: EQDP total allocation to asset managers
+    short_name: Total allocation
+    group: Equity Market Development Programme
+    scope: market
+    unit: SGD bn
+    frequency: monthly
+    decimals: 1
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/news/media-releases/2026/mas-appoints-third-batch-of-eqdp-asset-managers
+    source: {kind: manual, label: "MAS media releases", lag_days: 0}
+    subjects:
+      primary: [singapore-equities]
+      context: [asset-management, mas]
+  - id: mas.fx_adtv
+    name: Singapore FX average daily turnover
+    short_name: Singapore, average daily
+    group: FX turnover
+    scope: market
+    unit: USD bn
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/news/media-releases/2025/singapore-strengthens-position-as-third-largest-global-fx-centre
+    source: {kind: manual, label: "BIS FX survey (MAS)", lag_days: -92}
+    subjects:
+      primary: [fixed-income-fx]
+      context: [singapore]
+  - id: mas.fx_global_share
+    name: Singapore share of global FX turnover
+    short_name: Singapore share of global turnover
+    group: FX turnover
+    scope: market
+    unit: "%"
+    frequency: yearly
+    decimals: 1
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/news/media-releases/2025/singapore-strengthens-position-as-third-largest-global-fx-centre
+    source: {kind: manual, label: "BIS FX survey (MAS)", lag_days: -92}
+    subjects:
+      primary: [fixed-income-fx]
+      context: [singapore]
+  - id: hkma.fx_adt
+    name: Hong Kong FX average daily turnover
+    short_name: Hong Kong, average daily
+    group: FX turnover
+    scope: market
+    unit: USD bn
+    frequency: yearly
+    decimals: 1
+    bad_direction: none
+    source_url: https://www.hkma.gov.hk/eng/news-and-media/press-releases/2025/09/20250930-9/
+    source: {kind: manual, label: "BIS FX survey (HKMA)", lag_days: -92}
+    subjects:
+      primary: [fixed-income-fx]
+      context: [hong-kong]
+  - id: mas.corp_debt_issuance
+    name: New debt issuance arranged in Singapore
+    group: Singapore bond market
+    scope: market
+    unit: SGD bn
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-corporate-debt-market-developments/singapore-corporate-debt-market-development-2026.pdf
+    source: {kind: manual, label: "MAS corporate debt market report", lag_days: 150}
+    subjects:
+      primary: [fixed-income-fx]
+      context: [singapore]
+  - id: mas.corp_debt_outstanding
+    name: Outstanding debt arranged in Singapore
+    group: Singapore bond market
+    scope: market
+    unit: SGD bn
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-corporate-debt-market-developments/singapore-corporate-debt-market-development-2026.pdf
+    source: {kind: manual, label: "MAS corporate debt market report", lag_days: 150}
+    subjects:
+      primary: [fixed-income-fx]
+      context: [singapore]
+  - id: mas.sg_bond_issuance_usd
+    name: Singapore long-term bond issuance in USD
+    short_name: Long-term bond issuance in USD
+    group: Singapore bond market
+    scope: market
+    unit: USD bn
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-corporate-debt-market-developments/singapore-corporate-debt-market-development-2026.pdf
+    source: {kind: manual, label: "MAS corporate debt market report", lag_days: 150}
+    subjects:
+      primary: [fixed-income-fx]
+      context: [singapore]
+  - id: mas.covered_bond_issuance
+    name: Singapore covered bond issuance
+    short_name: Covered bond issuance
+    group: Singapore bond market
+    scope: market
+    unit: SGD bn
+    frequency: yearly
+    decimals: 0
+    bad_direction: down
+    source_url: https://www.mas.gov.sg/-/media/mas-media-library/publications/singapore-corporate-debt-market-developments/singapore-corporate-debt-market-development-2026.pdf
+    source: {kind: manual, label: "MAS corporate debt market report", lag_days: 150}
+    subjects:
+      primary: [fixed-income-fx]
+      context: [singapore]
+  - id: adb.sg_lcy_bonds_outstanding
+    name: Singapore local currency bonds outstanding
+    short_name: Local currency bonds outstanding
+    group: Singapore bond market
+    scope: market
+    unit: SGD bn
+    frequency: quarterly
+    decimals: 1
+    bad_direction: down
+    source_url: https://asianbondsonline.adb.org/singapore/market_summary/sg_market_summary_202609.pdf
+    source: {kind: manual, label: "ADB AsianBondsOnline", lag_days: 75}
+    subjects:
+      primary: [fixed-income-fx]
+      context: [singapore]
+  - id: adb.sg_corp_bond_issuance
+    name: Singapore local currency corporate bond issuance
+    short_name: Local currency corporate bond issuance
+    group: Singapore bond market
+    scope: market
+    unit: SGD bn
+    frequency: quarterly
+    decimals: 1
+    bad_direction: down
+    source_url: https://asianbondsonline.adb.org/singapore/market_summary/sg_market_summary_202511.pdf
+    source: {kind: manual, label: "ADB AsianBondsOnline", lag_days: 75}
+    subjects:
+      primary: [fixed-income-fx]
+      context: [singapore]

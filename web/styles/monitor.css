@@ -18,6 +18,11 @@
 .wm .subject-link {
   color: var(--ink2);
 }
+/* A dashboard's subject list reads as links without hovering, like a monitor head's peers. */
+.pagehead p .subject-link {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 .pagehead p .subject-link:hover,
 .wm .subject-link:hover {
   color: var(--ink);
@@ -35,8 +40,8 @@
   min-width: 0;
 }
 
-/* Monitor page head: logo and 28px title over one quiet line, Mark reviewed and Follow bottom
-   right, then the tabs: underlined links, left aligned, over a full-width rule. */
+/* Monitor page head: logo and 28px title over one quiet line, then the tabs: underlined links,
+   left aligned, over a full-width rule. */
 .mon-head {
   padding: var(--s-5) var(--s-6) 0;
   margin-bottom: var(--s-5);
@@ -45,24 +50,12 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: var(--s-2) var(--s-3);
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-4);
 }
 .mon-head-main {
   flex: 1 1 320px;
   min-width: 0;
-}
-.mon-head-acts {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s-2);
-  margin-bottom: 2px;
-}
-.mon-head-acts .meta {
-  margin-right: var(--s-1);
-}
-.mon-head .follow svg {
-  color: var(--ink2);
 }
 .mon-head h1 {
   margin: 0;
@@ -74,6 +67,12 @@
 .mon-head p {
   margin: 2px 0 0;
   color: var(--ink2);
+}
+/* Peer links and "N more" read as links without hovering. */
+.mon-head p :is(.link, .subject-link) {
+  color: var(--ink2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 .mon-head .subject-link:hover {
   color: var(--ink);
@@ -105,26 +104,60 @@
   color: var(--ink);
 }
 
-/* Overview: a 2:1 grid of panels, one section each; one column when main is under 900px (a
-   1024px window). */
+/* Overview: the summary band full width (the brief and its figure column, 2:1), then Top
+   developments beside the Related card. The band's column goes under the brief below 900px, and
+   the pair below the band stacks when a column would be under 520px. A subject without the card
+   gives Top developments the row. */
 .ov {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   gap: var(--s-4);
-  align-items: start;
   padding: 0 var(--s-6) var(--s-7);
 }
-.ov-col {
+.panel.ov-band {
   display: grid;
-  gap: var(--s-4);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--s-5) var(--s-6);
+  padding: var(--s-5);
+}
+.ov-band:has(> .ov-band-side:empty) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.ov-band-main {
   min-width: 0;
+}
+.ov-band-side {
+  display: grid;
+  align-content: start;
+  gap: var(--s-3);
+  min-width: 0;
+  padding-left: var(--s-5);
+  border-left: 1px solid var(--line);
+}
+.ov-band-side:empty {
+  display: none;
+}
+.ov-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr));
+  gap: var(--s-4);
+  align-items: start;
 }
 .ov-card.panel {
   display: block;
 }
 @container main (width < 900px) {
-  .ov {
+  .panel.ov-band {
     grid-template-columns: minmax(0, 1fr);
+  }
+  /* Under the brief the figures sit side by side, the date and Open Data under them. */
+  .ov-band-side {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    padding: var(--s-4) 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .ov-band-side > :is(.kf-next, .kf-open) {
+    grid-column: 1 / -1;
   }
 }
 @container main (width < 640px) {
@@ -135,140 +168,44 @@
   .ov {
     padding: 0 var(--s-4) var(--s-6);
   }
-  .mon-head-acts .meta {
-    flex-basis: 100%;
+  .panel.ov-band {
+    padding: var(--s-4);
   }
-  /* Focus areas give the answer the full width: the state sits over the label. */
-  .ov .row.qrow {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: var(--s-1);
-  }
-}
-.ov-lead {
-  margin: var(--s-3) 0 0;
-  font-size: var(--fs-lead);
-  line-height: 22px;
-  max-width: 75ch;
-}
-.ov-counts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-1) var(--s-5);
-  margin: var(--s-3) 0 0;
-  color: var(--ink2);
-}
-.ov-counts b {
-  font-weight: 600;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-.ov-counts b.c-attn {
-  color: var(--attn);
-}
-.ov-direction {
-  margin: var(--s-1) 0 0;
-}
-.ov-direction b {
-  font-weight: 600;
-}
-.ov-card .notes {
-  margin-top: var(--s-3);
 }
 
-/* Key data: flagged series with the detector's statement, then compact rows of name, value with
-   its change, and a small line. */
-.kd-flag {
-  padding: var(--s-3) 0 0;
+/* Key data figures in the band: the series name over its value and change. Side by side, a
+   name on two lines keeps the values level. */
+.kf {
+  display: grid;
+  align-content: end;
+  gap: 2px;
 }
-.kd-flag + .kd-flag {
-  margin-top: var(--s-2);
-  border-top: 1px solid var(--line);
-}
-.kd-flag-head {
-  display: flex;
-  align-items: center;
-  gap: var(--s-2);
-  min-width: 0;
-}
-.kd-name {
-  color: inherit;
-}
-.kd-name:hover {
-  text-decoration: underline;
-  text-decoration-color: var(--line-field);
-}
-.kd-statement {
-  margin: var(--s-1) 0 0;
-}
-.kd-flag + .kd-rows > .row:first-child,
-.kd-flag .row.bare {
-  border-top: 1px solid var(--line);
-}
-.kd-flag .row.bare {
-  margin-top: var(--s-2);
-}
-.row.kd-row {
-  grid-template-columns: minmax(0, 1fr) auto 56px;
-  align-items: center;
-}
-/* Names wrap rather than truncate: several differ only in their last words. */
-.kd-label {
+.kf .meta {
   overflow-wrap: anywhere;
 }
-.kd-val {
+.kf-val {
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  text-align: right;
 }
-.kd-val .meta {
+.kf-val .meta {
   font-weight: 400;
 }
-.ind-line.kd-line {
-  height: 18px;
+.kf-next {
+  margin: 0;
 }
-
-/* Connections: the ego graph scales to the card's width; nodes are links to their monitors. */
-.ego {
-  display: block;
-  width: 100%;
-  height: auto;
-  margin-top: var(--s-3);
-  font-family: var(--font);
+.kf-open {
+  justify-self: start;
 }
-.ego-edge {
-  stroke: var(--line-strong);
-  stroke-width: 1;
-}
-.ego-node rect {
-  fill: var(--surface);
-  stroke: var(--line-strong);
-}
-.ego-node.group rect {
-  fill: var(--new-bg);
-  stroke: var(--new);
-}
-.ego-node.topic rect {
-  fill: var(--rail);
-}
-.ego-node text {
-  font-size: 10px;
-  fill: var(--ink);
-}
-.ego-node:hover text {
-  text-decoration: underline;
-}
-.ego-node:focus-visible rect {
-  stroke: var(--accent);
-  stroke-width: 2;
-}
-.ego-center rect {
-  fill: var(--ink);
-}
-.ego-center text {
-  font-size: 11px;
+/* A change's colour: good in green, bad in red, by the series' bad direction (lib/format changeTone). */
+.chg-good {
+  color: var(--stable);
   font-weight: 600;
-  fill: var(--surface);
+}
+.chg-bad {
+  color: var(--attn);
+  font-weight: 600;
 }
 
 /* A ruled section: 15/600 header over a --line-strong rule, 32px between sections. A hash link
@@ -407,7 +344,7 @@
   color: var(--ink2);
 }
 
-/* Indicators (components/monitor/Indicators.tsx): status, name with period and source, latest
+/* Indicators (components/monitor/Indicators.tsx): No data or Stale, name with period and source, latest
    value, change with its window, and a 12-month line, under a column header. */
 .ind-row,
 .ind-cols {
@@ -430,6 +367,11 @@
    first line, and the line, value and change share the second. */
 .ind {
   container-type: inline-size;
+  /* The status column holds only No data or Stale, and folds away when no row needs it. */
+  --stat: 64px;
+}
+.ind.no-stat {
+  --stat: 0px;
 }
 @container (width < 640px) {
   .ind-row,
@@ -461,6 +403,12 @@
 }
 .ind-name {
   min-width: 0;
+}
+.ind-name .fopen {
+  display: flex;
+  width: fit-content;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
 }
 .ind-name .row-meta > span {
   white-space: nowrap;
@@ -602,27 +550,6 @@
   color: var(--accent);
 }
 
-/* Topic stage track: a full-width segmented control with a count on each stage. */
-.stage-seg {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: var(--s-3);
-}
-.stage-seg button {
-  flex: 1;
-  justify-content: center;
-}
-.stage-seg button:disabled {
-  color: var(--ink3);
-  cursor: default;
-}
-.stage-count {
-  color: var(--ink3);
-  font-variant-numeric: tabular-nums;
-}
-.stage-seg button[aria-pressed="true"] .stage-count {
-  color: var(--ink2);
-}
 .row .stat.date {
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -985,6 +912,274 @@ select.input.fb-sel {
   box-shadow: 0 0 0 1px var(--line);
   object-fit: cover;
 }
-.ov-related {
+
+/* The week's brief in the summary band (components/monitor/overview/SummaryBand.tsx): the direction,
+   the state as the page's one 22px hero, then the concerns, each led by its bold label. */
+.brief-dir {
+  margin: 0;
+  color: var(--ink2);
+  max-width: 70ch;
+}
+.brief-line {
+  margin: var(--s-1) 0 0;
+  font-size: var(--fs-hero);
+  line-height: var(--lh-hero);
+  font-weight: 600;
+  max-width: 70ch;
+}
+.brief-concerns {
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.brief-concerns > li {
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line);
+  max-width: 70ch;
+}
+.brief-concerns strong {
+  font-weight: 600;
+}
+.ca-group h3,
+.sw-head {
+  margin: 0 0 var(--s-1);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  font-weight: 500;
+  color: var(--ink2);
+}
+/* Could affect (overview/CouldAffect.tsx): a group heading per kind of link, then each link with
+   its evidence over the developments that reach the subject through it, in the feed's grid. */
+.ca-group {
+  margin-top: var(--s-4);
+}
+.ca-link + .ca-link {
+  margin-top: var(--s-4);
+}
+.ca-route {
+  margin: 0;
+  font-weight: 500;
+}
+.ca-ev {
+  margin: 2px 0 0;
+}
+/* Source titles in evidence lines are long; they stay ink2 and underlined, not accent blue. */
+.ca-ev a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--line-field);
+  text-underline-offset: 2px;
+}
+.ca-ev a:hover {
+  color: var(--ink);
+}
+.ca-rows {
   margin: var(--s-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ca-row {
+  display: grid;
+  grid-template-columns: var(--stat) minmax(0, 1fr) auto;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line);
+}
+.ca-dir {
+  font-size: var(--fs-meta);
+  font-weight: 600;
+}
+.ca-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+/* A development title as a link in running text: ink, wrapping, with a quiet underline that
+   darkens on hover, so it reads as clickable without filling the page with accent blue. */
+.tlink {
+  color: var(--ink);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--line-field);
+  text-underline-offset: 3px;
+}
+.tlink:hover {
+  text-decoration-color: currentColor;
+}
+.ca-why {
+  color: var(--ink2);
+  max-width: 80ch;
+}
+.ca-end {
+  font-size: var(--fs-meta);
+  color: var(--ink2);
+  white-space: nowrap;
+}
+.ca-more {
+  margin-top: var(--s-2);
+}
+
+/* Linked institutions (overview/Linked.tsx): the name in a fixed column, then each route with
+   its evidence line and this week's news through it. */
+.ln-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ln-row {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line);
+}
+.ln-rows > .ln-row:first-child {
+  border-top: 0;
+}
+.ln-head {
+  padding: var(--s-4) 0 var(--s-1);
+  font-size: var(--fs-meta);
+  font-weight: 500;
+  color: var(--ink2);
+}
+.ln-name {
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+/* Names that open a page carry a quiet underline, so they read as links beside plain names. */
+:is(.ln-name, .ln-names, .sw-mid) .subject-link {
+  text-decoration: underline;
+  text-decoration-color: var(--line-field);
+  text-underline-offset: 3px;
+}
+:is(.ln-name, .ln-names, .sw-mid) .subject-link:hover {
+  text-decoration-color: currentColor;
+}
+.ln-none {
+  font-size: var(--fs-meta);
+  font-weight: 400;
+  color: var(--ink3);
+}
+.ln-routes {
+  display: grid;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.ln-route p {
+  margin: 0;
+}
+.ln-week h3 {
+  margin: 0 0 2px;
+  font-size: var(--fs-meta);
+  font-weight: 500;
+  color: var(--ink2);
+}
+.ln-week ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+}
+.ln-same {
+  margin-top: var(--s-3);
+}
+.ln-rows ~ .ln-same {
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+.ln-names {
+  margin: var(--s-3) 0 0;
+  padding: 0;
+  list-style: none;
+  columns: 3 200px;
+  column-gap: var(--s-5);
+}
+.ln-names li {
+  padding: 2px 0;
+  break-inside: avoid;
+  font-weight: 500;
+}
+.ln-legend {
+  margin: var(--s-3) 0 0;
+}
+
+/* Shared with (overview/SharedWith.tsx): a peer select in the header, a claim, then a ladder of
+   the bank's link, the shared thing and the peer's link, with the sources under each rung. */
+select.input.sw-pick {
+  width: auto;
+  height: 28px;
+}
+.sw-claim {
+  margin: var(--s-3) 0 0;
+}
+.sw-ladder {
+  margin-top: var(--s-3);
+}
+.sw-cols,
+.sw-rung {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, auto) minmax(0, 1fr);
+  column-gap: var(--s-3);
+  align-items: baseline;
+}
+.sw-cols {
+  padding-bottom: var(--s-1);
+  border-bottom: 1px solid var(--line-strong);
+}
+.sw-cols > :first-child,
+.sw-a {
+  text-align: right;
+}
+.sw-cols > :nth-child(2),
+.sw-mid {
+  text-align: center;
+}
+.sw-head {
+  margin: var(--s-3) 0 0;
+}
+.sw-rung {
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line);
+}
+.sw-head + .sw-rung {
+  border-top: 0;
+}
+.sw-mid {
+  font-weight: 600;
+}
+.sw-src {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  text-align: center;
+  color: var(--ink3);
+}
+.sw-src a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+@container main (width < 640px) {
+  .ca-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .ca-dir {
+    grid-column: 1 / -1;
+  }
+  .ln-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-1);
+  }
+}
+
+/* A group's URL: its members as plain rows. */
+.group-members > .row:first-child {
+  border-top: 0;
+}
+.group-members .row-end {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
 }

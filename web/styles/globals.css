@@ -446,6 +446,11 @@ button.row {
 .row-title.one {
   -webkit-line-clamp: 1;
 }
+/* A development title the reader needs whole to decide whether to open it. */
+.row-title.full {
+  display: block;
+  overflow: visible;
+}
 :is(a, button).row:hover .row-title {
   text-decoration: underline;
   text-decoration-color: var(--line-field);

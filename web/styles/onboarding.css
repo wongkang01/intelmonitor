@@ -1,0 +1,345 @@
+/* Onboarding at /setup (components/shell/Setup.tsx), the subject picker it shares with the New and
+   Edit dashboard popup (components/dashboard/EntityPicker.tsx), and the profile menu's role switch
+   (components/shell/ProfileMenu.tsx). Mock u3 option B. */
+
+/* The page: a 56px bar with the product name, the step and Cancel when adding a role, then the
+   step centered. */
+.setup {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.setup-bar {
+  height: 56px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 0 var(--s-6);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.setup-brand {
+  margin-right: auto;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.setup-step {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: var(--s-7);
+}
+.setup-step.setup-picks {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  padding: 0 var(--s-6);
+}
+.setup-picks .setup-cols {
+  flex: 1;
+}
+.setup-head {
+  padding-left: 0;
+  padding-right: 0;
+}
+.setup-h2 {
+  margin: var(--s-6) 0 0;
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  font-weight: 600;
+}
+
+/* Role rows: plain rows split by hairlines, the whole row a link with a chevron. */
+.setup-roles {
+  margin: var(--s-3) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line-strong);
+}
+.setup-roles li {
+  border-bottom: 1px solid var(--line);
+}
+.setup-role {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3);
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  text-decoration: none;
+}
+.setup-role:hover {
+  background: var(--hover);
+}
+.setup-role > span {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.setup-role b {
+  font-weight: 600;
+}
+.setup-role > svg {
+  flex: none;
+  color: var(--ink3);
+}
+
+/* Step 2: the picker and the preview side by side, stacked under 900px; the footer sticks. */
+.setup-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: var(--s-5);
+  align-items: start;
+  padding-bottom: var(--s-5);
+}
+@media (max-width: 900px) {
+  .setup-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.setup-own {
+  margin-top: var(--s-3);
+}
+.setup-preview {
+  position: sticky;
+  top: var(--s-4);
+  padding: var(--s-3);
+  border-radius: var(--r-widget);
+  background: var(--surface);
+  box-shadow: var(--shadow-low);
+}
+/* Beside the picker it stays in view, scrolling inside itself on short screens so the sticky
+   footer never covers its last row. */
+@media (min-width: 901px) {
+  .setup-preview {
+    max-height: calc(100vh - var(--s-4) - 96px);
+    overflow-y: auto;
+  }
+}
+.setup-preview-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.setup-preview-head h2 {
+  margin: 0;
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+.setup-preview-count {
+  margin: var(--s-2) 0 var(--s-1);
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  font-weight: 600;
+}
+.setup-preview .frow {
+  grid-template-columns: 64px minmax(0, 1fr);
+}
+.setup-preview .fend {
+  grid-column: 2;
+  flex-direction: row;
+  gap: var(--s-2);
+}
+.setup-foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin: 0 calc(-1 * var(--s-6));
+  padding: var(--s-2) var(--s-6);
+  border-top: 1px solid var(--line-strong);
+  background: var(--surface);
+}
+.setup-foot .nd-name,
+.setup-foot .nd-num {
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .setup-foot {
+    flex-wrap: wrap;
+  }
+  .setup-foot .nd-name {
+    order: -1;
+    flex: 1 1 100%;
+  }
+  .setup-foot .nd-name .field {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+}
+.setup-create {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+/* The picker: a search field, then groups as a 15px heading over a two-column grid of rows. */
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.picker-top {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.picker-top .input {
+  width: 320px;
+}
+.picker-colhead {
+  margin-left: auto;
+  font-size: var(--fs-meta);
+  font-weight: 500;
+  color: var(--ink2);
+}
+.picker-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--line-strong);
+}
+.picker-head h3 {
+  flex: 1;
+  margin: 0;
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  font-weight: 600;
+}
+.picker-rows {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--s-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (max-width: 700px) {
+  .picker-rows {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.picker-rows li {
+  border-bottom: 1px solid var(--line);
+}
+.picker-rows label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  padding: var(--s-2) 0;
+  cursor: pointer;
+}
+.picker-rows input {
+  flex: none;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+.picker-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+}
+.picker-reason {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  font-weight: 400;
+  color: var(--ink2);
+}
+.picker-count {
+  flex: none;
+  font-size: var(--fs-meta);
+  color: var(--ink2);
+}
+.picker-empty {
+  margin: 0;
+  color: var(--ink2);
+}
+.picker-more h3 {
+  margin: 0 0 var(--s-1);
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  font-weight: 600;
+}
+.picker-expand {
+  width: 100%;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0 var(--s-1);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-weight: 500;
+  text-align: left;
+}
+.picker-expand:hover {
+  background: var(--hover);
+}
+.picker-expand svg {
+  color: var(--ink3);
+}
+
+/* In the popup the picker scrolls on --surface between the header and the footer. */
+.nd-body.nd-pick {
+  overflow: auto;
+  padding: var(--s-5);
+  background: var(--surface);
+}
+
+/* Profile menu: the role switch, each profile with its role under it and a check on the active one. */
+.menu-label {
+  display: block;
+  padding: var(--s-2) var(--s-2) var(--s-1);
+  font-size: var(--fs-meta);
+  font-weight: 500;
+  color: var(--ink2);
+}
+.menu button.menu-role {
+  width: 100%;
+  height: auto;
+  min-height: 32px;
+  align-items: flex-start;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+.menu-check {
+  width: 16px;
+  flex: none;
+  display: flex;
+  padding-top: 1px;
+  color: var(--accent);
+}
+.menu-role > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+.menu-sub {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}
+.profile {
+  height: auto;
+  min-height: 48px;
+  padding-top: var(--s-1);
+  padding-bottom: var(--s-1);
+}
+.profile .who b {
+  white-space: normal;
+}

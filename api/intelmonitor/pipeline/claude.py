@@ -3,7 +3,7 @@
 import os
 from dataclasses import dataclass
 
-from claude_agent_sdk import ClaudeAgentOptions, ResultMessage, query
+from claude_agent_sdk import ClaudeAgentOptions, EffortLevel, ResultMessage, query
 from pydantic import BaseModel
 
 from intelmonitor.config import get_settings
@@ -29,10 +29,14 @@ class ClaudeReply[T: BaseModel]:
 
 
 async def ask_claude[T: BaseModel](
-    prompt: str, schema: type[T], system: str | None = None, model: str | None = None
+    prompt: str,
+    schema: type[T],
+    system: str | None = None,
+    model: str | None = None,
+    effort: EffortLevel | None = None,
 ) -> ClaudeReply[T]:
     """Run one tool-free Claude turn and validate its structured output against `schema`, on
-    `model` (default settings.anthropic_model)."""
+    `model` (default settings.anthropic_model), at `effort` (default the model's own)."""
     scrub_parent_env()
     options = ClaudeAgentOptions(
         model=model or get_settings().anthropic_model,
@@ -44,6 +48,7 @@ async def ask_claude[T: BaseModel](
         strict_mcp_config=True,
         skills=[],
         output_format={"type": "json_schema", "schema": schema.model_json_schema()},
+        effort=effort,
     )
     result: ResultMessage | None = None
     async for message in query(prompt=prompt, options=options):

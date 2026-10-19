@@ -6,9 +6,9 @@ nothing in the lookback matches, the answer is Stable and cites the latest earli
 quiet question still shows where things stand. The answer prompt calls the lookback the window
 and asks answers to name it plainly ("in the last 14 days").
 
-A question can name measured series of its subject (structured-data-plan.md, F7): each run's
-answer then gets their facts as of the run date (pipeline/facts.py), may cite them, and is asked
-again once if it quotes a number found in neither the facts nor the documents or names an FX
+A question can name measured series of its subject (docs/archive/structured-data-plan.md, F7): each
+run's answer then gets their facts as of the run date (pipeline/facts.py), may cite them, and is
+asked again once if it quotes a number found in neither the facts nor the documents or names an FX
 move other than by the SGD's side, as standing answers are."""
 
 import asyncio
@@ -24,7 +24,7 @@ from intelmonitor.pipeline.answers import FX_WORDING, State, answer_problems, sc
 from intelmonitor.pipeline.facts import SeriesFact, SubjectFacts, subject_facts
 from intelmonitor.pipeline.feedback import removed_tags
 from intelmonitor.pipeline.inference import Inference, noul
-from intelmonitor.pipeline.subjects import all_subjects
+from intelmonitor.pipeline.subjects import all_subjects, monitored_subjects
 from intelmonitor.pipeline.wording import day, fx_currency
 from intelmonitor.seed import QuestionDef, SeriesDef, load_series
 
@@ -109,7 +109,7 @@ def draft_prompt(
 ) -> str:
     """The draft prompt. `offered`: the subject's series Claude may pick from; `picked`: the
     series the analyst chose, which the question is worded to use."""
-    subjects = "\n".join(f"- {s.id}: {s.name} ({s.type})" for s in all_subjects().values())
+    subjects = "\n".join(f"- {s.id}: {s.name} ({s.type})" for s in monitored_subjects().values())
     pinned = (
         f"The question is about the subject {subject_id}; use that subject_id."
         if subject_id
@@ -179,7 +179,7 @@ async def draft_config(
     schema = DraftedWithSeries if offered else Drafted
     out = await inf.claude("custom_draft", ref, prompt, schema, DRAFT_SYSTEM)
     chosen = subject_id or out.subject_id
-    if chosen not in all_subjects():
+    if chosen not in monitored_subjects():
         raise ValueError(f"Claude picked an unknown subject {out.subject_id!r}")
     if isinstance(out, DraftedWithSeries):
         # Ids Claude made up or took from another subject are dropped, like ineligible citations.

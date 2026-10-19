@@ -11,6 +11,7 @@ from collections.abc import Mapping
 from datetime import UTC, datetime
 from weakref import WeakKeyDictionary
 
+from claude_agent_sdk import EffortLevel
 from pydantic import BaseModel, TypeAdapter
 from typesafe_sdk import Answer, Choice, ChoiceAnswer, Noul, NoulAnswer, Score, ScoreAnswer
 
@@ -165,18 +166,21 @@ class Inference:
         schema: type[T],
         system: str,
         model: str | None = None,
+        effort: EffortLevel | None = None,
     ) -> T:
-        """One structured Claude turn on `model` (default settings.anthropic_model), retried on
-        failure; every attempt is recorded."""
+        """One structured Claude turn on `model` (default settings.anthropic_model), at `effort`
+        (default the model's own), retried on failure; every attempt is recorded."""
         model = model or get_settings().anthropic_model
-        key = _hash(
-            {
-                "model": model,
-                "system": system,
-                "prompt": prompt,
-                "schema": schema.model_json_schema(),
-            }
-        )
+        payload: dict[str, object] = {
+            "model": model,
+            "system": system,
+            "prompt": prompt,
+            "schema": schema.model_json_schema(),
+        }
+        # Only a set effort joins the key, so calls without one keep their recorded replies.
+        if effort is not None:
+            payload["effort"] = effort
+        key = _hash(payload)
         if (cached := self._cached(stage, key)) is not None:
             return schema.model_validate_json(cached)
         if self._cached(stage, key, status="refused") is not None:
@@ -186,7 +190,7 @@ class Inference:
             for attempt in range(1, _CLAUDE_ATTEMPTS + 1):
                 started = time.monotonic()
                 try:
-                    reply = await ask_claude(prompt, schema, system, model)
+                    reply = await ask_claude(prompt, schema, system, model, effort)
                 except Exception as error:
                     refused = _is_refusal(error)
                     status = "refused" if refused else "error"

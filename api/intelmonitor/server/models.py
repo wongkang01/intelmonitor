@@ -2,13 +2,26 @@
 `pnpm gen:api` in web/ turns into TypeScript types."""
 
 from datetime import date, datetime
+from enum import IntEnum
 from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, Field
 
+from intelmonitor.pipeline.extract import Tone
 from intelmonitor.pipeline.facts import SeriesFact
 from intelmonitor.pipeline.graph import Theme
+from intelmonitor.pipeline.impact import Confidence, Direction
+from intelmonitor.pipeline.params import Priority
 from intelmonitor.pipeline.subjects import all_subjects
+from intelmonitor.relationships import (
+    EndpointKind,
+    Evidence,
+    FigureMeasure,
+    FigureUnit,
+    HeadlineMeasure,
+    HeadlineUnit,
+    RelType,
+)
 from intelmonitor.seed import (
     BadDirection,
     EntityKind,
@@ -23,7 +36,7 @@ from intelmonitor.store.series import Observation, Revision
 State = Literal["stable", "watch", "needs_attention", "new"]
 Stage = Literal["signal", "consultation", "proposed", "enacted", "enforced"]
 STAGE_ORDER: list[Stage] = ["signal", "consultation", "proposed", "enacted", "enforced"]
-Collection = Literal["dms", "official", "news", "data"]
+Collection = Literal["dms", "official", "news", "data", "social"]
 
 
 def _known_subject(value: str) -> str:
@@ -61,10 +74,20 @@ class SubjectRef(BaseModel):
 
 class SubjectSummary(SubjectRef):
     aliases: list[str]
+    members: list[str] = Field(description="Member entity ids, for a group; else empty")
     new_developments: int = Field(
         description="Changed since the subject was last reviewed, and not read or dismissed"
     )
-    needs_attention: int = Field(description="Developments needing attention in the latest run")
+    needs_attention: int = Field(description="High-priority developments in the latest run")
+    recent: int = Field(
+        description="Developments it happened to or that it did, last published in the 30 days "
+        "to the run date"
+    )
+    recent_high: int = Field(description="Of those, the ones at High priority for it")
+    new_high: int = Field(
+        description="High for it, first published after the last visit (else the previous "
+        "run), and not read or dismissed"
+    )
 
 
 class SubjectLinks(BaseModel):
@@ -121,10 +144,26 @@ class RunRef(BaseModel):
     previous_run_id: str | None
 
 
+class LatestRun(RunRef):
+    """The latest complete run, for the top bar's "Week to" date."""
+
+    latest_news: date | None = Field(
+        description="The latest last-published date among its developments"
+    )
+
+
 DevelopmentChangeKind = Literal["new", "updated"]
 
 
+class SourceTypeCount(BaseModel):
+    collection: Collection
+    count: int
+
+
 class DevelopmentSummary(BaseModel):
+    """A development as a scope sees it: priority, adverse and tone are over the subjects in
+    scope that it is tagged to (over all its subjects when unscoped)."""
+
     id: str
     title: str
     category: str
@@ -135,10 +174,30 @@ class DevelopmentSummary(BaseModel):
     materiality_level: int = Field(ge=0, le=4)
     materiality_label: str
     needs_attention: bool
+    priority: Priority = Field(description="High, Medium or Low for the subjects in scope")
+    priority_for: list[SubjectRef] = Field(
+        description="The subjects in scope at that priority, when others in scope rank lower; "
+        "empty when they all agree"
+    )
     adverse: bool
-    direction: Literal["positive", "negative", "neutral"]
-    subjects: list[SubjectRef]
+    direction: Tone = Field(description="Its tone: the most telling over the subjects in scope")
+    subjects: list[SubjectRef] = Field(
+        description="What it happened to or who did it, highest priority first"
+    )
+    actors: list[str] = Field(description="Ids of the subjects that did it, among `subjects`")
+    also_affects: list[SubjectRef] = Field(
+        description="Tracked subjects it reaches indirectly through stored relationships"
+    )
     source_count: int
+    source_types: list[SourceTypeCount] = Field(description="Sources per collection")
+    outlet_count: int = Field(
+        description="Distinct news outlets among its sources, one per parent domain"
+    )
+    social_count: int = Field(description="Social posts among its sources")
+    unconfirmed: bool = Field(
+        description="Its sources do not pass the source gate (pipeline/corroboration.py), so "
+        "lists leave it out unless asked"
+    )
     collections: list[Collection] = Field(description="Where its sources come from")
     jurisdictions: list[str] = Field(
         description="Names of the jurisdictions its sources report on, alphabetical"
@@ -237,7 +296,7 @@ class WhatChanged(ChangeCounts):
         description="When every subject in scope was last marked reviewed; null if one never was"
     )
     developments: list[ChangedDevelopment] = Field(
-        description="Needing attention first, then changed this run, most material, most recent"
+        description="Highest priority first, then most recent"
     )
     question_changes: list[QuestionStateChange]
 
@@ -252,13 +311,16 @@ class DevelopmentFacets(BaseModel):
     """Each facet's values with counts. A value shows when something matches it or it is
     selected."""
 
+    priority: list[FacetValue] = Field(description="High, Medium, Low")
+    adverse: list[FacetValue] = Field(description="'true' (adverse) and 'false'")
+    tone: list[FacetValue] = Field(description="Negative, neutral, positive")
     category: list[FacetValue] = Field(description="Most matches first")
     materiality: list[FacetValue] = Field(description="Most material first; values are levels")
     jurisdiction: list[FacetValue] = Field(description="Most matches first; values are codes")
     date: list[FacetValue] = Field(
-        description="Last 7, 30 and 90 days before the run date as day counts, then 'any'"
+        description="Today, this week and this month (1, 7 and 30 days to the run date), then 'any'"
     )
-    source: list[FacetValue] = Field(description="Collections: official, DMS, data, news")
+    source: list[FacetValue] = Field(description="Collections: official, research, data, news")
 
 
 class DevelopmentList(ChangeCounts):
@@ -270,8 +332,18 @@ class DevelopmentList(ChangeCounts):
         description="Every development in scope: what a Developments widget counts"
     )
     matching: int = Field(description="Developments in scope matching the filters")
+    since: date = Field(
+        description="New and Updated count from this date: a development is new when first "
+        "published after it, updated when first published before and last published after"
+    )
+    dismissed: int = Field(description="Dismissed developments matching the filters")
+    unconfirmed: int = Field(
+        description="Unconfirmed developments the list would show with `unconfirmed`, whether "
+        "it is on or not"
+    )
     developments: list[ChangedDevelopment] = Field(
-        description="Needing attention first, then changed this run, most material, most recent"
+        description="High adverse first, then other High, Medium adverse, other Medium and the "
+        "rest; most recent first within each"
     )
     facets: DevelopmentFacets
 
@@ -282,6 +354,33 @@ class UpcomingItem(BaseModel):
     development_id: str
     development_title: str
     subjects: list[SubjectRef]
+
+
+class WatchItem(BaseModel):
+    """One entity on a dashboard's watchlist. Priorities are the entity's own."""
+
+    subject: SubjectRef
+    new_high: int = Field(
+        description="High developments first published after `since`, not read or dismissed"
+    )
+    month_count: int = Field(description="Developments last published in the 30 days to the run")
+    top: DevelopmentSummary | None = Field(
+        description="The highest priority of those, then the most recent; dismissed ones skipped"
+    )
+    latest: DevelopmentSummary | None = Field(
+        description="The most recent development, only when `top` is null"
+    )
+
+
+class DashboardOverview(BaseModel):
+    """What a dashboard shows beside its feed (the feed is GET /developments?dashboard_id=)."""
+
+    since: date = Field(description="New counts from this date (the last visit, else the run)")
+    new_count: int = Field(description="Developments first published after it, unread")
+    watchlist: list[WatchItem] = Field(
+        description="Its entities in dashboard order, groups resolved to their members"
+    )
+    upcoming: list[UpcomingItem]
 
 
 class StageBucket(BaseModel):
@@ -329,22 +428,192 @@ class Review(BaseModel):
     created_at: datetime
 
 
-SummaryDirection = Literal["more_adverse", "less_adverse", "unchanged"]
+BriefDirection = Literal["worse", "better", "unchanged", "mixed"]
 
 
-class RunSummary(BaseModel):
-    """The latest run's summary of a subject (pipeline/summaries.py)."""
-
-    text: str = Field(description="Written by Claude from the run's stored rows")
-    direction: SummaryDirection | None = Field(
-        description="Against the previous run, by code: focus areas at Needs attention (2 each) "
-        "and Watch (1 each) plus adverse developments needing attention; null on a first run"
+class BriefConcern(BaseModel):
+    label: str | None = Field(
+        description="2 to 4 words naming its topic, shown bold before the text; None for a brief "
+        "written before labels"
     )
-    direction_basis: str = Field(description="The comparison in words")
-    developments_in_scope: int = Field(description="The subject's developments in the run")
-    needs_attention: int
-    adverse: int
-    model: str
+    text: str = Field(description="A risk or an opening for the subject and why it matters")
+    development_ids: list[str] = Field(
+        description="The developments, open matters and indirect impacts behind it, kept for "
+        "checks; the page does not list them"
+    )
+
+
+class BriefDate(BaseModel):
+    date: date
+    label: str
+    development_id: str
+
+
+class EntityBrief(BaseModel):
+    """The brief at the top of a subject's page (pipeline/summaries.py): written by Claude from
+    the last 7 days of developments, indirect impacts, series events and upcoming dates and the
+    subject's standing position (Key data, main links, open matters), checked and counted by
+    code."""
+
+    state: str = Field(description="One sentence on the subject's situation now")
+    direction: BriefDirection = Field(
+        description="Against the previous brief; unchanged when the model's direction disagreed "
+        "with the evidence and was flagged"
+    )
+    direction_reason: str = Field(description="Empty when the direction was flagged")
+    direction_flagged: bool = Field(
+        description="The model's direction disagreed with code's signals after a retry"
+    )
+    concerns: list[BriefConcern] = Field(
+        description="At most 2, most serious first; none on a quiet week unless a matter High "
+        "and adverse to the subject is open, which a concern then cites. A brief written before "
+        "concerns gives its points' claims"
+    )
+    coming_up: list[BriefDate]
+    developments: int = Field(description="Developments with a source in the last 7 days")
+    high: int = Field(description="Of those, High for the subject")
+    adverse: int = Field(description="Of those, adverse to the subject")
+    latest_news: date | None = Field(description="The last source of its latest development")
+    model: str = Field(description="none when code wrote it, with no evidence to brief on")
+
+
+class RelationshipFigure(BaseModel):
+    """A further figure behind an exposure, such as loans by currency, risk-weighted assets or
+    NPLs, with its own source."""
+
+    measure: FigureMeasure
+    segment: str = Field(description="The row label in the source table")
+    value: float
+    unit: FigureUnit
+    share: float | None
+    period: date
+    chart_reading: bool
+    source_url: str
+    source_title: str
+    page: int | None
+    quote: str
+
+
+class RelationshipLink(BaseModel):
+    """A stored relationship as evidence: its type, ends, size, grade and source."""
+
+    id: str
+    type: RelType
+    label: str = Field(description='The type in plain words: "depends on, for cloud services"')
+    from_id: str
+    from_name: str
+    to_id: str
+    to_name: str
+    weight: float | None = Field(
+        description="Exposures: the headline figure's share of its total (a bank's loans, an "
+        "issuer's reserves, a firm's revenue). Ownership: the share held. Else null; an exposure "
+        "with no weight discloses no share"
+    )
+    measure: HeadlineMeasure | None
+    value: float | None
+    unit: HeadlineUnit | None
+    evidence: Evidence
+    chart_reading: bool = Field(description="The figure was read off a chart")
+    as_of: date | None = Field(description="When the link is known to hold")
+    last_confirmed: date
+    source_url: str | None
+    source_title: str | None
+    page: int | None
+    quote: str | None = Field(description="Verbatim from the source")
+    detail: str
+    figures: list[RelationshipFigure]
+
+
+class ImpactPassage(BaseModel):
+    """A passage from the development's sources that the impact's reason relies on."""
+
+    document_id: str
+    domain: str
+    published: date
+    text: str
+
+
+class IndirectImpact(BaseModel):
+    """An entity a development reaches through stored relationships, as judged by Claude. Code
+    writes the route from the relationships; Claude only judged it and wrote why."""
+
+    development_id: str
+    subject: SubjectRef
+    direction: Direction
+    route: str = Field(description='Plain words: "via its Hong Kong loans, 12.2% of total"')
+    why: str = Field(description="One or two sentences citing the development")
+    confidence: Confidence
+    weight: float | None = Field(description="The route's exposure share, if it has an exposure")
+    region: str | None = Field(
+        description="The region's name when the share covers a whole region (Greater China)"
+    )
+    evidence: Evidence = Field(description="The weakest grade along the route")
+    last_confirmed: date = Field(description="The oldest last confirmation along the route")
+    relationships: list[RelationshipLink] = Field(description="From the entity outward")
+    finding_ids: list[str] = Field(description="The development's findings the reason relies on")
+    passages: list[ImpactPassage]
+
+
+class SubjectImpact(IndirectImpact):
+    """An indirect impact on a subject, with the development that causes it."""
+
+    development: DevelopmentSummary
+
+
+class DirectSubject(BaseModel):
+    """A subject the development happened to (affected) or that did it (actor)."""
+
+    subject: SubjectRef
+    role: Literal["affected", "actor"]
+    priority: Priority
+    adverse: bool
+    tone: Tone
+
+
+class SharedEndpoint(BaseModel):
+    """A subject or endpoint both entities link to, with each one's links to it."""
+
+    id: str
+    name: str
+    kind: EntityKind | EndpointKind
+    subject: bool = Field(description="A tracked subject; otherwise a relationship endpoint")
+    a_links: list[RelationshipLink]
+    b_links: list[RelationshipLink]
+
+
+class SharedRelationships(BaseModel):
+    a: SubjectRef
+    b: SubjectRef
+    endpoints: list[SharedEndpoint] = Field(description="By name")
+
+
+class LinkedRoute(BaseModel):
+    """How an institution links to the subject: one stored link, or two through a company it
+    owns, written in plain words by code."""
+
+    text: str = Field(
+        description='"Has 12.2% of its loans in Hong Kong"; "Owns 100% of DBS Bank (Hong Kong), '
+        'which operates in Hong Kong"; region-level routes end ", a figure for the whole region"'
+    )
+    region: str | None = Field(description="The region's name when the route ends in a region")
+    links: list[RelationshipLink] = Field(description="From the institution outward")
+
+
+class LinkedInstitution(BaseModel):
+    """A bank or other financial institution linked to a country, sector, supplier or payment
+    system in the relationship store (GET /subjects/{id}/linked)."""
+
+    id: str
+    name: str
+    kind: EntityKind | EndpointKind
+    subject: SubjectRef | None = Field(description="None when the institution is not tracked")
+    region: bool = Field(description="Its largest figure covers a whole region, not the subject")
+    routes: list[LinkedRoute] = Field(
+        description="Direct links first, then through a company it owns, then region-level"
+    )
+    impacts: list[SubjectImpact] = Field(
+        description="Developments in the last 7 days that reach it through these routes"
+    )
 
 
 class MonitorPage(BaseModel):
@@ -358,7 +627,10 @@ class MonitorPage(BaseModel):
     group: GroupInsights | None = Field(description="Groups only")
     notes: list[Note]
     trend: bool = Field(description="The subject has measured series for a Trend view")
-    summary: RunSummary | None = Field(description="None until the run has one for the subject")
+    brief: EntityBrief | None = Field(description="None until the run has one for the subject")
+    impacts: list[SubjectImpact] = Field(
+        description="Developments in the last 7 days that reach the subject indirectly"
+    )
 
 
 class Span(BaseModel):
@@ -390,6 +662,10 @@ class SeriesInfo(BaseModel):
     listed: bool = Field(description="False: an input to a derived series, off the Indicators")
     unit: str = Field(description='"%" for ratios and rates, else e.g. "USD" or "SGD per MYR"')
     frequency: Frequency
+    year_to_date: bool = Field(
+        description="A running total since January: only its 1y change, against the same period "
+        "a year earlier, is given"
+    )
     decimals: int
     bad_direction: BadDirection = Field(description="Which way is worse, if either")
     baseline: float | None = Field(
@@ -485,6 +761,14 @@ class DevelopmentDetail(DevelopmentSummary):
         "official and news documents; earliest first within each"
     )
     notes: list[Note]
+    direct_subjects: list[DirectSubject] = Field(
+        description="What it happened to or who did it, highest priority first"
+    )
+    impacts: list[IndirectImpact] = Field(
+        description="Entities it reaches indirectly: direct links with a loan share, largest "
+        "first, then region-level ones, then links without a share"
+    )
+    triage: "Triage"
 
 
 class SeriesFactView(BaseModel):
@@ -523,15 +807,31 @@ class DocumentDetail(BaseModel):
     quotes: list[Quote] = Field(description="Every verified quote in the document, by offset")
 
 
-NodeType = Literal["topic", "group", "entity", "development"]
-LinkType = Literal["MEMBER_OF", "EXPOSED_TO", "AFFECTS"]
+NodeType = Literal["topic", "group", "entity", "endpoint", "development"]
+# The relationship store's types in capitals; MEMBER_OF also links an entity to its peer group in
+# the seed. AFFECTS: a development to what it happened to or who did it. IMPACTS: a development to
+# an entity it reaches indirectly.
+LinkType = Literal[
+    "EXPOSED_TO",
+    "DEPENDS_ON",
+    "PARTICIPATES_IN",
+    "OWNS",
+    "SUBSIDIARY_OF",
+    "OPERATES_IN",
+    "SUPERVISED_BY",
+    "SHAREHOLDER_OF",
+    "MEMBER_OF",
+    "LISTED_ON",
+    "AFFECTS",
+    "IMPACTS",
+]
 
 
 class GraphNode(BaseModel):
-    id: str = Field(description="Subject id, or dev:<development id>")
+    id: str = Field(description="Subject or endpoint id, or dev:<development id>")
     type: NodeType
     label: str
-    kind: EntityKind | None
+    kind: EntityKind | EndpointKind | None
     hop: int
     has_new: bool = Field(
         description="A development: new or updated this run. A subject: affected by one."
@@ -546,8 +846,11 @@ class GraphEdge(BaseModel):
     source: str
     target: str
     type: LinkType
-    origin: str = Field(description="seed, jev or claude")
+    label: str = Field(description='The link in plain words: "depends on, for cloud services"')
+    origin: str = Field(description="relationships, seed, jev, claude or detector")
     confidence: float
+    relationship_id: str | None = Field(description="A stored relationship's id")
+    route: str | None = Field(description="IMPACTS: the route in plain words")
 
 
 class Graph(BaseModel):
@@ -603,13 +906,64 @@ class DataSources(BaseModel):
     sources: list[DataSourceStats]
 
 
+# The roles onboarding asks for (phase1-plan.md, item U3). A role stands in for identity.
+Role = Literal["regulatory_supervisor", "tech_cyber_supervisor", "development_staff", "other"]
+
+
 class Profile(BaseModel):
-    display_name: str
-    role: str
+    """Who is using the app: a role with its own dashboards. Before the first visit picks a role,
+    id and role are null and the web shows onboarding."""
+
+    id: str | None
+    name: str = Field(description='On the profile button: "TCRD", "FMD" or the role in words')
+    role: Role | None
     default_dashboard_id: str | None
+    last_visit: date | None = Field(
+        default=None,
+        description="The role's latest visit before today; New counts from it when set",
+    )
     tour_seen_at: datetime | None = Field(
         default=None, description="When the first-run tour last started; null shows it once"
     )
+
+
+class ProfileCreate(BaseModel):
+    """Onboarding's answer: the role and the picks for its first dashboard. Creating it makes the
+    dashboard the profile's default and the profile the active one."""
+
+    role: Role
+    dashboard_name: str = Field(min_length=1, max_length=80)
+    subject_ids: list[SubjectId] = Field(min_length=1)
+
+
+class Visit(BaseModel):
+    path: str = Field(max_length=500, description="The page the app opened on")
+
+
+class PickerRow(BaseModel):
+    subject_id: str
+    reason: str | None = Field(
+        description='Provider rows only, from the relationship store: "Used by DBS and UOB, for '
+        'cloud services"'
+    )
+    evidence: Evidence | None = Field(description="The weakest grade among the links behind it")
+
+
+class PickerGroup(BaseModel):
+    id: str = Field(description='A group id, "topics", or "mas-supervised"')
+    name: str
+    rows: list[PickerRow]
+    suggested: bool = Field(description="Shown open; the others sit under More to add")
+
+
+class Suggestions(BaseModel):
+    """What the subject picker shows for a role, written by code: groups in the role's order and
+    the picks ticked at the start. Without a role, every group is open and nothing is ticked."""
+
+    role: Role | None
+    name: str = Field(description="The dashboard name the picks suggest")
+    groups: list[PickerGroup]
+    picks: list[str] = Field(description="Subject ids ticked at the start")
 
 
 class MaterialityLevel(BaseModel):
@@ -620,7 +974,9 @@ class MaterialityLevel(BaseModel):
     description: str
     material: bool = Field(description="Counted as material, as in the Direction widget")
     needs_attention: bool
-    developments: int = Field(description="Developments at this level in the latest run")
+    developments: int = Field(
+        description="Developments at this level in the latest run, unconfirmed ones left out"
+    )
 
 
 class ReviewRequest(BaseModel):
@@ -660,7 +1016,10 @@ class Alert(BaseModel):
     id: str = Field(description="The development id")
     title: str
     badge: AlertBadge
-    meta: str = Field(description='"OCBC, financial, 3 sources"')
+    meta: str = Field(description='"OCBC, financial": the lead entity (else subject) and category')
+    outlet_count: int = Field(description="As on the development's summary")
+    social_count: int = Field(description="As on the development's summary")
+    source_types: list[SourceTypeCount] = Field(description="As on the development's summary")
     read: bool = Field(description="The development's triage read state")
 
 
@@ -685,11 +1044,70 @@ class Triage(BaseModel):
     read: bool = Field(description="Read since the latest run that changed it")
     flagged: bool
     dismissed: bool
+    not_relevant: bool = Field(description="Marked as wrongly matched, kept for the eval set")
 
 
 class TriageChange(BaseModel):
-    """Only the states given change."""
+    """Only the states given change. Not relevant also dismisses."""
 
     read: bool | None = None
     flagged: bool | None = None
     dismissed: bool | None = None
+    not_relevant: bool | None = None
+
+
+class RelatedDays(IntEnum):
+    """The Related graph's windows in days: the brief's week, a month and a quarter. An enum, not
+    a Literal, so a query string's "7" validates."""
+
+    week = 7
+    month = 30
+    quarter = 90
+
+
+class RelatedLink(BaseModel):
+    """A stored link between the Related graph's centre and one of its nodes."""
+
+    id: str
+    type: RelType
+    outbound: bool = Field(description="The centre is the link's from end: DBS owns DBS India")
+    label: str = Field(
+        description='A few words from the centre: "owns 100%", "24.4% of loans", "depended on by"'
+    )
+
+
+class RelatedNode(BaseModel):
+    """A subject or endpoint linked to the centre, with the developments that reach the centre
+    through it."""
+
+    id: str
+    name: str
+    kind: EntityKind | EndpointKind
+    subject: SubjectRef | None = Field(description="None when the node is not tracked")
+    links: list[RelatedLink] = Field(description="Its links to the centre, either direction")
+    development_ids: list[str] = Field(
+        description="Shown developments in the window that reach the centre through this node, "
+        "in display order"
+    )
+    harmful: int = Field(description="How many of them are negative for the centre")
+
+
+class RelatedFacet(BaseModel):
+    type: RelType
+    count: int = Field(description="Links of this type between the centre and its nodes")
+
+
+class RelatedGraph(BaseModel):
+    """Everything linked to a subject in the relationship store, for the Overview's Related
+    graph (GET /subjects/{id}/related-graph)."""
+
+    run: RunRef
+    center: SubjectRef
+    days: RelatedDays
+    nodes: list[RelatedNode] = Field(
+        description="Most developments first, then most harmful, then by name"
+    )
+    developments: list[DevelopmentSummary] = Field(
+        description="Every development a node lists, in display order"
+    )
+    link_types: list[RelatedFacet] = Field(description="In relationship type order")

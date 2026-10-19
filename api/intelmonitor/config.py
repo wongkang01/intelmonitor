@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     exa_api_key: str = ""
     tavily_api_key: str = ""
 
+    # Social and trends (ingest/sources/social.py, trends.py). X bills each post read; the cap
+    # bounds the estimated spend of one ingest. Without a SerpApi key, trends use the RSS feed.
+    x_bearer_token: str = ""
+    x_spend_cap_usd: float = 3.0
+    serpapi_api_key: str = ""
+
     fred_api_key: str = ""
     coingecko_api_key: str = ""
 

@@ -72,6 +72,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/subjects/{subject_id}/impacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Subject Impacts
+         * @description Developments in the latest run that reach the subject indirectly through stored
+         *     relationships, last published within `days` of the run date (day, week or month filters).
+         *     Never news about the subject itself.
+         */
+        get: operations["get_subject_impacts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/subjects/{subject_id}/linked": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Linked Institutions
+         * @description For a country, sector, technology provider or payment system: the banks and other
+         *     institutions linked to it in the relationship store, directly or through a company they own,
+         *     with the developments of the last 7 days that reach them that way. Empty for other subjects.
+         */
+        get: operations["get_linked_institutions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/subjects/{subject_id}/related-graph": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Related Graph
+         * @description Every subject and endpoint linked to the subject in the relationship store, either
+         *     direction, each with its links and the shown developments of the last `days` (7, as the
+         *     brief, 30 or 90) that reach the subject through it, with link-type counts for filters.
+         */
+        get: operations["get_related_graph"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shared": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Shared
+         * @description What links both entities in the relationship store: shared vendors, payment systems,
+         *     markets, ventures and memberships, each link with its type and source.
+         */
+        get: operations["get_shared"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/subjects/{subject_id}/trend": {
         parameters: {
             query?: never;
@@ -251,7 +338,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Development */
+        /**
+         * Get Development
+         * @description One development with its sources and who it impacts. Priority, adverse and tone are for
+         *     the subjects in view (some subjects or a dashboard's) when given, else over all its
+         *     subjects.
+         */
         get: operations["get_development"];
         put?: never;
         post?: never;
@@ -363,12 +455,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Dashboards */
+        /**
+         * List Dashboards
+         * @description The active profile's dashboards and those no profile made, in sidebar order, each with
+         *     its new count.
+         */
         get: operations["list_dashboards"];
         put?: never;
         /**
          * Create Dashboard
-         * @description Creates a dashboard and follows its subjects.
+         * @description Creates a dashboard for the active profile and follows its subjects.
          */
         post: operations["create_dashboard"];
         delete?: never;
@@ -433,6 +529,26 @@ export interface paths {
          * @description Undo a delete; the dashboard returns to its place in the sidebar.
          */
         post: operations["restore_dashboard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dashboards/{dashboard_id}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Dashboard Overview
+         * @description The new count, watchlist and upcoming dates that sit beside the dashboard's feed.
+         */
+        get: operations["get_dashboard_overview"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -742,10 +858,101 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Profile */
+        /**
+         * Get Profile
+         * @description The active profile; id and role are null until the first visit picks a role.
+         */
         get: operations["get_profile"];
-        /** Update Profile */
+        /**
+         * Update Profile
+         * @description Sets the active profile's default dashboard and when the tour was seen.
+         */
         put: operations["update_profile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Profiles
+         * @description Every profile for the profile menu's role switch, preloaded departments first.
+         */
+        get: operations["list_profiles"];
+        put?: never;
+        /**
+         * Create Profile
+         * @description Onboarding: makes the role's first dashboard from the picks and switches to the role.
+         */
+        post: operations["create_profile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profiles/{profile_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Activate Profile
+         * @description Switches role: the sidebar then lists that profile's dashboards.
+         */
+        post: operations["activate_profile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/visits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Log Visit
+         * @description Logs an app load with the active role, for counting days with a visit per role.
+         */
+        post: operations["log_visit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/onboarding/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Onboarding Suggestions
+         * @description The subject picker for a role: groups in the role's order and the picks ticked at the
+         *     start, with who uses each provider. Without a role, every group and nothing ticked.
+         */
+        get: operations["onboarding_suggestions"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -762,7 +969,8 @@ export interface paths {
         };
         /**
          * Materiality Levels
-         * @description Materiality levels for Help, most material first, with the latest run's count at each.
+         * @description Materiality levels for Help, most material first, with the latest run's count of shown
+         *     developments at each.
          */
         get: operations["materiality_levels"];
         put?: never;
@@ -785,6 +993,26 @@ export interface paths {
          * @description Every run execution, newest first, with how it started and what it found.
          */
         get: operations["list_runs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Latest Run
+         * @description The latest complete run and the date of the latest news it covers.
+         */
+        get: operations["latest_run"];
         put?: never;
         post?: never;
         delete?: never;
@@ -955,9 +1183,24 @@ export interface components {
             badge: "needs_attention" | "watch";
             /**
              * Meta
-             * @description "OCBC, financial, 3 sources"
+             * @description "OCBC, financial": the lead entity (else subject) and category
              */
             meta: string;
+            /**
+             * Outlet Count
+             * @description As on the development's summary
+             */
+            outlet_count: number;
+            /**
+             * Social Count
+             * @description As on the development's summary
+             */
+            social_count: number;
+            /**
+             * Source Types
+             * @description As on the development's summary
+             */
+            source_types: components["schemas"]["SourceTypeCount"][];
             /**
              * Read
              * @description The development's triage read state
@@ -1146,6 +1389,36 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** BriefConcern */
+        BriefConcern: {
+            /**
+             * Label
+             * @description 2 to 4 words naming its topic, shown bold before the text; None for a brief written before labels
+             */
+            label: string | null;
+            /**
+             * Text
+             * @description A risk or an opening for the subject and why it matters
+             */
+            text: string;
+            /**
+             * Development Ids
+             * @description The developments, open matters and indirect impacts behind it, kept for checks; the page does not list them
+             */
+            development_ids: string[];
+        };
+        /** BriefDate */
+        BriefDate: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Label */
+            label: string;
+            /** Development Id */
+            development_id: string;
+        };
         /**
          * ChangedDevelopment
          * @description A development with its What changed and triage state. When unreviewed, `change` is its
@@ -1179,22 +1452,67 @@ export interface components {
             materiality_label: string;
             /** Needs Attention */
             needs_attention: boolean;
+            /**
+             * Priority
+             * @description High, Medium or Low for the subjects in scope
+             * @enum {string}
+             */
+            priority: "High" | "Medium" | "Low";
+            /**
+             * Priority For
+             * @description The subjects in scope at that priority, when others in scope rank lower; empty when they all agree
+             */
+            priority_for: components["schemas"]["SubjectRef"][];
             /** Adverse */
             adverse: boolean;
             /**
              * Direction
+             * @description Its tone: the most telling over the subjects in scope
              * @enum {string}
              */
             direction: "positive" | "negative" | "neutral";
-            /** Subjects */
+            /**
+             * Subjects
+             * @description What it happened to or who did it, highest priority first
+             */
             subjects: components["schemas"]["SubjectRef"][];
+            /**
+             * Actors
+             * @description Ids of the subjects that did it, among `subjects`
+             */
+            actors: string[];
+            /**
+             * Also Affects
+             * @description Tracked subjects it reaches indirectly through stored relationships
+             */
+            also_affects: components["schemas"]["SubjectRef"][];
             /** Source Count */
             source_count: number;
+            /**
+             * Source Types
+             * @description Sources per collection
+             */
+            source_types: components["schemas"]["SourceTypeCount"][];
+            /**
+             * Outlet Count
+             * @description Distinct news outlets among its sources, one per parent domain
+             */
+            outlet_count: number;
+            /**
+             * Social Count
+             * @description Social posts among its sources
+             */
+            social_count: number;
+            /**
+             * Unconfirmed
+             * @description Its sources do not pass the source gate (pipeline/corroboration.py), so lists leave it out unless asked
+             */
+            unconfirmed: boolean;
             /**
              * Collections
              * @description Where its sources come from
              */
-            collections: ("dms" | "official" | "news" | "data")[];
+            collections: ("dms" | "official" | "news" | "data" | "social")[];
             /**
              * Jurisdictions
              * @description Names of the jurisdictions its sources report on, alphabetical
@@ -1360,7 +1678,7 @@ export interface components {
             name: string;
             /**
              * Subject Ids
-             * @description The subjects the dashboard follows
+             * @description The topics and entities the dashboard follows; a group given here becomes its members
              */
             subject_ids: string[];
             /** Widgets */
@@ -1386,13 +1704,77 @@ export interface components {
              */
             updated_at: string;
         };
+        /**
+         * DashboardItem
+         * @description A dashboard in the sidebar list.
+         */
+        DashboardItem: {
+            /** Name */
+            name: string;
+            /**
+             * Subject Ids
+             * @description The topics and entities the dashboard follows; a group given here becomes its members
+             */
+            subject_ids: string[];
+            /** Widgets */
+            widgets: (components["schemas"]["SinceWidget"] | components["schemas"]["QuestionWidget"] | components["schemas"]["SummaryWidget"] | components["schemas"]["DevelopmentsWidget"] | components["schemas"]["DirectionWidget"] | components["schemas"]["WatchlistWidget"] | components["schemas"]["UpcomingWidget"] | components["schemas"]["IndicatorWidget"])[];
+            /**
+             * Color
+             * @description Sidebar dot; reordering never changes it
+             * @enum {string}
+             */
+            color: "blue" | "teal" | "purple" | "pink" | "orange" | "olive" | "slate" | "brown";
+            /** Id */
+            id: string;
+            /** Starter */
+            starter: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * New Count
+             * @description Its developments new since the last visit, unread
+             */
+            new_count: number;
+        };
+        /**
+         * DashboardOverview
+         * @description What a dashboard shows beside its feed (the feed is GET /developments?dashboard_id=).
+         */
+        DashboardOverview: {
+            /**
+             * Since
+             * Format: date
+             * @description New counts from this date (the last visit, else the run)
+             */
+            since: string;
+            /**
+             * New Count
+             * @description Developments first published after it, unread
+             */
+            new_count: number;
+            /**
+             * Watchlist
+             * @description Its entities in dashboard order, groups resolved to their members
+             */
+            watchlist: components["schemas"]["WatchItem"][];
+            /** Upcoming */
+            upcoming: components["schemas"]["UpcomingItem"][];
+        };
         /** DashboardSpec */
         DashboardSpec: {
             /** Name */
             name: string;
             /**
              * Subject Ids
-             * @description The subjects the dashboard follows
+             * @description The topics and entities the dashboard follows; a group given here becomes its members
              */
             subject_ids: string[];
             /** Widgets */
@@ -1428,7 +1810,7 @@ export interface components {
              * Collection
              * @enum {string}
              */
-            collection: "dms" | "official" | "news" | "data";
+            collection: "dms" | "official" | "news" | "data" | "social";
             /** Documents */
             documents: number;
             /** Relevant Documents */
@@ -1539,22 +1921,67 @@ export interface components {
             materiality_label: string;
             /** Needs Attention */
             needs_attention: boolean;
+            /**
+             * Priority
+             * @description High, Medium or Low for the subjects in scope
+             * @enum {string}
+             */
+            priority: "High" | "Medium" | "Low";
+            /**
+             * Priority For
+             * @description The subjects in scope at that priority, when others in scope rank lower; empty when they all agree
+             */
+            priority_for: components["schemas"]["SubjectRef"][];
             /** Adverse */
             adverse: boolean;
             /**
              * Direction
+             * @description Its tone: the most telling over the subjects in scope
              * @enum {string}
              */
             direction: "positive" | "negative" | "neutral";
-            /** Subjects */
+            /**
+             * Subjects
+             * @description What it happened to or who did it, highest priority first
+             */
             subjects: components["schemas"]["SubjectRef"][];
+            /**
+             * Actors
+             * @description Ids of the subjects that did it, among `subjects`
+             */
+            actors: string[];
+            /**
+             * Also Affects
+             * @description Tracked subjects it reaches indirectly through stored relationships
+             */
+            also_affects: components["schemas"]["SubjectRef"][];
             /** Source Count */
             source_count: number;
+            /**
+             * Source Types
+             * @description Sources per collection
+             */
+            source_types: components["schemas"]["SourceTypeCount"][];
+            /**
+             * Outlet Count
+             * @description Distinct news outlets among its sources, one per parent domain
+             */
+            outlet_count: number;
+            /**
+             * Social Count
+             * @description Social posts among its sources
+             */
+            social_count: number;
+            /**
+             * Unconfirmed
+             * @description Its sources do not pass the source gate (pipeline/corroboration.py), so lists leave it out unless asked
+             */
+            unconfirmed: boolean;
             /**
              * Collections
              * @description Where its sources come from
              */
-            collections: ("dms" | "official" | "news" | "data")[];
+            collections: ("dms" | "official" | "news" | "data" | "social")[];
             /**
              * Jurisdictions
              * @description Names of the jurisdictions its sources report on, alphabetical
@@ -1589,6 +2016,17 @@ export interface components {
             sources: components["schemas"]["EvidenceSource"][];
             /** Notes */
             notes: components["schemas"]["Note"][];
+            /**
+             * Direct Subjects
+             * @description What it happened to or who did it, highest priority first
+             */
+            direct_subjects: components["schemas"]["DirectSubject"][];
+            /**
+             * Impacts
+             * @description Entities it reaches indirectly: direct links with a loan share, largest first, then region-level ones, then links without a share
+             */
+            impacts: components["schemas"]["IndirectImpact"][];
+            triage: components["schemas"]["Triage"];
         };
         /**
          * DevelopmentFacets
@@ -1596,6 +2034,21 @@ export interface components {
          *     selected.
          */
         DevelopmentFacets: {
+            /**
+             * Priority
+             * @description High, Medium, Low
+             */
+            priority: components["schemas"]["FacetValue"][];
+            /**
+             * Adverse
+             * @description 'true' (adverse) and 'false'
+             */
+            adverse: components["schemas"]["FacetValue"][];
+            /**
+             * Tone
+             * @description Negative, neutral, positive
+             */
+            tone: components["schemas"]["FacetValue"][];
             /**
              * Category
              * @description Most matches first
@@ -1613,12 +2066,12 @@ export interface components {
             jurisdiction: components["schemas"]["FacetValue"][];
             /**
              * Date
-             * @description Last 7, 30 and 90 days before the run date as day counts, then 'any'
+             * @description Today, this week and this month (1, 7 and 30 days to the run date), then 'any'
              */
             date: components["schemas"]["FacetValue"][];
             /**
              * Source
-             * @description Collections: official, DMS, data, news
+             * @description Collections: official, research, data, news
              */
             source: components["schemas"]["FacetValue"][];
         };
@@ -1655,13 +2108,33 @@ export interface components {
              */
             matching: number;
             /**
+             * Since
+             * Format: date
+             * @description New and Updated count from this date: a development is new when first published after it, updated when first published before and last published after
+             */
+            since: string;
+            /**
+             * Dismissed
+             * @description Dismissed developments matching the filters
+             */
+            dismissed: number;
+            /**
+             * Unconfirmed
+             * @description Unconfirmed developments the list would show with `unconfirmed`, whether it is on or not
+             */
+            unconfirmed: number;
+            /**
              * Developments
-             * @description Needing attention first, then changed this run, most material, most recent
+             * @description High adverse first, then other High, Medium adverse, other Medium and the rest; most recent first within each
              */
             developments: components["schemas"]["ChangedDevelopment"][];
             facets: components["schemas"]["DevelopmentFacets"];
         };
-        /** DevelopmentSummary */
+        /**
+         * DevelopmentSummary
+         * @description A development as a scope sees it: priority, adverse and tone are over the subjects in
+         *     scope that it is tagged to (over all its subjects when unscoped).
+         */
         DevelopmentSummary: {
             /** Id */
             id: string;
@@ -1689,22 +2162,67 @@ export interface components {
             materiality_label: string;
             /** Needs Attention */
             needs_attention: boolean;
+            /**
+             * Priority
+             * @description High, Medium or Low for the subjects in scope
+             * @enum {string}
+             */
+            priority: "High" | "Medium" | "Low";
+            /**
+             * Priority For
+             * @description The subjects in scope at that priority, when others in scope rank lower; empty when they all agree
+             */
+            priority_for: components["schemas"]["SubjectRef"][];
             /** Adverse */
             adverse: boolean;
             /**
              * Direction
+             * @description Its tone: the most telling over the subjects in scope
              * @enum {string}
              */
             direction: "positive" | "negative" | "neutral";
-            /** Subjects */
+            /**
+             * Subjects
+             * @description What it happened to or who did it, highest priority first
+             */
             subjects: components["schemas"]["SubjectRef"][];
+            /**
+             * Actors
+             * @description Ids of the subjects that did it, among `subjects`
+             */
+            actors: string[];
+            /**
+             * Also Affects
+             * @description Tracked subjects it reaches indirectly through stored relationships
+             */
+            also_affects: components["schemas"]["SubjectRef"][];
             /** Source Count */
             source_count: number;
+            /**
+             * Source Types
+             * @description Sources per collection
+             */
+            source_types: components["schemas"]["SourceTypeCount"][];
+            /**
+             * Outlet Count
+             * @description Distinct news outlets among its sources, one per parent domain
+             */
+            outlet_count: number;
+            /**
+             * Social Count
+             * @description Social posts among its sources
+             */
+            social_count: number;
+            /**
+             * Unconfirmed
+             * @description Its sources do not pass the source gate (pipeline/corroboration.py), so lists leave it out unless asked
+             */
+            unconfirmed: boolean;
             /**
              * Collections
              * @description Where its sources come from
              */
-            collections: ("dms" | "official" | "news" | "data")[];
+            collections: ("dms" | "official" | "news" | "data" | "social")[];
             /**
              * Jurisdictions
              * @description Names of the jurisdictions its sources report on, alphabetical
@@ -1791,6 +2309,30 @@ export interface components {
              */
             state: "watch" | "needs_attention";
         };
+        /**
+         * DirectSubject
+         * @description A subject the development happened to (affected) or that did it (actor).
+         */
+        DirectSubject: {
+            subject: components["schemas"]["SubjectRef"];
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "affected" | "actor";
+            /**
+             * Priority
+             * @enum {string}
+             */
+            priority: "High" | "Medium" | "Low";
+            /** Adverse */
+            adverse: boolean;
+            /**
+             * Tone
+             * @enum {string}
+             */
+            tone: "positive" | "negative" | "neutral";
+        };
         /** DirectionData */
         DirectionData: {
             /** Widget Id */
@@ -1866,7 +2408,7 @@ export interface components {
              * Collection
              * @enum {string}
              */
-            collection: "dms" | "official" | "news" | "data";
+            collection: "dms" | "official" | "news" | "data" | "social";
             /** Doc Type */
             doc_type: string;
             /** Classification */
@@ -1927,6 +2469,68 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /**
+         * EntityBrief
+         * @description The brief at the top of a subject's page (pipeline/summaries.py): written by Claude from
+         *     the last 7 days of developments, indirect impacts, series events and upcoming dates and the
+         *     subject's standing position (Key data, main links, open matters), checked and counted by
+         *     code.
+         */
+        EntityBrief: {
+            /**
+             * State
+             * @description One sentence on the subject's situation now
+             */
+            state: string;
+            /**
+             * Direction
+             * @description Against the previous brief; unchanged when the model's direction disagreed with the evidence and was flagged
+             * @enum {string}
+             */
+            direction: "worse" | "better" | "unchanged" | "mixed";
+            /**
+             * Direction Reason
+             * @description Empty when the direction was flagged
+             */
+            direction_reason: string;
+            /**
+             * Direction Flagged
+             * @description The model's direction disagreed with code's signals after a retry
+             */
+            direction_flagged: boolean;
+            /**
+             * Concerns
+             * @description At most 2, most serious first; none on a quiet week unless a matter High and adverse to the subject is open, which a concern then cites. A brief written before concerns gives its points' claims
+             */
+            concerns: components["schemas"]["BriefConcern"][];
+            /** Coming Up */
+            coming_up: components["schemas"]["BriefDate"][];
+            /**
+             * Developments
+             * @description Developments with a source in the last 7 days
+             */
+            developments: number;
+            /**
+             * High
+             * @description Of those, High for the subject
+             */
+            high: number;
+            /**
+             * Adverse
+             * @description Of those, adverse to the subject
+             */
+            adverse: number;
+            /**
+             * Latest News
+             * @description The last source of its latest development
+             */
+            latest_news: string | null;
+            /**
+             * Model
+             * @description none when code wrote it, with no evidence to brief on
+             */
+            model: string;
+        };
         /** EvidenceFinding */
         EvidenceFinding: {
             /** Id */
@@ -1958,7 +2562,7 @@ export interface components {
              * Collection
              * @enum {string}
              */
-            collection: "dms" | "official" | "news" | "data";
+            collection: "dms" | "official" | "news" | "data" | "social";
             /** Doc Type */
             doc_type: string;
             /** Classification */
@@ -2086,31 +2690,46 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "MEMBER_OF" | "EXPOSED_TO" | "AFFECTS";
+            type: "EXPOSED_TO" | "DEPENDS_ON" | "PARTICIPATES_IN" | "OWNS" | "SUBSIDIARY_OF" | "OPERATES_IN" | "SUPERVISED_BY" | "SHAREHOLDER_OF" | "MEMBER_OF" | "LISTED_ON" | "AFFECTS" | "IMPACTS";
+            /**
+             * Label
+             * @description The link in plain words: "depends on, for cloud services"
+             */
+            label: string;
             /**
              * Origin
-             * @description seed, jev or claude
+             * @description relationships, seed, jev, claude or detector
              */
             origin: string;
             /** Confidence */
             confidence: number;
+            /**
+             * Relationship Id
+             * @description A stored relationship's id
+             */
+            relationship_id: string | null;
+            /**
+             * Route
+             * @description IMPACTS: the route in plain words
+             */
+            route: string | null;
         };
         /** GraphNode */
         GraphNode: {
             /**
              * Id
-             * @description Subject id, or dev:<development id>
+             * @description Subject or endpoint id, or dev:<development id>
              */
             id: string;
             /**
              * Type
              * @enum {string}
              */
-            type: "topic" | "group" | "entity" | "development";
+            type: "topic" | "group" | "entity" | "endpoint" | "development";
             /** Label */
             label: string;
             /** Kind */
-            kind: ("bank" | "central_bank" | "stablecoin_issuer" | "country") | null;
+            kind: ("bank" | "central_bank" | "regulator" | "agency" | "market_infrastructure" | "payment_system" | "tech_provider" | "asset_manager" | "insurer" | "stablecoin_issuer" | "digital_asset_firm" | "country" | "sector") | ("bank" | "insurer" | "broker" | "investor" | "person" | "association" | "central_bank" | "regulator" | "market_infrastructure" | "payment_system" | "payment_institution" | "tech_provider" | "stablecoin_issuer" | "digital_asset_firm" | "blockchain" | "country" | "region" | "sector" | "group") | null;
             /** Hop */
             hop: number;
             /**
@@ -2163,6 +2782,23 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /**
+         * ImpactPassage
+         * @description A passage from the development's sources that the impact's reason relies on.
+         */
+        ImpactPassage: {
+            /** Document Id */
+            document_id: string;
+            /** Domain */
+            domain: string;
+            /**
+             * Published
+             * Format: date
+             */
+            published: string;
+            /** Text */
+            text: string;
+        };
         /** IndicatorChange */
         IndicatorChange: {
             /**
@@ -2179,7 +2815,7 @@ export interface components {
             from_value: number | null;
             /**
              * Change
-             * @description In the indicator's change_basis; null when the window does not apply to the series' frequency, reaches before its history, or starts from zero
+             * @description In the indicator's change_basis; null when the window does not apply to the series (its frequency, or a year-to-date total's shorter windows), reaches before its history, or starts from zero
              */
             change: number | null;
         };
@@ -2248,7 +2884,7 @@ export interface components {
             subject_id?: string | null;
             /**
              * Series Id
-             * @description A series id from list_subjects, e.g. "derived.usdc.peg"; empty for the subject's primary series
+             * @description A series id from list_subjects, e.g. "mas.ltd.overall"; empty for the subject's primary series
              */
             series_id?: string | null;
         };
@@ -2273,7 +2909,108 @@ export interface components {
             size: "S" | "M" | "L";
             settings: components["schemas"]["IndicatorSettings"];
         };
+        /**
+         * IndirectImpact
+         * @description An entity a development reaches through stored relationships, as judged by Claude. Code
+         *     writes the route from the relationships; Claude only judged it and wrote why.
+         */
+        IndirectImpact: {
+            /** Development Id */
+            development_id: string;
+            subject: components["schemas"]["SubjectRef"];
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "negative" | "positive" | "mixed";
+            /**
+             * Route
+             * @description Plain words: "via its Hong Kong loans, 12.2% of total"
+             */
+            route: string;
+            /**
+             * Why
+             * @description One or two sentences citing the development
+             */
+            why: string;
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "high" | "medium" | "low";
+            /**
+             * Weight
+             * @description The route's exposure share, if it has an exposure
+             */
+            weight: number | null;
+            /**
+             * Region
+             * @description The region's name when the share covers a whole region (Greater China)
+             */
+            region: string | null;
+            /**
+             * Evidence
+             * @description The weakest grade along the route
+             * @enum {string}
+             */
+            evidence: "public" | "reported" | "assumed";
+            /**
+             * Last Confirmed
+             * Format: date
+             * @description The oldest last confirmation along the route
+             */
+            last_confirmed: string;
+            /**
+             * Relationships
+             * @description From the entity outward
+             */
+            relationships: components["schemas"]["RelationshipLink"][];
+            /**
+             * Finding Ids
+             * @description The development's findings the reason relies on
+             */
+            finding_ids: string[];
+            /** Passages */
+            passages: components["schemas"]["ImpactPassage"][];
+        };
         JsonValue: unknown;
+        /**
+         * KeyData
+         * @description The series an Overview's Key data shows, by id, in order. The brief states the same ones
+         *     (pipeline/summaries.py).
+         */
+        KeyData: {
+            /**
+             * Flagged
+             * @description Listed series a live detector event flags, from a feed that still has data, worst event first
+             */
+            flagged: string[];
+            /**
+             * Rows
+             * @description Then up to 3 of the subject's own (primary) series and up to 3 context series, one per series group, daily ones first among the context; a series with no data yet included
+             */
+            rows: string[];
+        };
+        /**
+         * LatestRun
+         * @description The latest complete run, for the top bar's "Week to" date.
+         */
+        LatestRun: {
+            /** Id */
+            id: string;
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Previous Run Id */
+            previous_run_id: string | null;
+            /**
+             * Latest News
+             * @description The latest last-published date among its developments
+             */
+            latest_news: string | null;
+        };
         /** LinePoint */
         LinePoint: {
             /**
@@ -2285,6 +3022,58 @@ export interface components {
             value: number;
             /** Preliminary */
             preliminary: boolean;
+        };
+        /**
+         * LinkedInstitution
+         * @description A bank or other financial institution linked to a country, sector, supplier or payment
+         *     system in the relationship store (GET /subjects/{id}/linked).
+         */
+        LinkedInstitution: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Kind */
+            kind: ("bank" | "central_bank" | "regulator" | "agency" | "market_infrastructure" | "payment_system" | "tech_provider" | "asset_manager" | "insurer" | "stablecoin_issuer" | "digital_asset_firm" | "country" | "sector") | ("bank" | "insurer" | "broker" | "investor" | "person" | "association" | "central_bank" | "regulator" | "market_infrastructure" | "payment_system" | "payment_institution" | "tech_provider" | "stablecoin_issuer" | "digital_asset_firm" | "blockchain" | "country" | "region" | "sector" | "group");
+            /** @description None when the institution is not tracked */
+            subject: components["schemas"]["SubjectRef"] | null;
+            /**
+             * Region
+             * @description Its largest figure covers a whole region, not the subject
+             */
+            region: boolean;
+            /**
+             * Routes
+             * @description Direct links first, then through a company it owns, then region-level
+             */
+            routes: components["schemas"]["LinkedRoute"][];
+            /**
+             * Impacts
+             * @description Developments in the last 7 days that reach it through these routes
+             */
+            impacts: components["schemas"]["SubjectImpact"][];
+        };
+        /**
+         * LinkedRoute
+         * @description How an institution links to the subject: one stored link, or two through a company it
+         *     owns, written in plain words by code.
+         */
+        LinkedRoute: {
+            /**
+             * Text
+             * @description "Has 12.2% of its loans in Hong Kong"; "Owns 100% of DBS Bank (Hong Kong), which operates in Hong Kong"; region-level routes end ", a figure for the whole region"
+             */
+            text: string;
+            /**
+             * Region
+             * @description The region's name when the route ends in a region
+             */
+            region: string | null;
+            /**
+             * Links
+             * @description From the institution outward
+             */
+            links: components["schemas"]["RelationshipLink"][];
         };
         /**
          * MarkedDevelopment
@@ -2324,7 +3113,7 @@ export interface components {
             needs_attention: boolean;
             /**
              * Developments
-             * @description Developments at this level in the latest run
+             * @description Developments at this level in the latest run, unconfirmed ones left out
              */
             developments: number;
         };
@@ -2357,7 +3146,12 @@ export interface components {
              */
             trend: boolean;
             /** @description None until the run has one for the subject */
-            summary: components["schemas"]["RunSummary"] | null;
+            brief: components["schemas"]["EntityBrief"] | null;
+            /**
+             * Impacts
+             * @description Developments in the last 7 days that reach the subject indirectly
+             */
+            impacts: components["schemas"]["SubjectImpact"][];
         };
         /** Note */
         Note: {
@@ -2409,6 +3203,34 @@ export interface components {
              */
             available_at: string;
         };
+        /**
+         * ObservationSource
+         * @description Where one hand-collected figure comes from (a manual series).
+         */
+        ObservationSource: {
+            /**
+             * Period
+             * Format: date
+             */
+            period: string;
+            /** Url */
+            url: string;
+            /**
+             * Title
+             * @description The publication
+             */
+            title: string;
+            /**
+             * Quote
+             * @description The verbatim sentence or table row
+             */
+            quote: string | null;
+            /**
+             * Chart Reading
+             * @description The value was read from a chart
+             */
+            chart_reading: boolean;
+        };
         /** Outlier */
         Outlier: {
             member: components["schemas"]["SubjectRef"];
@@ -2439,19 +3261,81 @@ export interface components {
              */
             clipped_end: boolean;
         };
-        /** Profile */
+        /** PickerGroup */
+        PickerGroup: {
+            /**
+             * Id
+             * @description A group id, "topics", or "mas-supervised"
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Rows */
+            rows: components["schemas"]["PickerRow"][];
+            /**
+             * Suggested
+             * @description Shown open; the others sit under More to add
+             */
+            suggested: boolean;
+        };
+        /** PickerRow */
+        PickerRow: {
+            /** Subject Id */
+            subject_id: string;
+            /**
+             * Reason
+             * @description Provider rows only, from the relationship store: "Used by DBS and UOB, for cloud services"
+             */
+            reason: string | null;
+            /**
+             * Evidence
+             * @description The weakest grade among the links behind it
+             */
+            evidence: ("public" | "reported" | "assumed") | null;
+        };
+        /**
+         * Profile
+         * @description Who is using the app: a role with its own dashboards. Before the first visit picks a role,
+         *     id and role are null and the web shows onboarding.
+         */
         Profile: {
-            /** Display Name */
-            display_name: string;
+            /** Id */
+            id: string | null;
+            /**
+             * Name
+             * @description On the profile button: "TCRD", "FMD" or the role in words
+             */
+            name: string;
             /** Role */
-            role: string;
+            role: ("regulatory_supervisor" | "tech_cyber_supervisor" | "development_staff" | "other") | null;
             /** Default Dashboard Id */
             default_dashboard_id: string | null;
+            /**
+             * Last Visit
+             * @description The role's latest visit before today; New counts from it when set
+             */
+            last_visit?: string | null;
             /**
              * Tour Seen At
              * @description When the first-run tour last started; null shows it once
              */
             tour_seen_at?: string | null;
+        };
+        /**
+         * ProfileCreate
+         * @description Onboarding's answer: the role and the picks for its first dashboard. Creating it makes the
+         *     dashboard the profile's default and the profile the active one.
+         */
+        ProfileCreate: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "regulatory_supervisor" | "tech_cyber_supervisor" | "development_staff" | "other";
+            /** Dashboard Name */
+            dashboard_name: string;
+            /** Subject Ids */
+            subject_ids: string[];
         };
         /** QuestionAnswerView */
         QuestionAnswerView: {
@@ -2648,6 +3532,217 @@ export interface components {
             since: string;
             /** Whole History */
             whole_history: boolean;
+        };
+        /**
+         * RelatedDays
+         * @description The Related graph's windows in days: the brief's week, a month and a quarter. An enum, not
+         *     a Literal, so a query string's "7" validates.
+         * @enum {integer}
+         */
+        RelatedDays: 7 | 30 | 90;
+        /** RelatedFacet */
+        RelatedFacet: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "exposed_to" | "depends_on" | "participates_in" | "owns" | "subsidiary_of" | "operates_in" | "supervised_by" | "shareholder_of" | "member_of" | "listed_on";
+            /**
+             * Count
+             * @description Links of this type between the centre and its nodes
+             */
+            count: number;
+        };
+        /**
+         * RelatedGraph
+         * @description Everything linked to a subject in the relationship store, for the Overview's Related
+         *     graph (GET /subjects/{id}/related-graph).
+         */
+        RelatedGraph: {
+            run: components["schemas"]["RunRef"];
+            center: components["schemas"]["SubjectRef"];
+            days: components["schemas"]["RelatedDays"];
+            /**
+             * Nodes
+             * @description Most developments first, then most harmful, then by name
+             */
+            nodes: components["schemas"]["RelatedNode"][];
+            /**
+             * Developments
+             * @description Every development a node lists, in display order
+             */
+            developments: components["schemas"]["DevelopmentSummary"][];
+            /**
+             * Link Types
+             * @description In relationship type order
+             */
+            link_types: components["schemas"]["RelatedFacet"][];
+        };
+        /**
+         * RelatedLink
+         * @description A stored link between the Related graph's centre and one of its nodes.
+         */
+        RelatedLink: {
+            /** Id */
+            id: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "exposed_to" | "depends_on" | "participates_in" | "owns" | "subsidiary_of" | "operates_in" | "supervised_by" | "shareholder_of" | "member_of" | "listed_on";
+            /**
+             * Outbound
+             * @description The centre is the link's from end: DBS owns DBS India
+             */
+            outbound: boolean;
+            /**
+             * Label
+             * @description A few words from the centre: "owns 100%", "24.4% of loans", "depended on by"
+             */
+            label: string;
+        };
+        /**
+         * RelatedNode
+         * @description A subject or endpoint linked to the centre, with the developments that reach the centre
+         *     through it.
+         */
+        RelatedNode: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Kind */
+            kind: ("bank" | "central_bank" | "regulator" | "agency" | "market_infrastructure" | "payment_system" | "tech_provider" | "asset_manager" | "insurer" | "stablecoin_issuer" | "digital_asset_firm" | "country" | "sector") | ("bank" | "insurer" | "broker" | "investor" | "person" | "association" | "central_bank" | "regulator" | "market_infrastructure" | "payment_system" | "payment_institution" | "tech_provider" | "stablecoin_issuer" | "digital_asset_firm" | "blockchain" | "country" | "region" | "sector" | "group");
+            /** @description None when the node is not tracked */
+            subject: components["schemas"]["SubjectRef"] | null;
+            /**
+             * Links
+             * @description Its links to the centre, either direction
+             */
+            links: components["schemas"]["RelatedLink"][];
+            /**
+             * Development Ids
+             * @description Shown developments in the window that reach the centre through this node, in display order
+             */
+            development_ids: string[];
+            /**
+             * Harmful
+             * @description How many of them are negative for the centre
+             */
+            harmful: number;
+        };
+        /**
+         * RelationshipFigure
+         * @description A further figure behind an exposure, such as loans by currency, risk-weighted assets or
+         *     NPLs, with its own source.
+         */
+        RelationshipFigure: {
+            /**
+             * Measure
+             * @enum {string}
+             */
+            measure: "gross_customer_loans" | "loans_by_currency" | "rwa" | "reserve_assets" | "repo_principal" | "revenue" | "distribution_costs" | "token_supply" | "assets_on_platform" | "stablecoin_holdings" | "card_volume" | "npl" | "npl_ratio" | "npa_coverage";
+            /**
+             * Segment
+             * @description The row label in the source table
+             */
+            segment: string;
+            /** Value */
+            value: number;
+            /**
+             * Unit
+             * @enum {string}
+             */
+            unit: "SGD m" | "SGD b" | "USD m" | "m tokens" | "%" | "% of loans" | "% of gross loans";
+            /** Share */
+            share: number | null;
+            /**
+             * Period
+             * Format: date
+             */
+            period: string;
+            /** Chart Reading */
+            chart_reading: boolean;
+            /** Source Url */
+            source_url: string;
+            /** Source Title */
+            source_title: string;
+            /** Page */
+            page: number | null;
+            /** Quote */
+            quote: string;
+        };
+        /**
+         * RelationshipLink
+         * @description A stored relationship as evidence: its type, ends, size, grade and source.
+         */
+        RelationshipLink: {
+            /** Id */
+            id: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "exposed_to" | "depends_on" | "participates_in" | "owns" | "subsidiary_of" | "operates_in" | "supervised_by" | "shareholder_of" | "member_of" | "listed_on";
+            /**
+             * Label
+             * @description The type in plain words: "depends on, for cloud services"
+             */
+            label: string;
+            /** From Id */
+            from_id: string;
+            /** From Name */
+            from_name: string;
+            /** To Id */
+            to_id: string;
+            /** To Name */
+            to_name: string;
+            /**
+             * Weight
+             * @description Exposures: the headline figure's share of its total (a bank's loans, an issuer's reserves, a firm's revenue). Ownership: the share held. Else null; an exposure with no weight discloses no share
+             */
+            weight: number | null;
+            /** Measure */
+            measure: ("gross_customer_loans" | "loans_by_currency" | "rwa" | "reserve_assets" | "repo_principal" | "revenue" | "distribution_costs" | "token_supply" | "assets_on_platform" | "stablecoin_holdings" | "card_volume") | null;
+            /** Value */
+            value: number | null;
+            /** Unit */
+            unit: ("SGD m" | "SGD b" | "USD m" | "m tokens") | null;
+            /**
+             * Evidence
+             * @enum {string}
+             */
+            evidence: "public" | "reported" | "assumed";
+            /**
+             * Chart Reading
+             * @description The figure was read off a chart
+             */
+            chart_reading: boolean;
+            /**
+             * As Of
+             * @description When the link is known to hold
+             */
+            as_of: string | null;
+            /**
+             * Last Confirmed
+             * Format: date
+             */
+            last_confirmed: string;
+            /** Source Url */
+            source_url: string | null;
+            /** Source Title */
+            source_title: string | null;
+            /** Page */
+            page: number | null;
+            /**
+             * Quote
+             * @description Verbatim from the source
+             */
+            quote: string | null;
+            /** Detail */
+            detail: string;
+            /** Figures */
+            figures: components["schemas"]["RelationshipFigure"][];
         };
         /**
          * ResumeEntry
@@ -2867,38 +3962,6 @@ export interface components {
              */
             estimate_seconds: number | null;
         };
-        /**
-         * RunSummary
-         * @description The latest run's summary of a subject (pipeline/summaries.py).
-         */
-        RunSummary: {
-            /**
-             * Text
-             * @description Written by Claude from the run's stored rows
-             */
-            text: string;
-            /**
-             * Direction
-             * @description Against the previous run, by code: focus areas at Needs attention (2 each) and Watch (1 each) plus adverse developments needing attention; null on a first run
-             */
-            direction: ("more_adverse" | "less_adverse" | "unchanged") | null;
-            /**
-             * Direction Basis
-             * @description The comparison in words
-             */
-            direction_basis: string;
-            /**
-             * Developments In Scope
-             * @description The subject's developments in the run
-             */
-            developments_in_scope: number;
-            /** Needs Attention */
-            needs_attention: number;
-            /** Adverse */
-            adverse: number;
-            /** Model */
-            model: string;
-        };
         /** SearchHit */
         SearchHit: {
             subject: components["schemas"]["SubjectRef"];
@@ -3060,7 +4123,12 @@ export interface components {
              * Frequency
              * @enum {string}
              */
-            frequency: "daily" | "monthly" | "quarterly";
+            frequency: "daily" | "monthly" | "quarterly" | "yearly";
+            /**
+             * Year To Date
+             * @description A running total since January: only its 1y change, against the same period a year earlier, is given
+             */
+            year_to_date: boolean;
             /** Decimals */
             decimals: number;
             /**
@@ -3078,7 +4146,7 @@ export interface components {
              * Source
              * @enum {string}
              */
-            source: "mas" | "fred" | "coingecko" | "defillama" | "yahoo" | "derived";
+            source: "mas" | "fred" | "coingecko" | "defillama" | "yahoo" | "manual" | "derived";
             /**
              * Source Label
              * @description Where its values come from: "MAS I.18", "FRED DFF"
@@ -3108,9 +4176,11 @@ export interface components {
             latest: components["schemas"]["Observation"] | null;
             /** @description The latest value known by the end of `since` */
             start: components["schemas"]["Observation"] | null;
+            /** @description What change compares latest with: start, or for a year-to-date total the same period a year earlier; null in notes stored before it was kept */
+            base?: components["schemas"]["Observation"] | null;
             /**
              * Change
-             * @description Latest against start, in the change basis
+             * @description Latest against base, in the change basis
              */
             change: number | null;
             /** @description Daily series other than pegs */
@@ -3123,7 +4193,7 @@ export interface components {
              * @description Monthly and quarterly: a new period came out in the week
              */
             released: boolean;
-            /** @description A standing question's rule on the series */
+            /** @description An alert threshold on the series */
             rule: components["schemas"]["DeviationRule"] | null;
             /**
              * Text
@@ -3139,6 +4209,37 @@ export interface components {
              * @enum {string}
              */
             role: "primary" | "context";
+        };
+        /**
+         * SharedEndpoint
+         * @description A subject or endpoint both entities link to, with each one's links to it.
+         */
+        SharedEndpoint: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Kind */
+            kind: ("bank" | "central_bank" | "regulator" | "agency" | "market_infrastructure" | "payment_system" | "tech_provider" | "asset_manager" | "insurer" | "stablecoin_issuer" | "digital_asset_firm" | "country" | "sector") | ("bank" | "insurer" | "broker" | "investor" | "person" | "association" | "central_bank" | "regulator" | "market_infrastructure" | "payment_system" | "payment_institution" | "tech_provider" | "stablecoin_issuer" | "digital_asset_firm" | "blockchain" | "country" | "region" | "sector" | "group");
+            /**
+             * Subject
+             * @description A tracked subject; otherwise a relationship endpoint
+             */
+            subject: boolean;
+            /** A Links */
+            a_links: components["schemas"]["RelationshipLink"][];
+            /** B Links */
+            b_links: components["schemas"]["RelationshipLink"][];
+        };
+        /** SharedRelationships */
+        SharedRelationships: {
+            a: components["schemas"]["SubjectRef"];
+            b: components["schemas"]["SubjectRef"];
+            /**
+             * Endpoints
+             * @description By name
+             */
+            endpoints: components["schemas"]["SharedEndpoint"][];
         };
         /** SinceData */
         SinceData: {
@@ -3182,6 +4283,16 @@ export interface components {
              */
             size: "M" | "L";
             settings: components["schemas"]["SinceSettings"];
+        };
+        /** SourceTypeCount */
+        SourceTypeCount: {
+            /**
+             * Collection
+             * @enum {string}
+             */
+            collection: "dms" | "official" | "news" | "data" | "social";
+            /** Count */
+            count: number;
         };
         /** Span */
         Span: {
@@ -3232,7 +4343,7 @@ export interface components {
              */
             type: "topic" | "group" | "entity";
             /** Kind */
-            kind: ("bank" | "central_bank" | "stablecoin_issuer" | "country") | null;
+            kind: ("bank" | "central_bank" | "regulator" | "agency" | "market_infrastructure" | "payment_system" | "tech_provider" | "asset_manager" | "insurer" | "stablecoin_issuer" | "digital_asset_firm" | "country" | "sector") | null;
             /**
              * Logo
              * @description Entity icon path in the web app, if one exists
@@ -3247,9 +4358,14 @@ export interface components {
              * Icon
              * @description Topic glyph from the web icon library
              */
-            icon?: ("landmark" | "coins" | "globe") | null;
+            icon?: ("landmark" | "server" | "shield" | "network" | "scale" | "trending-up" | "briefcase" | "banknote" | "umbrella" | "building-2") | null;
             /** Aliases */
             aliases: string[];
+            /**
+             * Members
+             * @description Member entity ids, for a group; else empty
+             */
+            members: string[];
             /**
              * New Developments
              * @description Changed since the subject was last reviewed, and not read or dismissed
@@ -3257,9 +4373,24 @@ export interface components {
             new_developments: number;
             /**
              * Needs Attention
-             * @description Developments needing attention in the latest run
+             * @description High-priority developments in the latest run
              */
             needs_attention: number;
+            /**
+             * Recent
+             * @description Developments it happened to or that it did, last published in the 30 days to the run date
+             */
+            recent: number;
+            /**
+             * Recent High
+             * @description Of those, the ones at High priority for it
+             */
+            recent_high: number;
+            /**
+             * New High
+             * @description High for it, first published after the last visit (else the previous run), and not read or dismissed
+             */
+            new_high: number;
             /** Description */
             description: string;
             /** Domains */
@@ -3287,6 +4418,70 @@ export interface components {
              * @description Rules that fire, per question
              */
             fixed_states: components["schemas"]["FixedState"][];
+        };
+        /**
+         * SubjectImpact
+         * @description An indirect impact on a subject, with the development that causes it.
+         */
+        SubjectImpact: {
+            /** Development Id */
+            development_id: string;
+            subject: components["schemas"]["SubjectRef"];
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "negative" | "positive" | "mixed";
+            /**
+             * Route
+             * @description Plain words: "via its Hong Kong loans, 12.2% of total"
+             */
+            route: string;
+            /**
+             * Why
+             * @description One or two sentences citing the development
+             */
+            why: string;
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "high" | "medium" | "low";
+            /**
+             * Weight
+             * @description The route's exposure share, if it has an exposure
+             */
+            weight: number | null;
+            /**
+             * Region
+             * @description The region's name when the share covers a whole region (Greater China)
+             */
+            region: string | null;
+            /**
+             * Evidence
+             * @description The weakest grade along the route
+             * @enum {string}
+             */
+            evidence: "public" | "reported" | "assumed";
+            /**
+             * Last Confirmed
+             * Format: date
+             * @description The oldest last confirmation along the route
+             */
+            last_confirmed: string;
+            /**
+             * Relationships
+             * @description From the entity outward
+             */
+            relationships: components["schemas"]["RelationshipLink"][];
+            /**
+             * Finding Ids
+             * @description The development's findings the reason relies on
+             */
+            finding_ids: string[];
+            /** Passages */
+            passages: components["schemas"]["ImpactPassage"][];
+            development: components["schemas"]["DevelopmentSummary"];
         };
         /** SubjectIndicator */
         SubjectIndicator: {
@@ -3341,6 +4536,11 @@ export interface components {
              * @description Observations over the 12 months to the date, as known by then; none for a series not listed
              */
             line: components["schemas"]["LinePoint"][];
+            /**
+             * Sources
+             * @description Where the latest figure and each figure in the line come from, by period, for a series collected by hand; empty for one fetched from an API
+             */
+            sources: components["schemas"]["ObservationSource"][];
         };
         /** SubjectIndicators */
         SubjectIndicators: {
@@ -3355,6 +4555,8 @@ export interface components {
              * @description Primary series first, then context, each in catalogue order
              */
             indicators: components["schemas"]["SubjectIndicator"][];
+            /** @description The series the Overview's Key data shows, in order */
+            key_data: components["schemas"]["KeyData"];
         };
         /** SubjectLinks */
         SubjectLinks: {
@@ -3377,7 +4579,7 @@ export interface components {
              */
             type: "topic" | "group" | "entity";
             /** Kind */
-            kind: ("bank" | "central_bank" | "stablecoin_issuer" | "country") | null;
+            kind: ("bank" | "central_bank" | "regulator" | "agency" | "market_infrastructure" | "payment_system" | "tech_provider" | "asset_manager" | "insurer" | "stablecoin_issuer" | "digital_asset_firm" | "country" | "sector") | null;
             /**
              * Logo
              * @description Entity icon path in the web app, if one exists
@@ -3392,7 +4594,7 @@ export interface components {
              * Icon
              * @description Topic glyph from the web icon library
              */
-            icon?: ("landmark" | "coins" | "globe") | null;
+            icon?: ("landmark" | "server" | "shield" | "network" | "scale" | "trending-up" | "briefcase" | "banknote" | "umbrella" | "building-2") | null;
         };
         /** SubjectSummary */
         SubjectSummary: {
@@ -3406,7 +4608,7 @@ export interface components {
              */
             type: "topic" | "group" | "entity";
             /** Kind */
-            kind: ("bank" | "central_bank" | "stablecoin_issuer" | "country") | null;
+            kind: ("bank" | "central_bank" | "regulator" | "agency" | "market_infrastructure" | "payment_system" | "tech_provider" | "asset_manager" | "insurer" | "stablecoin_issuer" | "digital_asset_firm" | "country" | "sector") | null;
             /**
              * Logo
              * @description Entity icon path in the web app, if one exists
@@ -3421,9 +4623,14 @@ export interface components {
              * Icon
              * @description Topic glyph from the web icon library
              */
-            icon?: ("landmark" | "coins" | "globe") | null;
+            icon?: ("landmark" | "server" | "shield" | "network" | "scale" | "trending-up" | "briefcase" | "banknote" | "umbrella" | "building-2") | null;
             /** Aliases */
             aliases: string[];
+            /**
+             * Members
+             * @description Member entity ids, for a group; else empty
+             */
+            members: string[];
             /**
              * New Developments
              * @description Changed since the subject was last reviewed, and not read or dismissed
@@ -3431,9 +4638,24 @@ export interface components {
             new_developments: number;
             /**
              * Needs Attention
-             * @description Developments needing attention in the latest run
+             * @description High-priority developments in the latest run
              */
             needs_attention: number;
+            /**
+             * Recent
+             * @description Developments it happened to or that it did, last published in the 30 days to the run date
+             */
+            recent: number;
+            /**
+             * Recent High
+             * @description Of those, the ones at High priority for it
+             */
+            recent_high: number;
+            /**
+             * New High
+             * @description High for it, first published after the last visit (else the previous run), and not read or dismissed
+             */
+            new_high: number;
         };
         /** SubjectTrend */
         SubjectTrend: {
@@ -3471,6 +4693,27 @@ export interface components {
              * @description Built-in questions, then kept custom ones
              */
             questions: components["schemas"]["QuestionTrend"][];
+        };
+        /**
+         * Suggestions
+         * @description What the subject picker shows for a role, written by code: groups in the role's order and
+         *     the picks ticked at the start. Without a role, every group is open and nothing is ticked.
+         */
+        Suggestions: {
+            /** Role */
+            role: ("regulatory_supervisor" | "tech_cyber_supervisor" | "development_staff" | "other") | null;
+            /**
+             * Name
+             * @description The dashboard name the picks suggest
+             */
+            name: string;
+            /** Groups */
+            groups: components["schemas"]["PickerGroup"][];
+            /**
+             * Picks
+             * @description Subject ids ticked at the start
+             */
+            picks: string[];
         };
         /** SummaryData */
         SummaryData: {
@@ -3705,10 +4948,15 @@ export interface components {
             flagged: boolean;
             /** Dismissed */
             dismissed: boolean;
+            /**
+             * Not Relevant
+             * @description Marked as wrongly matched, kept for the eval set
+             */
+            not_relevant: boolean;
         };
         /**
          * TriageChange
-         * @description Only the states given change.
+         * @description Only the states given change. Not relevant also dismisses.
          */
         TriageChange: {
             /** Read */
@@ -3717,6 +4965,8 @@ export interface components {
             flagged?: boolean | null;
             /** Dismissed */
             dismissed?: boolean | null;
+            /** Not Relevant */
+            not_relevant?: boolean | null;
         };
         /** UpcomingData */
         UpcomingData: {
@@ -3850,6 +5100,35 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** Visit */
+        Visit: {
+            /**
+             * Path
+             * @description The page the app opened on
+             */
+            path: string;
+        };
+        /**
+         * WatchItem
+         * @description One entity on a dashboard's watchlist. Priorities are the entity's own.
+         */
+        WatchItem: {
+            subject: components["schemas"]["SubjectRef"];
+            /**
+             * New High
+             * @description High developments first published after `since`, not read or dismissed
+             */
+            new_high: number;
+            /**
+             * Month Count
+             * @description Developments last published in the 30 days to the run
+             */
+            month_count: number;
+            /** @description The highest priority of those, then the most recent; dismissed ones skipped */
+            top: components["schemas"]["DevelopmentSummary"] | null;
+            /** @description The most recent development, only when `top` is null */
+            latest: components["schemas"]["DevelopmentSummary"] | null;
+        };
         /** WatchlistData */
         WatchlistData: {
             /** Widget Id */
@@ -3957,7 +5236,7 @@ export interface components {
             reviewed_at: string | null;
             /**
              * Developments
-             * @description Needing attention first, then changed this run, most material, most recent
+             * @description Highest priority first, then most recent
              */
             developments: components["schemas"]["ChangedDevelopment"][];
             /** Question Changes */
@@ -4101,6 +5380,135 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MonitorPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_subject_impacts: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectImpact"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_linked_institutions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkedInstitution"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_related_graph: {
+        parameters: {
+            query?: {
+                days?: components["schemas"]["RelatedDays"];
+            };
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelatedGraph"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_shared: {
+        parameters: {
+            query: {
+                a: string;
+                b: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedRelationships"];
                 };
             };
             /** @description Validation Error */
@@ -4288,14 +5696,24 @@ export interface operations {
                 peers_of?: string | null;
                 /** @description review: only What changed since the review; run: only those the latest run added or updated */
                 changed?: ("review" | "run") | null;
+                /** @description New and Updated count from this date; when absent, the last visit before today, else the previous run's date */
+                since?: string | null;
+                /** @description false: leave dismissed ones out; true: only dismissed ones */
+                dismissed?: boolean | null;
+                /** @description true: list unconfirmed developments too, and count them */
+                unconfirmed?: boolean;
                 limit?: number | null;
+                priority?: ("High" | "Medium" | "Low")[];
+                /** @description Adverse to a subject in scope or not */
+                adverse?: boolean | null;
+                tone?: ("positive" | "negative" | "neutral")[];
                 category?: ("incident" | "regulatory" | "financial" | "management" | "strategy" | "policy" | "security" | "market" | "other")[];
                 /** @description Materiality levels, 0 Trivial to 4 Critical */
                 materiality?: number[];
-                jurisdiction?: ("sg" | "my" | "id" | "th" | "vn" | "ph" | "hk" | "cn" | "us" | "eu" | "uk" | "jp" | "intl")[];
+                jurisdiction?: ("sg" | "my" | "id" | "th" | "vn" | "hk" | "cn" | "tw" | "in" | "au" | "kr" | "us" | "eu" | "uk" | "jp" | "intl")[];
                 /** @description Last published in the last this many days of the run */
                 days?: number | null;
-                source?: ("dms" | "official" | "news" | "data")[];
+                source?: ("dms" | "official" | "news" | "data" | "social")[];
                 /** @description Words that must all appear in the title */
                 q?: string | null;
             };
@@ -4394,7 +5812,10 @@ export interface operations {
     };
     get_development: {
         parameters: {
-            query?: never;
+            query?: {
+                subject_id?: string[] | null;
+                dashboard_id?: string | null;
+            };
             header?: never;
             path: {
                 development_id: string;
@@ -4491,8 +5912,8 @@ export interface operations {
             query: {
                 center: string;
                 hops?: number;
-                node_type?: ("topic" | "group" | "entity" | "development")[] | null;
-                link_type?: ("MEMBER_OF" | "EXPOSED_TO" | "AFFECTS")[] | null;
+                node_type?: ("topic" | "group" | "entity" | "endpoint" | "development")[] | null;
+                link_type?: ("EXPOSED_TO" | "DEPENDS_ON" | "PARTICIPATES_IN" | "OWNS" | "SUBSIDIARY_OF" | "OPERATES_IN" | "SUPERVISED_BY" | "SHAREHOLDER_OF" | "MEMBER_OF" | "LISTED_ON" | "AFFECTS" | "IMPACTS")[] | null;
                 window_days?: number | null;
             };
             header?: never;
@@ -4589,7 +6010,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Dashboard"][];
+                    "application/json": components["schemas"]["DashboardItem"][];
                 };
             };
         };
@@ -4773,6 +6194,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Dashboard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_dashboard_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dashboard_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardOverview"];
                 };
             };
             /** @description Validation Error */
@@ -5445,6 +6897,152 @@ export interface operations {
             };
         };
     };
+    list_profiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Profile"][];
+                };
+            };
+        };
+    };
+    create_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Profile"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    activate_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Profile"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    log_visit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Visit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    onboarding_suggestions: {
+        parameters: {
+            query?: {
+                role?: ("regulatory_supervisor" | "tech_cyber_supervisor" | "development_staff" | "other") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Suggestions"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     materiality_levels: {
         parameters: {
             query?: never;
@@ -5481,6 +7079,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RunInfo"][];
+                };
+            };
+        };
+    };
+    latest_run: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LatestRun"];
                 };
             };
         };

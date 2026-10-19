@@ -5,6 +5,7 @@ run version and shared across requests, since the API reads far more often than 
 
 import json
 import sqlite3
+from collections import Counter
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -12,27 +13,37 @@ from functools import cached_property
 from statistics import median
 
 from intelmonitor.pipeline.answers import scope
-from intelmonitor.pipeline.params import MATERIALITY_LEVELS
+from intelmonitor.pipeline.corroboration import corroboration
+from intelmonitor.pipeline.extract import TONE_ORDER, Tone
+from intelmonitor.pipeline.params import (
+    MATERIALITY_LEVELS,
+    NEEDS_ATTENTION_LEVEL,
+    PRIORITY_LABELS,
+    display_key,
+)
 from intelmonitor.pipeline.screen import JURISDICTION_NAMES
 from intelmonitor.pipeline.subjects import Subject, all_subjects, questions_for
+from intelmonitor.pipeline.summaries import stored_concerns
 from intelmonitor.seed import load_subjects
 from intelmonitor.server.models import (
     STAGE_ORDER,
     AnswerChange,
     AnswerFeedback,
+    BriefConcern,
     ChangeCounts,
     ChangedDevelopment,
     Collection,
     CommonIssue,
     DevelopmentChangeKind,
     DevelopmentSummary,
+    EntityBrief,
     GroupInsights,
     Note,
     Outlier,
     QuestionAnswerView,
     QuestionStateChange,
     RunRef,
-    RunSummary,
+    SourceTypeCount,
     StageBucket,
     StageTrack,
     State,
@@ -51,7 +62,7 @@ GROUP_LOOKBACK_DAYS = 14
 MATERIAL_LEVEL = 2
 # A source reports on a jurisdiction when Jev scores it at least this likely.
 JURISDICTION_THRESHOLD = 0.5
-COLLECTION_ORDER: list[Collection] = ["official", "dms", "data", "news"]
+COLLECTION_ORDER: list[Collection] = ["official", "dms", "data", "news", "social"]
 # Worst first: the state a subject shows when its answers disagree.
 STATE_RANK: dict[State, int] = {"needs_attention": 0, "watch": 1, "new": 2, "stable": 3}
 
@@ -133,11 +144,61 @@ def description(subject_id: str) -> str:
 
 
 @dataclass(frozen=True)
+class SubjectPriority:
+    """A development's priority, adverse flag and tone for one of its subjects."""
+
+    level: int
+    adverse: bool
+    tone: Tone
+
+
+def telling_tone(tones: Iterable[Tone]) -> Tone:
+    """The most telling of some tones: negative, then positive, else neutral."""
+    return min([*tones, "neutral"], key=TONE_ORDER.index)
+
+
+def priority_fields(priorities: dict[str, SubjectPriority]) -> dict[str, object]:
+    """A summary's priority fields over some of its subjects, by subject id: the highest level,
+    the subjects at that priority when the others rank lower, adverse if it is adverse to any of
+    them, and their most telling tone."""
+    level = max(p.level for p in priorities.values())
+    top = PRIORITY_LABELS[level]
+    at_top = [s for s, p in priorities.items() if PRIORITY_LABELS[p.level] == top]
+    return {
+        "materiality_level": level,
+        "materiality_label": MATERIALITY_LEVELS[level],
+        "needs_attention": level >= NEEDS_ATTENTION_LEVEL,
+        "priority": top,
+        "priority_for": [subject_ref(s) for s in at_top] if len(at_top) < len(priorities) else [],
+        "adverse": any(p.adverse for p in priorities.values()),
+        "direction": telling_tone(p.tone for p in priorities.values()),
+    }
+
+
+@dataclass(frozen=True)
 class RunDevelopments:
-    """A run's developments by id, in display order, with the subjects each one is tagged to."""
+    """A run's developments by id, in display order, with the subjects each one is tagged to:
+    those it happened to or that did it, with its priority for each. A summary's own priority
+    fields are over all of them. `by_id` holds the shown ones, so every consumer leaves the
+    unconfirmed ones out (pipeline/corroboration.py) unless it asks for `unconfirmed`."""
 
     by_id: dict[str, DevelopmentSummary]
+    unconfirmed: dict[str, DevelopmentSummary]
     subject_ids: dict[str, frozenset[str]]
+    priorities: dict[str, dict[str, SubjectPriority]]
+
+    def listed(self, unconfirmed: bool = False) -> list[DevelopmentSummary]:
+        """The shown developments in display order, with the unconfirmed ones among them when
+        asked."""
+        if not unconfirmed:
+            return list(self.by_id.values())
+        return sorted([*self.by_id.values(), *self.unconfirmed.values()], key=_display_key)
+
+    def scoped(self, d: DevelopmentSummary, subject_ids: set[str]) -> DevelopmentSummary:
+        """The development as the subjects see it: its priority fields over those it is tagged
+        to."""
+        mine = {s: p for s, p in self.priorities.get(d.id, {}).items() if s in subject_ids}
+        return d.model_copy(update=priority_fields(mine)) if mine else d
 
 
 _run_cache: dict[tuple[str, str], RunDevelopments] = {}
@@ -145,24 +206,30 @@ _run_cache: dict[tuple[str, str], RunDevelopments] = {}
 
 def load_developments(conn: sqlite3.Connection, run: RunRef) -> RunDevelopments:
     tags: dict[str, list[str]] = {}
+    actors: dict[str, list[str]] = {}
+    priorities: dict[str, dict[str, SubjectPriority]] = {}
     for r in conn.execute(
-        "SELECT development_id, subject_id FROM development_subjects WHERE run_id = ? "
-        "ORDER BY confidence DESC",
+        "SELECT development_id, subject_id, role, priority_level, adverse, tone "
+        "FROM development_subjects WHERE run_id = ? "
+        "ORDER BY priority_level DESC, priority_score DESC, confidence DESC",
         (run.id,),
     ):
         tags.setdefault(r["development_id"], []).append(r["subject_id"])
-    documents: dict[str, set[str]] = {}
-    collections: dict[str, set[Collection]] = {}
+        if r["role"] == "actor":
+            actors.setdefault(r["development_id"], []).append(r["subject_id"])
+        priorities.setdefault(r["development_id"], {})[r["subject_id"]] = SubjectPriority(
+            r["priority_level"], bool(r["adverse"]), r["tone"]
+        )
+    documents: dict[str, dict[str, tuple[str, str]]] = {}
     jurisdictions: dict[str, set[str]] = {}
     for r in conn.execute(
-        "SELECT s.development_id, s.document_id, d.collection, t.jurisdictions "
+        "SELECT s.development_id, s.document_id, d.collection, d.domain, t.jurisdictions "
         "FROM development_sources s JOIN source_documents d ON d.id = s.document_id "
         "LEFT JOIN document_tags t ON t.document_id = s.document_id WHERE s.run_id = ?",
         (run.id,),
     ):
         dev = r["development_id"]
-        documents.setdefault(dev, set()).add(r["document_id"])
-        collections.setdefault(dev, set()).add(r["collection"])
+        documents.setdefault(dev, {})[r["document_id"]] = (r["collection"], r["domain"])
         scores: dict[str, float] = json.loads(r["jurisdictions"] or "{}")
         jurisdictions.setdefault(dev, set()).update(
             JURISDICTION_NAMES[c]
@@ -178,9 +245,24 @@ def load_developments(conn: sqlite3.Connection, run: RunRef) -> RunDevelopments:
         kind = "new" if r["kind"] == "new_development" else "updated"
         changes[r["ref_id"]] = (kind, len(json.loads(r["detail"])["new_documents"]))
     names = all_subjects()
+    indirect: dict[str, list[str]] = {}
+    for r in conn.execute(
+        "SELECT development_id, subject_id FROM development_impacts WHERE run_id = ? "
+        "ORDER BY development_id, rank",
+        (run.id,),
+    ):
+        reached = indirect.setdefault(r["development_id"], [])
+        if r["subject_id"] not in reached and r["subject_id"] in names:
+            reached.append(r["subject_id"])
     by_id: dict[str, DevelopmentSummary] = {}
     for r in conn.execute("SELECT * FROM developments WHERE run_id = ?", (run.id,)):
         change = changes.get(r["id"])
+        mine = priorities.get(r["id"], {})
+        level = int(r["materiality_level"])
+        docs = documents.get(r["id"], {})
+        per_type = Counter(c for c, _ in docs.values())
+        backing = corroboration(docs.values())
+        direct = [s for s in tags.get(r["id"], []) if s in names]
         by_id[r["id"]] = DevelopmentSummary(
             id=r["id"],
             title=r["title"],
@@ -189,34 +271,48 @@ def load_developments(conn: sqlite3.Connection, run: RunRef) -> RunDevelopments:
             event_date=r["event_date"],
             first_published=r["first_published"],
             last_published=r["last_published"],
-            materiality_level=r["materiality_level"],
-            materiality_label=MATERIALITY_LEVELS[int(r["materiality_level"])],
+            materiality_level=level,
+            materiality_label=MATERIALITY_LEVELS[level],
             needs_attention=bool(r["needs_attention"]),
-            adverse=r["adverse"] >= 0.5,
-            direction=r["direction"],
-            subjects=[subject_ref(s) for s in tags.get(r["id"], []) if s in names],
-            source_count=len(documents.get(r["id"], ())),
-            collections=[c for c in COLLECTION_ORDER if c in collections.get(r["id"], ())],
+            priority=PRIORITY_LABELS[level],
+            priority_for=[],
+            adverse=False,
+            direction="neutral",
+            subjects=[subject_ref(s) for s in direct],
+            actors=[s for s in actors.get(r["id"], []) if s in names],
+            also_affects=[subject_ref(s) for s in indirect.get(r["id"], []) if s not in direct],
+            source_count=len(docs),
+            outlet_count=backing.outlets,
+            social_count=backing.posts,
+            unconfirmed=not backing.shown,
+            source_types=[
+                SourceTypeCount(collection=c, count=per_type[c])
+                for c in COLLECTION_ORDER
+                if per_type[c]
+            ],
+            collections=[c for c in COLLECTION_ORDER if per_type[c]],
             jurisdictions=sorted(jurisdictions.get(r["id"], ())),
             change="new" if change and change[0] == "new" else "updated" if change else None,
             new_source_count=change[1] if change else 0,
         )
+        if mine:
+            by_id[r["id"]] = by_id[r["id"]].model_copy(update=priority_fields(mine))
     ordered = sorted(by_id.values(), key=_display_key)
     return RunDevelopments(
-        by_id={d.id: d for d in ordered},
+        by_id={d.id: d for d in ordered if not d.unconfirmed},
+        unconfirmed={d.id: d for d in ordered if d.unconfirmed},
         subject_ids={d.id: frozenset(tags.get(d.id, [])) for d in ordered},
+        priorities=priorities,
     )
 
 
-def _display_key(d: DevelopmentSummary) -> tuple[int, int, int, int, str]:
-    """Needing attention first, then changed this run, most material, most recent."""
-    return (
-        not d.needs_attention,
-        d.change is None,
-        -d.materiality_level,
-        -d.last_published.toordinal(),
-        d.id,
-    )
+PRIORITY_RANK = {"High": 0, "Medium": 1, "Low": 2}
+
+
+def _display_key(d: DevelopmentSummary) -> tuple[int, bool, int, int, str]:
+    """Display order (pipeline/params.py `display_key`), with priority and adverse as the
+    summary's scope sees them."""
+    return display_key(d.materiality_level, d.adverse, d.last_published, d.id)
 
 
 def week_spans(as_of: date, weeks: int) -> list[tuple[date, date]]:
@@ -270,6 +366,30 @@ class Queries:
         r = self._run_row
         return RunRef(id=r["id"], as_of=r["as_of"], previous_run_id=r["previous_run_id"])
 
+    @cached_property
+    def previous_as_of(self) -> date:
+        """The previous run's date, where New and Updated count from by default; a week before
+        the run when it has none."""
+        row = self.conn.execute(
+            "SELECT as_of FROM runs WHERE id = ?", (self.run.previous_run_id,)
+        ).fetchone()
+        return date.fromisoformat(row["as_of"]) if row else self.run.as_of - timedelta(days=7)
+
+    @cached_property
+    def last_visit(self) -> date | None:
+        """The active profile's role's latest visit before today (server/profiles.py)."""
+        row = self.conn.execute(
+            "SELECT max(v.date) FROM visits v JOIN profiles p ON p.role = v.role "
+            "JOIN meta m ON m.key = 'active_profile' AND m.value = p.id WHERE v.date < ?",
+            (date.today().isoformat(),),
+        ).fetchone()
+        return date.fromisoformat(row[0]) if row[0] else None
+
+    @property
+    def changes_since(self) -> date:
+        """Where New and Updated count from by default: the last visit, else the previous run."""
+        return self.last_visit or self.previous_as_of
+
     # ---- developments
 
     @cached_property
@@ -281,22 +401,49 @@ class Queries:
         return _run_cache[key]
 
     def development(self, development_id: str) -> DevelopmentSummary:
-        found = self.devs.by_id.get(development_id)
+        """A development by id, unconfirmed ones included, so a listed one always opens."""
+        found = self.devs.by_id.get(development_id) or self.devs.unconfirmed.get(development_id)
         if found is None:
             raise NotFoundError(f"development {development_id} in run {self.run.id}")
         return found
 
-    def developments_in(self, subject_ids: Iterable[str]) -> list[DevelopmentSummary]:
-        """Developments tagged to any of the subjects or, for groups, their members."""
+    def developments_in(
+        self, subject_ids: Iterable[str], unconfirmed: bool = False
+    ) -> list[DevelopmentSummary]:
+        """Developments tagged to any of the subjects or, for groups, their members, in display
+        order with their priority fields over those subjects. Unconfirmed ones only when asked."""
         ids = expand(subject_ids)
-        return [d for d in self.devs.by_id.values() if self.devs.subject_ids[d.id] & ids]
+        scoped = [
+            self.devs.scoped(d, ids)
+            for d in self.devs.listed(unconfirmed)
+            if self.devs.subject_ids[d.id] & ids
+        ]
+        return sorted(scoped, key=_display_key)
 
     def subject_summary(self, subject_id: str) -> SubjectSummary:
+        devs = self.developments_in([subject_id])
+        start = self.run.as_of - timedelta(days=30)
+        recent = [d for d in devs if d.last_published > start]
         return SubjectSummary(
             **subject_ref(subject_id).model_dump(),
             aliases=aliases(subject_id),
+            members=list(subject(subject_id).members),
             new_developments=self.unread_count(subject_id),
-            needs_attention=sum(d.needs_attention for d in self.developments_in([subject_id])),
+            needs_attention=sum(d.needs_attention for d in devs),
+            recent=len(recent),
+            recent_high=sum(d.priority == "High" for d in recent),
+            new_high=self.new_high(devs, self.changes_since),
+        )
+
+    def new_high(self, devs: Iterable[DevelopmentSummary], since: date) -> int:
+        """Of `devs`, priorities as scoped, the High ones first published after `since` and not
+        read or dismissed: the sidebar's and the watchlist's "new High"."""
+        return sum(
+            d.priority == "High"
+            and d.first_published > since
+            and not self.is_read(d.id)
+            and not self.is_dismissed(d.id)
+            for d in devs
         )
 
     # ---- review and triage
@@ -499,15 +646,17 @@ class Queries:
 
         return baseline
 
-    def scope_developments(self, subject_ids: Iterable[str] | None) -> list[ChangedDevelopment]:
+    def scope_developments(
+        self, subject_ids: Iterable[str] | None, unconfirmed: bool = False
+    ) -> list[ChangedDevelopment]:
         """Every development of the subjects (all developments when None), in display order, with
         its change since the review and its triage state. A development tagged to several of the
-        subjects counts from the latest of their reviews."""
+        subjects counts from the latest of their reviews. Unconfirmed ones only when asked."""
         if subject_ids is None:
-            requested, devs = list(all_subjects()), list(self.devs.by_id.values())
+            requested, devs = list(all_subjects()), self.devs.listed(unconfirmed)
         else:
             requested = list(dict.fromkeys(subject_ids))
-            devs = self.developments_in(requested)
+            devs = self.developments_in(requested, unconfirmed)
         baseline = self._scope_baseline(requested)
         out: list[ChangedDevelopment] = []
         for d in devs:
@@ -600,7 +749,7 @@ class Queries:
         for d in recent:
             hit = [m for m in members if m in self.devs.subject_ids[d.id]]
             for m in hit:
-                per_member[m].append(d)
+                per_member[m].append(self.devs.scoped(d, {m}))
             if len(hit) >= 2:
                 common.append(CommonIssue(development=d, members=[subject_ref(m) for m in hit]))
         common.sort(key=lambda c: (-len(c.members), -c.development.materiality_level))
@@ -630,12 +779,39 @@ class Queries:
             lookback_days=GROUP_LOOKBACK_DAYS, common_issues=common[:5], outliers=outliers
         )
 
-    def summary(self, subject_id: str) -> RunSummary | None:
-        row = self.conn.execute(
+    def _summary_row(self, subject_id: str) -> sqlite3.Row | None:
+        return self.conn.execute(
             "SELECT * FROM run_summaries WHERE run_id = ? AND subject_id = ?",
             (self.run.id, subject_id),
         ).fetchone()
-        return None if row is None else RunSummary.model_validate(dict(row))
+
+    def brief(self, subject_id: str) -> EntityBrief | None:
+        """The run's brief of the subject; None for a row written before briefs. A concern's
+        ids no longer shown in the run go."""
+        row = self._summary_row(subject_id)
+        if row is None or (concerns := stored_concerns(row)) is None:
+            return None
+        return EntityBrief(
+            state=row["text"],
+            # A flagged direction shows as unchanged, so the model's reason for it goes too.
+            direction="unchanged" if row["direction_flagged"] else row["direction"],
+            direction_reason="" if row["direction_flagged"] else row["direction_reason"],
+            direction_flagged=bool(row["direction_flagged"]),
+            concerns=[
+                BriefConcern(
+                    label=c.label or None,
+                    text=c.text,
+                    development_ids=[i for i in c.development_ids if i in self.devs.by_id],
+                )
+                for c in concerns
+            ],
+            coming_up=json.loads(row["coming_up"]),
+            developments=row["developments_in_scope"],
+            high=row["needs_attention"],
+            adverse=row["adverse"],
+            latest_news=row["latest_news"],
+            model=row["model"],
+        )
 
     # ---- analyst actions
 

@@ -20,7 +20,7 @@ from intelmonitor.pipeline.facts import SubjectFacts, subject_facts
 from intelmonitor.pipeline.feedback import AnswerCorrection, answer_corrections
 from intelmonitor.pipeline.inference import Inference, StepFailed
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS
-from intelmonitor.pipeline.subjects import Subject, all_subjects, questions_for
+from intelmonitor.pipeline.subjects import Subject, all_subjects, monitored_subjects, questions_for
 from intelmonitor.pipeline.wording import fx_currency
 from intelmonitor.seed import QuestionDef, load_series
 
@@ -53,7 +53,7 @@ class RunDevelopment:
     stage: str | None
     last_published: date
     level: int
-    adverse: float
+    adverse: bool  # adverse to at least one of its subjects
     subjects: list[str]
     sources: int
 
@@ -62,6 +62,8 @@ def load_run_developments(conn: sqlite3.Connection, run_id: str) -> list[RunDeve
     rows = conn.execute(
         "SELECT d.*, (SELECT json_group_array(subject_id) FROM development_subjects s "
         "WHERE s.run_id = d.run_id AND s.development_id = d.id) AS subjects, "
+        "(SELECT coalesce(max(adverse), 0) FROM development_subjects s "
+        "WHERE s.run_id = d.run_id AND s.development_id = d.id) AS adverse, "
         "(SELECT count(DISTINCT document_id) FROM development_sources s "
         "WHERE s.run_id = d.run_id AND s.development_id = d.id) AS sources "
         "FROM developments d WHERE d.run_id = ?",
@@ -75,7 +77,7 @@ def load_run_developments(conn: sqlite3.Connection, run_id: str) -> list[RunDeve
             stage=r["stage"],
             last_published=date.fromisoformat(r["last_published"]),
             level=r["materiality_level"],
-            adverse=r["adverse"],
+            adverse=bool(r["adverse"]),
             subjects=json.loads(r["subjects"]),
             sources=r["sources"],
         )
@@ -196,7 +198,7 @@ def answer_prompt(
         flags = [MATERIALITY_LEVELS[d.level]]
         if d.stage:
             flags.append(f"stage {d.stage}")
-        if d.adverse >= 0.5:
+        if d.adverse:
             flags.append("adverse")
         if c := changes.get(d.id):
             flags.append("new since last run" if c.kind == "new_development" else "new sources")
@@ -435,13 +437,13 @@ async def answer_subjects(
     async def one(subject: Subject) -> None:
         nonlocal unsupported
         try:
-            unsupported += await answer_subject(
-                inf, conn, run_id, as_of, subject, devs, changes, base_id
-            )
+            # Awaited before adding, so concurrent subjects do not overwrite each other's counts.
+            n = await answer_subject(inf, conn, run_id, as_of, subject, devs, changes, base_id)
+            unsupported += n
         except Exception as error:
             failures.append(f"{subject.id}: {type(error).__name__}: {error}")
 
-    await asyncio.gather(*(one(s) for s in all_subjects().values()))
+    await asyncio.gather(*(one(s) for s in monitored_subjects().values()))
     if failures:
         raise StepFailed("answer", failures)
     return unsupported

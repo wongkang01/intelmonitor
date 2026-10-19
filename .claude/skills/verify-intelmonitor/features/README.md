@@ -7,14 +7,15 @@ Open the one file that matches the change, not the whole map.
 ## Baseline preconditions
 
 - `pnpm -C web verify doctor` prints `"ok": true`, with `api-types` passing.
-- The store holds the weekly runs up to 24 Sep 2026; Run 2 is the run of 24 Sep against 17 Sep.
+- The store holds the weekly runs up to 8 Oct 2026 (`verify api /runs/latest`).
+- Home opens onboarding (`/setup`) while no profile is active (`verify api /profile` has `"role": null`), and the sidebar lists only the active profile's dashboards plus those no profile made. To reach a dashboard without onboarding, `verify api POST /profiles/tcrd/activate` (or `fmd`), and afterwards `sqlite3 data/intelmonitor.db "delete from meta where key = 'active_profile'"` if it was unset before.
 - One store serves everyone. Take `verify store save <label>` before a drive that mutates, or undo with the app's Undo.
 - Browser: `ab` in these files means `agent-browser --session im-verify` (or `--session $VERIFY_SESSION`), after `verify open ...`. Handles are ARIA roles and names as `ab snapshot -i` prints them.
 
 ## Driving conventions
 
 - Reach the starting page with `verify open`, then act through visible controls and shortcuts.
-- The evidence drawer and developments filters live in the URL (`?evidence=<id>`, `?answer=<subject>:<question>`, `?q=`, facets). A reload must keep them.
+- The development popup, the answer drawer and feed filters live in the URL (`?development=<id>&scope=dashboard:<id>`, `?answer=<subject>:<question>`, `?days=`, `?q=`, facets). A reload must keep them.
 - Wait on visible end states (`agent-browser wait --text ...` or `wait --load networkidle`), not fixed sleeps.
 - Read side effects back through `verify api <path>` after the UI action.
 
@@ -22,7 +23,7 @@ Open the one file that matches the change, not the whole map.
 
 - Capture the action and the end state: `verify shot` before and after, or `verify record`.
 - A mutation is proven by a second view: the API, a reload, or another page showing the same state.
-- Name every entry point you skipped and why. Paths that call Claude (Generate, custom question answers) or recompute the run (Run now) are skipped unless the task is about them.
+- Name every entry point you skipped and why. Parked controls (Run now, custom questions, the widget grid, the tour) have no entry point in the app and are skipped.
 
 ## Feature entry contract
 
@@ -37,31 +38,34 @@ Keep implementation details out. Name only user paths, stable handles, required 
 
 ## Full sweep
 
-Walk top to bottom for a broad regression, or run `pnpm -C web e2e`, which covers most of this map in 26 steps.
+Walk top to bottom for a broad regression, or run `pnpm -C web e2e`, which covers the main paths of this map in 14 steps.
 
 ## Shell
 
-- [sidebar](sidebar.md): Dashboards list, reorder, options menu, Topics / Groups / Entities trees, profile menu.
-- [top-bar](top-bar.md): ⌘K search, run status and Runs popover, alerts bell.
-- [help-and-tour](help-and-tour.md): `?` help, coach-mark tour, feedback.
+- [sidebar](sidebar.md): Ask, Dashboards list, reorder, options menu, Entities with groups as headings, Topics, profile menu.
+- [onboarding](onboarding.md): First visit at `/setup`: the role, the suggested picks and preview, the TCRD and FMD profiles, switching role, visits.
+- [ask](ask.md): The Ask preview at `/ask`: the centred query bar, @ mentions, suggested questions and mocked answers.
+- [top-bar](top-bar.md): ⌘K search and `Updated <date>`; the run chip and alerts bell are parked.
+- [help-and-tour](help-and-tour.md): `?` help with the labels and shortcuts; the coach-mark tour is off.
 
 ## Dashboards
 
-- [dashboard](dashboard.md): A dashboard's widget grid, Since your last review, edit mode, Add widget, widget settings.
-- [new-dashboard](new-dashboard.md): New dashboard by Build (pick subjects) or Generate (describe it).
+- [dashboard](dashboard.md): The fixed dashboard: watchlist table, the feed with the new count and Show all, upcoming dates, Edit dashboard.
+- [new-dashboard](new-dashboard.md): New dashboard by picking entities and topics, then a name.
 
 ## Monitors
 
-- [monitor-page](monitor-page.md): A subject's page and its tabs: Overview (summary, focus areas, key data, notes), Developments (what changed, subject or peers), Connections; mark reviewed, follow.
-- [data](data.md): Data tab for subjects with series: indicators, per-run notes, the series chart, question states per run.
-- [graph](graph.md): Graph view, embedded in the Connections tab and full page: hops, filters, node click.
-- [custom-questions](custom-questions.md): Ask a custom question, its answer and citations, the widget it makes.
+- [monitor-page](monitor-page.md): A topic's or entity's page: Overview (the summary band with the brief, Key data figures and the next date, the top 5, the Related card), Developments, Related (Could affect, linked institutions, Shared with) and Data; groups list their members.
+- [data](data.md): Data tab for subjects with series: indicators, weekly notes, the series chart, the facts behind each note.
+- [graph](graph.md): Graph view, reachable by URL only: hops, filters, node click.
+- [custom-questions](custom-questions.md): Parked: custom questions, no entry point in the app.
 
 ## Developments and evidence
 
-- [developments](developments.md): Developments list: facets, sort, search, What changed, triage row actions.
-- [evidence-drawer](evidence-drawer.md): Evidence for a development or an answer: sources, highlighted quote, series as a source, Correct the AI.
+- [developments](developments.md): Development feeds on the developments page, the dashboard and a monitor page's Developments tab: column header, period, facets, words, rows.
+- [development-page](development-page.md): The development popup over any page: who it impacts, connections, News and Social source tabs, Not relevant and Dismiss, close.
+- [evidence-drawer](evidence-drawer.md): Evidence for a standing question's answer: series and developments it relies on, Mark wrong.
 
 ## Pipeline
 
-- [pipeline-checks](pipeline-checks.md): Scripted `im check` runs for series, past-date runs and the depeg detector; Run now.
+- [pipeline-checks](pipeline-checks.md): Scripted `im check` runs for series, past-date runs and the loan-to-deposit detector.

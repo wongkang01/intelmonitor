@@ -1,6 +1,6 @@
 """FastAPI app. Run with `uv run im serve` (behind Portless in development)."""
 
-import sqlite3
+from collections import Counter
 from collections.abc import AsyncGenerator, Iterator
 from contextlib import asynccontextmanager
 from datetime import date
@@ -26,24 +26,36 @@ from intelmonitor.server import alerts as alert_list
 from intelmonitor.server import custom_questions as cq
 from intelmonitor.server import dashboards as dash
 from intelmonitor.server import feedback as fb
-from intelmonitor.server import runs
+from intelmonitor.server import profiles, runs
 from intelmonitor.server import series as series_views
 from intelmonitor.server import trend as trend_view
 from intelmonitor.server import triage as tri
 from intelmonitor.server.developments import DevelopmentQuery, development_list
 from intelmonitor.server.evidence import development_sources, document_detail, new_documents
 from intelmonitor.server.graph import neighbourhood
+from intelmonitor.server.impacts import (
+    IMPACT_PERIOD_DAYS,
+    development_impacts,
+    direct_subjects,
+    shared_relationships,
+    subject_impacts,
+)
+from intelmonitor.server.linked import linked_institutions
 from intelmonitor.server.models import (
     Alerts,
     AnswerEvidence,
     AnswerFeedback,
     AnswerFeedbackRequest,
+    DashboardOverview,
     DataSources,
     DataSourceStats,
     DevelopmentDetail,
     DevelopmentList,
     DocumentDetail,
+    EntityId,
     Graph,
+    LatestRun,
+    LinkedInstitution,
     LinkType,
     MaterialityLevel,
     MonitorPage,
@@ -51,34 +63,47 @@ from intelmonitor.server.models import (
     Note,
     NoteRequest,
     Profile,
+    ProfileCreate,
+    RelatedDays,
+    RelatedGraph,
     Review,
     ReviewRequest,
+    Role,
     RunInfo,
     RunStatus,
     SearchResults,
+    SharedRelationships,
     SubjectConfidence,
     SubjectDetail,
+    SubjectId,
+    SubjectImpact,
     SubjectRef,
     SubjectSummary,
+    Suggestions,
     TagFeedback,
     TagFeedbackRequest,
     Triage,
     TriageChange,
+    Visit,
     WhatChanged,
 )
+from intelmonitor.server.overview import dashboard_overview, new_count
 from intelmonitor.server.queries import (
     MATERIAL_LEVEL,
     NoRunError,
     NotFoundError,
     Queries,
+    expand,
     now,
     peers,
     subject,
     subject_ref,
 )
+from intelmonitor.server.related_graph import related_graph
 from intelmonitor.server.search import search as search_all
 from intelmonitor.server.widgets import (
     Dashboard,
+    DashboardItem,
     DashboardSpec,
     WidgetData,
     WidgetDataRequest,
@@ -86,7 +111,7 @@ from intelmonitor.server.widgets import (
     catalog,
     widget_data,
 )
-from intelmonitor.store.db import connect, get_meta, purge_deleted, set_meta
+from intelmonitor.store.db import connect, get_meta, purge_deleted
 
 WEB_ORIGIN = "https://intelmonitor.web.localhost"
 
@@ -96,6 +121,7 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
     conn = connect()
     purge_deleted(conn)
     dash.seed_dashboards(conn)
+    profiles.seed_profiles(conn)
     tri.seed_follows(conn)
     runlog.interrupt_stale(conn)
     runlog.backfill(conn)
@@ -200,8 +226,49 @@ def get_monitor_page(q: Q, subject_id: str) -> MonitorPage:
         group=q.group_insights(subject_id) if s.type == "group" else None,
         notes=q.notes(subject_id=subject_id),
         trend=trend_view.has_trend(subject_id),
-        summary=q.summary(subject_id),
+        brief=q.brief(subject_id),
+        impacts=subject_impacts(q, subject_id, IMPACT_PERIOD_DAYS),
     )
+
+
+@app.get("/subjects/{subject_id}/impacts")
+def get_subject_impacts(
+    q: Q,
+    subject_id: str,
+    days: Annotated[int, Query(ge=1, le=365)] = IMPACT_PERIOD_DAYS,
+) -> list[SubjectImpact]:
+    """Developments in the latest run that reach the subject indirectly through stored
+    relationships, last published within `days` of the run date (day, week or month filters).
+    Never news about the subject itself."""
+    subject(subject_id)
+    return subject_impacts(q, subject_id, days)
+
+
+@app.get("/subjects/{subject_id}/linked")
+def get_linked_institutions(q: Q, subject_id: str) -> list[LinkedInstitution]:
+    """For a country, sector, technology provider or payment system: the banks and other
+    institutions linked to it in the relationship store, directly or through a company they own,
+    with the developments of the last 7 days that reach them that way. Empty for other subjects."""
+    subject(subject_id)
+    return linked_institutions(q, subject_id)
+
+
+@app.get("/subjects/{subject_id}/related-graph")
+def get_related_graph(q: Q, subject_id: str, days: RelatedDays = RelatedDays.week) -> RelatedGraph:
+    """Every subject and endpoint linked to the subject in the relationship store, either
+    direction, each with its links and the shown developments of the last `days` (7, as the
+    brief, 30 or 90) that reach the subject through it, with link-type counts for filters."""
+    subject(subject_id)
+    return related_graph(q, subject_id, days)
+
+
+@app.get("/shared")
+def get_shared(q: Q, a: EntityId, b: EntityId) -> SharedRelationships:
+    """What links both entities in the relationship store: shared vendors, payment systems,
+    markets, ventures and memberships, each link with its type and source."""
+    if a == b:
+        raise HTTPException(422, "shared relationships need two different entities")
+    return shared_relationships(q.conn, a, b)
 
 
 @app.get("/subjects/{subject_id}/trend")
@@ -296,8 +363,19 @@ def set_triage(q: Q, development_id: str, change: TriageChange) -> Triage:
 
 
 @app.get("/developments/{development_id}")
-def get_development(q: Q, development_id: str) -> DevelopmentDetail:
-    return _development_detail(q, development_id)
+def get_development(
+    q: Q,
+    development_id: str,
+    subject_id: Annotated[list[SubjectId] | None, Query()] = None,
+    dashboard_id: str | None = None,
+) -> DevelopmentDetail:
+    """One development with its sources and who it impacts. Priority, adverse and tone are for
+    the subjects in view (some subjects or a dashboard's) when given, else over all its
+    subjects."""
+    ids = list(subject_id or [])
+    if dashboard_id is not None:
+        ids += dash.get_dashboard(q.conn, dashboard_id).subject_ids
+    return _development_detail(q, development_id, ids)
 
 
 @app.get("/subjects/{subject_id}/answers/{question_id}/evidence")
@@ -319,8 +397,12 @@ def get_answer_evidence(q: Q, subject_id: str, question_id: str) -> AnswerEviden
     )
 
 
-def _development_detail(q: Queries, development_id: str) -> DevelopmentDetail:
+def _development_detail(
+    q: Queries, development_id: str, scope: list[str] | None = None
+) -> DevelopmentDetail:
     d = q.development(development_id)
+    if scope:
+        d = q.devs.scoped(d, expand(scope))
     confidence = [
         SubjectConfidence(
             subject=subject_ref(r["subject_id"]), confidence=r["confidence"], source=r["source"]
@@ -354,6 +436,9 @@ def _development_detail(q: Queries, development_id: str) -> DevelopmentDetail:
             new_documents(q.conn, q.run.id, development_id),
         ),
         notes=q.notes(development_id=development_id),
+        direct_subjects=direct_subjects(q, development_id),
+        impacts=development_impacts(q, development_id),
+        triage=tri.triage(q, development_id),
     )
 
 
@@ -380,8 +465,8 @@ def get_graph(
         q,
         center,
         hops,
-        set(node_type or ["topic", "group", "entity", "development"]),
-        set(link_type or ["MEMBER_OF", "EXPOSED_TO", "AFFECTS"]),
+        set(node_type or NodeType.__args__),
+        set(link_type or LinkType.__args__),
         window_days,
     )
 
@@ -401,14 +486,19 @@ def get_widget_data(q: Q, request: WidgetDataRequest) -> WidgetData:
 
 
 @app.get("/dashboards")
-def list_dashboards(q: Q) -> list[Dashboard]:
-    return dash.list_dashboards(q.conn)
+def list_dashboards(q: Q) -> list[DashboardItem]:
+    """The active profile's dashboards and those no profile made, in sidebar order, each with
+    its new count."""
+    return [
+        DashboardItem(**d.model_dump(), new_count=new_count(q, d.subject_ids))
+        for d in dash.profile_dashboards(q.conn, profiles.active_profile(q).id)
+    ]
 
 
 @app.post("/dashboards", status_code=201)
 def create_dashboard(q: Q, spec: DashboardSpec) -> Dashboard:
-    """Creates a dashboard and follows its subjects."""
-    created = dash.create_dashboard(q.conn, spec)
+    """Creates a dashboard for the active profile and follows its subjects."""
+    created = dash.create_dashboard(q.conn, spec, profiles.active_profile(q).id)
     tri.follow(q.conn, created.subject_ids)
     return created
 
@@ -417,7 +507,7 @@ def create_dashboard(q: Q, spec: DashboardSpec) -> Dashboard:
 @app.put("/dashboards/order")
 def reorder_dashboards(q: Q, ids: Annotated[list[str], Body()]) -> list[Dashboard]:
     """Sets the sidebar order: every dashboard id once, first to last. Colors stay as they are."""
-    return dash.reorder_dashboards(q.conn, ids)
+    return dash.reorder_dashboards(q.conn, ids, profiles.active_profile(q).id)
 
 
 @app.get("/dashboards/{dashboard_id}")
@@ -440,6 +530,12 @@ def delete_dashboard(q: Q, dashboard_id: str) -> None:
 def restore_dashboard(q: Q, dashboard_id: str) -> Dashboard:
     """Undo a delete; the dashboard returns to its place in the sidebar."""
     return dash.restore_dashboard(q.conn, dashboard_id)
+
+
+@app.get("/dashboards/{dashboard_id}/overview")
+def get_dashboard_overview(q: Q, dashboard_id: str) -> DashboardOverview:
+    """The new count, watchlist and upcoming dates that sit beside the dashboard's feed."""
+    return dashboard_overview(q, dash.get_dashboard(q.conn, dashboard_id).subject_ids)
 
 
 @app.get("/dashboards/{dashboard_id}/data")
@@ -594,42 +690,59 @@ def delete_custom_question(q: Q, question_id: str) -> None:
     dash.drop_question_widgets(q.conn, question_id)
 
 
-# ---- profile menu: settings, data sources, run history, help
-
-
-_DEFAULT_PROFILE = Profile(
-    display_name="Analyst", role="Supervisory analyst", default_dashboard_id="singapore-banks"
-)
-
-
-def _profile(conn: sqlite3.Connection) -> Profile:
-    stored = get_meta(conn, "profile")
-    return Profile.model_validate_json(stored) if stored else _DEFAULT_PROFILE
+# ---- profiles, visits and onboarding (server/profiles.py)
 
 
 @app.get("/profile")
 def get_profile(q: Q) -> Profile:
-    return _profile(q.conn)
+    """The active profile; id and role are null until the first visit picks a role."""
+    return profiles.active_profile(q)
 
 
 @app.put("/profile")
 def update_profile(q: Q, profile: Profile) -> Profile:
-    if profile.default_dashboard_id is not None:
-        dash.get_dashboard(q.conn, profile.default_dashboard_id)
-    set_meta(q.conn, "profile", profile.model_dump_json())
-    return profile
+    """Sets the active profile's default dashboard and when the tour was seen."""
+    return profiles.update_active(q, profile)
+
+
+@app.get("/profiles")
+def list_profiles(q: Q) -> list[Profile]:
+    """Every profile for the profile menu's role switch, preloaded departments first."""
+    return profiles.list_profiles(q.conn)
+
+
+@app.post("/profiles", status_code=201)
+def create_profile(q: Q, request: ProfileCreate) -> Profile:
+    """Onboarding: makes the role's first dashboard from the picks and switches to the role."""
+    created = profiles.create_profile(q, request)
+    tri.follow(q.conn, request.subject_ids)
+    return created
+
+
+@app.post("/profiles/{profile_id}/activate")
+def activate_profile(q: Q, profile_id: str) -> Profile:
+    """Switches role: the sidebar then lists that profile's dashboards."""
+    return profiles.activate(q, profile_id)
+
+
+@app.post("/visits", status_code=204)
+def log_visit(q: Q, visit: Visit) -> None:
+    """Logs an app load with the active role, for counting days with a visit per role."""
+    profiles.log_visit(q, visit.path)
+
+
+@app.get("/onboarding/suggestions")
+def onboarding_suggestions(q: Q, role: Role | None = None) -> Suggestions:
+    """The subject picker for a role: groups in the role's order and the picks ticked at the
+    start, with who uses each provider. Without a role, every group and nothing ticked."""
+    return profiles.suggestions(q.conn, role)
 
 
 @app.get("/materiality-levels")
 def materiality_levels(q: Q) -> list[MaterialityLevel]:
-    """Materiality levels for Help, most material first, with the latest run's count at each."""
-    counts = dict(
-        q.conn.execute(
-            "SELECT materiality_level, count(*) FROM developments WHERE run_id = ? "
-            "GROUP BY materiality_level",
-            (q.run.id,),
-        ).fetchall()
-    )
+    """Materiality levels for Help, most material first, with the latest run's count of shown
+    developments at each."""
+    counts = Counter(d.materiality_level for d in q.devs.by_id.values())
     return [
         MaterialityLevel(
             level=level,
@@ -637,7 +750,7 @@ def materiality_levels(q: Q) -> list[MaterialityLevel]:
             description=MATERIALITY_RUBRIC[level],
             material=level >= MATERIAL_LEVEL,
             needs_attention=level >= NEEDS_ATTENTION_LEVEL,
-            developments=counts.get(level, 0),
+            developments=counts[level],
         )
         for level, name in reversed(list(enumerate(MATERIALITY_LEVELS)))
     ]
@@ -652,6 +765,13 @@ def list_runs(q: Q) -> list[RunInfo]:
     return runs.list_runs(q.conn)
 
 
+@app.get("/runs/latest")
+def latest_run(q: Q) -> LatestRun:
+    """The latest complete run and the date of the latest news it covers."""
+    news = max((d.last_published for d in q.devs.by_id.values()), default=None)
+    return LatestRun(**q.run.model_dump(), latest_news=min(news, q.run.as_of) if news else None)
+
+
 @app.get("/runs/status")
 def run_status(q: Q) -> RunStatus:
     return runs.status(q.conn)
@@ -660,7 +780,7 @@ def run_status(q: Q) -> RunStatus:
 @app.post("/runs/now", status_code=202)
 def run_now(q: Q) -> RunStatus:
     """Recompute Run 2 over the stored corpus in the background; 409 while a run is going."""
-    return runs.run_now(q.conn, _profile(q.conn).display_name)
+    return runs.run_now(q.conn, profiles.active_profile(q).name or "Analyst")
 
 
 @app.get("/alerts")

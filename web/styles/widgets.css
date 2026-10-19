@@ -643,3 +643,128 @@ a.qr:hover .ql {
 .subj {
   gap: var(--s-2);
 }
+
+/* The dashboard's fixed layout (components/dashboard/DashboardView.tsx): the watchlist table across
+   the top, then the feed beside a 300px column of upcoming dates, which drops below under 1100px. */
+.dash {
+  display: grid;
+  gap: var(--s-4);
+  padding: 0 var(--s-6) var(--s-7);
+}
+.dash-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--s-4);
+  align-items: start;
+}
+@container main (width < 1100px) {
+  .dash-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@container main (width < 640px) {
+  .dash {
+    padding: 0 var(--s-4) var(--s-6);
+  }
+}
+.new-n {
+  font-weight: 600;
+  color: var(--new);
+}
+
+/* Watchlist: entity, new High count, the top development in full with its priority, date. */
+.wtable {
+  width: 100%;
+  border-collapse: collapse;
+}
+.wtable th,
+.wtable td {
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+  border-top: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+.wtable thead th {
+  border-top: 0;
+  font: 500 var(--fs-meta) / var(--lh-meta) var(--font);
+  color: var(--ink2);
+}
+.wtable tbody tr:first-child > * {
+  border-top: 0;
+}
+.wtable .wl-ent {
+  width: 140px;
+  font-weight: 600;
+}
+.wtable .wl-cnt {
+  width: 110px;
+}
+.wtable .wl-dt {
+  width: 64px;
+  padding-right: 0;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--ink2);
+  font-size: var(--fs-meta);
+}
+.wtable .wl-none {
+  color: var(--ink3);
+}
+.attn-t {
+  font-weight: 600;
+  color: var(--attn);
+}
+.wtop {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+}
+.wtop .badge {
+  flex: none;
+}
+.wtitle {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+}
+.wtitle:hover {
+  color: var(--accent);
+  text-decoration-color: currentColor;
+}
+
+/* Upcoming dates: the date in a fixed column, the full label as a link to its development, and the development's title. */
+.uplist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.uplist li {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: var(--s-2);
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line);
+}
+.uplist li:first-child {
+  border-top: 0;
+}
+.up-date {
+  color: var(--ink2);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-body);
+}
+.up-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.up-label {
+  font-weight: 500;
+}
+.up-about {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}

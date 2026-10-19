@@ -1,5 +1,5 @@
-"""Step 7b, after the answers: a note per subject per run on why its series moved
-(structured-data-plan.md, F6).
+"""Step 9, after the indicators: a note per subject per run on why its series moved, for the Data
+tab (docs/archive/structured-data-plan.md, F6). Notes read no focus areas (phase1-plan.md, item B).
 
 Code computes what each of the subject's series did over the run's week, from the previous run's
 date (or seven days before the first run) to the run date: the note's facts. One Claude call per
@@ -7,7 +7,9 @@ subject writes a headline and a short note from them, citing the week's developm
 in answers, the note may quote numbers only from the facts and the developments, and tells FX
 moves by the SGD's side; a note that breaks either is asked again once. A week reaching back
 before the first document is told so, so the note says what no document can explain. The facts
-are stored with the note, so the Trend view shows what the note was given.
+are stored with the note, so the Data tab shows what the note was given. Developments the source
+gate holds back as unconfirmed (pipeline/corroboration.py) are left out, as the brief that reads
+the note's headline leaves them out.
 """
 
 import asyncio
@@ -25,11 +27,12 @@ from intelmonitor.pipeline.answers import (
     load_run_developments,
     scope,
 )
+from intelmonitor.pipeline.corroboration import shown_developments
 from intelmonitor.pipeline.facts import mapped_series
-from intelmonitor.pipeline.indicators import change_basis
-from intelmonitor.pipeline.inference import Inference, StepFailed
+from intelmonitor.pipeline.indicators import change_basis, months_before
+from intelmonitor.pipeline.inference import ClaudeRefused, Inference, StepFailed
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS
-from intelmonitor.pipeline.subjects import Subject, all_subjects, questions_for
+from intelmonitor.pipeline.subjects import Subject, all_subjects, monitored_subjects, questions_for
 from intelmonitor.pipeline.wording import day, fx_currency, fx_move, peg_side, period, value
 from intelmonitor.seed import Deviation, DeviationRule, SeriesDef, load_series
 from intelmonitor.store.documents import first_document_day
@@ -66,12 +69,17 @@ class SeriesMove(BaseModel):
     since: date = Field(description="The week's start: the previous run's date")
     latest: Observation | None
     start: Observation | None = Field(description="The latest value known by the end of `since`")
-    change: float | None = Field(description="Latest against start, in the change basis")
+    base: Observation | None = Field(
+        default=None,
+        description="What change compares latest with: start, or for a year-to-date total the "
+        "same period a year earlier; null in notes stored before it was kept",
+    )
+    change: float | None = Field(description="Latest against base, in the change basis")
     largest_day: DayMove | None = Field(description="Daily series other than pegs")
     record: Record | None
     widest: Observation | None = Field(description="Peg series: furthest from the peg in the week")
     released: bool = Field(description="Monthly and quarterly: a new period came out in the week")
-    rule: DeviationRule | None = Field(description="A standing question's rule on the series")
+    rule: DeviationRule | None = Field(description="An alert threshold on the series")
     text: str = Field(description="The sentence the note prompt gets")
 
 
@@ -141,20 +149,26 @@ def series_move(
     rule: DeviationRule | None,
 ) -> SeriesMove:
     """What one series did from the end of `since` to the end of `as_of`, from what was known by
-    then: the latest value against the one known at the week's start, the week's largest daily
-    move, whether the latest is a high or low since some date, and for a peg its furthest point."""
+    then: the latest value against the one known at the week's start (a year-to-date total against
+    the same period a year earlier), the week's largest daily move, whether the latest is a high or
+    low since some date, and for a peg its furthest point."""
     history = read_observations(conn, s.id, as_of)
     before = read_observations(conn, s.id, since)
     latest = history[-1] if history else None
     start = before[-1] if before else None
     if latest is None:
         return SeriesMove(
-            series_id=s.id, since=since, latest=None, start=None, change=None, largest_day=None,
-            record=None, widest=None, released=False, rule=rule,
+            series_id=s.id, since=since, latest=None, start=None, base=None, change=None,
+            largest_day=None, record=None, widest=None, released=False, rule=rule,
             text=f"{s.name}: no data available by {day(as_of)}.",
         )  # fmt: skip
     daily = s.frequency == "daily"
-    change = _in_basis(s, latest.value, start.value) if start else None
+    # A year-to-date total restarts each January: it compares with the same period a year earlier.
+    base = start
+    if s.year_to_date and start is not None:
+        year_ago = months_before(latest.period, 12)
+        base = next((o for o in reversed(history) if o.period <= year_ago), None)
+    change = _in_basis(s, latest.value, base.value) if base else None
     parts: list[str] = []
     at = "on" if daily else "for"
     largest: DayMove | None = None
@@ -179,7 +193,7 @@ def series_move(
             # One step is the week's whole change: no separate largest day.
             if len(chain) <= 2:
                 largest = None
-        if change:
+        if change and not s.year_to_date:
             record = _record(history, latest, rising=change > 0)
         flag = " (preliminary)" if latest.preliminary else ""
         stated = f"{value(s, latest.value)} {at} {period(latest.period, s.frequency)}{flag}"
@@ -187,13 +201,21 @@ def series_move(
             parts.append(f"{stated}; nothing was known by {day(since)}")
         elif not daily and start.period == latest.period:
             parts.append(f"no new release since {day(since)}; latest {stated}")
+        elif base is None:
+            parts.append(f"new release: {stated}; no figure for a year earlier")
         else:
             prefix = "" if daily else "new release: "
             moved = _moved(s, change) if change is not None else "changed"
-            since_words = f"since {day(since)}" if daily else "on the previous period"
+            since_words = (
+                f"since {day(since)}"
+                if daily
+                else "on the same period a year earlier"
+                if s.year_to_date
+                else "on the previous period"
+            )
             parts.append(
-                f"{prefix}{stated}, {moved} {since_words} (from {value(s, start.value)} {at} "
-                f"{period(start.period, s.frequency)})"
+                f"{prefix}{stated}, {moved} {since_words} (from {value(s, base.value)} {at} "
+                f"{period(base.period, s.frequency)})"
             )
         if largest is not None:
             parts.append(
@@ -210,14 +232,14 @@ def series_move(
     if rule:
         off = "off the peg" if isinstance(s.source, Deviation) else "from zero"
         parts.append(
-            f"a focus area needs attention at more than {rule.beyond:g}% {off} for "
-            f"{rule.for_hours} hours"
+            f"the alert threshold is more than {rule.beyond:g}% {off} for {rule.for_hours} hours"
         )
     return SeriesMove(
         series_id=s.id,
         since=since,
         latest=latest,
         start=start,
+        base=base,
         change=change,
         largest_day=largest,
         record=record,
@@ -229,7 +251,7 @@ def series_move(
 
 
 def _rule(subject: Subject, s: SeriesDef) -> DeviationRule | None:
-    """The first standing question rule on the series."""
+    """The series' alert threshold: the first deviation rule the seed's questions set on it."""
     return next((r for q in questions_for(subject) for r in q.rules if r.applies_to(s.id)), None)
 
 
@@ -251,12 +273,11 @@ def note_prompt(
     context: bool,
     moves: list[SeriesMove],
     devs: list[RunDevelopment],
-    states: list[tuple[str, str, str | None]],
     problems: list[str],
 ) -> str:
     parts = [
         f"Subject: {subject.description}.",
-        f"Run of {day(as_of)}. The week runs from {day(since)}, the previous run, to {day(as_of)}.",
+        f"As of {day(as_of)}. The week runs from {day(since)} to {day(as_of)}.",
     ]
     if first_documents is None or since < first_documents:
         start = f"before {day(first_documents)}" if first_documents else "yet"
@@ -277,11 +298,6 @@ def note_prompt(
         f"{MATERIALITY_LEVELS[d.level]}"
         for d in devs
     ] or ["none"]
-    parts += ["", "Focus areas in this run:"]
-    parts += [
-        f"- {label}: {state}" + (f" (was {before})" if before and before != state else "")
-        for label, state, before in states
-    ]
     if problems:
         parts += ["", "Your previous note broke these rules; write it again without them:"]
         parts += [f"- {p}" for p in problems]
@@ -324,25 +340,6 @@ def number_citations(body: str, eligible: set[str]) -> tuple[str, list[str]]:
     return _CITE.sub(replace, body).strip(), cited
 
 
-def _states(
-    conn: sqlite3.Connection, run_id: str, base_id: str | None, subject: Subject
-) -> list[tuple[str, str, str | None]]:
-    """(label, state, previous state) for each built-in question, in seed order."""
-    rows = {
-        (r["run_id"], r["question_id"]): r["state"]
-        for r in conn.execute(
-            "SELECT run_id, question_id, state FROM question_answers WHERE subject_id = ? "
-            "AND run_id IN (?, ?)",
-            (subject.id, run_id, base_id or ""),
-        )
-    }
-    return [
-        (q.label, rows[(run_id, q.id)], rows.get((base_id or "", q.id)))
-        for q in questions_for(subject)
-        if (run_id, q.id) in rows
-    ]
-
-
 def _allowed(moves: list[SeriesMove], week: list[RunDevelopment]) -> str:
     """The text a note may quote numbers from: its facts and the week's developments."""
     return "\n".join([m.text for m in moves] + [d.title for d in week])
@@ -351,8 +348,10 @@ def _allowed(moves: list[SeriesMove], week: list[RunDevelopment]) -> str:
 def stored_note_problems(row: sqlite3.Row, as_of: date, devs: list[RunDevelopment]) -> list[str]:
     """The rules a stored `run_notes` row breaks under today's checks: numbers found in neither
     the facts it was given nor the week's developments, and, on FX series, pairs and rates said
-    to go up or down. `devs` are its run's developments."""
-    subject = all_subjects()[row["subject_id"]]
+    to go up or down. `devs` are its run's developments. A note on a subject no longer in the seed
+    is not checked."""
+    if (subject := all_subjects().get(row["subject_id"])) is None:
+        return []
     moves = [SeriesMove.model_validate(m) for m in json.loads(row["moves"])]
     week = week_developments(devs, scope(subject), date.fromisoformat(row["since"]), as_of)
     fx = any(fx_currency(s) for s in note_series(subject.id))
@@ -378,14 +377,11 @@ async def note_subject(
     allowed = _allowed(moves, week)
     fx = any(fx_currency(s) for s in series)
     context = all(subject.id not in s.subjects.primary for s in series)
-    states = _states(conn, run_id, base_id, subject)
     first_documents = first_document_day(conn)
     problems: list[str] = []
     draft: NoteDraft | None = None
     for attempt in range(2):
-        prompt = note_prompt(
-            subject, as_of, since, first_documents, context, moves, week, states, problems
-        )
+        prompt = note_prompt(subject, as_of, since, first_documents, context, moves, week, problems)
         ref = f"subject:{subject.id}" + (f":retry{attempt}" if attempt else "")
         draft = await inf.claude("note", ref, prompt, NoteDraft, NOTE_SYSTEM)
         problems = answer_problems(f"{draft.headline}\n{draft.body}", allowed, fx)
@@ -414,18 +410,26 @@ async def note_subject(
 
 async def write_notes(
     inf: Inference, conn: sqlite3.Connection, run_id: str, as_of: date, base_id: str | None
-) -> tuple[int, int]:
-    """Writes a note for every subject with listed series. Returns (notes written, notes that
-    still quote a number outside their facts and developments, or break the FX wording)."""
-    devs = load_run_developments(conn, run_id)
-    subjects = [s for s in all_subjects().values() if note_series(s.id)]
+) -> tuple[int, int, int]:
+    """Writes a note for every topic and entity with listed series. A subject whose note Claude
+    declines is skipped and keeps no note for the run. Returns (notes written, notes that still
+    quote a number outside their facts and developments or break the FX wording, subjects
+    refused)."""
+    shown = shown_developments(conn, run_id)
+    devs = [d for d in load_run_developments(conn, run_id) if d.id in shown]
+    subjects = [s for s in monitored_subjects().values() if note_series(s.id)]
     failures: list[str] = []
     broken = 0
+    refused: list[str] = []
 
     async def one(subject: Subject) -> None:
         nonlocal broken
         try:
-            broken += await note_subject(inf, conn, run_id, as_of, base_id, subject, devs)
+            # Awaited before adding, so concurrent subjects do not overwrite each other's counts.
+            still_broken = await note_subject(inf, conn, run_id, as_of, base_id, subject, devs)
+            broken += still_broken
+        except ClaudeRefused:
+            refused.append(subject.id)
         except Exception as error:
             failures.append(f"{subject.id}: {type(error).__name__}: {error}")
 
@@ -433,10 +437,10 @@ async def write_notes(
     if failures:
         raise StepFailed("note", failures)
     with conn:
-        kept = [s.id for s in subjects]
+        kept = [s.id for s in subjects if s.id not in refused]
         conn.execute(
             f"DELETE FROM run_notes WHERE run_id = ? AND subject_id NOT IN "
             f"({','.join('?' * len(kept))})",
             (run_id, *kept),
         )
-    return len(subjects), broken
+    return len(kept), broken, len(refused)

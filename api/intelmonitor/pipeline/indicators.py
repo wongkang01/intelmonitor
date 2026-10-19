@@ -1,5 +1,6 @@
 """Indicators: what each series says as of a date. Its latest value, the change over fixed
-windows, where the latest value sits in its history, and a state (structured-data-plan.md, F1).
+windows, where the latest value sits in its history, and a state
+(docs/archive/structured-data-plan.md, F1).
 
 `compute_indicators` serves `GET /subjects/{id}/indicators`; `store_run_indicators` writes what a
 run saw to run_indicators. Both read only what was available by the end of the date, so a run
@@ -28,8 +29,17 @@ _WINDOWS: dict[Frequency, list[ChangeWindow]] = {
     "daily": ["1w", "1m", "3m", "1y"],
     "monthly": ["1m", "3m", "1y"],
     "quarterly": ["3m", "1y"],
+    "yearly": ["1y"],
 }
 ALL_WINDOWS: list[ChangeWindow] = _WINDOWS["daily"]
+
+
+def change_windows(s: SeriesDef) -> list[ChangeWindow]:
+    """The windows whose change says something about the series: those its frequency allows, and
+    for a year-to-date total only the year, so January's restart never reads as a fall."""
+    return ["1y"] if s.year_to_date else _WINDOWS[s.frequency]
+
+
 # Without a previous run, revisions made this many days before the date count as recent.
 REVISION_WINDOW = timedelta(days=31)
 
@@ -50,7 +60,8 @@ class IndicatorChange(BaseModel):
     from_value: float | None
     change: float | None = Field(
         description="In the indicator's change_basis; null when the window does not apply to the "
-        "series' frequency, reaches before its history, or starts from zero"
+        "series (its frequency, or a year-to-date total's shorter windows), reaches before its "
+        "history, or starts from zero"
     )
 
 
@@ -141,7 +152,7 @@ def indicator(
     for w in ALL_WINDOWS:
         start = window_start(latest.period, w)
         ref = next((o for o in reversed(history) if o.period <= start), None)
-        if w not in _WINDOWS[s.frequency] or ref is None:
+        if w not in change_windows(s) or ref is None:
             changes.append(IndicatorChange(window=w, since=None, from_value=None, change=None))
             continue
         if basis == "points":

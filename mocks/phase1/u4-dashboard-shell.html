@@ -1,0 +1,614 @@
+<title>Simplified dashboard mocks</title>
+<style>
+/* Layout: a mock page; each option is a plain heading, then a framed app screen (shell plus dashboard) at desktop width that scrolls sideways inside its frame on a phone. */
+:root{
+  --canvas:oklch(0.972 0.004 260);
+  --surface:oklch(0.993 0.002 260);
+  --rail:oklch(0.955 0.005 260);
+  --hover:oklch(0.925 0.006 260);
+  --line:oklch(0.93 0.005 260);
+  --line-strong:oklch(0.885 0.007 260);
+  --line-field:oklch(0.80 0.01 260);
+  --ink:oklch(0.23 0.012 260);
+  --ink2:oklch(0.47 0.014 260);
+  --ink3:oklch(0.56 0.012 260);
+  --accent:oklch(0.52 0.17 258);
+  --accent-strong:oklch(0.46 0.16 258);
+  --on-accent:oklch(0.993 0.002 260);
+  --new:oklch(0.48 0.15 258);
+  --new-bg:oklch(0.955 0.022 250);
+  --attn:oklch(0.50 0.17 28);
+  --attn-bg:oklch(0.955 0.022 25);
+  --watch:oklch(0.47 0.105 62);
+  --watch-bg:oklch(0.965 0.035 80);
+  --gap-hatch:oklch(0.90 0.02 80);
+  --page:oklch(0.945 0.006 260);
+  --scrim:oklch(0.23 0.012 260 / 0.24);
+  --shadow-low:0 1px 3px oklch(0.23 0.012 260 / 0.11);
+  --shadow-pop:0 6px 20px oklch(0.23 0.012 260 / 0.12);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --stat:112px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --canvas:oklch(0.20 0.008 260);--surface:oklch(0.235 0.009 260);--rail:oklch(0.215 0.008 260);
+  --hover:oklch(0.29 0.01 260);--line:oklch(0.30 0.01 260);--line-strong:oklch(0.36 0.012 260);
+  --line-field:oklch(0.45 0.014 260);--ink:oklch(0.94 0.005 260);--ink2:oklch(0.76 0.01 260);
+  --ink3:oklch(0.66 0.01 260);--accent:oklch(0.70 0.14 258);--accent-strong:oklch(0.76 0.12 258);
+  --on-accent:oklch(0.18 0.01 260);--new:oklch(0.78 0.11 255);--new-bg:oklch(0.31 0.06 258);
+  --attn:oklch(0.76 0.13 28);--attn-bg:oklch(0.32 0.06 28);
+  --watch:oklch(0.80 0.10 75);--watch-bg:oklch(0.32 0.05 75);--gap-hatch:oklch(0.34 0.04 80);
+  --page:oklch(0.16 0.007 260);--scrim:oklch(0 0 0 / 0.45);
+  --shadow-low:0 1px 3px oklch(0 0 0 / 0.4);--shadow-pop:0 6px 20px oklch(0 0 0 / 0.45);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --canvas:oklch(0.20 0.008 260);--surface:oklch(0.235 0.009 260);--rail:oklch(0.215 0.008 260);
+  --hover:oklch(0.29 0.01 260);--line:oklch(0.30 0.01 260);--line-strong:oklch(0.36 0.012 260);
+  --line-field:oklch(0.45 0.014 260);--ink:oklch(0.94 0.005 260);--ink2:oklch(0.76 0.01 260);
+  --ink3:oklch(0.66 0.01 260);--accent:oklch(0.70 0.14 258);--accent-strong:oklch(0.76 0.12 258);
+  --on-accent:oklch(0.18 0.01 260);--new:oklch(0.78 0.11 255);--new-bg:oklch(0.31 0.06 258);
+  --attn:oklch(0.76 0.13 28);--attn-bg:oklch(0.32 0.06 28);
+  --watch:oklch(0.80 0.10 75);--watch-bg:oklch(0.32 0.05 75);--gap-hatch:oklch(0.34 0.04 80);
+  --page:oklch(0.16 0.007 260);--scrim:oklch(0 0 0 / 0.45);
+  --shadow-low:0 1px 3px oklch(0 0 0 / 0.4);--shadow-pop:0 6px 20px oklch(0 0 0 / 0.45);
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font:400 13px/18px var(--font);-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,ul,ol{margin:0;padding:0}
+ul,ol{list-style:none}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer;text-align:left}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.meta{font-size:12px;line-height:16px;color:var(--ink2)}
+
+/* Mock page around the screens */
+.doc{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:32px 64px;display:flex;flex-direction:column;gap:48px}
+.doc-head{display:flex;flex-direction:column;gap:8px;max-width:75ch}
+.doc-head h1{font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.015em;text-wrap:balance}
+.doc-head p{color:var(--ink2)}
+.opt{display:flex;flex-direction:column;gap:12px}
+.opt>h2{font-size:22px;line-height:28px;font-weight:600;letter-spacing:-0.01em;text-wrap:balance}
+.opt>p{max-width:75ch}
+.switch{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2)}
+.serves{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;font-size:12px;line-height:16px;max-width:100ch}
+.serves dt{font-weight:600}
+.serves dd{margin:0;color:var(--ink2)}
+.gapnote{display:inline-block;padding:0 6px;border-radius:4px;border:1px dashed var(--gap-hatch);color:var(--ink3);font-size:12px}
+
+/* A framed app screen at desktop width; sideways scroll inside the frame on narrow viewports. */
+.frame{overflow-x:auto;border:1px solid var(--line-strong);border-radius:14px;background:var(--canvas);box-shadow:var(--shadow-low)}
+.app{min-width:1180px;display:grid;grid-template-columns:232px 1fr;min-height:760px}
+
+/* Sidebar: Dashboards, Entities (groups as headings), Topics */
+.side{background:var(--rail);border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+.brand{height:56px;display:flex;align-items:center;padding:0 16px;font-size:15px;font-weight:600;letter-spacing:-0.01em}
+.side-scroll{padding:4px 8px 16px;display:flex;flex-direction:column}
+.navhead{padding:16px 8px 4px;font-size:12px;line-height:16px;font-weight:600;color:var(--ink)}
+.navhead:first-child{padding-top:4px}
+.navgrp{display:flex;align-items:center;gap:6px;width:100%;height:28px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;color:var(--ink2)}
+.navgrp:hover{background:var(--hover)}
+.navgrp svg{flex:none;color:var(--ink3);transition:transform .12s}
+.navgrp[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.navgrp .count{margin-left:auto;font-size:12px;color:var(--ink3)}
+.navitem{display:flex;align-items:center;gap:8px;width:100%;min-height:30px;padding:6px 8px 6px 26px;border-radius:6px;font-weight:500;color:var(--ink)}
+.navitem.top{padding-left:8px}
+.navitem:hover{background:var(--hover)}
+.navitem[aria-current="page"]{background:var(--surface);box-shadow:var(--shadow-low)}
+.navitem .count{margin-left:auto;min-width:18px;height:18px;padding:0 5px;border-radius:4px;background:var(--new-bg);color:var(--new);font-size:12px;font-weight:500;display:inline-flex;align-items:center;justify-content:center}
+.navitem.add{color:var(--accent)}
+@media (prefers-reduced-motion: reduce){.navgrp svg{transition:none}}
+
+/* Top bar */
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{height:56px;display:flex;align-items:center;gap:16px;padding:0 24px;border-bottom:1px solid var(--line)}
+.search{flex:0 1 420px;height:32px;display:flex;align-items:center;gap:8px;padding:0 10px;border:1px solid var(--line-field);border-radius:6px;background:var(--surface);color:var(--ink3)}
+.search .kbd{margin-left:auto;font-size:11px;border:1px solid var(--line-strong);border-radius:4px;padding:0 4px;color:var(--ink2)}
+.updated{margin-left:auto;font-size:12px;color:var(--ink2)}
+.updated b{color:var(--ink);font-weight:500}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--hover);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--ink2)}
+
+/* Page */
+.page{padding:24px 32px 40px;display:flex;flex-direction:column;gap:20px;min-width:0}
+.pagehead{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.pagehead h1{font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.015em}
+.pagehead .acts{margin-left:auto;display:flex;gap:8px}
+.btn{height:32px;padding:0 12px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);font-weight:500;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--hover)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn-primary:hover{background:var(--accent-strong)}
+.seg{display:inline-flex;height:28px;padding:2px;border-radius:6px;background:var(--rail);gap:2px}
+.seg button{height:24px;padding:0 10px;border-radius:5px;font-size:12px;font-weight:500;color:var(--ink2);border:1px solid transparent}
+.seg button[aria-pressed="true"]{background:var(--surface);border-color:var(--line-strong);color:var(--ink)}
+
+/* Panels: one surface per region, sections inside separated by rules */
+.panel{background:var(--surface);border-radius:10px;box-shadow:var(--shadow-low);padding:4px 16px 8px;min-width:0}
+.sechead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 0 10px;border-bottom:1px solid var(--line-strong)}
+.sechead h2{font-size:15px;line-height:20px;font-weight:600}
+.sechead .lead{font-size:13px;color:var(--ink2)}
+.sechead .lead b{color:var(--new);font-weight:600}
+.sechead .end{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+/* Badges: a word in every badge */
+.badge{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:4px;font-size:12px;line-height:16px;font-weight:500;white-space:nowrap}
+.b-high{background:var(--attn-bg);color:var(--attn)}
+.b-medium{background:var(--watch-bg);color:var(--watch)}
+.b-low{background:var(--rail);color:var(--ink2)}
+.b-new{background:var(--new-bg);color:var(--new)}
+.b-upd{background:var(--rail);color:var(--ink2)}
+.adv{font-size:12px;font-weight:500;color:var(--attn)}
+
+/* Feed row: priority column, then full title, why line, meta and the sources action */
+.feed>li{display:grid;grid-template-columns:var(--stat) 1fr;gap:0 12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.feed>li:last-child{border-bottom:0}
+.feed .stat{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding-top:1px}
+.feed .body{display:flex;flex-direction:column;gap:4px;min-width:0}
+.feed .title{font-weight:500;color:var(--ink);text-wrap:pretty}
+.feed .title:hover{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.feed .why{color:var(--ink2)}
+.feed .why .route{color:var(--ink);font-weight:500}
+.feed .why.gap{align-self:flex-start}
+.feed .foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;line-height:16px;color:var(--ink2)}
+.srcbtn{margin-left:auto;display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 8px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);font-size:12px;font-weight:500;color:var(--accent)}
+.srcbtn:hover{background:var(--hover)}
+.more{display:flex;justify-content:center;padding:10px 0 4px}
+.linkbtn{color:var(--accent);font-weight:500}
+.linkbtn:hover{text-decoration:underline;text-underline-offset:2px}
+
+/* Watchlist and upcoming dates */
+.wl>li{padding:12px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.wl>li:last-child{border-bottom:0}
+.wl .who{display:flex;align-items:center;gap:8px}
+.wl .name{font-weight:600}
+.wl .name:hover{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.wl .cnt{font-size:12px;font-weight:500;color:var(--new)}
+.wl .cnt.zero{color:var(--ink2);font-weight:400}
+.wl .top{display:flex;gap:8px;align-items:flex-start}
+.wl .top .t{min-width:0;text-wrap:pretty}
+.wl .top .t:hover{color:var(--accent)}
+.wl .empty{color:var(--ink2)}
+.up>li{display:grid;grid-template-columns:92px 1fr;gap:0 12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.up>li:last-child{border-bottom:0}
+.up .date{font-weight:500}
+.up .lbl{display:flex;flex-direction:column;gap:2px;min-width:0}
+.up .from{font-size:12px;line-height:16px;color:var(--ink2)}
+.none{padding:12px 0;color:var(--ink2)}
+
+/* Option A: feed left, watchlist and dates right */
+.lay-a{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+.lay-a .rightcol{display:flex;flex-direction:column;gap:16px}
+
+/* Option B: watchlist table on top, then feed and a dates column */
+.wtable{width:100%;border-collapse:collapse}
+.wtable th{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);text-align:left;padding:10px 12px 6px 0;border-bottom:1px solid var(--line)}
+.wtable td{padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.wtable tr:last-child td{border-bottom:0}
+.wtable td.ent{width:150px;font-weight:600}
+.wtable td.cnt{width:120px}
+.wtable td.pr{width:84px}
+.wtable td.dt{width:64px;text-align:right;color:var(--ink2);font-size:12px}
+.wtable a{color:inherit;text-decoration:none}
+.wtable a:hover{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.lay-b{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+
+/* Option C: single column, each subject expands to its developments */
+.lay-c{display:flex;flex-direction:column;gap:16px;max-width:920px}
+.subj{border-bottom:1px solid var(--line-strong)}
+.subj:last-child{border-bottom:0}
+.subjhead{display:grid;grid-template-columns:20px 1fr auto;gap:0 8px;align-items:start;width:100%;padding:14px 0 12px}
+.subjhead svg{margin-top:3px;color:var(--ink3);transition:transform .12s}
+.subjhead[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.subjhead .nm{display:flex;flex-direction:column;gap:4px;min-width:0}
+.subjhead .nm>b{font-size:15px;line-height:20px;font-weight:600}
+.subjhead .nm .topline{display:flex;gap:8px;align-items:flex-start;color:var(--ink)}
+.subjhead .nm .topline .t{text-wrap:pretty}
+.subjhead .right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:12px;line-height:16px;color:var(--ink2);white-space:nowrap}
+.subjhead .right .cnt{color:var(--new);font-weight:500}
+.subjhead:hover .nm>b{color:var(--accent)}
+.subjhead[aria-expanded="true"] .topline{display:none}
+.subjbody{padding:0 0 8px 28px}
+.subjbody .feed>li{grid-template-columns:84px 1fr}
+.uses{font-size:12px;line-height:16px;color:var(--ink2)}
+.uses b{color:var(--ink);font-weight:500}
+.lay-c .kind{padding:16px 0 0;font-size:12px;font-weight:600;color:var(--ink)}
+@media (prefers-reduced-motion: reduce){.subjhead svg{transition:none}}
+
+/* New dashboard dialog */
+.dlgwrap{background:var(--scrim);padding:32px;display:flex;justify-content:center}
+.dlg{width:880px;max-width:100%;background:var(--surface);border:1px solid var(--line-strong);border-radius:14px;box-shadow:var(--shadow-pop);display:flex;flex-direction:column}
+.dlg-head{height:48px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--line-strong)}
+.dlg-head h2{font-size:15px;font-weight:600}
+.dlg-head .x{margin-left:auto;width:28px;height:28px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink2)}
+.dlg-head .x:hover{background:var(--hover)}
+.dlg-body{padding:16px;display:flex;flex-direction:column;gap:16px}
+.step{display:flex;flex-direction:column;gap:8px}
+.step h3{font-size:13px;font-weight:600}
+.input{height:32px;width:100%;padding:0 10px;border:1px solid var(--line-field);border-radius:6px;background:var(--surface)}
+.input::placeholder{color:var(--ink3)}
+.picker{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;border:1px solid var(--line-strong);border-radius:10px;padding:0 12px}
+.pcol{display:flex;flex-direction:column;min-width:0;max-height:340px;overflow:auto;padding-bottom:8px}
+.pcol .ph{font-size:12px;font-weight:600;padding:10px 0 4px;position:sticky;top:0;background:var(--surface)}
+.pcol .pg{font-weight:600;margin-top:6px}
+.chk{display:flex;align-items:center;gap:8px;min-height:30px;padding:0 4px;border-radius:6px;cursor:pointer}
+.chk:hover{background:var(--hover)}
+.chk input{width:16px;height:16px;margin:0;accent-color:var(--accent)}
+.picked{display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--ink2)}
+.picked b{color:var(--ink);font-weight:500}
+.dlg-foot{display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid var(--line-strong)}
+.dlg-foot .sp{margin-left:auto}
+</style>
+
+<main class="doc">
+  <header class="doc-head">
+    <h1>Simplified dashboard and shell</h1>
+    <p>Three layouts for the fixed dashboard, then the New dashboard dialog. Click a dashboard in any sidebar to switch between Singapore banks and Technology and cyber risk.</p>
+    <p>Rows come from the 24 Sep update in the live store, with the last visit taken as 17 Sep and the feed set to the past month. Why lines are the brief's stored "why it matters" text or a stored indirect impact. <span class="gapnote">Hatched</span> lines mark rows with no stored why line yet.</p>
+  </header>
+
+  <section class="opt" id="a">
+    <h2>Option A: feed with the watchlist beside it</h2>
+    <p>The feed takes the wide column and reads top to bottom by priority. The watchlist and upcoming dates sit in a narrow column on the right, so the entity view is always in sight without pushing the feed down.</p>
+    <div class="switch"><span>Dashboard</span><div class="seg" role="group" aria-label="Dashboard"><button aria-pressed="true" data-sw="banks">Singapore banks</button><button aria-pressed="false" data-sw="tcrd">Technology and cyber risk</button></div></div>
+    <div class="frame"><div class="app" data-layout="a" data-dash="banks"></div></div>
+  </section>
+
+  <section class="opt" id="b">
+    <h2>Option B: watchlist table on top, feed below</h2>
+    <p>A compact table answers "anything new on my entities?" in one glance before the feed starts. The feed then runs nearly full width, with upcoming dates in a slim column.</p>
+    <div class="switch"><span>Dashboard</span><div class="seg" role="group" aria-label="Dashboard"><button aria-pressed="true" data-sw="banks">Singapore banks</button><button aria-pressed="false" data-sw="tcrd">Technology and cyber risk</button></div></div>
+    <div class="frame"><div class="app" data-layout="b" data-dash="banks"></div></div>
+  </section>
+
+  <section class="opt" id="c">
+    <h2>Option C: one column, by entity and topic</h2>
+    <p>No separate feed. Each entity, then each topic, is one row with its top development in full; opening it lists that subject's developments by priority. Reads like a briefing note, at the cost of a development about two banks appearing under both.</p>
+    <div class="switch"><span>Dashboard</span><div class="seg" role="group" aria-label="Dashboard"><button aria-pressed="true" data-sw="banks">Singapore banks</button><button aria-pressed="false" data-sw="tcrd">Technology and cyber risk</button></div></div>
+    <div class="frame"><div class="app" data-layout="c" data-dash="banks"></div></div>
+  </section>
+
+  <dl class="serves" aria-label="What each part serves">
+    <dt>Top bar</dt><dd>"Updated 24 Sep", the date of the latest news; no runs popover, Run now, alerts bell or tour (PRD 12 Shell; plan 5 stop table: Runs popover and Run now, Following and the alerts bell, First-run tour).</dd>
+    <dt>Sidebar</dt><dd>Dashboards, then Entities with groups as headings, then Topics; no Groups section, no Following (PRD 12 Shell; decision S3).</dd>
+    <dt>Feed</dt><dd>One feed of the latest developments sorted by priority, New and Updated marked, full titles, one why line, "View sources" (PRD 6 steps 1, 2, 4, 5; PRD 8 priority labels; PRD 12 Since your last review and Developments merged, no cut-off findings, clickable things look clickable).</dd>
+    <dt>Period control</dt><dd>Past week, month, three months (PRD 6 step 3; PRD 7 Should have daily, weekly, monthly filters).</dd>
+    <dt>Watchlist</dt><dd>Count of new High developments and the top development in full; no Watch badge, inline add field or "Adverse:" line (PRD 12 Watchlist; S11 a group resolves to its members).</dd>
+    <dt>Upcoming dates</dt><dd>Full labels, with the development each comes from (PRD 12 Upcoming).</dd>
+    <dt>Removed</dt><dd>Add widget, Edit mode, sizes, Direction of travel, focus areas, indicator widgets, custom questions, Mark reviewed (PRD 12 Dashboard widgets and Building dashboards; plan 5 stop table; plan U4).</dd>
+    <dt>"Used by" line (C)</dt><dd>Linked institutions from the relationship store on provider rows, shown only in option C (U2a, PRD 11 TCRD scenario).</dd>
+  </dl>
+
+  <section class="opt" id="new">
+    <h2>New dashboard: pick, then name</h2>
+    <p>Same for every option. One dialog: tick entities and topics, name it, create. No Generate, no widget choice. Shown filled in for the Technology and cyber risk dashboard.</p>
+    <div class="frame"><div class="dlgwrap" style="min-width:944px">
+      <div class="dlg" role="dialog" aria-labelledby="nd-title">
+        <div class="dlg-head"><h2 id="nd-title">New dashboard</h2>
+          <button class="x" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+        <div class="dlg-body">
+          <div class="step">
+            <h3>1. What do you want to watch?</h3>
+            <input class="input" id="nd-search" placeholder="Search entities and topics">
+            <div class="picker" id="nd-picker"></div>
+            <p class="picked" id="nd-picked"></p>
+          </div>
+          <div class="step">
+            <h3><label for="nd-name">2. Name it</label></h3>
+            <input class="input" id="nd-name" value="Technology and cyber risk" style="max-width:420px">
+          </div>
+        </div>
+        <div class="dlg-foot"><span class="meta" id="nd-count"></span><span class="sp"></span><button class="btn">Cancel</button><button class="btn btn-primary">Create dashboard</button></div>
+      </div>
+    </div></div>
+    <dl class="serves">
+      <dt>Dialog</dt><dd>Pick entities and topics, then name it; Generate removed (PRD 12 Building dashboards; plan 5 stop table: Generate dashboard agent). Groups are headings that list their members, so ticking DBS, OCBC and UOB is the peer set (S3, S11). Onboarding by role builds the first dashboard (U3).</dd>
+    </dl>
+  </section>
+</main>
+
+<script>
+/* Real rows. Live store data/intelmonitor.db, run 2026-09-24 (complete), read-only; last visit = 2026-09-17,
+   the previous update. New = first published after 17 Sep; Updated = first published by 17 Sep with later reports.
+   Priority = highest per-subject priority among the dashboard's subjects (High 3-4, Medium 2, Low 0-1).
+   Why lines: run_summaries.points[].why_it_matters and development_impacts.why from item B's scratch store
+   (run 2026-09-24) and item I's scratch store (run 2026-10-08). null = no stored why line. */
+const NEWC = {"dbs":2,"ocbc":3,"uob":7,"mas":11,"hkma":8,"ojk":6,"bank-of-thailand":3,"sgx":2,"hkex":4,"swift":1,"visa":1,"mastercard":1,"google-cloud":2,"oracle-cloud":1,"microsoft-365":1,"singapore":14,"malaysia":1,"indonesia":19,"thailand":20,"vietnam":8,"hong-kong":15,"mainland-china":20,"taiwan":4,"india":8,"united-kingdom":3,"australia":5,"south-korea":3,"building-construction":1,"housing":3,"banking-regulation":18,"cyber-threats":21,"third-party-risk":2,"tech-risk-regulation":4,"singapore-equities":6,"asset-management":3,"fixed-income-fx":2,"insurance-risk-financing":1,"infrastructure-finance":11};
+const GROUPS = [
+  ["Singapore banks", [["dbs","DBS"],["ocbc","OCBC"],["uob","UOB"]]],
+  ["Central banks and regulators", [["mas","MAS"],["hkma","HKMA"],["bnm","BNM"],["bank-of-thailand","Bank of Thailand"],["ojk","OJK"]]],
+  ["Exchanges", [["sgx","SGX"],["hkex","HKEX"]]],
+  ["Payment systems", [["meps-plus","MEPS+"],["fast","FAST"],["paynow","PayNow"],["giro","GIRO"],["nets","NETS"],["bcs","Banking Computer Services"],["swift","SWIFT"],["visa","Visa"],["mastercard","Mastercard"]]],
+  ["Technology providers", [["aws","AWS"],["microsoft-azure","Microsoft Azure"],["microsoft-365","Microsoft 365"],["google-cloud","Google Cloud"],["oracle-cloud","Oracle Cloud"],["equinix","Equinix"],["crowdstrike","CrowdStrike"],["singtel","Singtel"],["thought-machine","Thought Machine"],["toppan-next-tech","Toppan Next Tech"]]],
+  ["SEA countries", [["singapore","Singapore"],["malaysia","Malaysia"],["indonesia","Indonesia"],["thailand","Thailand"],["vietnam","Vietnam"]]],
+  ["Other countries and territories", [["hong-kong","Hong Kong"],["mainland-china","Mainland China"],["taiwan","Taiwan"],["india","India"],["united-kingdom","United Kingdom"],["australia","Australia"],["south-korea","South Korea"]]],
+  ["Sectors", [["building-construction","Real estate and construction"],["housing","Housing"]]]
+];
+const TOPICS = [["banking-regulation","Banking regulation"],["tech-outages","IT outages"],["cyber-threats","Cyber threats"],["third-party-risk","Third-party and cloud risk"],["tech-risk-regulation","Technology risk regulation"],["singapore-equities","Singapore equities market"],["asset-management","Asset management"],["fixed-income-fx","Fixed income and FX"],["insurance-risk-financing","Insurance and risk financing"],["infrastructure-finance","Infrastructure and transition finance"]];
+
+const WHY_UOB_AI = "It shows UOB building a growing lending theme in a fast-moving sector, which adds concentration and underwriting questions as the book expands.";
+const DASH = {};
+DASH.banks = {
+  name: "Singapore banks", total: 74, newCount: 28, updCount: 1,
+  feed: [
+    {p:"High", m:"New", t:"UOB was part of a syndicate, alongside Citigroup, ING, Natixis CIB and Qatar National Bank, providing a US$3.1 billion GPU credit facility for Indosat's AI infrastructure platform ZanKore.", why:WHY_UOB_AI, s:["UOB"], d:"22 Sep", n:1, src:"businesstimes.com.sg"},
+    {p:"High", t:"Liquidators are suing DBS Bank for an estimated S$1.298 billion (US$1.03 billion) in damages linked to the 1MDB scandal, as reported on 9 September 2026.", why:null, s:["DBS"], adv:true, d:"9 Sep", n:1, src:"reuters.com"},
+    {p:"High", t:"DBS rejected the 1MDB-linked claim and assessed that no provisions are required at this stage.", why:null, s:["DBS"], d:"9 Sep", n:1, src:"reuters.com"},
+    {p:"High", t:"On 2026-09-08 the Financial Services and Markets (Amendment) Bill 2026 had its First Reading in Parliament, empowering MAS to require systemically important financial institutions to maintain minimum total loss-absorbing capacity (TLAC).", why:null, s:["Banking regulation"], d:"9 Sep", n:5, src:"mas.gov.sg, fintechnews.sg"},
+    {p:"High", t:"MAS issued MAS Notice 643A (Amendment) 2026 on 4 September 2026, revising rules on bank exposures and credit facilities to related concerns, taking effect 4 September 2027, with reporting templates due by 30 June 2027.", why:null, s:["Banking regulation"], d:"4 Sep", n:8, src:"mas.gov.sg"},
+    {p:"High", t:"BI and MAS appointed banks including DBS Bank, OCBC and their Indonesian units as Appointed Cross Currency Dealers to operationalise the Rupiah-Singapore Dollar local currency transaction framework.", why:null, s:["OCBC","DBS"], d:"31 Aug", n:1, src:"mas.gov.sg"},
+    {p:"High", t:"DBS said a PayLah! customer's transfers went to an unintended recipient because the mobile number was still linked to another user's wallet; DBS refunded the customer and co-workers and found no unauthorised transactions.", why:null, s:["DBS"], adv:true, d:"26 Aug", n:1, src:"straitstimes.com"},
+    {p:"Medium", m:"New", t:"UOB helped arrange 7.3 billion baht in green financing for GSA Data Center 01, a Gulf Development, Singtel and AIS joint venture building a 25.6-megawatt LEED Gold data centre in Thailand.", why:WHY_UOB_AI, s:["UOB"], d:"23 Sep", n:1, src:"bangkokpost.com"},
+    {p:"Medium", m:"New", t:"Switzerland's upper house of parliament voted on 23 September 2026 for capital rules requiring UBS to back its foreign units with 90% CET1 capital, despite the bank's lobbying against it.", why:null, s:["Banking regulation"], d:"23 Sep", n:1, src:"reuters.com"},
+    {p:"Medium", m:"New", t:"ECB authors Behn, Forletta and Reghezza introduced a bank-level Macroprudential Fragmentation Index measuring breadth, churn and dispersion of euro area capital buffer requirements, in a September 2026 working paper.", why:null, s:["Banking regulation"], d:"21 Sep", n:1, src:"ecb.europa.eu"},
+    {p:"Medium", m:"Updated", t:"Following the Fed's 25 basis point hike on Sep 16, analysts told The Business Times that higher Singapore dollar rates should lift net interest margins at DBS, OCBC and UOB, with the larger benefit in 2027.", why:"This is a forecast, not a reported result, and it eases margin pressure only if Singapore rates follow the Fed; Macquarie sees UOB gaining most.", s:["DBS","OCBC","UOB"], d:"20 Sep", n:11, src:"businesstimes.com.sg, straitstimes.com"},
+    {p:"Medium", m:"New", t:"Macquarie Capital upgraded UOB to outperform on 16 September 2026 after a deep dive into its commercial real estate exposure, noting its price-to-book-relative is half that of DBS and OCBC.", why:"The estimate suggests the US property exposure is covered by existing provisions under that scenario, though it remains one analyst's estimate.", s:["UOB"], d:"18 Sep", n:1, src:"theedgesingapore.com"},
+    {p:"Medium", m:"New", t:"On 18 September 2026, Fed Vice Chair Bowman announced an independent review finding that Fed supervisory staff knew or should have known of SVB's vulnerabilities by March 2022 but did not act promptly.", why:null, s:["Banking regulation"], adv:true, d:"18 Sep", n:1, src:"federalreserve.gov"}
+  ],
+  upcoming: [
+    {d:"31 Dec 2026", l:"Expected finalization of capital and surcharge reforms (before end of year)", from:"Fed Vice Chair Bowman on risk-based capital reforms, 18 Sep"},
+    {d:"30 Jun 2027", l:"Reporting statement templates for Appendices 1 and 9 to be made available", from:"MAS Notice 643A (Amendment) 2026, 4 Sep"},
+    {d:"4 Sep 2027", l:"Amendments take effect", from:"MAS Notice 643A (Amendment) 2026, 4 Sep"},
+    {d:"4 Sep 2027", l:"Amendment No.2 takes effect", from:"MAS Notice 643A (Amendment) 2026, 4 Sep"},
+    {d:"4 Mar 2028", l:"Deadline for one-time board update (6 months from 4 Sep 2027)", from:"MAS Notice 643A (Amendment) 2026, 4 Sep"}
+  ]
+};
+{ const f = DASH.banks.feed;
+  f[5].ps = {DBS:"Medium"}; /* the cross currency dealer appointment is High for OCBC, Medium for DBS */
+  DASH.banks.watch = [
+    {name:"DBS", newHigh:0, newAll:2, total:15, top:f[1]},
+    {name:"OCBC", newHigh:0, newAll:3, total:7, top:f[5]},
+    {name:"UOB", newHigh:1, newAll:7, total:8, top:f[0]}
+  ];
+  DASH.banks.topics = [{name:"Banking regulation", newAll:18, total:50, top:f[3]}];
+  DASH.banks.open = "UOB";
+  /* UOB's other developments in the past month, for option C */
+  DASH.banks.extra = [
+    {p:"Medium", m:"New", t:"UOB plans to expand its business financing AI infrastructure in South-east Asia, building on its experience financing the sector, as demand for such financing grows.", why:WHY_UOB_AI, s:["UOB"], d:"22 Sep", n:1, src:"businesstimes.com.sg"},
+    {p:"Medium", m:"New", t:"Macquarie estimates a 10% fall in UOB's US and Greater China CRE collateral values would add $181 million in provisions, while UOB holds $345 million of excess provisions in its US branch.", why:null, s:["UOB"], d:"18 Sep", n:1, src:"theedgesingapore.com"},
+    {p:"Low", m:"New", t:"UOB Thailand had cumulatively extended 74.6 billion baht in sustainable financing by the end of 2025, according to its CEO at the GCNT forum.", why:null, s:["UOB"], d:"23 Sep", n:1, src:"bangkokpost.com"},
+    {p:"Low", m:"New", t:"Jefferies initiated coverage of Singapore banks on 22 September 2026, rating DBS and UOB buy and OCBC hold, with target prices of $91, $48 and $35 respectively.", why:null, s:["UOB"], d:"22 Sep", n:1, src:"theedgesingapore.com"}
+  ];
+}
+
+DASH.tcrd = {
+  name: "Technology and cyber risk", total: 99, newCount: 21, updCount: 1,
+  feed: [
+    {p:"High", m:"New", t:"A financially motivated threat actor using open-source AI agent frameworks (Strix, Cairn, Hermes) has run an ongoing campaign since at least July, stealing over 600,000 card records from two companies and deploying skimmers on five other organizations' websites.", why:null, s:["Cyber threats"], adv:true, d:"23 Sep", n:1, src:"bleepingcomputer.com"},
+    {p:"High", m:"New", t:"Agrobank lost RM203.8 million through close to 3,000 unauthorised transactions between Oct 28 and Nov 3, 2025, sent via its ACI connector to PayNet and credited to beneficiary accounts at various banks.", why:null, s:["Cyber threats"], adv:true, d:"21 Sep", n:1, src:"theedgemalaysia.com"},
+    {p:"High", t:"Attackers using a stolen Cloudflare API key injected ClickFix malware scripts via a malicious Worker into Brevo's websites and embedded customer-site scripts on 14 September 2026, possibly affecting up to 100,000 websites.", why:null, s:["Cyber threats"], adv:true, d:"17 Sep", n:1, src:"bleepingcomputer.com"},
+    {p:"High", t:"Air researchers disclosed 'Plugin4Shell' on 17 September 2026, a zero-click remote code execution flaw in major AI coding agents that abuses plugin marketplace SHA-pinning and could give attackers access to everything the agent reaches.", why:null, s:["Cyber threats"], adv:true, d:"17 Sep", n:1, src:"theregister.com"},
+    {p:"High", t:"Salesforce's fix rollout failed to complete on some instances on 16 September, leaving customers exposed to the original problem, so the company reapplied the fix and manually restarted instances.", why:null, s:["IT outages"], adv:true, d:"16 Sep", n:1, src:"theregister.com"},
+    {p:"High", t:"AWS said on 15 September 2026 it cannot restore access to resources and data hosted exclusively in the mec1-az2 Availability Zone of its UAE (me-central-1) Region, disrupted since March.", why:null, s:["AWS","IT outages"], adv:true, d:"15 Sep", n:6, src:"status.aws.amazon.com, wsj.com, bloomberg.com"},
+    {p:"High", t:"Microsoft observed systematic, high-volume file access and download in SharePoint Online and OneDrive, with some intrusions reaching Exchange Online email, with theft paced over hours to days to evade detection.", why:null, s:["Cyber threats"], adv:true, d:"11 Sep", n:1, src:"bleepingcomputer.com"},
+    {p:"High", t:"A deepfake impersonation case involving losses of about S$5 million was raised in Singapore's Parliament, renewing scrutiny of banking safeguards against scams.", why:null, s:["Cyber threats"], adv:true, d:"10 Sep", n:1, src:"fintechnews.sg"},
+    /* item I's scratch store, run 2026-10-08: tagged IT outages at High there, with an indirect impact on DBS */
+    {p:"High", t:"Microsoft began investigating a widespread Microsoft 365 outage on 31 August 2026, centred on Exchange Online and also hitting Teams, Graph, Purview, OneDrive, SharePoint, Copilot and Defender XDR, with authentication failures.", route:"Could affect DBS, which depends on Microsoft 365.", why:"The evidence shows DBS moved its workforce to Office 365 in 2016, so a multi-day Microsoft 365 outage with authentication failures and Exchange Online disruption plausibly hit its staff email and collaboration.", s:["IT outages"], adv:true, d:"4 Sep", n:5, src:"bleepingcomputer.com"},
+    {p:"Medium", m:"New", t:"Wiz's Red Agent autonomously found a script injection flaw in a Snowflake GitHub repository allowing unauthenticated command execution; Wiz disclosed it on June 23 and Snowflake fixed it the same day.", why:null, s:["Cyber threats"], adv:true, d:"24 Sep", n:1, src:"theregister.com"},
+    {p:"Medium", m:"New", t:"The EvilTokens device-code phishing kit, launched in February 2026, was used to compromise about 12,000 email inboxes across more than 10,000 organizations worldwide, bypassing MFA to access Microsoft 365 applications with AI-assisted targeting.", why:"Users of the service were exposed at scale through a route that defeats MFA, and the compromised inboxes fed business email compromise campaigns.", s:["Cyber threats"], adv:true, d:"22 Sep", n:7, src:"theregister.com, bleepingcomputer.com"},
+    {p:"Medium", m:"New", t:"ShinyHunters claims it breached FBI systems on 21 September 2026 via an unpatched Oracle PeopleSoft zero-day and stole 2TB to 3TB of employee and applicant data; the FBI is investigating but has not confirmed a breach.", why:null, s:["Cyber threats"], adv:true, d:"22 Sep", n:1, src:"bleepingcomputer.com"}
+  ],
+  upcoming: []
+};
+{ const f = DASH.tcrd.feed;
+  const azureLow = {p:"Low", t:"Microsoft unveiled Azure Multicloud Interconnect, in preview, working with AWS to let customers privately link Azure and AWS infrastructure at up to 100 Gbps.", why:null, s:["Microsoft Azure","AWS"], d:"1 Sep", n:1, src:"theregister.com"};
+  DASH.tcrd.watch = [
+    {name:"AWS", newHigh:0, newAll:0, total:4, top:f[5], uses:"DBS, UOB, HSBC Singapore, Singlife, GXS Bank, Trust Bank"},
+    {name:"Microsoft Azure", newHigh:0, newAll:0, total:1, top:azureLow, uses:"OCBC, Maybank, Standard Chartered Singapore, EZ-Link"},
+    {name:"FAST", newHigh:0, newAll:0, total:0, top:null, latest:{p:"High", t:"DBS and POSB digital payment services, including FAST, PayNow and SGQR on digibank and PayLah, were disrupted late on Aug 21, 2026, and DBS said they returned to normal by 11.34pm.", d:"22 Aug"}, uses:"DBS, OCBC, UOB and 34 other banks and payment firms"}
+  ];
+  DASH.tcrd.topics = [
+    {name:"IT outages", newAll:0, total:19, top:f[4]},
+    {name:"Cyber threats", newAll:21, total:77, top:f[0]}
+  ];
+  DASH.tcrd.open = "AWS";
+  DASH.tcrd.extra = [
+    {p:"Low", t:"Equinix announced Equinix Fabric One on 2 September 2026, a managed any-to-any connectivity service for cloud, network and AI environments, built on open specifications from AWS and Google Cloud, with beta later this year and general availability in 2027.", why:null, s:["AWS"], d:"10 Sep", n:5, src:"newsroom.equinix.com, cnbc.com, investor.equinix.com, blog.equinix.com"},
+    azureLow,
+    {p:"Low", t:"AWS said its AWS Interconnect – multicloud service now covers Azure, Google Cloud and Oracle Cloud Infrastructure, extending private cross-cloud connectivity to all three major rival platforms.", why:null, s:["AWS"], d:"1 Sep", n:1, src:"theregister.com"}
+  ];
+}
+</script>
+<!-- DATA -->
+
+<script>
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const CHEV = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const RIGHT = '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M3.5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const SEARCH = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.4"/><path d="M9.5 9.5L13 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+const RANK = {High:0, Medium:1, Low:2};
+const when = d => +new Date(d + (/\d{4}/.test(d) ? "" : " 2026"));
+const badge = p => `<span class="badge b-${p.toLowerCase()}">${p}</span>`;
+const mark = m => m ? `<span class="badge ${m === "New" ? "b-new" : "b-upd"}">${m}</span>` : "";
+const openGroups = new Set(["Singapore banks", "Technology providers"]);
+
+function sidebar(dash) {
+  const nav = (key, label, n) => `<button class="navitem top" data-go="${key}"${dash === key ? ' aria-current="page"' : ""}><span>${label}</span><span class="count num">${n}</span></button>`;
+  const item = ([id, label]) => `<button class="navitem"><span>${esc(label)}</span>${NEWC[id] ? `<span class="count num" aria-label="${NEWC[id]} new">${NEWC[id]}</span>` : ""}</button>`;
+  const groups = GROUPS.map(([g, members]) => {
+    const open = openGroups.has(g);
+    return `<button class="navgrp" data-grp="${esc(g)}" aria-expanded="${open}">${CHEV}<span>${esc(g)}</span><span class="count num">${members.length}</span></button>
+      <div ${open ? "" : "hidden"}>${members.map(item).join("")}</div>`;
+  }).join("");
+  const topics = TOPICS.map(([id, l]) => item([id, l]).replace('class="navitem"', 'class="navitem top"')).join("");
+  return `<nav class="side" aria-label="Main"><div class="brand">IntelMonitor</div><div class="side-scroll">
+    <div class="navhead">Dashboards</div>
+    ${nav("banks", "Singapore banks", DASH.banks.newCount)}
+    ${nav("tcrd", "Technology and cyber risk", DASH.tcrd.newCount)}
+    <button class="navitem top add" data-new>+ New dashboard</button>
+    <div class="navhead">Entities</div>${groups}
+    <div class="navhead">Topics</div>${topics}
+  </div></nav>`;
+}
+
+function topbar() {
+  return `<header class="topbar">
+    <div class="search">${SEARCH}<span>Search entities, topics and developments</span><span class="kbd">⌘K</span></div>
+    <span class="updated">Updated <b>24 Sep</b></span>
+    <button class="avatar" aria-label="Profile">S</button>
+  </header>`;
+}
+
+function whyLine(r) {
+  if (r.why) return `<p class="why">${r.route ? `<span class="route">${esc(r.route)}</span> ` : ""}${esc(r.why)}</p>`;
+  return `<p class="why gap gapnote">No why line stored for this row yet</p>`;
+}
+
+function feedRow(r, subject) {
+  const p = (subject && r.ps && r.ps[subject]) || r.p;
+  return `<li>
+    <div class="stat">${badge(p)}${mark(r.m)}</div>
+    <div class="body">
+      <button class="title">${esc(r.t)}</button>
+      ${whyLine(r)}
+      <div class="foot"><span>${[subject ? "" : r.s.map(esc).join(", "), r.adv ? '<span class="adv">Adverse</span>' : "", esc(r.src), r.d].filter(Boolean).join(" \u00b7 ")}</span>
+        <button class="srcbtn">View sources${r.n > 1 ? ` (${r.n})` : ""} ${RIGHT}</button></div>
+    </div>
+  </li>`;
+}
+
+function periodSeg() {
+  return `<div class="seg" role="group" aria-label="Period"><button aria-pressed="false">Past week</button><button aria-pressed="true">Past month</button><button aria-pressed="false">Past 3 months</button></div>`;
+}
+
+function feedPanel(D) {
+  return `<section class="panel">
+    <div class="sechead"><h2>Latest developments</h2>
+      <span class="lead"><b class="num">${D.newCount} new</b> since your last visit on 17 Sep</span>
+      <div class="end">${periodSeg()}</div></div>
+    <ol class="feed">${D.feed.map(r => feedRow(r)).join("")}</ol>
+    <div class="more"><button class="linkbtn">Show all ${D.total}</button></div>
+  </section>`;
+}
+</script>
+<script>
+const newHigh = w => w.newHigh ? `<span class="cnt num">${w.newHigh} new High</span>` : `<span class="cnt zero">No new High</span>`;
+const topLine = w => w.top
+  ? `<div class="top">${badge(w.top.p)}<button class="t">${esc(w.top.t)} <span class="meta num">${w.top.d}</span></button></div>`
+  : `<p class="empty">Nothing in the past month. Latest, ${w.latest.d}: ${esc(w.latest.t)}</p>`;
+
+function watchPanel(D) {
+  return `<section class="panel">
+    <div class="sechead"><h2>Watchlist</h2></div>
+    <ul class="wl">${D.watch.map(w => `<li>
+      <div class="who"><button class="name">${esc(w.name)}</button>${newHigh(w)}</div>
+      ${topLine(w)}
+    </li>`).join("")}</ul>
+  </section>`;
+}
+
+function watchTable(D) {
+  const rows = D.watch.map(w => `<tr>
+    <td class="ent"><a href="#${w.name}" onclick="return false">${esc(w.name)}</a></td>
+    <td class="cnt">${newHigh(w)}</td>
+    <td class="pr">${w.top ? badge(w.top.p) : ""}</td>
+    <td>${w.top ? `<a href="#" onclick="return false">${esc(w.top.t)}</a>` : `<span class="meta">Nothing in the past month. Latest, ${w.latest.d}: ${esc(w.latest.t)}</span>`}</td>
+    <td class="dt num">${w.top ? w.top.d : ""}</td>
+  </tr>`).join("");
+  return `<section class="panel">
+    <div class="sechead"><h2>Watchlist</h2></div>
+    <div style="overflow-x:auto"><table class="wtable">
+      <thead><tr><th>Entity</th><th>New since 17 Sep</th><th>Priority</th><th>Top development</th><th style="text-align:right">Date</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+  </section>`;
+}
+
+function upcomingPanel(D) {
+  const body = D.upcoming.length
+    ? `<ol class="up">${D.upcoming.map(u => `<li><span class="date num">${u.d}</span><div class="lbl"><span>${esc(u.l)}</span><button class="from linkbtn" style="font-weight:400">${esc(u.from)}</button></div></li>`).join("")}</ol>`
+    : `<p class="none">No dates coming up for this dashboard.</p>`;
+  return `<section class="panel"><div class="sechead"><h2>Upcoming dates</h2></div>${body}</section>`;
+}
+
+function subjectRows(D, name) {
+  return D.feed.concat(D.extra || []).filter((r, i, a) => r.s.includes(name) && a.indexOf(r) === i)
+    .sort((x, y) => RANK[(x.ps && x.ps[name]) || x.p] - RANK[(y.ps && y.ps[name]) || y.p] || when(y.d) - when(x.d));
+}
+
+function subjectBlock(D, w) {
+  const open = D.open === w.name;
+  const counts = `${w.newHigh ? `<span class="cnt num">${w.newHigh} new High</span>` : ""}<span class="num">${w.newAll ? `${w.newAll} new, ` : ""}${w.total || "None"} this month</span>`;
+  const rows = subjectRows(D, w.name);
+  return `<div class="subj">
+    <button class="subjhead" aria-expanded="${open}">${CHEV}
+      <span class="nm"><b>${esc(w.name)}</b>
+        ${w.top ? `<span class="topline">${badge(w.top.p)}<span class="t">${esc(w.top.t)}</span></span>` : `<span class="meta">Nothing in the past month. Latest, ${w.latest.d}: ${esc(w.latest.t)}</span>`}
+        ${w.uses ? `<span class="uses">Used by <b>${esc(w.uses)}</b></span>` : ""}
+      </span>
+      <span class="right">${counts}</span>
+    </button>
+    <div class="subjbody" ${open ? "" : "hidden"}>
+      ${rows.length ? `<ol class="feed">${rows.map(r => feedRow(r, w.name)).join("")}</ol>` : ""}
+      ${w.total > rows.length ? `<div class="more" style="justify-content:flex-start"><button class="linkbtn">Show all ${w.total} for ${esc(w.name)}</button></div>` : ""}
+    </div>
+  </div>`;
+}
+
+const LAYOUT = {
+  a: D => `<div class="lay-a">${feedPanel(D)}<div class="rightcol">${watchPanel(D)}${upcomingPanel(D)}</div></div>`,
+  b: D => `${watchTable(D)}<div class="lay-b">${feedPanel(D)}${upcomingPanel(D)}</div>`,
+  c: D => `<div class="lay-c"><section class="panel">
+      <div class="sechead"><h2>What changed</h2><span class="lead"><b class="num">${D.newCount} new</b> since your last visit on 17 Sep</span><div class="end">${periodSeg()}</div></div>
+      <p class="kind">Entities</p>${D.watch.map(w => subjectBlock(D, w)).join("")}
+      <p class="kind">Topics</p>${D.topics.map(t => subjectBlock(D, {newHigh:0, ...t})).join("")}
+    </section>${upcomingPanel(D)}</div>`
+};
+
+function render(app) {
+  const D = DASH[app.dataset.dash];
+  app.innerHTML = `${sidebar(app.dataset.dash)}<div class="main">${topbar()}<div class="page">
+    <div class="pagehead"><h1>${esc(D.name)}</h1><div class="acts"><button class="btn">Edit dashboard</button></div></div>
+    ${LAYOUT[app.dataset.layout](D)}
+  </div></div>`;
+}
+
+document.querySelectorAll(".app").forEach(render);
+document.addEventListener("click", e => {
+  const go = e.target.closest("[data-go], [data-sw]");
+  if (go) {
+    const opt = go.closest(".opt"), key = go.dataset.go || go.dataset.sw, app = opt.querySelector(".app");
+    app.dataset.dash = key; render(app);
+    opt.querySelectorAll("[data-sw]").forEach(b => b.setAttribute("aria-pressed", b.dataset.sw === key));
+    return;
+  }
+  const tog = e.target.closest(".navgrp, .subjhead");
+  if (tog) {
+    const open = tog.getAttribute("aria-expanded") !== "true";
+    tog.setAttribute("aria-expanded", open);
+    tog.nextElementSibling.hidden = !open;
+    if (tog.dataset.grp) open ? openGroups.add(tog.dataset.grp) : openGroups.delete(tog.dataset.grp);
+    return;
+  }
+  const seg = e.target.closest(".seg button");
+  if (seg) seg.parentElement.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b === seg));
+  if (e.target.closest("[data-new]")) document.getElementById("new").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+});
+</script>
+<script>
+/* New dashboard picker, filled in for the Technology and cyber risk dashboard */
+{
+  const picked = new Set(["tech-outages", "cyber-threats", "aws", "microsoft-azure", "fast"]);
+  const names = Object.fromEntries(GROUPS.flatMap(g => g[1]).concat(TOPICS));
+  const box = (id, label) => `<label class="chk"><input type="checkbox" id="nd-${id}" data-id="${id}"${picked.has(id) ? " checked" : ""}><span>${esc(label)}</span></label>`;
+  const ents = GROUPS.map(([g, m]) => `<label class="chk pg"><input type="checkbox" data-group="${esc(g)}" id="nd-g-${esc(g).replace(/\W+/g, "-")}"><span>${esc(g)}, all ${m.length}</span></label>${m.map(([id, l]) => box(id, l)).join("")}`).join("");
+  const picker = document.getElementById("nd-picker");
+  picker.innerHTML = `<div class="pcol"><div class="ph">Entities</div>${ents}</div><div class="pcol"><div class="ph">Topics</div>${TOPICS.map(([id, l]) => box(id, l)).join("")}</div>`;
+  const sync = () => {
+    GROUPS.forEach(([g, m]) => {
+      const gb = picker.querySelector(`[data-group="${g}"]`);
+      const n = m.filter(([id]) => picked.has(id)).length;
+      gb.checked = n === m.length; gb.indeterminate = n > 0 && n < m.length;
+    });
+    const list = [...picked].map(id => names[id]);
+    document.getElementById("nd-picked").innerHTML = list.length ? `Watching <b>${list.map(esc).join(", ")}</b>` : "Nothing picked yet";
+    document.getElementById("nd-count").textContent = `${list.length} picked`;
+  };
+  picker.addEventListener("change", e => {
+    const t = e.target;
+    if (t.dataset.group) {
+      GROUPS.find(g => g[0] === t.dataset.group)[1].forEach(([id]) => { t.checked ? picked.add(id) : picked.delete(id); picker.querySelector(`[data-id="${id}"]`).checked = t.checked; });
+    } else if (t.dataset.id) { t.checked ? picked.add(t.dataset.id) : picked.delete(t.dataset.id); }
+    sync();
+  });
+  sync();
+  const ec = picker.querySelector(".pcol");
+  ec.scrollTop = picker.querySelector('[data-group="Payment systems"]').offsetTop - ec.offsetTop - 34;
+}
+</script>

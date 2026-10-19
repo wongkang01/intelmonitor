@@ -16,6 +16,7 @@ Hand over: mark items reviewed and leave notes a colleague can pick up.
 ## Product Purpose
 
 IntelMonitor pre-answers standing questions over a curated corpus and shows the answers, with every claim linked to its sources.
+Users see each standing question as a focus area ("Common issues", "Outliers"); "standing question" stays in code and docs only.
 It replaces feed-reading with answers: a widget says "Regulatory: Stable to Watch", not 20 headlines.
 Success is an analyst trusting the summaries enough to act on them, and clicking through to evidence when it matters.
 

@@ -1,9 +1,13 @@
 """`im ingest`: fetch, cache, parse and dedup the corpus for the 60 days ending at T0.
 
 Order matters for dedup (the first copy of a document wins): official sources, then news
-searches, then gap searches for subjects that still have fewer than GAP_TARGET candidates.
-T0 is fixed on the first run and stored in the meta table, so reruns send the same requests and
-are served entirely from the cache.
+searches, then gap searches for subjects that still have fewer than GAP_TARGET candidates, then
+social posts and search trends. T0 is fixed on the first run and stored in the meta table, so
+reruns send the same requests and are served entirely from the cache.
+
+`im ingest --social-only` runs only the social and trends steps, for the stored T0.
+`im redate` applies the URL-date rule to documents stored before it existed, removing those it
+dates before the window.
 """
 
 import sqlite3
@@ -36,10 +40,13 @@ from intelmonitor.ingest.sources.search import (
     news_queries,
     subject_label,
     tavily_search,
+    url_dated,
 )
+from intelmonitor.ingest.sources.social import XSpend, fetch_social, store_social_meta
+from intelmonitor.ingest.sources.trends import fetch_trends
 from intelmonitor.seed import load_subjects
 from intelmonitor.store.db import connect, get_meta, set_meta
-from intelmonitor.store.documents import SourceDocument, insert_document
+from intelmonitor.store.documents import SourceDocument, insert_document, list_documents
 
 GAP_TARGET = 8
 _PAGE_WORKERS = 8
@@ -129,9 +136,10 @@ def run_ingest(t0_override: date | None = None, log: Callable[[str], None] = pri
 
     # 3. Gaps: for thinly covered subjects, Tavily news, a wider Exa news search, and Exa on the
     # subject's own domains. Only hits that name the subject are kept. Thin subjects are decided
-    # from this run's results (not the store), so a rerun picks the same subjects.
+    # from this run's results (not the store), so a rerun picks the same subjects. Groups are not
+    # monitored, so only topics and entities get gap searches.
     counts = candidate_counts((d.title, d.text) for d in seen)
-    matchers = {m.id: m for m in subject_matchers()}
+    matchers = {m.id: m for m in subject_matchers() if m.type != "group"}
     result.gap_subjects = [m for m in matchers if counts[m] < GAP_TARGET]
     entities = {e.id: e for e in seed.entities}
 
@@ -161,10 +169,90 @@ def run_ingest(t0_override: date | None = None, log: Callable[[str], None] = pri
         keep(fill_gap(subject_id))
     log(f"gaps: {result.gap_subjects}")
 
+    # 4. Social posts and search trends, last so a news copy of a page wins dedup.
+    _ingest_social(conn, http, window, result, None, log)
+
     network, cached = sum(http.network.values()), sum(http.cached.values())
     log(f"requests: {network} external, {cached} served from cache")
     log(f"external by source: {dict(sorted(http.network.items()))}")
     return result
+
+
+def run_social_ingest(
+    subject_ids: set[str] | None = None, log: Callable[[str], None] = print
+) -> IngestResult:
+    """Only the social and trends steps, for the stored T0, which stays unchanged: adds social
+    documents and a trends snapshot to a store that already holds the news corpus. With
+    `subject_ids`, only those subjects are searched."""
+    conn = connect()
+    stored = get_meta(conn, "t0")
+    if stored is None:
+        raise RuntimeError("no T0 in the store: run a full `im ingest` first")
+    window = Window(date.fromisoformat(stored))
+    result = IngestResult(t0=window.t0)
+    http = CachedHttp()
+    log(f"T0 {window.t0} (stored), social and trends only")
+    _ingest_social(conn, http, window, result, subject_ids, log)
+    log(f"external by source: {dict(sorted(http.network.items()))}")
+    return result
+
+
+def _ingest_social(
+    conn: sqlite3.Connection,
+    http: CachedHttp,
+    window: Window,
+    result: IngestResult,
+    subject_ids: set[str] | None,
+    log: Callable[[str], None],
+) -> None:
+    """Store social posts with their metadata, then the trends snapshot, and log X reads and
+    estimated spend."""
+    settings = get_settings()
+    spend = XSpend(settings.x_spend_cap_usd)
+
+    def fail(message: str) -> None:
+        result.failures.append(message)
+        log(f"failed: {message}")
+
+    if not settings.x_bearer_token:
+        log("social: no X_BEARER_TOKEN, X skipped")
+    found = fetch_social(
+        http,
+        settings.x_bearer_token,
+        settings.tavily_api_key,
+        settings.exa_api_key,
+        window,
+        spend,
+        subject_ids,
+        log,
+        fail,
+    )
+    social_added = 0
+    for item in found:
+        if _store(conn, item.doc):
+            social_added += 1
+            result.added[item.doc.source] += 1
+        else:
+            result.duplicates += 1
+        store_social_meta(conn, document_id(canonical_url(item.doc.url)), item.meta)
+    conn.commit()
+    log(f"social: {len(found)} found, {social_added} stored")
+    trends = fetch_trends(
+        conn,
+        http,
+        window.t0,
+        settings.serpapi_api_key,
+        settings.x_bearer_token,
+        spend,
+        subject_ids,
+        log,
+    )
+    result.failures += trends.failures
+    log(
+        f"x: {spend.searches} searches and {spend.trend_calls} trends calls sent, "
+        f"{spend.posts} posts read, estimated {spend.usd:.3f} USD (cap {spend.cap_usd:.2f})"
+        + (f"; skipped {', '.join(spend.skipped)}" if spend.skipped else "")
+    )
 
 
 def _store(conn: sqlite3.Connection, doc: RawDocument) -> bool:
@@ -191,3 +279,43 @@ def _store(conn: sqlite3.Connection, doc: RawDocument) -> bool:
             ingested_at=datetime.now(UTC),
         ),
     )
+
+
+@dataclass(frozen=True)
+class Redated:
+    id: str
+    url: str
+    title: str
+    was: datetime
+    now: datetime
+    removed: bool  # dated before the stored T0's window, so ingest would have dropped it
+
+
+# Per-document rows a removed document leaves behind; run rows go when the runs are recomputed.
+_DOCUMENT_TABLES = ["document_tags", "document_subjects", "findings", "detections", "social_posts"]
+
+
+def redate_stored(conn: sqlite3.Connection) -> list[Redated]:
+    """Apply the URL-date rule (search.url_dated) to every stored document. A document it dates
+    before the stored T0's window is removed with its per-document rows, as ingest drops it.
+    Returns what changed; the affected runs must be recomputed afterwards."""
+    stored = get_meta(conn, "t0")
+    if stored is None:
+        raise RuntimeError("no T0 in the store: run `im ingest` first")
+    window = Window(date.fromisoformat(stored))
+    changed: list[Redated] = []
+    for doc in list_documents(conn):
+        now = url_dated(doc.url, doc.published_at)
+        if now != doc.published_at:
+            removed = now.date() < window.start
+            changed.append(Redated(doc.id, doc.url, doc.title, doc.published_at, now, removed))
+    with conn:
+        conn.executemany(
+            "UPDATE source_documents SET published_at = ? WHERE id = ?",
+            [(r.now.isoformat().replace("+00:00", "Z"), r.id) for r in changed if not r.removed],
+        )
+        removed = [(r.id,) for r in changed if r.removed]
+        for table in [*_DOCUMENT_TABLES, "source_documents"]:
+            column = "id" if table == "source_documents" else "document_id"
+            conn.executemany(f"DELETE FROM {table} WHERE {column} = ?", removed)  # noqa: S608
+    return changed

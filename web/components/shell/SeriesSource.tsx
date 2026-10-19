@@ -1,4 +1,4 @@
-// A measured series as a source in the evidence drawer (structured-data-plan.md, F2 and F3):
+// A measured series as a source in the evidence drawer (docs/archive/structured-data-plan.md, F2 and F3):
 // the series names the block and links its source table, the meta line gives when the value was
 // known, the source, scope and domain, and flags the cited value Preliminary or Revised in words.
 // Under the code sentence, a small chart shows the series over its span with the cited period
@@ -122,8 +122,9 @@ export function niceTicks(lo: number, hi: number, inside = false) {
   return { ticks, decimals, lo: inside ? lo : first, hi: inside ? hi : last };
 }
 
-/** An axis end: "Sep 2025", or "Q3 2021" for a quarterly series. */
-const axisLabel = (s: Series, iso: string) => (s.frequency === "quarterly" ? seriesPeriod(s, iso) : monthYear(day(iso)));
+/** An axis end: "Sep 2025", or "Q3 2021" for a quarterly series and "2021" for a yearly one. */
+const axisLabel = (s: Series, iso: string) =>
+  s.frequency === "quarterly" || s.frequency === "yearly" ? seriesPeriod(s, iso) : monthYear(day(iso));
 
 /**
  * The series from the chart's start to the run date on a fixed time axis, so a monthly or

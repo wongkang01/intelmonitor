@@ -1,0 +1,594 @@
+<title>Role onboarding mocks</title>
+<style>
+/* Layout: a mock page; each option is a heading, then framed app screens at desktop width that scroll sideways inside their frame on a phone. */
+:root{
+  --canvas:oklch(0.972 0.004 260);
+  --surface:oklch(0.993 0.002 260);
+  --rail:oklch(0.955 0.005 260);
+  --hover:oklch(0.925 0.006 260);
+  --line:oklch(0.93 0.005 260);
+  --line-strong:oklch(0.885 0.007 260);
+  --line-field:oklch(0.80 0.01 260);
+  --ink:oklch(0.23 0.012 260);
+  --ink2:oklch(0.47 0.014 260);
+  --ink3:oklch(0.56 0.012 260);
+  --accent:oklch(0.52 0.17 258);
+  --accent-strong:oklch(0.46 0.16 258);
+  --on-accent:oklch(0.993 0.002 260);
+  --attn:oklch(0.50 0.17 28);
+  --attn-bg:oklch(0.955 0.022 25);
+  --watch:oklch(0.47 0.105 62);
+  --watch-bg:oklch(0.965 0.035 80);
+  --page:oklch(0.945 0.006 260);
+  --shadow-low:0 1px 3px oklch(0.23 0.012 260 / 0.11);
+  --shadow-pop:0 6px 20px oklch(0.23 0.012 260 / 0.12);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --stat:112px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --canvas:oklch(0.20 0.008 260);--surface:oklch(0.235 0.009 260);--rail:oklch(0.215 0.008 260);
+  --hover:oklch(0.29 0.01 260);--line:oklch(0.30 0.01 260);--line-strong:oklch(0.36 0.012 260);
+  --line-field:oklch(0.45 0.014 260);--ink:oklch(0.94 0.005 260);--ink2:oklch(0.76 0.01 260);
+  --ink3:oklch(0.66 0.01 260);--accent:oklch(0.70 0.14 258);--accent-strong:oklch(0.76 0.12 258);
+  --on-accent:oklch(0.18 0.01 260);--attn:oklch(0.76 0.13 28);--attn-bg:oklch(0.32 0.06 28);
+  --watch:oklch(0.80 0.10 75);--watch-bg:oklch(0.32 0.05 75);--page:oklch(0.16 0.007 260);
+  --shadow-low:0 1px 3px oklch(0 0 0 / 0.4);--shadow-pop:0 6px 20px oklch(0 0 0 / 0.45);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --canvas:oklch(0.20 0.008 260);--surface:oklch(0.235 0.009 260);--rail:oklch(0.215 0.008 260);
+  --hover:oklch(0.29 0.01 260);--line:oklch(0.30 0.01 260);--line-strong:oklch(0.36 0.012 260);
+  --line-field:oklch(0.45 0.014 260);--ink:oklch(0.94 0.005 260);--ink2:oklch(0.76 0.01 260);
+  --ink3:oklch(0.66 0.01 260);--accent:oklch(0.70 0.14 258);--accent-strong:oklch(0.76 0.12 258);
+  --on-accent:oklch(0.18 0.01 260);--attn:oklch(0.76 0.13 28);--attn-bg:oklch(0.32 0.06 28);
+  --watch:oklch(0.80 0.10 75);--watch-bg:oklch(0.32 0.05 75);--page:oklch(0.16 0.007 260);
+  --shadow-low:0 1px 3px oklch(0 0 0 / 0.4);--shadow-pop:0 6px 20px oklch(0 0 0 / 0.45);
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font:400 13px/18px var(--font);-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,ul{margin:0;padding:0}
+ul{list-style:none}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer;text-align:left}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.meta{font-size:12px;line-height:16px;color:var(--ink2)}
+
+/* Mock page around the screens */
+.doc{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:32px 64px;display:flex;flex-direction:column;gap:40px}
+.doc-head{display:flex;flex-direction:column;gap:8px;max-width:70ch}
+.doc-head h1{font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.015em;text-wrap:balance}
+.doc-head p{color:var(--ink2)}
+.opt{display:flex;flex-direction:column;gap:16px}
+.opt>h2{font-size:22px;line-height:28px;font-weight:600;letter-spacing:-0.01em;text-wrap:balance}
+.opt>p{max-width:70ch}
+.cap{font-size:12px;line-height:16px;color:var(--ink2);max-width:80ch}
+.cap b{color:var(--ink);font-weight:600}
+.serves{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;font-size:12px;line-height:16px;max-width:90ch}
+.serves dt{font-weight:600}
+.serves dd{margin:0;color:var(--ink2)}
+
+/* A framed app screen. Desktop width inside, sideways scroll on narrow viewports. */
+.frame{border:1px solid var(--line-strong);border-radius:10px;background:var(--canvas);overflow-x:auto;box-shadow:var(--shadow-low)}
+.frame>.in{min-width:1040px}
+.frame.narrow>.in{min-width:520px}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:16px;align-items:start}
+.row2>*{min-width:0}
+
+/* App parts, following web/styles/globals.css and shell.css */
+.bar{height:56px;display:flex;align-items:center;gap:12px;padding:0 24px;border-bottom:1px solid var(--line);background:var(--canvas)}
+.brand{font-size:15px;line-height:20px;font-weight:600;letter-spacing:-0.01em}
+.bar .step{margin-left:auto}
+.btn{height:32px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--hover)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn-primary:hover{background:var(--accent-strong)}
+.btn-ghost{border-color:transparent;background:transparent}
+.lk{color:var(--accent);font-weight:500;white-space:nowrap}
+.lk:hover{text-decoration:underline}
+.input{font-size:13px;height:32px;padding:0 10px;border:1px solid var(--line-field);border-radius:6px;background:var(--surface);min-width:0}
+.input::placeholder{color:var(--ink3)}
+.badge{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:4px;font-size:12px;line-height:16px;font-weight:500;white-space:nowrap}
+.b-high{background:var(--attn-bg);color:var(--attn)}
+.b-med{background:var(--watch-bg);color:var(--watch)}
+.b-adv{background:var(--rail);color:var(--ink2)}
+.i{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* Checkbox and radio drawn to the app's control spec */
+.cb,.rd{width:16px;height:16px;flex:none;display:inline-grid;place-items:center;border:1px solid var(--line-field);background:var(--surface)}
+.cb{border-radius:4px}
+.rd{border-radius:50%}
+.on>.cb,.cb.on{background:var(--accent);border-color:var(--accent)}
+.on>.cb::after,.cb.on::after{content:"";width:8px;height:4px;border:2px solid var(--on-accent);border-top:0;border-right:0;transform:translateY(-1px) rotate(-45deg)}
+.on>.rd{border:5px solid var(--accent)}
+
+/* Setup page */
+.setup{padding:32px 32px 0;display:flex;flex-direction:column;gap:24px}
+.setup h1{font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.015em}
+.setup .lede{color:var(--ink2);margin-top:4px}
+.cols{display:grid;grid-template-columns:320px 1fr;gap:32px;align-items:start}
+.colh{font-size:15px;line-height:20px;font-weight:600;padding-bottom:8px;border-bottom:1px solid var(--line-strong);display:flex;align-items:center;gap:12px;min-height:41px}
+.colh .grow{flex:1}
+
+/* Role rows: a radio list with hairlines, the chosen row raised */
+.roles{display:flex;flex-direction:column;padding-top:8px;gap:4px}
+.role{display:grid;grid-template-columns:16px 1fr;gap:4px 12px;padding:10px 12px;border:1px solid transparent;border-radius:6px;align-items:start}
+.role:hover{background:var(--hover)}
+.role.on{background:var(--surface);border-color:var(--line-strong);box-shadow:var(--shadow-low)}
+.role .rd{margin-top:1px}
+.role b{font-weight:500}
+.role .meta{grid-column:2}
+.dept{display:flex;flex-direction:column;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.dept .btns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Picker: group headings with their members as check rows */
+.pick{display:flex;flex-direction:column}
+.ghead{display:flex;align-items:baseline;gap:12px;padding:16px 0 4px;border-bottom:1px solid var(--line)}
+.ghead h3{font-size:13px;line-height:18px;font-weight:600}
+.ghead .meta{margin-left:auto}
+.items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
+.items.one{grid-template-columns:1fr}
+.it{display:grid;grid-template-columns:16px 1fr auto;gap:2px 10px;align-items:start;align-content:start;padding:8px 4px;border-bottom:1px solid var(--line);min-height:34px}
+.it:hover{background:var(--hover)}
+.it .cb{margin-top:1px}
+.it .nm{font-weight:500}
+.it .why{grid-column:2/4;font-size:12px;line-height:16px;color:var(--ink2)}
+.it .ct{font-size:12px;line-height:16px;color:var(--ink2);text-align:right;white-space:nowrap}
+.it .ct em{font-style:normal;color:var(--attn);font-weight:500}
+.it.off .nm{color:var(--ink2)}
+
+/* Footer that creates the dashboard */
+.foot{position:sticky;bottom:0;margin-top:24px;display:flex;align-items:center;gap:12px;padding:12px 32px;border-top:1px solid var(--line-strong);background:var(--surface)}
+.foot label{display:flex;align-items:center;gap:8px;color:var(--ink2);white-space:nowrap}
+.foot .input{width:320px}
+.foot .sum{margin-left:auto;color:var(--ink2)}
+
+/* Narrow frames that show one part of a screen */
+.pane{padding:16px 20px 20px}
+.paneh{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);padding-bottom:12px}
+.seg{display:inline-flex;height:28px;padding:2px;border-radius:6px;background:var(--rail)}
+.seg button{height:24px;padding:0 10px;border:1px solid transparent;border-radius:4px;font-size:12px;font-weight:500;color:var(--ink2)}
+.seg button[aria-selected="true"]{background:var(--surface);border-color:var(--line-strong);color:var(--ink)}
+
+/* Sidebar and profile menu */
+.side-demo{padding:0}
+.side-demo .paneh{padding:16px 20px 12px}
+.side{width:260px;background:var(--rail);border-right:1px solid var(--line);border-top:1px solid var(--line);display:flex;flex-direction:column;min-height:440px}
+.side-wrap{display:flex;gap:0}
+.side-wrap .after{flex:1;padding:16px 20px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line)}
+.navs{flex:1;padding:4px 8px 16px;display:flex;flex-direction:column}
+.navhead{padding:16px 8px 4px;font-size:12px;line-height:16px;font-weight:500;color:var(--ink2)}
+.navitem{height:32px;display:flex;align-items:center;gap:8px;padding:0 8px;border-radius:6px;font-weight:500}
+.navitem:hover{background:var(--hover)}
+.navitem.cur{background:var(--surface);box-shadow:var(--shadow-low);font-weight:600}
+.navitem.sub{padding-left:24px;font-weight:400}
+.profile-wrap{position:relative;padding:8px;border-top:1px solid var(--line)}
+.profile{width:100%;min-height:48px;display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--hover)}
+.avatar{width:28px;height:28px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--line-strong);font-size:12px;font-weight:600}
+.who{display:flex;flex-direction:column;min-width:0;line-height:16px}
+.who b{font-weight:500}
+.who span{font-size:12px;color:var(--ink2)}
+.profile>.i{margin-left:auto;color:var(--ink3)}
+.menu{position:absolute;left:8px;right:8px;bottom:calc(100% - 4px);z-index:2;display:flex;flex-direction:column;padding:4px;background:var(--surface);border:1px solid var(--line-strong);border-radius:10px;box-shadow:var(--shadow-pop)}
+.menu button{min-height:32px;display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px}
+.menu button:hover{background:var(--hover)}
+.menu button .i{color:var(--ink2)}
+.menu hr{width:100%;margin:4px 0;border:0;border-top:1px solid var(--line)}
+.menu .mh{padding:6px 8px 2px;font-size:12px;line-height:16px;font-weight:500;color:var(--ink2)}
+.menu .opt2{display:grid;grid-template-columns:16px 1fr;gap:0 8px;align-items:start;text-align:left}
+.menu .opt2 .meta{grid-column:2}
+.menu .tick{width:16px;height:16px;color:var(--accent)}
+/* Option B: role steps, suggestions with reasons, preview */
+.center{max-width:680px;margin:0 auto;padding:40px 0 48px;display:flex;flex-direction:column;gap:20px}
+.center h1{font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.015em}
+.biglist{display:flex;flex-direction:column;border-top:1px solid var(--line-strong)}
+.big{display:grid;grid-template-columns:1fr auto;gap:2px 16px;align-items:center;padding:14px 12px;border-bottom:1px solid var(--line)}
+.big:hover{background:var(--hover)}
+.big b{font-size:15px;line-height:20px;font-weight:600}
+.big .meta{grid-column:1}
+.big .i{grid-row:1/3;grid-column:2;color:var(--ink3)}
+.big .tag{font-size:12px;font-weight:500;color:var(--ink2)}
+.sub-h{font-size:13px;line-height:18px;font-weight:600;padding-top:8px}
+.cols-b{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:32px;align-items:start}
+.prev{background:var(--surface);border-radius:10px;box-shadow:var(--shadow-low);padding:12px;display:flex;flex-direction:column;gap:8px;position:sticky;top:16px}
+.prev h3{font-size:12px;line-height:16px;font-weight:500;color:var(--ink2);display:flex;gap:8px}
+.prev h3 .meta{margin-left:auto}
+.prev .ans{font-size:15px;line-height:20px;font-weight:600}
+.prow{display:grid;grid-template-columns:64px 1fr;gap:2px 8px;padding:8px 0;border-top:1px solid var(--line)}
+.prow .t{font-weight:500}
+.prow .meta{grid-column:2}
+.ans-s{padding-top:12px;font-weight:600}
+.kbd{margin-left:auto;font-size:12px;color:var(--ink2);border:1px solid var(--line-strong);border-radius:4px;padding:0 5px;line-height:16px}
+</style>
+
+<main class="doc">
+<header class="doc-head">
+  <h1>First visit: role and first dashboard</h1>
+  <p>Two flows for U3. Counts and titles come from the 24 Sep data; links between banks and providers come from the relationship store.</p>
+</header>
+
+<!-- OPTION A -->
+<section class="opt" id="a">
+<h2>Option A: one screen, the picker follows the role</h2>
+<p>Role on the left, picks on the right. Changing the role reorders the groups and switches what can be picked. One button creates the dashboard.</p>
+
+<div class="frame"><div class="in">
+  <div class="bar"><span class="brand">IntelMonitor</span></div>
+  <div class="setup">
+    <div>
+      <h1>Set up your dashboard</h1>
+      <p class="lede">Choose your role and what to watch. You can change both later from your profile.</p>
+    </div>
+    <div class="cols">
+      <div>
+        <div class="colh">Your role</div>
+        <div class="roles" role="radiogroup" aria-label="Your role">
+          <button class="role on" role="radio" aria-checked="true"><span class="rd"></span><b>Regulatory supervisor</b><span class="meta">Pick the banks and other entities you supervise.</span></button>
+          <button class="role" role="radio" aria-checked="false"><span class="rd"></span><b>Technology and cyber risk supervisor</b><span class="meta">Pick institutions and the providers and payment systems they rely on.</span></button>
+          <button class="role" role="radio" aria-checked="false"><span class="rd"></span><b>Development staff</b><span class="meta">Pick topics, sectors or entities.</span></button>
+          <button class="role" role="radio" aria-checked="false"><span class="rd"></span><b>Other</b><span class="meta">Start with the entities MAS supervises.</span></button>
+        </div>
+        <div class="dept">
+          <span class="meta">Preloaded for your department</span>
+          <div class="btns"><button class="btn">TCRD</button><button class="btn">FMD</button></div>
+        </div>
+      </div>
+      <div>
+        <div class="colh"><span>What to watch</span><span class="grow"></span><input class="input" placeholder="Find an entity" aria-label="Find an entity" style="width:240px"></div>
+        <div class="pick">
+          <div class="ghead"><h3>Singapore banks</h3><button class="lk">Clear all 3</button><span class="meta">Developments in the last 30 days</span></div>
+          <div class="items">
+            <button class="it on"><span class="cb"></span><span class="nm">DBS</span><span class="ct num">15 <em>(3 High)</em></span></button>
+            <button class="it on"><span class="cb"></span><span class="nm">OCBC</span><span class="ct num">7 <em>(1 High)</em></span></button>
+            <button class="it on"><span class="cb"></span><span class="nm">UOB</span><span class="ct num">8 <em>(1 High)</em></span></button>
+          </div>
+          <div class="ghead"><h3>Central banks and regulators</h3><button class="lk">Select all 5</button></div>
+          <div class="items">
+            <button class="it"><span class="cb"></span><span class="nm">MAS</span><span class="ct num">34 <em>(4 High)</em></span></button>
+            <button class="it"><span class="cb"></span><span class="nm">HKMA</span><span class="ct num">24</span></button>
+            <button class="it"><span class="cb"></span><span class="nm">BNM</span><span class="ct num">12</span></button>
+            <button class="it"><span class="cb"></span><span class="nm">Bank of Thailand</span><span class="ct num">14</span></button>
+            <button class="it"><span class="cb"></span><span class="nm">OJK</span><span class="ct num">21</span></button>
+          </div>
+          <div class="ghead"><h3>Exchanges</h3><button class="lk">Select all 2</button></div>
+          <div class="items">
+            <button class="it"><span class="cb"></span><span class="nm">SGX</span><span class="ct num">7 <em>(1 High)</em></span></button>
+            <button class="it"><span class="cb"></span><span class="nm">HKEX</span><span class="ct num">6</span></button>
+          </div>
+          <div class="ghead"><h3>Payment systems</h3><button class="lk">Select all 9</button></div>
+          <div class="items">
+            <button class="it"><span class="cb"></span><span class="nm">MEPS+</span><span class="ct">None</span></button>
+            <button class="it"><span class="cb"></span><span class="nm">FAST</span><span class="ct">None</span></button>
+            <button class="it"><span class="cb"></span><span class="nm">PayNow</span><span class="ct num">1</span></button>
+            <button class="it"><span class="cb"></span><span class="nm">GIRO</span><span class="ct num">2</span></button>
+            <button class="it"><span class="cb"></span><span class="nm">NETS</span><span class="ct num">1</span></button>
+            <button class="it"><span class="cb"></span><span class="nm">Banking Computer Services</span><span class="ct">None</span></button>
+            <button class="it"><span class="cb"></span><span class="nm">SWIFT</span><span class="ct num">5</span></button>
+            <button class="it"><span class="cb"></span><span class="nm">Visa</span><span class="ct num">9 <em>(1 High)</em></span></button>
+            <button class="it"><span class="cb"></span><span class="nm">Mastercard</span><span class="ct num">3 <em>(1 High)</em></span></button>
+          </div>
+          <div class="ghead"><h3>Technology providers</h3><button class="lk">Select all 10</button></div>
+          <div class="items">
+            <button class="it"><span class="cb"></span><span class="nm">AWS</span><span class="ct num">4 <em>(1 High)</em></span></button>
+            <button class="it"><span class="cb"></span><span class="nm">Microsoft Azure</span><span class="ct num">1</span></button>
+            <button class="it"><span class="cb"></span><span class="nm">Microsoft 365</span><span class="ct num">10 <em>(9 High)</em></span></button>
+            <button class="it"><span class="cb"></span><span class="nm">Google Cloud</span><span class="ct num">8 <em>(6 High)</em></span></button>
+            <button class="it"><span class="cb"></span><span class="nm">Oracle Cloud</span><span class="ct num">9</span></button>
+            <button class="it"><span class="cb"></span><span class="nm">Equinix</span><span class="ct num">7 <em>(1 High)</em></span></button>
+            <button class="it"><span class="cb"></span><span class="nm">CrowdStrike</span><span class="ct num">8 <em>(2 High)</em></span></button>
+            <button class="it"><span class="cb"></span><span class="nm">Singtel</span><span class="ct">None</span></button>
+            <button class="it"><span class="cb"></span><span class="nm">Thought Machine</span><span class="ct num">6 <em>(1 High)</em></span></button>
+            <button class="it"><span class="cb"></span><span class="nm">Toppan Next Tech</span><span class="ct">None</span></button>
+          </div>
+          <div class="ghead"><h3>SEA countries</h3><button class="lk">Show 5</button></div>
+          <div class="ghead"><h3>Other countries and territories</h3><button class="lk">Show 7</button></div>
+          <div class="ghead"><h3>Sectors</h3><button class="lk">Show 2</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <label for="a-name">Dashboard name</label><input id="a-name" class="input" value="Singapore banks">
+    <span class="sum">3 entities</span>
+    <button class="btn btn-primary">Create dashboard</button>
+  </div>
+</div></div>
+<p class="cap"><b>Regulatory supervisor</b> chosen. Select all on the Singapore banks heading picked its three members, and the name follows the group. The number after each name counts developments in the 30 days to 24 Sep; the bracket says how many are High.</p>
+<div class="row2">
+  <div class="frame narrow"><div class="in pane">
+    <div class="paneh">Technology and cyber risk supervisor</div>
+    <div class="colh"><span>What to watch</span><span class="grow"></span><input class="input" placeholder="Find an entity" aria-label="Find an entity" style="width:180px"></div>
+    <div class="pick">
+      <div class="ghead"><h3>Singapore banks</h3><button class="lk">Clear all 3</button><span class="meta">Last 30 days</span></div>
+      <div class="items">
+        <button class="it on"><span class="cb"></span><span class="nm">DBS</span><span class="ct num">15 <em>(3 High)</em></span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">OCBC</span><span class="ct num">7 <em>(1 High)</em></span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">UOB</span><span class="ct num">8 <em>(1 High)</em></span></button>
+      </div>
+      <div class="ghead"><h3>Technology providers</h3><button class="lk">Select all 10</button></div>
+      <div class="items">
+        <button class="it on"><span class="cb"></span><span class="nm">AWS</span><span class="ct num">4 <em>(1 High)</em></span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">Microsoft Azure</span><span class="ct num">1</span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">Microsoft 365</span><span class="ct num">10 <em>(9 High)</em></span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Google Cloud</span><span class="ct num">8 <em>(6 High)</em></span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Oracle Cloud</span><span class="ct num">9</span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Equinix</span><span class="ct num">7 <em>(1 High)</em></span></button>
+        <button class="it"><span class="cb"></span><span class="nm">CrowdStrike</span><span class="ct num">8 <em>(2 High)</em></span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Singtel</span><span class="ct">None</span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Thought Machine</span><span class="ct num">6 <em>(1 High)</em></span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Toppan Next Tech</span><span class="ct">None</span></button>
+      </div>
+      <div class="ghead"><h3>Payment systems</h3><button class="lk">Select all 9</button></div>
+      <div class="items">
+        <button class="it"><span class="cb"></span><span class="nm">MEPS+</span><span class="ct">None</span></button>
+        <button class="it"><span class="cb"></span><span class="nm">FAST</span><span class="ct">None</span></button>
+        <button class="it"><span class="cb"></span><span class="nm">PayNow</span><span class="ct num">1</span></button>
+        <button class="it"><span class="cb"></span><span class="nm">GIRO</span><span class="ct num">2</span></button>
+        <button class="it"><span class="cb"></span><span class="nm">NETS</span><span class="ct num">1</span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Banking Computer Services</span><span class="ct">None</span></button>
+        <button class="it"><span class="cb"></span><span class="nm">SWIFT</span><span class="ct num">5</span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Visa</span><span class="ct num">9 <em>(1 High)</em></span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Mastercard</span><span class="ct num">3 <em>(1 High)</em></span></button>
+      </div>
+      <div class="ghead"><h3>Central banks and regulators</h3><button class="lk">Show 5</button></div>
+      <div class="ghead"><h3>Exchanges</h3><button class="lk">Show 2</button></div>
+      <div class="ghead"><h3>Countries and sectors</h3><button class="lk">Show 14</button></div>
+    </div>
+  </div></div>
+
+  <div class="frame narrow"><div class="in pane">
+    <div class="paneh">Development staff</div>
+    <div class="colh"><span>What to watch</span><span class="grow"></span><span class="seg" role="tablist" aria-label="Pick from"><button role="tab" aria-selected="true">Topics</button><button role="tab" aria-selected="false">Sectors</button><button role="tab" aria-selected="false">Entities</button></span></div>
+    <div class="pick">
+      <div class="ghead"><h3>Topics</h3><span class="meta">Last 30 days</span></div>
+      <div class="items one">
+        <button class="it on"><span class="cb"></span><span class="nm">Singapore equities market</span><span class="ct num">21 <em>(2 High)</em></span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">Asset management</span><span class="ct num">10</span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">Fixed income and FX</span><span class="ct num">15</span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Insurance and risk financing</span><span class="ct num">8</span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Infrastructure and transition finance</span><span class="ct num">37</span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Banking regulation</span><span class="ct num">50 <em>(2 High)</em></span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Technology risk regulation</span><span class="ct num">24</span></button>
+        <button class="it"><span class="cb"></span><span class="nm">IT outages</span><span class="ct num">19 <em>(2 High)</em></span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Cyber threats</span><span class="ct num">77 <em>(14 High)</em></span></button>
+        <button class="it"><span class="cb"></span><span class="nm">Third-party and cloud risk</span><span class="ct num">17 <em>(4 High)</em></span></button>
+      </div>
+      <p class="meta" style="padding-top:12px">3 topics picked. Sectors and Entities keep their own picks.</p>
+    </div>
+  </div></div>
+
+  <div class="frame narrow"><div class="in pane">
+    <div class="paneh">Other</div>
+    <div class="colh"><span>What to watch</span></div>
+    <div class="pick">
+      <div class="ghead"><h3>Entities MAS supervises</h3><span class="meta">Last 30 days</span></div>
+      <div class="items one">
+        <div class="it on"><span class="cb"></span><span class="nm">DBS</span><span class="ct num">15 <em>(3 High)</em></span></div>
+        <div class="it on"><span class="cb"></span><span class="nm">OCBC</span><span class="ct num">7 <em>(1 High)</em></span></div>
+        <div class="it on"><span class="cb"></span><span class="nm">UOB</span><span class="ct num">8 <em>(1 High)</em></span></div>
+      </div>
+      <p style="padding-top:12px"><button class="lk">Pick my own instead</button></p>
+    </div>
+  </div></div>
+
+  <div class="frame narrow"><div class="in pane side-demo">
+    <div class="paneh">Profile menu, after setup</div>
+    <div class="side-wrap">
+      <nav class="side" aria-label="Sidebar mock">
+        <div class="navs">
+          <div class="navhead">Dashboards</div>
+          <a class="navitem cur">Singapore banks</a>
+          <div class="navhead">Entities</div>
+          <div class="navhead" style="padding-top:4px">Singapore banks</div>
+          <a class="navitem sub">DBS</a><a class="navitem sub">OCBC</a><a class="navitem sub">UOB</a>
+        </div>
+        <div class="profile-wrap">
+          <div class="menu" role="menu">
+            <button role="menuitem"><svg class="i" viewBox="0 0 16 16"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 13.5c.6-2.4 2.6-3.8 5-3.8s4.4 1.4 5 3.8"/></svg>Change role</button>
+            <button role="menuitem"><svg class="i" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg>Settings</button>
+            <button role="menuitem"><svg class="i" viewBox="0 0 16 16"><ellipse cx="8" cy="4" rx="5" ry="2"/><path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/></svg>Data sources</button>
+            <hr>
+            <button role="menuitem"><svg class="i" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M6.3 6.2a1.8 1.8 0 0 1 3.4.6c0 1.2-1.7 1.5-1.7 2.6M8 11.5v.01"/></svg>Help<span class="kbd">?</span></button>
+          </div>
+          <button class="profile" aria-expanded="true"><span class="avatar">RS</span><span class="who"><b>Regulatory supervisor</b><span>Your role</span></span><svg class="i" viewBox="0 0 16 16"><path d="M4 10l4-4 4 4"/></svg></button>
+        </div>
+      </nav>
+      <div class="after">
+        <p class="meta">The role is the name on the profile button, so there is no sign-in. Change role reopens the setup screen with the current picks. Finishing it adds a dashboard for the new role and keeps the old ones.</p>
+      </div>
+    </div>
+  </div></div>
+</div>
+<p class="cap">The same screen with the other three roles. Supervisors see entity groups only, in an order that suits the role. Development staff switch between topics, sectors and entities. Other gets the entities MAS supervises, with a way out.</p>
+<dl class="serves">
+  <dt>Role list</dt><dd>PRD 7 Should have, default dashboard set by role; plan U3, first visit asks for a role (four roles)</dd>
+  <dt>Picker that follows the role</dt><dd>Plan U3, supervisors pick entities, development staff pick topics, sectors or entities; decision S3, groups are headings, not subjects</dd>
+  <dt>Select all on a heading</dt><dd>Decision S11, a group resolves to its members</dd>
+  <dt>Counts with High</dt><dd>PRD 7 Must have, priority labels; PRD 1, a first-time user can see where the news is before picking</dd>
+  <dt>Other</dt><dd>PRD 7 Should have, secondary users get MAS supervised entities (relationship store, supervised by MAS)</dd>
+  <dt>TCRD and FMD buttons</dt><dd>Plan U3, preload one profile per session department</dd>
+  <dt>Create dashboard</dt><dd>PRD 12 Building dashboards, onboarding builds the first dashboard; PRD 6 step 1, land on the scope chosen at onboarding</dd>
+  <dt>Profile menu</dt><dd>Plan U3 and section 2, the role stands in for identity and can be switched</dd>
+</dl>
+</section>
+
+<!-- OPTION B -->
+<section class="opt" id="b">
+<h2>Option B: two steps, a suggested selection to trim</h2>
+<p>Step 1 asks only for the role. Step 2 opens with picks already made for that role, each with the reason it was picked, and a preview of what the dashboard will show.</p>
+
+<div class="frame"><div class="in">
+  <div class="bar"><span class="brand">IntelMonitor</span><span class="step meta">Step 1 of 2</span></div>
+  <div class="center">
+    <div>
+      <h1>What is your role?</h1>
+      <p class="meta" style="font-size:13px;line-height:18px;margin-top:4px">Your first dashboard is set up from it. You can change the role later from your profile.</p>
+    </div>
+    <div class="biglist">
+      <button class="big"><b>Regulatory supervisor</b><span class="meta">Suggested: DBS, OCBC and UOB.</span><svg class="i" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4"/></svg></button>
+      <button class="big"><b>Technology and cyber risk supervisor</b><span class="meta">Suggested: DBS, OCBC, UOB and the technology providers and payment systems they use.</span><svg class="i" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4"/></svg></button>
+      <button class="big"><b>Development staff</b><span class="meta">Suggested: market topics such as Singapore equities and asset management, with SGX and HKEX.</span><svg class="i" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4"/></svg></button>
+      <button class="big"><b>Other</b><span class="meta">The entities MAS supervises: DBS, OCBC and UOB.</span><svg class="i" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4"/></svg></button>
+    </div>
+    <h2 class="sub-h">Preloaded for your department</h2>
+    <div class="biglist">
+      <button class="big"><b>TCRD</b><span class="meta">Technology and cyber risk supervisor. 3 banks, 7 technology providers, 9 payment systems. Opens the dashboard directly.</span><svg class="i" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4"/></svg></button>
+      <button class="big"><b>FMD</b><span class="meta">Development staff. 5 market topics, SGX and HKEX. Opens the dashboard directly.</span><svg class="i" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4"/></svg></button>
+    </div>
+  </div>
+</div></div>
+<div class="frame"><div class="in">
+  <div class="bar"><span class="brand">IntelMonitor</span><span class="step meta">Step 2 of 2</span></div>
+  <div class="setup">
+    <div>
+      <h1>Your first dashboard</h1>
+      <p class="lede">Picked for a technology and cyber risk supervisor. Untick anything you do not need.</p>
+    </div>
+    <div class="cols-b">
+      <div class="pick">
+        <div class="ghead" style="padding-top:0"><h3>Singapore banks</h3><span class="meta num">3 of 3</span><button class="lk">Remove all</button></div>
+        <div class="items one">
+          <button class="it on"><span class="cb"></span><span class="nm">DBS</span><span></span><span class="why">Supervised by MAS</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">OCBC</span><span></span><span class="why">Supervised by MAS</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">UOB</span><span></span><span class="why">Supervised by MAS</span></button>
+        </div>
+        <div class="ghead"><h3>Technology providers</h3><span class="meta num">7 of 10</span><button class="lk">Add all</button></div>
+        <div class="items">
+          <button class="it on"><span class="cb"></span><span class="nm">AWS</span><span></span><span class="why">Cloud for DBS and UOB</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">Microsoft Azure</span><span></span><span class="why">Cloud for OCBC</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">Microsoft 365</span><span></span><span class="why">Office software for DBS</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">Oracle Cloud</span><span></span><span class="why">Finance platform for OCBC</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">Equinix</span><span></span><span class="why">Main data centre for DBS</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">Singtel</span><span></span><span class="why">Telecoms for DBS and UOB</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">Toppan Next Tech</span><span></span><span class="why">Prints and mails DBS statements</span></button>
+          <button class="it off"><span class="cb"></span><span class="nm">Google Cloud</span><span></span><span class="why">Used by Citibank, HSBC Singapore and Trust Bank, not the three banks</span></button>
+          <button class="it off"><span class="cb"></span><span class="nm">Thought Machine</span><span></span><span class="why">Core banking for Standard Chartered and Trust Bank</span></button>
+          <button class="it off"><span class="cb"></span><span class="nm">CrowdStrike</span><span></span><span class="why">Used by SGX's Central Depository</span></button>
+        </div>
+        <div class="ghead"><h3>Payment systems</h3><span class="meta num">9 of 9</span><button class="lk">Remove all</button></div>
+        <div class="items">
+          <button class="it on"><span class="cb"></span><span class="nm">MEPS+</span><span></span><span class="why">DBS, OCBC and UOB take part</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">FAST</span><span></span><span class="why">DBS, OCBC and UOB take part</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">PayNow</span><span></span><span class="why">DBS, OCBC and UOB take part</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">GIRO</span><span></span><span class="why">DBS, OCBC and UOB take part</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">NETS</span><span></span><span class="why">DBS, OCBC and UOB take part</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">SWIFT</span><span></span><span class="why">DBS, OCBC and UOB take part</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">Visa</span><span></span><span class="why">DBS, OCBC and UOB take part</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">Mastercard</span><span></span><span class="why">DBS, OCBC and UOB take part</span></button>
+          <button class="it on"><span class="cb"></span><span class="nm">Banking Computer Services</span><span></span><span class="why">Runs clearing for FAST, GIRO and PayNow</span></button>
+        </div>
+        <div class="ghead"><h3>More to add</h3></div>
+        <p style="padding:8px 4px;display:flex;gap:16px;flex-wrap:wrap"><button class="lk">Central banks and regulators</button><button class="lk">Exchanges</button><button class="lk">Countries and sectors</button><button class="lk">Find an entity</button></p>
+      </div>
+      <aside class="prev" aria-label="Preview">
+        <h3>What this dashboard shows<span class="meta">Week to 24 Sep</span></h3>
+        <p class="ans num">20 developments, 3 High</p>
+        <div class="prow"><span><span class="badge b-high">High</span></span><span class="t">Visa and Mastercard agreed to pay $167.5 million (about $88.8 million Visa, $78.7 million Mastercard) to settle the Burke class action alleging they barred independent ATM operators from lowering fees; final approval hearing is set for Feb. 17, 2027.</span><span class="meta">Visa, Mastercard. Adverse. 24 Sep</span></div>
+        <div class="prow"><span><span class="badge b-high">High</span></span><span class="t">The EvilTokens device-code phishing kit, launched in February 2026, was used to compromise about 12,000 email inboxes across more than 10,000 organizations worldwide, bypassing MFA to access Microsoft 365 applications with AI-assisted targeting.</span><span class="meta">Microsoft 365. Adverse. 22 Sep</span></div>
+        <div class="prow"><span><span class="badge b-high">High</span></span><span class="t">UOB was part of a syndicate, alongside Citigroup, ING, Natixis CIB and Qatar National Bank, providing a US$3.1 billion GPU credit facility for Indosat's AI infrastructure platform ZanKore.</span><span class="meta">UOB. 22 Sep</span></div>
+        <p class="meta">Updates as you tick and untick.</p>
+      </aside>
+    </div>
+  </div>
+  <div class="foot">
+    <button class="btn btn-ghost">Back</button>
+    <label for="b-name">Dashboard name</label><input id="b-name" class="input" value="Banks, providers and payment systems">
+    <span class="sum">19 entities</span>
+    <button class="btn btn-primary">Create dashboard</button>
+  </div>
+</div></div>
+<p class="cap"><b>Technology and cyber risk supervisor</b> chosen. Each reason comes from the relationship store; providers with no link to DBS, OCBC or UOB start unticked. The preview lists the three High developments for these 19 entities in the week to 24 Sep.</p>
+<div class="row2">
+  <div class="frame narrow"><div class="in pane">
+    <div class="paneh">Step 2, regulatory supervisor</div>
+    <div class="pick">
+      <div class="ghead" style="padding-top:0"><h3>Singapore banks</h3><span class="meta num">3 of 3</span><button class="lk">Remove all</button></div>
+      <div class="items one">
+        <button class="it on"><span class="cb"></span><span class="nm">DBS</span><span></span><span class="why">Supervised by MAS</span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">OCBC</span><span></span><span class="why">Supervised by MAS</span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">UOB</span><span></span><span class="why">Supervised by MAS</span></button>
+      </div>
+      <div class="ghead"><h3>More to add</h3></div>
+      <p style="padding:8px 4px;display:flex;gap:16px;flex-wrap:wrap"><button class="lk">Central banks and regulators</button><button class="lk">Exchanges</button><button class="lk">Payment systems</button><button class="lk">Technology providers</button><button class="lk">Countries and sectors</button></p>
+      <p class="ans-s num">Week to 24 Sep: 14 developments, 1 High</p>
+    </div>
+  </div></div>
+
+  <div class="frame narrow"><div class="in pane">
+    <div class="paneh">Step 2, development staff</div>
+    <div class="pick">
+      <div class="ghead" style="padding-top:0"><h3>Topics</h3><span class="meta num">5 of 10</span><button class="lk">Show all</button></div>
+      <div class="items one">
+        <button class="it on"><span class="cb"></span><span class="nm">Singapore equities market</span><span></span><span class="why">SGX listings, IPOs and delistings, Global Listing Board, EQDP</span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">Asset management</span><span></span><span class="why">Fund industry in Singapore and Asia, assets and flows, VCCs</span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">Fixed income and FX</span><span></span><span class="why">Bond issuance in Singapore, FX and rates volumes</span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">Insurance and risk financing</span><span></span><span class="why">Reinsurance hub, catastrophe bonds, captives</span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">Infrastructure and transition finance</span><span></span><span class="why">Financing Asian infrastructure and the energy transition</span></button>
+      </div>
+      <div class="ghead"><h3>Exchanges</h3><span class="meta num">2 of 2</span><button class="lk">Remove all</button></div>
+      <div class="items one">
+        <button class="it on"><span class="cb"></span><span class="nm">SGX</span><span></span><span class="why">Linked to Singapore equities market and Fixed income and FX</span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">HKEX</span><span></span><span class="why">Linked to Singapore equities market and Fixed income and FX</span></button>
+      </div>
+      <div class="ghead"><h3>More to add</h3></div>
+      <p style="padding:8px 4px;display:flex;gap:16px;flex-wrap:wrap"><button class="lk">Sectors</button><button class="lk">Countries</button><button class="lk">Find an entity</button></p>
+      <p class="ans-s num">Week to 24 Sep: 32 developments, none High</p>
+    </div>
+  </div></div>
+
+  <div class="frame narrow"><div class="in pane">
+    <div class="paneh">Step 2, other</div>
+    <div class="pick">
+      <div class="ghead" style="padding-top:0"><h3>Entities MAS supervises</h3><span class="meta num">3 of 3</span></div>
+      <div class="items one">
+        <button class="it on"><span class="cb"></span><span class="nm">DBS</span><span></span><span class="why">Supervised by MAS</span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">OCBC</span><span></span><span class="why">Supervised by MAS</span></button>
+        <button class="it on"><span class="cb"></span><span class="nm">UOB</span><span></span><span class="why">Supervised by MAS</span></button>
+      </div>
+      <p class="ans-s num">Week to 24 Sep: 14 developments, 1 High</p>
+    </div>
+  </div></div>
+
+  <div class="frame narrow"><div class="in pane side-demo">
+    <div class="paneh">Profile menu, after setup</div>
+    <div class="side-wrap">
+      <nav class="side" aria-label="Sidebar mock" style="min-height:500px">
+        <div class="navs">
+          <div class="navhead">Dashboards</div>
+          <a class="navitem cur">Banks, providers and payment systems</a>
+          <div class="navhead">Entities</div>
+          <div class="navhead" style="padding-top:4px">Singapore banks</div>
+          <a class="navitem sub">DBS</a><a class="navitem sub">OCBC</a><a class="navitem sub">UOB</a>
+        </div>
+        <div class="profile-wrap">
+          <div class="menu" role="menu">
+            <div class="mh">Switch role</div>
+            <button role="menuitemradio" aria-checked="true" class="opt2"><svg class="i tick" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7"/></svg><span>TCRD</span><span class="meta">Technology and cyber risk supervisor</span></button>
+            <button role="menuitemradio" aria-checked="false" class="opt2"><span></span><span>FMD</span><span class="meta">Development staff</span></button>
+            <button role="menuitemradio" aria-checked="false" class="opt2"><span></span><span>Regulatory supervisor</span><span class="meta">DBS, OCBC and UOB</span></button>
+            <button role="menuitem"><svg class="i" viewBox="0 0 16 16"><path d="M8 3.5v9M3.5 8h9"/></svg>Add a role</button>
+            <hr>
+            <button role="menuitem"><svg class="i" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg>Settings</button>
+            <button role="menuitem"><svg class="i" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M6.3 6.2a1.8 1.8 0 0 1 3.4.6c0 1.2-1.7 1.5-1.7 2.6M8 11.5v.01"/></svg>Help<span class="kbd">?</span></button>
+          </div>
+          <button class="profile" aria-expanded="true"><span class="avatar">TC</span><span class="who"><b>TCRD</b><span>Technology and cyber risk supervisor</span></span><svg class="i" viewBox="0 0 16 16"><path d="M4 10l4-4 4 4"/></svg></button>
+        </div>
+      </nav>
+      <div class="after">
+        <p class="meta">Each role keeps its own dashboards. Picking another role in the menu switches to its dashboards at once, with no setup. Add a role runs the two steps again.</p>
+      </div>
+    </div>
+  </div></div>
+</div>
+<p class="cap">Step 2 for the other three roles. Development staff get market topics, each with a line on what it covers, and the exchanges linked to them. Other gets the entities MAS supervises, ready to create.</p>
+<dl class="serves">
+  <dt>Step 1, role only</dt><dd>PRD 7 Should have, onboarding asks for the role; PRD 1, one question per screen for an unbriefed user</dd>
+  <dt>Suggested picks per role</dt><dd>Plan U3, supervisors pick entities, development staff pick topics, sectors or entities, other gets MAS supervised entities; PRD 11 FMD session, preload topic monitors rather than a bank view</dd>
+  <dt>Group headings with counts</dt><dd>Decision S3, groups are headings that help pick members, not subjects; decision S11</dd>
+  <dt>Reason under each pick</dt><dd>PRD 7 Must have, typed relationships with a source (relationship store: depends on, participates in, supervised by); PRD 2, TCRD covers FIs and their vendors at once</dd>
+  <dt>Preview</dt><dd>PRD 6 step 1, land on the latest developments for the chosen scope with priority; PRD 7 Must have, priority labels and adverse flag</dd>
+  <dt>TCRD and FMD rows</dt><dd>Plan U3, preload one profile per session department; they open the dashboard directly</dd>
+  <dt>Profile menu</dt><dd>Plan U3 and section 2, the role stands in for identity; switching is one click</dd>
+</dl>
+</section>
+
+</main>

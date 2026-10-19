@@ -20,7 +20,7 @@ from intelmonitor.server.series import series_chart
 
 # Characters of context kept on each side of a finding's quotes in its passage.
 PASSAGE_CONTEXT = 280
-_COLLECTION_RANK = {"dms": 0, "official": 1, "news": 2}
+_COLLECTION_RANK = {"dms": 0, "official": 1, "news": 2, "social": 3}
 
 
 def own_site(domain: str, own: Collection[str]) -> bool:
@@ -31,13 +31,13 @@ def own_site(domain: str, own: Collection[str]) -> bool:
 def source_rank(collection: str, domain: str, own: Collection[str]) -> int:
     """Where a source is listed, everywhere a development's sources are: a detection first, then
     the publications of the institutions it is tagged to (documents on a tagged subject's own
-    site, `own`: the Fed's FOMC statement before a BIS speech about it), then DMS, official and
-    news documents. Sources of one rank are listed earliest first."""
+    site, `own`: the Fed's FOMC statement before a BIS speech about it), then DMS, official,
+    news and social documents. Sources of one rank are listed earliest first."""
     if collection == "data":
         return 0
     if own_site(domain, own):
         return 1
-    return 2 + _COLLECTION_RANK.get(collection, 3)
+    return 2 + _COLLECTION_RANK.get(collection, 4)
 
 
 def own_domains(conn: sqlite3.Connection, run_id: str, development_id: str) -> list[str]:

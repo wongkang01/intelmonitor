@@ -7,7 +7,9 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-Collection = Literal["dms", "official", "news", "data"]
+# social: X posts, Reddit and forum threads (ingest/sources/social.py), unverified until a
+# non-social source in the same development confirms them.
+Collection = Literal["dms", "official", "news", "data", "social"]
 
 
 class SourceDocument(BaseModel):

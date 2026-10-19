@@ -1,0 +1,361 @@
+[
+  {
+    "subject_id": "dbs",
+    "run_id": "2026-10-08",
+    "model": "claude-sonnet-5-5",
+    "ok": true,
+    "faults": [],
+    "brief": {
+      "bottom_line": "No new incident this week; the 1MDB-linked S$1.298 billion claim reported on 9 Sep, which DBS rejects, remains the main open matter. Shares were little changed over the week.",
+      "direction": "unchanged",
+      "direction_reason": "Only analyst views on margins, a market-structure change in lot size and DBS's own AI disclosures; no incident, loss or enforcement beyond the 1MDB claim.",
+      "points": [
+        {
+          "claim": "Analysts said higher Singapore dollar rates after the Fed's 25 basis point hike on 16 Sep should lift net interest margins at DBS, with the larger benefit in 2027.",
+          "why_it_matters": "It points to easing margin pressure, but it is a forecast, and watchers doubt MAS will tighten in October.",
+          "development_ids": [
+            "15318a0fa093f5ba-0"
+          ]
+        },
+        {
+          "claim": "The standard board lot for Singapore stocks priced above S$10 and up to S$100 fell from 100 to 10 units on 5 Oct; DBS was in the first cohort and led trading with about 5,000 trades.",
+          "why_it_matters": "Smaller lots widen access to DBS shares for retail investors, and SGX said liquidity stayed broadly stable after the change.",
+          "development_ids": [
+            "d0333fbecae99d56-3"
+          ]
+        }
+      ],
+      "indirect": [
+        "79f1050223a49042-0",
+        "5bedd77aa8abe1ff-0"
+      ],
+      "coming_up": []
+    },
+    "judgement": {
+      "claims": [
+        {
+          "point": 1,
+          "supported": true,
+          "reason": "15318a0fa093f5ba-0 says analysts expect higher Singapore dollar rates after the Fed's 16 Sep 25bp hike to lift margins at DBS, OCBC and UOB, with the larger benefit in 2027. A supporting bullet says central bank watchers doubt MAS will tighten in October. The brief correctly treats this as a forecast, and the Fed hike is dated, not presented as this week's news."
+        },
+        {
+          "point": 2,
+          "supported": true,
+          "reason": "d0333fbecae99d56-3 confirms the 100-to-10 lot change for stocks priced above S$10 and up to S$100 from 5 Oct. It also confirms DBS was in the first cohort of 11, led trading with about 5,000 trades, and that SGX said liquidity stayed broadly stable. Wider retail access is a reasonable consequence, not a new fact."
+        }
+      ],
+      "top_high": [],
+      "consistent": true,
+      "consistency_reason": "Unchanged fits a week of analyst views, a market-structure change, DBS's own AI disclosures and regulatory proposals or guidance with future effect, with no material loss or enforcement. 'Shares little changed' matches the series note. 'No new incident' slightly overstates things: there is a Low-priority, unverified X allegation of an unauthorised \u20b914,301 credit card payment that is still unresolved. Given that it is a single, unverified, Low-priority claim, it does not change the assessment.",
+      "stale_or_other": [],
+      "verdict": "This is an accurate brief and its points are well supported. The direction and bottom line are sound, and the 1MDB matter is properly dated as earlier. The only flaw is the flat 'no new incident' wording, which passes over the Low-priority customer allegation made on X this week."
+    }
+  },
+  {
+    "subject_id": "dbs",
+    "run_id": "2026-10-08",
+    "model": "claude-opus-5-5",
+    "ok": true,
+    "faults": [],
+    "brief": {
+      "bottom_line": "Quiet week with no new incident; DBS set out AI gains and staffing plans, and the 1MDB-linked S$1.298 billion claim reported 9 Sep, which DBS rejects, remains the main open matter.",
+      "direction": "unchanged",
+      "direction_reason": "No new incident, loss or enforcement; the AI disclosures are the bank's own statements and the rate outlook comes from analysts.",
+      "points": [
+        {
+          "claim": "DBS said AI generated about S$1 billion in economic value in 2025; staff have built 10,000 personal agents, and the bank added an agent registry and controls.",
+          "why_it_matters": "CEO Tan Su Shan expects AI to sharply cut production engineer needs; its agent controls will face MAS AI guidelines effective 7 Oct 2027.",
+          "development_ids": [
+            "1329925b9a346b9e-0",
+            "1329925b9a346b9e-1",
+            "1329925b9a346b9e-2",
+            "1329925b9a346b9e-3"
+          ]
+        },
+        {
+          "claim": "Analysts expect higher Singapore dollar rates after the Fed's 16 Sep hike to lift net interest margins at DBS, with the larger benefit in 2027.",
+          "why_it_matters": "This would ease margin compression, but it is an analyst view, not a result, and Macquarie sees UOB gaining most.",
+          "development_ids": [
+            "15318a0fa093f5ba-0"
+          ]
+        }
+      ],
+      "indirect": [
+        "5bedd77aa8abe1ff-0",
+        "79f1050223a49042-0"
+      ],
+      "coming_up": []
+    },
+    "judgement": {
+      "claims": [
+        {
+          "point": 1,
+          "supported": true,
+          "reason": "S$1bn AI value, 10,000 personal agents, the agent registry and controls, and the CEO's remark on production engineers all come from the cited 1329925b9a346b9e items. The link to MAS AI guidelines effective 7 Oct 2027 is not in the cited items, but it is an accurate fact from indirect impact 5bedd77aa8abe1ff-0, which the brief names. It is a reasonable consequence for DBS."
+        },
+        {
+          "point": 2,
+          "supported": true,
+          "reason": "15318a0fa093f5ba-0 supports the analyst view that higher SGD rates after the 16 Sep Fed hike lift NIMs, with the larger benefit in 2027, easing margin compression. Macquarie's view that UOB gains most is in the item."
+        }
+      ],
+      "top_high": [],
+      "consistent": true,
+      "consistency_reason": "No adverse incident, loss or enforcement occurred this week. The only adverse item is a Low-priority unverified X complaint. The AI news is the bank's own disclosure and the rate view comes from analysts, so 'unchanged' is right. Shares were little changed over the week. The 1MDB claim is correctly carried forward as the main open matter and dated 9 Sep.",
+      "stale_or_other": [],
+      "verdict": "This is an accurate, well-supported brief. The direction and bottom line are consistent, and the earlier 1MDB matter is properly dated. The only slight stretch is that Point 1's 'why' draws on the MAS AI guidelines from an indirect impact rather than from its cited items."
+    }
+  },
+  {
+    "subject_id": "uob",
+    "run_id": "2026-10-08",
+    "model": "claude-sonnet-5-5",
+    "ok": true,
+    "faults": [],
+    "brief": {
+      "bottom_line": "Quiet week with no material developments at the bank; shares fell 2.93% on 7 Oct with no event explaining it, and the last notable item was the 22 Sep AI infrastructure financing.",
+      "direction": "unchanged",
+      "direction_reason": "Only analyst commentary and a market-wide trading change this week; nothing material happened at the bank beyond the previous brief.",
+      "points": [
+        {
+          "claim": "After the Fed's 25 basis point hike on 16 Sep, analysts including Macquarie expect higher Singapore dollar rates to lift bank margins, with UOB gaining most of the three local banks and the larger benefit in 2027.",
+          "why_it_matters": "This is a forecast, not a result, and it depends on Singapore rates rising, which central bank watchers doubt MAS will deliver in October.",
+          "development_ids": [
+            "15318a0fa093f5ba-0"
+          ]
+        },
+        {
+          "claim": "Smaller board lots began on 5 Oct, cutting the minimum lot from 100 shares to 10 for an initial group of 11 stocks that includes UOB; SGX said liquidity stayed broadly stable.",
+          "why_it_matters": "It changes how its shares trade, not its earnings or credit, and early data show no liquidity problem.",
+          "development_ids": [
+            "d0333fbecae99d56-3"
+          ]
+        }
+      ],
+      "indirect": [
+        "79f1050223a49042-0",
+        "5bedd77aa8abe1ff-0"
+      ],
+      "coming_up": []
+    },
+    "judgement": {
+      "claims": [
+        {
+          "point": 1,
+          "supported": true,
+          "reason": "The cited development reports the Fed's 25bp hike on 16 Sep. It says analysts expect higher Singapore dollar rates to lift margins at the three banks. Macquarie's Vantarakis says UOB gains most, with the larger benefit in 2027. The 'why it matters' caveat is also supported: central bank watchers are cautious about MAS tightening in October."
+        },
+        {
+          "point": 2,
+          "supported": true,
+          "reason": "The development confirms that 11 stocks, including UOB, began trading on 5 Oct with lots cut from 100 to 10 units. It also confirms SGX said liquidity stayed broadly stable. Saying the change affects how the shares trade, not earnings or credit, is a reasonable inference."
+        }
+      ],
+      "top_high": [],
+      "consistent": true,
+      "consistency_reason": "The direct developments this week are an analyst forecast, a market-wide lot-size change, an RHB note and a branch booking tool, so none hurt UOB. 'Unchanged' therefore fits. The 2.93% share drop with no explanation matches the series note. The 22 Sep financing is correctly called the last notable item, not this week's news. The bottom line could have mentioned UOB's stake in the One Raffles Place sale, which is at exclusive due diligence, but leaving it out does not make the brief inconsistent.",
+      "stale_or_other": [],
+      "verdict": "An accurate, well-supported brief. Both points match their sources, and the bottom line and 'unchanged' direction fit a quiet week. The brief could have mentioned UOB's stake in the One Raffles Place sale."
+    }
+  },
+  {
+    "subject_id": "uob",
+    "run_id": "2026-10-08",
+    "model": "claude-opus-5-5",
+    "ok": true,
+    "faults": [],
+    "brief": {
+      "bottom_line": "No material developments since the 22 and 23 Sep AI infrastructure financings; shares fell 2.93% on 7 Oct, and no development this week explains the drop.",
+      "direction": "unchanged",
+      "direction_reason": "Only analyst views on margins and the SGX board lot change this week; nothing material happened at UOB.",
+      "points": [
+        {
+          "claim": "Since 5 Oct, UOB shares have traded in 10-share board lots instead of 100, as one of the first 11 SGX stocks to move to smaller lots.",
+          "why_it_matters": "This lowers the entry cost for retail holders. SGX said liquidity across the group stayed broadly stable on the first day.",
+          "development_ids": [
+            "d0333fbecae99d56-3"
+          ]
+        },
+        {
+          "claim": "Analysts said the Fed's 16 Sep hike should lift Singapore dollar rates and bank margins, and Macquarie named UOB the biggest gainer because of its Singapore dollar loan share.",
+          "why_it_matters": "This is a forecast, not a result. Any margin relief comes mostly in 2027, and central bank watchers are cautious about MAS tightening in October.",
+          "development_ids": [
+            "15318a0fa093f5ba-0"
+          ]
+        }
+      ],
+      "indirect": [
+        "79f1050223a49042-0",
+        "c789cbb7c9be45da-0"
+      ],
+      "coming_up": []
+    },
+    "judgement": {
+      "claims": [
+        {
+          "point": 1,
+          "supported": true,
+          "reason": "d0333fbecae99d56-3 says UOB is among the first 11 SGX stocks to move from 100-share to 10-share lots from 5 Oct, and that SGX found liquidity broadly stable on day one. A lower entry cost for retail holders follows reasonably from that."
+        },
+        {
+          "point": 2,
+          "supported": true,
+          "reason": "15318a0fa093f5ba-0 supports every part of the point: the 16 Sep Fed hike, the expected lift to SGD rates and margins with most of it in 2027, Macquarie naming UOB the biggest gainer because of its SGD loan share, and the caution about MAS tightening in October."
+        }
+      ],
+      "top_high": [],
+      "consistent": true,
+      "consistency_reason": "This week's direct developments are analyst views, a market-wide board lot change, a branch booking launch and a broker note, so nothing material happened at UOB. Unchanged is the right direction. The bottom line correctly says the 2.93% share fall on 7 Oct has no explaining development, as the series note says. The 22 and 23 Sep financings reference matches the previous brief. The foreign currency loan-to-deposit ratio was released 30 Sep and the previous brief already covered it.",
+      "stale_or_other": [],
+      "verdict": "The brief is accurate and consistent. Both points are supported, the direction is right and there are no stale items. It could have mentioned One Raffles Place, where UOB holds an 18.46% beneficial interest and the asset is now in exclusive due diligence. Since that deal is still uncertain, leaving it out does not change the assessment."
+    }
+  },
+  {
+    "subject_id": "singapore-equities",
+    "run_id": "2026-10-08",
+    "model": "claude-sonnet-5-5",
+    "ok": true,
+    "faults": [],
+    "brief": {
+      "bottom_line": "Policy support is moving into implementation, with smaller board lots live and liquidity steady, but the market sold off this week and small and mid-cap stocks still lag.",
+      "direction": "unchanged",
+      "direction_reason": "Smaller board lots went live, which is routine implementation of earlier policy; the sell-off tracked bank share moves and analyst views, not a failure at the market.",
+      "points": [
+        {
+          "claim": "Reduced board lots started on 5 Oct for 11 stocks including DBS, OCBC and UOB; SGX said liquidity stayed broadly stable, with eight of the 11 posting higher average daily turnover.",
+          "why_it_matters": "The first live test of the lot size change shows no liquidity damage, and 10-share trades suggest it widens retail access to high-priced stocks.",
+          "development_ids": [
+            "d0333fbecae99d56-3"
+          ]
+        },
+        {
+          "claim": "The EQDP is still lifting liquidity, but the iEdge Singapore Next 50 Index trails the Straits Times Index by 25 per cent year to date. JPMorgan sees about S$435 million of inflows to small and mid-caps from the third batch.",
+          "why_it_matters": "Programme money has not yet closed the performance gap for smaller names, which is the main test of whether the measures work.",
+          "development_ids": [
+            "a16fda454ce4ff04-3",
+            "5f8a1427ed9ebdba-1"
+          ]
+        },
+        {
+          "claim": "The Straits Times Index fell 1.05% on the week, including 1.63% on 7 Oct when OCBC fell 5.90% after a Citi downgrade to sell. SGX shares also fell sharply.",
+          "why_it_matters": "Index gains now lean more on earnings and execution than valuation catch-up, so sentiment stays soft despite record highs cited last week.",
+          "development_ids": [
+            "679ece21a96862f6-0",
+            "1c1b646b55ad01c2-2"
+          ]
+        }
+      ],
+      "indirect": [],
+      "coming_up": [
+        "2026-10-16 Expected start of trading of Deluge shares",
+        "2026-10-28 Expected start of trading",
+        "2026-10-13 Scheduled SGX listing date of the four Xtrackers ETFs"
+      ]
+    },
+    "judgement": {
+      "claims": [
+        {
+          "point": 1,
+          "supported": true,
+          "reason": "d0333fbecae99d56-3 supports all of it: reduced lots started on 5 Oct for 11 stocks including DBS, OCBC and UOB; liquidity stayed broadly stable; eight of the 11 had higher turnover; and 10-share lots were the most traded. The why is a reasonable inference from those facts."
+        },
+        {
+          "point": 2,
+          "supported": true,
+          "reason": "a16fda454ce4ff04-3 supports the 25% gap between the Next 50 and the STI despite EQDP-driven liquidity gains. 5f8a1427ed9ebdba-1 supports JPMorgan's estimate of about S$435m of small and mid-cap inflows from the third batch. The why follows from these and adds no new facts."
+        },
+        {
+          "point": 3,
+          "supported": true,
+          "reason": "The series explanation gives the STI's 1.05% weekly fall, its 1.63% drop on 7 Oct and OCBC's 5.90% fall. 679ece21a96862f6-0 gives the Citi downgrade to sell. The SGX series events (down 7.16% on 2 Oct, 7.65% on the week) support the sharp fall in SGX shares. 1c1b646b55ad01c2-2 supports the point about earnings and execution, and the previous brief did cite record STI highs."
+        }
+      ],
+      "top_high": [
+        {
+          "development_id": "7c5af91110bb0d14-1",
+          "covered": false,
+          "rightly_left_out": true,
+          "reason": "The 29 Sep S$20m market-making grant was already in the previous week's brief ('added S$20 million for market-making grants'). This week's sources only repeat it, so leaving it out does not change the assessment."
+        }
+      ],
+      "consistent": true,
+      "consistency_reason": "The points support each part of the bottom line: board lots went live with steady liquidity, the STI and SGX shares fell, and small and mid-caps still lag. 'Unchanged' is the right direction. The fall was driven by analyst views and bank share prices, not by material harm to the market itself, and the policy rollout went smoothly.",
+      "stale_or_other": [],
+      "verdict": "This is an accurate, well-sourced brief. Every point is backed by its cited developments and the series evidence, and the direction is sound. Leaving out the market-making grant is justified because last week's brief already covered it."
+    }
+  },
+  {
+    "subject_id": "singapore-equities",
+    "run_id": "2026-10-08",
+    "model": "claude-opus-5-5",
+    "ok": true,
+    "faults": [],
+    "brief": {
+      "bottom_line": "Reform is moving into execution: smaller board lots went live on 5 Oct and two Mainboard IPOs are lined up. But SGX shares fell 7.65% on the week and small and mid-caps still lag.",
+      "direction": "unchanged",
+      "direction_reason": "The board lot cut started on schedule and the IPO pipeline grew, while the OCBC sell-off and the small-cap lag rest on analyst views and market moves.",
+      "points": [
+        {
+          "claim": "Reduced board lots started on 5 Oct for 11 stocks including DBS, OCBC and UOB; 10-share lots were the most traded, and eight of the 11 had higher turnover.",
+          "why_it_matters": "An early sign that the retail access measure is drawing trading without hurting liquidity, though one day of data proves little.",
+          "development_ids": [
+            "d0333fbecae99d56-3"
+          ]
+        },
+        {
+          "claim": "JPMorgan says the iEdge Singapore Next 50 has underperformed the STI by 25 per cent this year, and estimates the third EQDP tranche could bring about S$435 million to small and mid-caps.",
+          "why_it_matters": "EQDP flows and the S$20 million market-making grant to end-2028 have not yet closed the small and mid-cap gap they were meant to address.",
+          "development_ids": [
+            "a16fda454ce4ff04-3",
+            "5f8a1427ed9ebdba-1",
+            "7c5af91110bb0d14-1"
+          ]
+        },
+        {
+          "claim": "The STI's discount to analyst targets is now much narrower, and OCBC fell 5.90% on 7 Oct after Citi downgraded it to sell, the same day the STI fell 1.63%.",
+          "why_it_matters": "With less room for valuations to rise, further index gains depend on bank earnings, which leaves the market open to swings when sentiment on banks turns.",
+          "development_ids": [
+            "1c1b646b55ad01c2-2",
+            "679ece21a96862f6-0"
+          ]
+        }
+      ],
+      "indirect": [],
+      "coming_up": [
+        "2026-10-16 Expected start of trading of Deluge shares",
+        "2026-10-28 Expected start of trading"
+      ]
+    },
+    "judgement": {
+      "claims": [
+        {
+          "point": 1,
+          "supported": true,
+          "reason": "d0333fbecae99d56-3 supports the 5 Oct start for 11 stocks including DBS, OCBC and UOB. It also supports 10-share lots being the most traded and eight of 11 stocks having higher turnover than on 2 Oct. The caveat that one day of data proves little is fair."
+        },
+        {
+          "point": 2,
+          "supported": true,
+          "reason": "a16fda454ce4ff04-3 supports the 25% underperformance, and 5f8a1427ed9ebdba-1 supports the S$435m JPMorgan estimate. 7c5af91110bb0d14-1 supports the S$20m grant to end-2028. Saying these have not yet closed the gap is a reasonable reading, although the grant has only just been announced."
+        },
+        {
+          "point": 3,
+          "supported": true,
+          "reason": "1c1b646b55ad01c2-2 supports the narrower discount. 679ece21a96862f6-0 supports OCBC's 5.90% fall and the Citi downgrade to sell, and the series explanation gives the STI's 1.63% fall the same day. The why narrows 'earnings and execution' to bank earnings, a reasonable consequence given the sell-off in bank stocks."
+        }
+      ],
+      "top_high": [
+        {
+          "development_id": "7c5af91110bb0d14-1",
+          "covered": true,
+          "rightly_left_out": false,
+          "reason": "The 'why it matters' in Point 2 names the S$20m market-making grant to end-2028. The previous week's brief also covered it."
+        }
+      ],
+      "consistent": true,
+      "consistency_reason": "The bottom line matches the points and evidence: board lots went live, there are two Mainboard IPOs (Deluge and Mi Material), SGX shares fell 7.65% on the week per the series event, and small and mid-caps still lag. 'Unchanged' fits, because the negatives are analyst views and market moves rather than material harm to the subject.",
+      "stale_or_other": [],
+      "verdict": "This is a well-supported, balanced brief that covers the High market-making grant and this week's main execution steps. The direction is calibrated correctly. One weakness is that the 7.65% fall in SGX shares appears only in the bottom line and is not explained."
+    }
+  }
+]

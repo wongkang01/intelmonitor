@@ -1,4 +1,4 @@
-// First-run tour (iteration-plan.md B2, mocks/onboarding.html direction A): five coach marks, one at
+// First-run tour (docs/archive/iteration-plan.md B2, mocks/onboarding.html direction A): five coach marks, one at
 // a time, over the dimmed dashboard. It starts once, on the first dashboard shown while the profile's
 // `tour_seen_at` is null, and Replay tour in Help starts it again. Each step rings its target and sets
 // the card beside it; a target missing from the page leaves the card centred over a plain scrim.

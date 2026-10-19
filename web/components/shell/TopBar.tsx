@@ -1,6 +1,6 @@
-// Top bar: the search field, the run status chip with its Runs popover, and the alerts bell with its
-// Alerts popover. One popover is open at a time; Esc or a click outside closes it and returns focus
-// to its trigger.
+// Top bar: the search field and "Week to <the latest run's date> · updated weekly". The run status chip with its
+// Runs popover and the alerts bell are hidden for the testing sessions (phase1-plan.md section 5)
+// and kept, exported, until the sessions decide (D3).
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
@@ -12,6 +12,7 @@ import {
   useAlerts,
   useFollow,
   useFollows,
+  useLatestRun,
   useMarkAlertsRead,
   useRunNow,
   useRunStatus,
@@ -34,6 +35,7 @@ import {
   XIcon,
 } from "@/components/ui/icons";
 import { CloseButton, Modal } from "@/components/ui/Modal";
+import { sourceCountText } from "@/components/developments/labels";
 
 import { evidenceLink } from "./Evidence";
 import { SubjectIcon } from "@/components/ui/SubjectIcon";
@@ -41,16 +43,29 @@ import { SubjectIcon } from "@/components/ui/SubjectIcon";
 type PopName = "runs" | "alerts";
 
 export function TopBar() {
-  const [pop, setPop] = useState<PopName | null>(null);
-  const toggle = (name: PopName) => setPop((p) => (p === name ? null : name));
-  const close = () => setPop(null);
-
+  const latest = useLatestRun().data;
   return (
     <header className="topbar">
       <Search />
+      {latest && (
+        <span className="updated" title="The week the latest run covers">
+          Week to <span className="num">{shortDate(latest.as_of)}</span> · updated weekly
+        </span>
+      )}
+    </header>
+  );
+}
+
+/** The parked run chip and alerts bell, one popover open at a time. Not rendered. */
+export function RunsAndAlerts() {
+  const [pop, setPop] = useState<PopName | null>(null);
+  const toggle = (name: PopName) => setPop((p) => (p === name ? null : name));
+  const close = () => setPop(null);
+  return (
+    <>
       <RunStatus open={pop === "runs"} onToggle={() => toggle("runs")} onClose={close} />
       <AlertsButton open={pop === "alerts"} onToggle={() => toggle("alerts")} onClose={close} />
-    </header>
+    </>
   );
 }
 
@@ -59,14 +74,14 @@ const GROUP_HITS = 5;
 
 type Results = Schema<"SearchResults">;
 
-/** One row in the results: a subject opens its page, a development or a document its evidence. */
+/** One row in the results: a subject opens its page, a development or a document the development's popup. */
 type Hit =
   | { kind: "subject"; key: string; hit: Schema<"SearchHit"> }
   | { kind: "development"; key: string; development: Schema<"DevelopmentSummary"> }
   | { kind: "document"; key: string; document: Schema<"DocumentHit"> };
 
 const GROUPS: { kind: Hit["kind"]; label: string }[] = [
-  { kind: "subject", label: "Monitors" },
+  { kind: "subject", label: "Entities and topics" },
   { kind: "development", label: "Developments" },
   { kind: "document", label: "Documents" },
 ];
@@ -84,7 +99,7 @@ function flatten(results: Results | undefined): Hit[] {
 }
 
 /** ⌘K focuses the field; typing lists matching monitors, developments and documents, arrows move,
- *  Enter opens the highlighted one (a monitor's page, or evidence in the drawer), Esc clears. */
+ *  Enter opens the highlighted one (a monitor's page, or a development's popup), Esc clears. */
 function Search() {
   const input = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -113,7 +128,8 @@ function Search() {
     else void navigate(evidenceLink.development(hit.kind === "development" ? hit.development.id : hit.document.development_id));
     setText("");
     setOpen(false);
-    input.current?.blur();
+    // A development's popup takes focus and returns it to the field on close; a page change leaves it.
+    if (hit.kind === "subject") input.current?.blur();
   };
 
   const onKeyDown = async (e: KeyboardEvent<HTMLInputElement>) => {
@@ -151,7 +167,7 @@ function Search() {
           aria-controls="search-results"
           aria-autocomplete="list"
           aria-activedescendant={showList && hits[active] ? `search-hit-${hits[active].key}` : undefined}
-          placeholder="Search monitors, developments and documents"
+          placeholder="Search entities, topics and developments"
           autoComplete="off"
           spellCheck={false}
           value={text}
@@ -214,7 +230,7 @@ function Search() {
               )
             );
           })}
-          {hits.length === 0 && <p className="empty">No monitor, development or document matches “{text.trim()}”.</p>}
+          {hits.length === 0 && <p className="empty">Nothing matches “{text.trim()}”.</p>}
         </div>
       )}
     </div>
@@ -582,7 +598,7 @@ function AlertsPopover({
                       {!a.read && <span className="new-dot" role="img" aria-label="Unread" />}
                       {a.title}
                     </span>
-                    <span className="row-meta">{a.meta}</span>
+                    <span className="row-meta">{[a.meta, sourceCountText(a)].filter(Boolean).join(", ")}</span>
                   </Link>
                   <button
                     type="button"

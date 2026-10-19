@@ -10,10 +10,13 @@ import "@/styles/sheet.css";
 import "@/styles/popup.css";
 import "@/styles/monitor.css";
 import "@/styles/graph.css";
+import "@/styles/related.css";
 import "@/styles/trend.css";
 import "@/styles/custom.css";
 import "@/styles/help.css";
 import "@/styles/developments.css";
+import "@/styles/onboarding.css";
+import "@/styles/ask.css";
 import "@/styles/touch.css";
 
 import { ToastProvider } from "@/components/ui/Toast";
@@ -32,8 +35,10 @@ const router = createRouter({
   defaultPreload: "intent",
   // Loaders only prefetch into the query cache, which decides freshness itself.
   defaultPreloadStaleTime: 0,
-  // The page scrolls inside main, not the window.
+  // The page scrolls inside main, not the window. A new page starts at the top; Back and Forward,
+  // and closing a development popup, return to where that page was scrolled.
   scrollToTopSelectors: ["main.main"],
+  scrollRestoration: true,
   parseSearch: searchFromParams,
   stringifySearch: searchToParams,
 });
@@ -41,6 +46,10 @@ const router = createRouter({
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
+  }
+  // Set on the history entry a development popup was opened into (components/developments/link.ts).
+  interface HistoryState {
+    developmentOpened?: boolean;
   }
 }
 

@@ -20,16 +20,17 @@ from typing import Any
 import httpx
 
 from intelmonitor.config import ARTIFACTS_DIR
+from intelmonitor.pipeline.subjects import all_subjects
 from intelmonitor.store.db import connect
 
 SAMPLE = [
     "banking-regulation",
-    "stablecoins",
+    "tech-outages",
     "singapore-banks",
     "sea-countries",
     "dbs",
     "mas",
-    "circle",
+    "microsoft-365",
     "singapore",
 ]
 WIDGET_TYPES = {
@@ -41,9 +42,11 @@ WIDGET_TYPES = {
     "watchlist",
     "upcoming",
 }
+# Custom questions take a topic or an entity: groups are not monitored.
+CUSTOM_SUBJECT = "dbs"
 CUSTOM_REQUEST = {
-    "text": "Which Singapore banks are working on stablecoins, tokenised deposits or crypto?",
-    "subject_id": "singapore-banks",
+    "text": "Is DBS working on stablecoins, tokenised deposits or crypto?",
+    "subject_id": CUSTOM_SUBJECT,
 }
 
 type Json = Any  # response bodies are checked field by field below
@@ -208,7 +211,7 @@ def check_dashboards(c: Check) -> None:
 
     dashboards = c.get("/dashboards")
     names = {d["name"] for d in dashboards}
-    need({"Singapore banks", "Stablecoin watch", "Geopolitics in SEA"} <= names, "starters")
+    need("Singapore banks" in names, "starters")
     seen: set[str] = set()
     for d in dashboards:
         if not d["starter"]:
@@ -269,19 +272,19 @@ def check_actions(c: Check) -> None:
 
 
 def check_custom_questions(c: Check) -> None:
-    before = c.get("/subjects/singapore-banks/page")["custom_question_slots"]
+    before = c.get(f"/subjects/{CUSTOM_SUBJECT}/page")["custom_question_slots"]
     draft = c.call("POST", "/custom-questions", expect=201, json=CUSTOM_REQUEST)
     qid = draft["id"]
     try:
         need(draft["status"] == "draft" and draft["question"] and draft["label"], "draft config")
         need(len(draft["runs"]) == 2, "custom answers for both runs")
         need(draft["answer"] and draft["answer"]["change"]["kind"] != "first_answer", "badge")
-        page = c.get("/subjects/singapore-banks/page")
+        page = c.get(f"/subjects/{CUSTOM_SUBJECT}/page")
         need(all(q["question_id"] != qid for q in page["questions"]), "draft hidden from page")
 
         kept = c.call("POST", f"/custom-questions/{qid}/keep")
         need(kept["status"] == "kept", "keep")
-        page = c.get("/subjects/singapore-banks/page")
+        page = c.get(f"/subjects/{CUSTOM_SUBJECT}/page")
         need(any(q["question_id"] == qid and q["custom"] for q in page["questions"]), "on page")
         need(page["custom_question_slots"] == before - 1, "cap slots")
         widget = {
@@ -289,7 +292,7 @@ def check_custom_questions(c: Check) -> None:
             "order": 0,
             "type": "question",
             "size": "S",
-            "settings": {"subject_id": "singapore-banks", "question_id": qid},
+            "settings": {"subject_id": CUSTOM_SUBJECT, "question_id": qid},
         }
         data = c.call("POST", "/widgets/data", json={"widget": widget})
         need(data["answer"]["custom"], "custom question widget")
@@ -344,15 +347,19 @@ def check_alerts(c: Check) -> str:
     need(badges == sorted(badges, key=lambda b: b != "needs_attention"), "needs attention first")
     need(all(a["title"] and a["meta"] for a in alerts["alerts"]), "alert title and meta")
     conn = connect()
-    reads = conn.execute("SELECT * FROM alert_reads").fetchall()
+    reads = conn.execute("SELECT * FROM development_triage").fetchall()
     try:
         after = c.call("POST", "/alerts/read")
         need(after["unread"]["total"] == 0, "mark all read")
         need(all(a["read"] for a in after["alerts"]) and len(after["alerts"]) == len(badges), "")
         need(c.get("/alerts")["unread"]["total"] == 0, "reads persist")
     finally:
-        conn.execute("DELETE FROM alert_reads")
-        conn.executemany("INSERT INTO alert_reads VALUES (?, ?, ?)", [tuple(r) for r in reads])
+        conn.execute("DELETE FROM development_triage")
+        if reads:
+            marks = ", ".join("?" * len(reads[0]))
+            conn.executemany(
+                f"INSERT INTO development_triage VALUES ({marks})", [tuple(r) for r in reads]
+            )
         conn.commit()
         conn.close()
     u = alerts["unread"]
@@ -386,7 +393,7 @@ def main() -> int:
     c = Check(args.base)
     need(c.get("/health")["status"] == "ok", "health")
     subjects = c.get("/subjects")
-    need(len(subjects) == 30, "30 subjects")
+    need(len(subjects) == len(all_subjects()), "every seeded subject")
 
     steps: list[tuple[str, Callable[[], object]]] = [
         *((f"subject {sid}", lambda sid=sid: check_subject(c, sid)) for sid in SAMPLE),

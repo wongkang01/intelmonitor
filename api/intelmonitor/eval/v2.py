@@ -75,7 +75,7 @@ def _dev_rows(conn: sqlite3.Connection, run_id: str) -> set[tuple[Any, ...]]:
 
 
 async def replay_upstream(conn: sqlite3.Connection, as_of: date) -> dict[str, Any]:
-    """Screen, extract, merge and materiality as `im run` does, from recorded calls only."""
+    """Screen, extract, merge and priority as `im run` does, from recorded calls only."""
     run_id = as_of.isoformat()
     stored = _dev_rows(conn, run_id)
     store_detections(conn, as_of)

@@ -1,0 +1,2218 @@
+# FTIG relationship map: Circle, StraitsX, OKX, Coinbase (collected 2026-10-19).
+#
+# Purpose: lets the dashboard trace how news at one digital asset firm reaches another, a Singapore
+# bank, a payment system or MAS, and which reserves, counterparties and revenue lines matter.
+# Every quote was checked against the text of the page or filing named in source_url (whitespace,
+# zero-width characters and footnote markers normalised; table cells joined with " | ").
+# Sources: SEC filings (10-K, 10-Q, 8-K, DEF 14A, N-MFP3), the MAS Financial Institutions
+# Directory and media releases, StraitsX reserve reports and disclosures, the OKX Proof of
+# Reserves page, regulators' public registers (ESMA, VARA, SFC, SCB) and press, named per row.
+# api/scripts/build_relationships.py reads this file with the three other collected files.
+#
+# Sections
+#   relationships            entity-links.yaml schema: from, to, type (owns | subsidiary_of | operates_in
+#                            | shareholder_of | member_of | partner_of | listed_on | supervised_by), share,
+#                            detail, evidence, as_of, source_url, source_title, quote.
+#                            Licences held by local subsidiaries are supervised_by edges from that subsidiary;
+#                            the subject `owns` the subsidiary (share null when no stake is published), because
+#                            impact paths start at a subject and walk owns as a first hop
+#                            (okx owns okx-sg, okx-sg supervised_by mas). A child -> subject subsidiary_of edge
+#                            would never be walked.
+#                            partner_of rows are kept for the record; the build drops them.
+#   depends_on_participates  tech-dependencies.yaml schema: from, to, type (depends_on | participates_in),
+#                            detail, service, evidence, source_url, source_title, published, quote. Services
+#                            beyond the tech file's: custody, banking, blockchain, distribution,
+#                            reserve_management. One undated source carries as_of instead of published.
+#                            Edges into a subject from an existing subject (visa, mastercard depends_on circle)
+#                            route Circle news to the card networks.
+#   exposures                bank-exposures.yaml style generalised to any entity: entity, dimension
+#                            (reserve_composition | revenue | counterparty | specific), measure, segment (issuer's own
+#                            label), target (endpoint id), value, unit, share_of_total, period, source_url,
+#                            source_title, page, quote, note. Each row becomes part of exposed_to entity -> target:
+#                            the first row with a share for an (entity, target) is the headline, and the others
+#                            ride along as figures. The build maps measures to the store's (fair_value and
+#                            reserve_assets to reserve_assets, the revenue measures to revenue) and drops
+#                            rows that are not standing exposures (DROPPED_MEASURES, NOT_STANDING there).
+#                            Circle's dealer rows are look-through exposures of the Circle Reserve Fund.
+#   groups                   members imply member_of edges (not repeated in relationships).
+#   new_entities             ids not in api/seed/subjects.yaml or the other collected files.
+#
+# Kinds used in new_entities
+#   From the entity-links header: bank, broker, exchange, regulator, central-bank, investor, person, consortium,
+#   platform, index, country. Also the endpoint kinds sector (reserve asset classes and rate or market
+#   factors), blockchain (chains), stablecoin_issuer, digital_asset_firm and payment_institution.
+#
+# Id notes
+#   - The endpoint `xfers` (Xfers Pte. Ltd., FID trading names "Fazz; StraitsX") is the subject `straitsx`:
+#     RENAME in build_relationships.py maps xfers -> straitsx, so the tech file's xfers participates_in
+#     fast and paynow rows attach to the subject. Edges here already use `straitsx`.
+#   - nasdaq exists as an endpoint of kind tech_provider; reused for coinbase listed_on.
+#   - citibank and jpmorgan (existing endpoints) stand for the Citi and J.P. Morgan groups in Circle's dealer rows.
+
+relationships:
+- from: circle
+  to: nyse
+  type: listed_on
+  share: null
+  detail: Circle Internet Group's Class A common stock trades on the New York Stock Exchange under the ticker CRCL.
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000062/crcl-20251231.htm
+  source_title: Circle Internet Group, Inc. Form 10-K for the year ended December 31, 2025, cover page
+  quote: Class A common stock, par value $0.0001 per share | CRCL | New York Stock Exchange
+- from: circle
+  to: singapore
+  type: operates_in
+  share: null
+  detail: Circle Internet Singapore offers DPT services including the offering, resale and custody of USDC under
+    its MAS licence.
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000062/crcl-20251231.htm
+  source_title: Circle Internet Group, Inc. Form 10-K FY2025, Principal non-U.S. regulatory regimes
+  quote: Circle Internet Singapore Pte Ltd. holds a Major Payments Institution License (“MPI”) and is regulated
+    by the Monetary Authority of Singapore (“MAS”).
+- from: circle
+  to: grab
+  type: partner_of
+  share: null
+  detail: Circle and Grab piloted a Grab Web3 Wallet with NFT vouchers in Singapore from September 2023, built on
+    Circle's Web3 Services; partner_of is dropped by the build script.
+  evidence: public
+  as_of: 2023-09-14
+  source_url: https://www.circle.com/pressroom/circle-and-grab-pilot-web3-experiences-in-singapore
+  source_title: Circle and Grab Pilot Web3 Experiences in Singapore (Circle press release, 14 Sep 2023)
+  quote: Circle Internet Financial (Circle) announced a partnership with Grab today to pilot Web3 customer experiences
+    in Singapore through the integration of Circle’s new Web3 Services platform in the Grab app.
+- from: circle
+  to: standard-chartered
+  type: partner_of
+  share: null
+  detail: Standard Chartered, with Santander, Deutsche Bank and Societe Generale, helped design the Circle Payments
+    Network launched in 2025; partner_of is dropped by the build script.
+  evidence: public
+  as_of: 2025-04-21
+  source_url: https://www.circle.com/pressroom/circle-announces-payments-network-to-transform-global-money-movement
+  source_title: Circle Announces Payments Network to Transform Global Money Movement (Circle press release, 21 Apr
+    2025)
+  quote: Banco Santander, Deutsche Bank, Société Générale, and Standard Chartered Bank are contributing their deep
+    expertise in global payments to assist Circle in designing a network that meets the needs of leading banks and
+    financial institutions worldwide.
+- from: circle
+  to: tazapay
+  type: partner_of
+  share: null
+  detail: 'Deal counterparty: on 4 September 2026 Circle agreed to buy all shares of Singapore cross-border payments
+    firm Tazapay for about US$400 million in Circle stock, subject to regulatory approvals; record as owns (share
+    1.0) once it closes. partner_of is dropped by the build script.'
+  evidence: public
+  as_of: 2026-09-04
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000267/crcl-20260904.htm
+  source_title: Circle Internet Group, Inc. Form 8-K filed 2026-09-08 (Item 1.01, Share Purchase Agreement)
+  quote: Purchaser will purchase and acquire from the Sellers all of the issued and outstanding shares of the Target
+    Company not already held by Purchaser or its affiliates.
+- from: idg-capital
+  to: circle
+  type: shareholder_of
+  share: 0.081
+  detail: Entities affiliated with IDG Capital held 8.1% of Circle's Class A common stock (5.7% of total voting
+    power) at the 16 March 2026 record date.
+  evidence: public
+  as_of: 2026-03-16
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000112/crcl-20260401.htm
+  source_title: Circle Internet Group, Inc. Proxy Statement 2026 (DEF 14A), Security Ownership of Certain Beneficial
+    Owners
+  quote: Entities affiliated with IDG | Capital(10) | 18,581,540 | 8.1% | — | —% | 5.7%
+- from: oak-investment-partners
+  to: circle
+  type: shareholder_of
+  share: 0.052
+  detail: Entities affiliated with Oak Investment Partners held 5.2% of Circle's Class A common stock (3.6% of voting
+    power) at the 16 March 2026 record date.
+  evidence: public
+  as_of: 2026-03-16
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000112/crcl-20260401.htm
+  source_title: Circle Internet Group, Inc. Proxy Statement 2026 (DEF 14A), Security Ownership of Certain Beneficial
+    Owners
+  quote: Entities affiliated with Oak | Investment Partners(11) | 11,880,678 | 5.2% | 3.6%
+- from: jeremy-allaire
+  to: circle
+  type: shareholder_of
+  share: 0.239
+  detail: Co-founder, Chairman and CEO Jeremy Allaire held 79.8% of Circle's high-vote Class B stock, 23.9% of total
+    voting power, at the 16 March 2026 record date (share is the voting fraction).
+  evidence: public
+  as_of: 2026-03-16
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000112/crcl-20260401.htm
+  source_title: Circle Internet Group, Inc. Proxy Statement 2026 (DEF 14A), Security Ownership of Certain Beneficial
+    Owners
+  quote: Jeremy Allaire(2) | 56,408 | * | 17,708,642 | 79.8% | 23.9%
+- from: binance
+  to: circle
+  type: shareholder_of
+  share: null
+  detail: Binance bought 1,237,011 Circle Class A shares for US$100 million in a private placement on 17 September
+    2026, alongside a five-year USDC promotion deal; well under 1% of shares outstanding.
+  evidence: public
+  as_of: 2026-09-17
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000276/crcl-20260917.htm
+  source_title: Circle Internet Group, Inc. Form 8-K filed 2026-09-22 (Item 8.01, Expansion of Commercial Arrangement
+    with Binance)
+  quote: the Company issued and sold to Binance 1,237,011 shares (the “Subscribed Shares”) of the Company’s Class
+    A common stock, par value $0.0001 per share, at a purchase price of $80.84 per share, for aggregate proceeds
+    to the Company of $100 million
+- from: circle
+  to: okx
+  type: shareholder_of
+  share: null
+  detail: Circle invested in OKX in October 2026 in an extension of the ICE round at a $25 billion valuation; amount
+    and stake not disclosed. USDC is integrated across OKX.
+  evidence: public
+  as_of: 2026-10-06
+  source_url: https://news.bgov.com/crypto/crypto-exchange-okx-raises-at-25-billion-from-stanchart-circle
+  source_title: Crypto Exchange OKX Raises at $25 Billion From StanChart, Circle (Bloomberg, 6 Oct 2026)
+  quote: Circle Internet Group Inc., Ripple and Standard Chartered Plc’s investment arm SC Ventures all participated
+    in the fundraise, OKX said in a press release.
+- from: circle
+  to: acpr
+  type: supervised_by
+  share: null
+  detail: Circle Internet Financial Europe SAS holds a French e-money institution licence under ACPR supervision
+    and issues USDC and EURC in the EEA under MiCA; its DASP registration is supervised by the AMF.
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000062/crcl-20251231.htm
+  source_title: Circle Internet Group, Inc. Form 10-K FY2025, Principal non-U.S. regulatory regimes
+  quote: Circle Internet Financial Europe SAS (“Circle France”) holds a Digital Asset Service Provider (“DASP”)
+    registration and an E-Money Institution (“EMI”) license in France, subject to supervision by the Authorité des
+    Marchés Financiers and the Autorité de Contrôle Prudentiel et de Résolution, respectively.
+- from: circle
+  to: adgm-fsra
+  type: supervised_by
+  share: null
+  detail: Circle Internet MEA Ltd. holds a Financial Services Permission from the ADGM FSRA to act as a money services
+    provider in Abu Dhabi.
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000062/crcl-20251231.htm
+  source_title: Circle Internet Group, Inc. Form 10-K FY2025, Principal non-U.S. regulatory regimes
+  quote: Circle Internet MEA Ltd. holds a Financial Services Permission license from the Financial Services Regulatory
+    Authority of Abu Dhabi Global Market
+- from: circle
+  to: bermuda-monetary-authority
+  type: supervised_by
+  share: null
+  detail: Circle International Bermuda Limited holds a Digital Asset Business Act licence and issues the USYC tokenised
+    money market fund and Circle Mint accounts from Bermuda.
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000062/crcl-20251231.htm
+  source_title: Circle Internet Group, Inc. Form 10-K FY2025, Principal non-U.S. regulatory regimes
+  quote: Circle International Bermuda Limited holds a DABA license and is regulated by the BMA.
+- from: circle
+  to: mas
+  type: supervised_by
+  share: null
+  detail: Circle Internet Singapore Pte. Ltd. is a MAS Major Payment Institution licensed for account issuance,
+    domestic and cross-border money transfer and digital payment token services (licence granted June 2023).
+  evidence: public
+  as_of: 2026-08-25
+  source_url: https://eservices.mas.gov.sg/fid/institution/detail/412248-CIRCLE-INTERNET-SINGAPORE-PTE-LTD
+  source_title: 'MAS Financial Institutions Directory: Circle Internet Singapore Pte. Ltd. (last updated 25 Aug
+    2026)'
+  quote: CIRCLE INTERNET SINGAPORE PTE. LTD. | Major Payment Institution | Account Issuance Service | Domestic Money
+    Transfer Service | Cross-border Money Transfer Service | Digital Payment Token Service
+- from: circle
+  to: nydfs
+  type: supervised_by
+  share: null
+  detail: Circle Internet Financial, LLC holds a New York BitLicense, and NYDFS reserve guidelines govern USDC reserves.
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000062/crcl-20251231.htm
+  source_title: Circle Internet Group, Inc. Form 10-K FY2025, Principal U.S. federal and state regulatory regimes
+  quote: including those imposed by the New York Department of Financial Services (“NYDFS”) due to Circle Internet
+    Financial, LLC’s holding of a virtual currency license (“BitLicense”)
+- from: circle
+  to: occ
+  type: supervised_by
+  share: null
+  detail: Circle's national trust bank, First National Digital Currency Bank, N.A. (Circle National Trust), got
+    final OCC approval on 9 July 2026, opened on 24 July 2026 and will oversee USDC reserve management; Circle also
+    received a NYDFS limited purpose trust charter on 31 July 2026.
+  evidence: public
+  as_of: 2026-07-24
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000248/crcl-20260630.htm
+  source_title: Circle Internet Group, Inc. Form 10-Q for the quarter ended June 30, 2026, Note 23 Subsequent events
+  quote: Circle National Trust opened on July 24, 2026 and is subject to direct federal oversight by the OCC.
+- from: circle
+  to: uk-fca
+  type: supervised_by
+  share: null
+  detail: Circle UK Trading Limited holds an electronic money licence from the UK FCA.
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000062/crcl-20251231.htm
+  source_title: Circle Internet Group, Inc. Form 10-K FY2025, Principal non-U.S. regulatory regimes
+  quote: Circle UK Trading Limited holds an Electronic Money Issuer license with the UK Financial Conduct Authority
+    (“FCA”).
+- from: straitsx
+  to: indonesia
+  type: operates_in
+  share: null
+  detail: StraitsX operates in Indonesia under a Bank Indonesia licence and issues XIDR, a rupiah stablecoin; its
+    Indonesian corridors run through the Fazz group's PayFazz network.
+  evidence: public
+  as_of: 2026-10-19
+  source_url: https://www.straitsx.com/trust
+  source_title: 'StraitsX: Trust & Security'
+  quote: Indonesia | Bank Indonesia | Payment Service Provider - License Category 1 (23/730/DKSP/Srt/B)
+- from: straitsx
+  to: straitsx-payment-services
+  type: owns
+  share: null
+  detail: StraitsX Payment Services is the StraitsX group company that runs the StraitsX platform for buying, selling,
+    redeeming and swapping stablecoins.
+  evidence: public
+  as_of: 2026-07-31
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6a670b36900b66cceed35615_StraitsX%20XSGD%20Whitepaper%20-%20V1.1%20-%20Last%20Update%20July%202026.docx.pdf
+  source_title: StraitsX XSGD Whitepaper v1.1 (last update July 2026)
+  quote: StraitsX Group manages the service of purchasing, transferring, selling, redeeming and swapping of single-currency
+    pegged stablecoins (“SCS”) via StraitsX SGD, and StraitsX Payment Services Pte. Ltd. (collectively known as
+    “StraitsX Platform”).
+- from: straitsx
+  to: straitsx-sgd-issuance
+  type: owns
+  share: null
+  detail: StraitsX SGD Issuance is the StraitsX group company that issues XSGD; no stake is published.
+  evidence: public
+  as_of: 2026-07-31
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6a670b36900b66cceed35615_StraitsX%20XSGD%20Whitepaper%20-%20V1.1%20-%20Last%20Update%20July%202026.docx.pdf
+  source_title: StraitsX XSGD Whitepaper v1.1 (last update July 2026)
+  quote: StraitsX SGD Issuance Pte. Ltd. (“StraitsX SGD”) has received approval from the Monetary Authority of Singapore
+    (“MAS”) as a Major Payment Institution licence holder for digital payment token service for the purpose of issuing
+    XSGD
+- from: straitsx
+  to: straitsx-usd-issuance
+  type: owns
+  share: null
+  detail: StraitsX USD Issuance is the StraitsX group company that issues XUSD; no stake is published.
+  evidence: public
+  as_of: 2023-11-16
+  source_url: https://www.straitsx.com/blog-post/straitsx-receives-in-principle-approval-from-mas-to-issue-scs
+  source_title: StraitsX receives In-Principle Approval from the Monetary Authority of Singapore to issue Single-Currency
+    pegged Stablecoins
+  quote: for the purpose of issuing XSGD (out of StraitsX SGD Issuance Pte. Ltd.) and XUSD (out of StraitsX USD
+    Issuance Pte. Ltd.) respectively.
+- from: uqpay
+  to: straitsx
+  type: shareholder_of
+  share: null
+  detail: Cross-border payments firm UQPAY invested US$10 million in StraitsX in October 2025; the stake is not
+    disclosed.
+  evidence: public
+  as_of: 2025-10-22
+  source_url: https://www.straitsx.com/blog-post/straitsx-accelerates-asia-expansion-to-advance-web3-payments-connectivity
+  source_title: StraitsX Accelerates Asia Expansion to Advance Web3 Payments Connectivity
+  quote: The latest USD$10M investment from UQPAY reinforces StraitsX’s capability to power diverse cross-border
+    payment scenarios
+- from: ntt-docomo
+  to: straitsx
+  type: shareholder_of
+  share: null
+  detail: NTT DOCOMO invested in StraitsX in 2023 and is described as an existing investor in October 2025; the
+    stake is not disclosed.
+  evidence: public
+  as_of: 2025-10-22
+  source_url: https://www.straitsx.com/blog-post/straitsx-accelerates-asia-expansion-to-advance-web3-payments-connectivity
+  source_title: StraitsX Accelerates Asia Expansion to Advance Web3 Payments Connectivity
+  quote: continued backing of existing investor NTT DOCOMO, INC. (“DOCOMO”), Japan’s leading mobile and digital-services
+    company.
+- from: mufg-innovation-partners
+  to: straitsx
+  type: shareholder_of
+  share: null
+  detail: MUFG Innovation Partners, MUFG's venture arm, is a StraitsX investor; StraitsX plans to issue stablecoins
+    and build yen banking links with MUFG in Japan.
+  evidence: public
+  as_of: 2025-12-26
+  source_url: https://www.ip.mufg.jp/en/insights/cb-8cc2wcxz
+  source_title: 'MUFG Innovation Partners: StraitsX''s vision of the future of financial infrastructure'
+  quote: Tianwei cites trust in the MUIP team as one reason for welcoming them as an investor.
+- from: tiger-global
+  to: straitsx
+  type: shareholder_of
+  share: null
+  detail: Tiger Global led Fazz's US$100 million Series C in September 2022 and is named first among the backers
+    of Xfers and the StraitsX Group; stake not disclosed.
+  evidence: public
+  as_of: 2026-07-31
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6a670b36900b66cceed35615_StraitsX%20XSGD%20Whitepaper%20-%20V1.1%20-%20Last%20Update%20July%202026.docx.pdf
+  source_title: StraitsX XSGD Whitepaper v1.1 (last update July 2026)
+  quote: Xfers and the StraitsX Group are backed by Tiger Global Management LLC, Insignia Ventures Partners, B Capital
+    Group, DST Global, BRI Ventures, Y-Combinator, MUFG, and Golden Gate Ventures amongst many other investors.
+- from: straitsx
+  to: fazz
+  type: subsidiary_of
+  share: null
+  detail: StraitsX is the digital asset and stablecoin arm of Fazz, the group formed when Xfers and Indonesia's
+    Payfazz combined in 2021; Fazz's group CEO sits on the StraitsX team page.
+  evidence: public
+  as_of: 2025-12-26
+  source_url: https://www.ip.mufg.jp/en/insights/cb-8cc2wcxz
+  source_title: 'MUFG Innovation Partners: StraitsX''s vision of the future of financial infrastructure'
+  quote: Today, StraitsX operates as part of Fazz, after Xfers merged with PayFazz, an Indonesian company focused
+    on financial inclusion to form Fazz Financial Group.
+- from: straitsx
+  to: bank-indonesia
+  type: supervised_by
+  share: null
+  detail: StraitsX lists a Bank Indonesia payment service provider licence (category 1) for payment initiation,
+    acquiring and B2B remittance; the licensed Indonesian entity is not named.
+  evidence: public
+  as_of: 2026-10-19
+  source_url: https://www.straitsx.com/trust
+  source_title: 'StraitsX: Trust & Security'
+  quote: Indonesia | Bank Indonesia | Payment Service Provider - License Category 1 (23/730/DKSP/Srt/B) | Payment
+    Initiation Service | Acquiring Service | Remittance Service (B2B)
+- from: straitsx
+  to: mas
+  type: supervised_by
+  share: null
+  detail: Xfers Pte. Ltd., trading as Fazz and StraitsX, is a MAS Major Payment Institution for account issuance,
+    domestic and cross-border money transfer, merchant acquisition, e-money issuance and digital payment token services.
+  evidence: public
+  as_of: 2026-08-25
+  source_url: https://eservices.mas.gov.sg/fid/institution/detail/226546-XFERS-PTE-LTD
+  source_title: 'MAS Financial Institutions Directory: XFERS PTE. LTD.'
+  quote: Major Payment Institution - Fazz; StraitsX | Account Issuance Service | Domestic Money Transfer Service
+    | Cross-border Money Transfer Service | Merchant Acquisition Service | E-money Issuance Service | Digital Payment
+    Token Service
+- from: straitsx-sgd-issuance
+  to: mas
+  type: supervised_by
+  share: null
+  detail: StraitsX SGD Issuance, the XSGD issuer, is a MAS Major Payment Institution for digital payment token service;
+    MAS gave it in-principle approval in November 2023 as substantively compliant with the coming single-currency
+    stablecoin framework.
+  evidence: public
+  as_of: 2026-08-25
+  source_url: https://eservices.mas.gov.sg/fid/institution/detail/420461-STRAITSX-SGD-ISSUANCE-PTE-LTD
+  source_title: 'MAS Financial Institutions Directory: STRAITSX SGD ISSUANCE PTE. LTD.'
+  quote: STRAITSX SGD ISSUANCE PTE. LTD. | Major Payment Institution | Digital Payment Token Service
+- from: straitsx-usd-issuance
+  to: mas
+  type: supervised_by
+  share: null
+  detail: StraitsX USD Issuance, the XUSD issuer, is a MAS Major Payment Institution for digital payment token service.
+  evidence: public
+  as_of: 2026-08-25
+  source_url: https://eservices.mas.gov.sg/fid/institution/detail/420459-STRAITSX-USD-ISSUANCE-PTE-LTD
+  source_title: 'MAS Financial Institutions Directory: STRAITSX USD ISSUANCE PTE. LTD.'
+  quote: STRAITSX USD ISSUANCE PTE. LTD. | Major Payment Institution | Digital Payment Token Service
+- from: straitsx-payment-services
+  to: mas
+  type: supervised_by
+  share: null
+  detail: StraitsX Payment Services, which runs the StraitsX DPT platform and safeguards customer tokens, is a MAS
+    Major Payment Institution for digital payment token service.
+  evidence: public
+  as_of: 2026-08-25
+  source_url: https://eservices.mas.gov.sg/fid/institution/detail/420460-STRAITSX-PAYMENT-SERVICES-PTE-LTD
+  source_title: 'MAS Financial Institutions Directory: STRAITSX PAYMENT SERVICES PTE. LTD.'
+  quote: STRAITSX PAYMENT SERVICES PTE. LTD. | Major Payment Institution | Digital Payment Token Service
+- from: okx-europe
+  to: malta
+  type: operates_in
+  share: null
+  detail: OKX Europe is incorporated and authorised in Malta and passports MiCA services across the EEA.
+  evidence: public
+  as_of: 2025-01-27
+  source_url: https://www.esma.europa.eu/sites/default/files/2024-12/CASPS.csv
+  source_title: 'ESMA interim MiCA register: authorised crypto-asset service providers (CASPS.csv)'
+  quote: AT|BE|BG|CY|CZ|DE|DK|EE|EL|ES|FI|FR|HR|HU|IE|IS|IT|LI|LT|LU|LV|NL|NO|PL|PT|RO|SE|SI|SK
+- from: okx-sg
+  to: singapore
+  type: operates_in
+  share: null
+  detail: OKX SG is incorporated in Singapore, at Marina Bay Financial Centre, and serves Singapore customers via
+    okx.com/en-sg.
+  evidence: public
+  as_of: 2026-10-03
+  source_url: https://eservices.mas.gov.sg/fid/institution/detail/422854-OKX-SG-PTE-LTD
+  source_title: 'MAS Financial Institutions Directory: OKX SG PTE. LTD. (last updated 03 Oct 2026)'
+  quote: 'https://www.okx.com/en-sg | +65 69322834 | 12 MARINA BOULEVARD #19-02, MARINA BAY FINANCIAL CENTRE 018982'
+- from: okx-middle-east
+  to: united-arab-emirates
+  type: operates_in
+  share: null
+  detail: OKX Middle East's principal place of business is One Central, Dubai World Trade Centre.
+  evidence: public
+  as_of: 2026-10-19
+  source_url: https://www.vara.ae/en/licenses-and-register/public-register/okx-middle-east-fintech-fze
+  source_title: 'VARA Public Register: OKX Middle East Fintech FZE'
+  quote: 701/702, The Office 5, One Central Office, DWTC, Dubai, UAE
+- from: okx
+  to: united-states
+  type: operates_in
+  share: null
+  detail: OKX launched its US exchange and wallet in April 2025, weeks after the DOJ plea, with a US headquarters
+    in San Jose, California.
+  evidence: public
+  as_of: 2025-04-16
+  source_url: https://news.bloomberglaw.com/crypto/crypto-firm-okx-launches-us-exchange-after-settling-doj-charges
+  source_title: Crypto Firm OKX Launches US Exchange After Settling DOJ Charges (Bloomberg, 16 Apr 2025)
+  quote: The company said it will launch its centralized trading platform and self-custody Web3 wallet in the US,
+    while appointing of Roshan Robert as its US chief executive, in a Tuesday statement. It has also opened a new
+    US headquarters in San Jose, California, placing it in the heart of Silicon Valley.
+- from: okx
+  to: aux-cayes-fintech
+  type: owns
+  share: null
+  detail: Aux Cayes Fintech Co. Ltd, a Seychelles company, operates the global OKX exchange and is the entity that
+    pleaded guilty in the US in February 2025.
+  evidence: public
+  as_of: 2025-02-24
+  source_url: https://www.justice.gov/usao-sdny/pr/okx-pleads-guilty-violating-us-anti-money-laundering-laws-and-agrees-pay-penalties
+  source_title: OKX Pleads Guilty To Violating U.S. Anti-Money Laundering Laws And Agrees To Pay Penalties Totaling
+    More Than $504 Million (US Attorney's Office SDNY, 24 Feb 2025)
+  quote: Aux Cayes Fintech Co. Ltd, d/b/a “OKEx,” d/b/a “OKX” (“OKX”), a Seychelles-based entity, that since at
+    least 2017 has operated OKX, one of the largest cryptocurrency exchanges in the world
+- from: okx
+  to: okcoin-usa
+  type: owns
+  share: null
+  detail: OKCoin USA, Inc. is OKX's US affiliate exchange; DOJ calls it an affiliate, and OKX moved existing OKCoin
+    users to the OKX US platform in 2025.
+  evidence: public
+  as_of: 2025-02-24
+  source_url: https://www.justice.gov/usao-sdny/pr/okx-pleads-guilty-violating-us-anti-money-laundering-laws-and-agrees-pay-penalties
+  source_title: OKX Pleads Guilty To Violating U.S. Anti-Money Laundering Laws And Agrees To Pay Penalties Totaling
+    More Than $504 Million (US Attorney's Office SDNY, 24 Feb 2025)
+  quote: OKX has an affiliate U.S.-based cryptocurrency exchange named OKCoin USA, Inc. (“OKCoin”) which, in contrast
+    with OKX, has registered with FinCEN as a MSB.
+- from: okx
+  to: okx-australia
+  type: owns
+  share: null
+  detail: OKX Australia Pty Ltd is OKX's locally incorporated Australian spot exchange entity.
+  evidence: public
+  as_of: 2024-05-14
+  source_url: https://www.aap.com.au/aapreleases/cision20240514ae12320/
+  source_title: OKX Launches Crypto Exchange in Australia With Spot and Derivatives Trading (OKX release via AAP/Cision,
+    14 May 2024)
+  quote: OTC spot trading services are available to all users in Australia via OKX Australia Pty Ltd., which is
+    a locally incorporated entity registered with AUSTRAC.
+- from: okx
+  to: okx-australia-financial
+  type: owns
+  share: null
+  detail: OKX Australia Financial Pty Ltd offers OKX derivatives to wholesale clients in Australia.
+  evidence: public
+  as_of: 2024-05-14
+  source_url: https://www.aap.com.au/aapreleases/cision20240514ae12320/
+  source_title: OKX Launches Crypto Exchange in Australia With Spot and Derivatives Trading (OKX release via AAP/Cision,
+    14 May 2024)
+  quote: derivatives (futures, options and perpetual swaps) trading services will only be offered to verified wholesale
+    clients who meet the relevant Corporations Act 2001 (Cth) definition, via OKX Australia Financial Pty Ltd.,
+    a local entity which holds an Australia Financial Services (AFS) licence regulated by ASIC, and is also AUSTRAC
+    registered.
+- from: okx
+  to: okx-bahamas
+  type: owns
+  share: null
+  detail: OKX Bahamas Fintech Company Limited is an OKX entity registered in the Bahamas; the register gives okx.com
+    as its website. Register is dated 12 Nov 2022; current status not rechecked.
+  evidence: public
+  as_of: 2022-11-12
+  source_url: https://www.scb.gov.bs/wp-content/uploads/2022/11/DARE-Register-as-at-12-November-2022.pdf
+  source_title: Securities Commission of The Bahamas, Register of Digital Asset Businesses as at 12 November 2022
+  quote: OKX BAHAMAS FINTECH COMPANY LIMITED | Website | www.okx.com
+- from: okx
+  to: okx-europe
+  type: owns
+  share: null
+  detail: OKX Europe Limited (previously OKCoin Europe Ltd, per GLEIF LEI 54930069NLWEIGLHXU42) is OKX's MiCA entity,
+    trading as OKX; GLEIF reports its consolidating parent as natural persons, so no corporate parent is published.
+  evidence: public
+  as_of: 2025-11-28
+  source_url: https://www.esma.europa.eu/sites/default/files/2024-12/CASPS.csv
+  source_title: 'ESMA interim MiCA register: authorised crypto-asset service providers (CASPS.csv)'
+  quote: Malta Financial Services Authority (MFSA) | MT | OKX Europe Limited | 54930069NLWEIGLHXU42 | MT | OKX
+- from: okx
+  to: okx-middle-east
+  type: owns
+  share: null
+  detail: OKX Middle East Fintech FZE is OKX's Dubai entity; the VARA register gives okx.com as its website and
+    ICE describes Dubai as OKX's Middle East headquarters.
+  evidence: public
+  as_of: 2026-10-19
+  source_url: https://www.vara.ae/en/licenses-and-register/public-register/okx-middle-east-fintech-fze
+  source_title: 'VARA Public Register: OKX Middle East Fintech FZE'
+  quote: 'VASP Name : OKX Middle East Fintech FZE | Reference : VL/23/12/003 | Website URL : https://www.okx.com/'
+- from: okx
+  to: okx-sg
+  type: owns
+  share: null
+  detail: OKX SG Pte. Ltd. is OKX's Singapore subsidiary; no stake is published.
+  evidence: public
+  as_of: 2024-03-13
+  source_url: https://www.prnewswire.co.uk/news-releases/okx-receives-in-principle-approval-for-mpi-license-from-monetary-authority-of-singapore-302087441.html
+  source_title: OKX Receives In-Principle Approval for MPI License from Monetary Authority of Singapore (PR Newswire,
+    13 Mar 2024)
+  quote: OKX, a leading global crypto exchange and Web3 technology company, today announced that its Singapore subsidiary,
+    OKX SG Pte. Ltd., has received in-principle approval from the Monetary Authority of Singapore (MAS) for a Major
+    Payment Institution License (MPI).
+- from: ice
+  to: okx
+  type: shareholder_of
+  share: null
+  detail: Intercontinental Exchange (NYSE parent) made a minority investment in OKX at a $25 billion valuation (about
+    $200 million per Bloomberg) and holds an OKX board seat.
+  evidence: public
+  as_of: 2026-03-05
+  source_url: https://s2.q4cdn.com/154085107/files/doc_news/ICE-Makes-Investment-in-OKX-Establishing-Strategic-Relationship-2026.pdf
+  source_title: ICE Makes Investment in OKX, Establishing Strategic Relationship (ICE news release, 5 Mar 2026)
+  quote: ICE’s investment reflects a valuation of OKX of $25 billion. The terms of the investment were not disclosed.
+- from: standard-chartered
+  to: okx
+  type: shareholder_of
+  share: null
+  detail: Standard Chartered invested in OKX through SC Ventures in October 2026; it is also OKX's custodian for
+    off-exchange collateral and a banking on-ramp partner.
+  evidence: public
+  as_of: 2026-10-06
+  source_url: https://news.bgov.com/crypto/crypto-exchange-okx-raises-at-25-billion-from-stanchart-circle
+  source_title: Crypto Exchange OKX Raises at $25 Billion From StanChart, Circle (Bloomberg, 6 Oct 2026)
+  quote: Circle Internet Group Inc., Ripple and Standard Chartered Plc’s investment arm SC Ventures all participated
+    in the fundraise, OKX said in a press release.
+- from: ripple
+  to: okx
+  type: shareholder_of
+  share: null
+  detail: Ripple invested in OKX in October 2026; Ripple's RLUSD stablecoin trades on OKX's order book.
+  evidence: public
+  as_of: 2026-10-06
+  source_url: https://news.bgov.com/crypto/crypto-exchange-okx-raises-at-25-billion-from-stanchart-circle
+  source_title: Crypto Exchange OKX Raises at $25 Billion From StanChart, Circle (Bloomberg, 6 Oct 2026)
+  quote: Circle Internet Group Inc., Ripple and Standard Chartered Plc’s investment arm SC Ventures all participated
+    in the fundraise, OKX said in a press release.
+- from: qrt
+  to: okx
+  type: shareholder_of
+  share: null
+  detail: Hedge fund Qube Research & Technologies invested in OKX in October 2026; it is also an institutional liquidity
+    provider on OKX.
+  evidence: public
+  as_of: 2026-10-06
+  source_url: https://news.bgov.com/crypto/crypto-exchange-okx-raises-at-25-billion-from-stanchart-circle
+  source_title: Crypto Exchange OKX Raises at $25 Billion From StanChart, Circle (Bloomberg, 6 Oct 2026)
+  quote: Crypto exchange operator OKX has raised new funding at a $25 billion valuation, drawing fresh capital from
+    existing partners and the hedge fund Qube Research & Technologies.
+- from: okx-australia-financial
+  to: asic
+  type: supervised_by
+  share: null
+  detail: OKX Australia Financial Pty Ltd holds AFS licence 379035, regulated by ASIC.
+  evidence: public
+  as_of: 2024-05-14
+  source_url: https://www.aap.com.au/aapreleases/cision20240514ae12320/
+  source_title: OKX Launches Crypto Exchange in Australia With Spot and Derivatives Trading (OKX release via AAP/Cision,
+    14 May 2024)
+  quote: derivatives and margin by OKX Australia Financial Pty Ltd (ABN 14 145 724 509, AFSL 379035)
+- from: okx-australia
+  to: austrac
+  type: supervised_by
+  share: null
+  detail: OKX Australia Pty Ltd is registered with AUSTRAC as a digital currency exchange.
+  evidence: public
+  as_of: 2024-05-14
+  source_url: https://www.aap.com.au/aapreleases/cision20240514ae12320/
+  source_title: OKX Launches Crypto Exchange in Australia With Spot and Derivatives Trading (OKX release via AAP/Cision,
+    14 May 2024)
+  quote: OTC spot trading services are available to all users in Australia via OKX Australia Pty Ltd., which is
+    a locally incorporated entity registered with AUSTRAC.
+- from: okx-middle-east
+  to: dubai-vara
+  type: supervised_by
+  share: null
+  detail: 'VARA VASP licence issued 17 Sep 2024, status Active: lending and borrowing, management and investment,
+    exchange (including VA derivatives) and broker-dealer services, retail clients permitted.'
+  evidence: public
+  as_of: 2026-10-19
+  source_url: https://www.vara.ae/en/licenses-and-register/public-register/okx-middle-east-fintech-fze
+  source_title: 'VARA Public Register: OKX Middle East Fintech FZE'
+  quote: 'Licence Type : VASP Licence | Licensed Activities : Lending and Borrowing Services | Management and Investment
+    Services | Exchange Services (including VA Derivatives Trading) | Broker-Dealer Services | Licence Issued :
+    2024/09/17 | Status : Active'
+- from: okx-sg
+  to: mas
+  type: supervised_by
+  share: null
+  detail: OKX SG is a Major Payment Institution licensed for Digital Payment Token and cross-border money transfer
+    services (in-principle approval February/March 2024, licence reported 2 September 2024).
+  evidence: public
+  as_of: 2026-10-03
+  source_url: https://eservices.mas.gov.sg/fid/institution/detail/422854-OKX-SG-PTE-LTD
+  source_title: 'MAS Financial Institutions Directory: OKX SG PTE. LTD. (last updated 03 Oct 2026)'
+  quote: OKX SG PTE. LTD. | Incorporated in Singapore | Major Payment Institution | Cross-border Money Transfer
+    Service | Digital Payment Token Service
+- from: okx-europe
+  to: mfsa
+  type: supervised_by
+  share: null
+  detail: MFSA authorised OKX Europe as a MiCA crypto-asset service provider on 27 Jan 2025 (custody, trading platform,
+    exchange, execution, placing, RTO, portfolio management, transfers), passported to 29 other EEA states.
+  evidence: public
+  as_of: 2025-01-27
+  source_url: https://www.esma.europa.eu/sites/default/files/2024-12/CASPS.csv
+  source_title: 'ESMA interim MiCA register: authorised crypto-asset service providers (CASPS.csv)'
+  quote: Malta Financial Services Authority (MFSA) | MT | OKX Europe Limited | 54930069NLWEIGLHXU42 | MT | OKX |
+    Piazzetta Business Plaza, Office Number 4, Floor 2, Malta | www.okx.com | www.okx.com | 27/01/2025
+- from: okx-bahamas
+  to: securities-commission-bahamas
+  type: supervised_by
+  share: null
+  detail: Registered digital asset business under the DARE Act for exchange and transfer of digital assets (as at
+    12 Nov 2022).
+  evidence: public
+  as_of: 2022-11-12
+  source_url: https://www.scb.gov.bs/wp-content/uploads/2022/11/DARE-Register-as-at-12-November-2022.pdf
+  source_title: Securities Commission of The Bahamas, Register of Digital Asset Businesses as at 12 November 2022
+  quote: Provision of exchange between one or more forms of digital assets; Transferring of digital assets. | Registration
+    Type | Digital Asset Business
+- from: coinbase
+  to: nasdaq
+  type: listed_on
+  share: null
+  detail: Coinbase Global's Class A common stock trades on the Nasdaq Global Select Market as COIN since 14 April
+    2021.
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K for the year ended 31 December 2025, Item 5
+  quote: Our Class A common stock began trading on the Nasdaq Global Select Market under the symbol “COIN” on April
+    14, 2021.
+- from: coinbase
+  to: sp-500
+  type: member_of
+  share: null
+  detail: Coinbase was added to the S&P 500 on 19 May 2025, so index flows and S&P 500 news can touch it.
+  evidence: public
+  as_of: 2025-05-19
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K for the year ended 31 December 2025, Item 5 Stock performance graph
+  quote: On May 19, 2025, we were added to the S&P 500.
+- from: coinbase
+  to: coinbase-singapore
+  type: owns
+  share: null
+  detail: Coinbase Singapore Pte. Ltd. is the group's MAS-licensed Major Payment Institution; the 10-K names the
+    Singapore licence but not the stake (the entity is omitted from Exhibit 21 as not significant).
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K for the year ended 31 December 2025, Item 1 Government regulation
+  quote: In Singapore, we hold a major payment institution license issued by the Monetary Authority of Singapore.
+- from: coinbase
+  to: deribit
+  type: owns
+  share: 1.0
+  detail: Coinbase bought all shares of Deribit (Sentillia B.V.), the largest crypto options exchange, for US$700m
+    cash plus about 11.0m Class A shares; the deal closed in August 2025.
+  evidence: public
+  as_of: 2025-08-14
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978825000086/coin-20250508.htm
+  source_title: Coinbase Global, Inc. Form 8-K filed 8 May 2025, Item 1.01 Share Purchase Agreement with Sentillia
+    B.V. (Deribit)
+  quote: Coinbase or its affiliate will acquire, from the Deribit Shareholders, all of the issued and outstanding
+    ordinary shares of Deribit (the “Share Purchase”).
+- from: coinbase
+  to: straitsx
+  type: partner_of
+  share: null
+  detail: 'Strategic partnership (announced 24 Sep 2025 per press coverage): Coinbase lists XSGD with an XSGD/USDC
+    pair, and StraitsX issues XSGD on Base. partner_of is dropped by build_relationships.py; the routable edge is
+    straitsx depends_on coinbase/base in the StraitsX part.'
+  evidence: public
+  as_of: 2025-09-24
+  source_url: https://www.straitsx.com/blog-post/xsgd-live-on-coinbase
+  source_title: XSGD live on Coinbase (StraitsX blog)
+  quote: We’re excited to announce that XSGD is coming to Coinbase, marking the first phase of our strategic partnership
+    with the global exchange.
+- from: coinbase
+  to: circle
+  type: shareholder_of
+  share: null
+  detail: Coinbase received about 8.4m Circle shares in August 2023 for its 50% of the Centre consortium, sold part
+    at Circle's June 2025 IPO and more in 1Q26; marketable investments, mostly Circle stock, were US$174.8m at 30
+    Jun 2026 (US$309.8m at end-2025). Stake percentage not disclosed.
+  evidence: public
+  as_of: 2026-06-30
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000088/coin-20260630.htm
+  source_title: Coinbase Global, Inc. Form 10-Q for the quarter ended 30 June 2026, MD&A Other (income) expense
+  quote: Current period net losses reflect revaluation, offset in part by gains on the sale of a portion of our
+    investment in Circle during the first quarter of 2026.
+- from: brian-armstrong
+  to: coinbase
+  type: shareholder_of
+  share: 0.496
+  detail: Co-founder and CEO Brian Armstrong holds 3.5% of Class A and 62.5% of Class B stock, 49.6% of total voting
+    power (Class B carries 20 votes per share).
+  evidence: public
+  as_of: 2026-03-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000045/coin-20260424.htm
+  source_title: Coinbase Global, Inc. 2026 Proxy Statement (DEF 14A), Security ownership of certain beneficial owners
+    and management
+  quote: Brian Armstrong(4) | 8,167,972 | 3.5 | 25,639,618 | 62.5 | 49.6
+- from: blackrock
+  to: coinbase
+  type: shareholder_of
+  share: 0.066
+  detail: BlackRock holds 6.6% of Coinbase Class A stock (1.4% of voting power); BlackRock is also a Coinbase custody
+    client (see depends_on_participates).
+  evidence: public
+  as_of: 2026-03-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000045/coin-20260424.htm
+  source_title: Coinbase Global, Inc. 2026 Proxy Statement (DEF 14A), Security ownership of certain beneficial owners
+    and management
+  quote: BlackRock, Inc.(2) | 14,618,089 | 6.6 | — | — | 1.4
+- from: coinbase
+  to: bermuda-monetary-authority
+  type: supervised_by
+  share: null
+  detail: Coinbase holds a Bermuda Class F digital asset business licence; the Coinbase International Exchange (perpetual
+    futures for non-US customers) is BMA regulated.
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K for the year ended 31 December 2025, Item 1 Government regulation
+  quote: In Bermuda, we have obtained a ‘Class ‘F’ (Full) Digital Asset Business License from the Bermuda Monetary
+    Authority enabling us to service consumer trading in numerous approved jurisdictions.
+- from: coinbase
+  to: central-bank-of-ireland
+  type: supervised_by
+  share: null
+  detail: Coinbase serves European customers through an e-money institution authorised by the Central Bank of Ireland
+    (Coinbase Europe Limited, fined EUR 21.5m in Nov 2025).
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K for the year ended 31 December 2025, Item 1 Government regulation
+  quote: We serve our customers through Electronic Money Institutions authorized by the U.K. Financial Conduct Authority
+    and the Central Bank of Ireland.
+- from: coinbase
+  to: cssf
+  type: supervised_by
+  share: null
+  detail: Coinbase Luxembourg S.A. holds the group's MiCA licence for crypto custody and trading across the EEA.
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K for the year ended 31 December 2025, Item 1 Government regulation
+  quote: as well as a MiCA license in Luxembourg to offer crypto custody and trading services across the European
+    Economic Area (“EEA”).
+- from: coinbase-singapore
+  to: mas
+  type: supervised_by
+  share: null
+  detail: MAS Major Payment Institution licensed for cross-border money transfer and digital payment token services
+    (licence granted Oct 2023, after in-principle approval in 2022).
+  evidence: public
+  as_of: 2026-10-19
+  source_url: https://eservices.mas.gov.sg/fid/institution/detail/235467-COINBASE-SINGAPORE-PTE-LTD
+  source_title: 'MAS Financial Institutions Directory: Coinbase Singapore Pte. Ltd.'
+  quote: COINBASE SINGAPORE PTE. LTD. | Major Payment Institution | Cross-border Money Transfer Service | Digital
+    Payment Token Service
+- from: coinbase
+  to: nydfs
+  type: supervised_by
+  share: null
+  detail: Coinbase, Inc. holds a NYDFS BitLicense, and Coinbase Custody Trust Company is a New York limited purpose
+    trust company supervised by NYDFS.
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K for the year ended 31 December 2025, Item 1 Government regulation
+  quote: Our subsidiary, CCTC, operates as a New York State-chartered limited purpose trust company, which is subject
+    to regulation, examination, and supervision by the NYDFS.
+- from: coinbase
+  to: uk-fca
+  type: supervised_by
+  share: null
+  detail: CB Payments Ltd is an FCA e-money institution and registered cryptoasset firm (fined GBP 3.5m in Jul 2024).
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K for the year ended 31 December 2025, Item 1 Government regulation
+  quote: We serve our customers through Electronic Money Institutions authorized by the U.K. Financial Conduct Authority
+    and the Central Bank of Ireland.
+- from: coinbase
+  to: us-cftc
+  type: supervised_by
+  share: null
+  detail: Coinbase Financial Markets is a CFTC futures commission merchant and the Coinbase Derivatives Exchange
+    is a CFTC-regulated designated contract market.
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K for the year ended 31 December 2025, Item 1 Government regulation
+  quote: Our subsidiary, Coinbase Financial Markets, Inc. (“CFM”) operates as a futures commission merchant (“FCM”)
+    and in December 2025, began offering event contracts.
+- from: deribit
+  to: dubai-vara
+  type: supervised_by
+  share: null
+  detail: Deribit FZE runs its derivatives exchange under Dubai VARA supervision with a conditional VASP licence.
+  evidence: public
+  as_of: 2025-12-31
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K for the year ended 31 December 2025, Item 1 Government regulation
+  quote: Deribit FZE operates a derivatives exchange under the supervision of the Virtual Asset Regulatory Authority
+    of Dubai.
+- from: okcoin-usa
+  to: fincen
+  type: supervised_by
+  share: null
+  detail: OKCoin USA is registered with FinCEN as a money services business; state money transmitter licences not
+    checked.
+  evidence: public
+  as_of: 2025-02-24
+  source_url: https://www.justice.gov/usao-sdny/pr/okx-pleads-guilty-violating-us-anti-money-laundering-laws-and-agrees-pay-penalties
+  source_title: OKX Pleads Guilty To Violating U.S. Anti-Money Laundering Laws And Agrees To Pay Penalties Totaling
+    More Than $504 Million (US Attorney's Office SDNY, 24 Feb 2025)
+  quote: OKX has an affiliate U.S.-based cryptocurrency exchange named OKCoin USA, Inc. (“OKCoin”) which, in contrast
+    with OKX, has registered with FinCEN as a MSB.
+- from: tazapay
+  to: mas
+  type: supervised_by
+  share: null
+  detail: Tazapay Pte. Ltd. is a MAS Major Payment Institution licensed for account issuance, domestic and cross-border
+    money transfer, merchant acquisition and e-money issuance; no DPT service.
+  evidence: public
+  as_of: 2026-08-25
+  source_url: https://eservices.mas.gov.sg/fid/institution/detail/412758-TAZAPAY-PTE-LTD
+  source_title: 'MAS Financial Institutions Directory: Tazapay Pte. Ltd. (last updated 25 Aug 2026)'
+  quote: TAZAPAY PTE. LTD. | Major Payment Institution | Account Issuance Service | Domestic Money Transfer Service
+    | Cross-border Money Transfer Service | Merchant Acquisition Service | E-money Issuance Service
+depends_on_participates:
+- from: circle
+  to: arbitrum
+  type: depends_on
+  detail: Arbitrum One is a USDC Approved Blockchain.
+  service: blockchain
+  evidence: public
+  source_url: https://6778953.fs1.hubspotusercontent-na1.net/hubfs/6778953/USDCAttestationReports/2026/2026%20USDC_Examination%20Report%20August%2026.pdf
+  source_title: USDC Reserve Report and Independent Accountants' Report, August 2026
+  published: 2026-09-29
+  quote: USDC Approved Blockchains are Algorand, Aptos, Arbitrum One, Arc, Avalanche C-Chain, Base
+- from: circle
+  to: arc
+  type: depends_on
+  detail: Arc is Circle's own layer 1 blockchain and is now a USDC Approved Blockchain.
+  service: blockchain
+  evidence: public
+  source_url: https://6778953.fs1.hubspotusercontent-na1.net/hubfs/6778953/USDCAttestationReports/2026/2026%20USDC_Examination%20Report%20August%2026.pdf
+  source_title: USDC Reserve Report and Independent Accountants' Report, August 2026
+  published: 2026-09-29
+  quote: USDC Approved Blockchains are Algorand, Aptos, Arbitrum One, Arc, Avalanche C-Chain, Base
+- from: circle
+  to: avalanche
+  type: depends_on
+  detail: Avalanche C-Chain is a USDC Approved Blockchain.
+  service: blockchain
+  evidence: public
+  source_url: https://6778953.fs1.hubspotusercontent-na1.net/hubfs/6778953/USDCAttestationReports/2026/2026%20USDC_Examination%20Report%20August%2026.pdf
+  source_title: USDC Reserve Report and Independent Accountants' Report, August 2026
+  published: 2026-09-29
+  quote: USDC Approved Blockchains are Algorand, Aptos, Arbitrum One, Arc, Avalanche C-Chain, Base
+- from: circle
+  to: base
+  type: depends_on
+  detail: Base, the Coinbase-incubated Ethereum layer 2, is a USDC Approved Blockchain.
+  service: blockchain
+  evidence: public
+  source_url: https://6778953.fs1.hubspotusercontent-na1.net/hubfs/6778953/USDCAttestationReports/2026/2026%20USDC_Examination%20Report%20August%2026.pdf
+  source_title: USDC Reserve Report and Independent Accountants' Report, August 2026
+  published: 2026-09-29
+  quote: USDC Approved Blockchains are Algorand, Aptos, Arbitrum One, Arc, Avalanche C-Chain, Base, Celo, Codex,
+    Cronos, EDGE Chain, Ethereum, Hedera, HyperEVM, Injective, Ink, Linea, Monad, Morph, NEAR, Noble, OP Mainnet,
+    Pharos, Plasma, Plume, Polkadot Asset Hub, Polygon PoS, Ripple, Sei, Solana, Sonic, Starknet, Stellar, Sui,
+    TRON, Unichain, Worldchain, XDC, X Layer, and ZKsync Era blockchains
+- from: circle
+  to: binance
+  type: depends_on
+  detail: Binance promotes USDC and is paid a monthly incentive fee on USDC held through Circle's Modular Smart
+    Contract Wallet service, under a five-year arrangement signed 17 September 2026 that replaced the 2024 and 2025
+    deals.
+  service: distribution
+  evidence: public
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000276/crcl-20260917.htm
+  source_title: Circle Internet Group, Inc. Form 8-K filed 2026-09-22 (Item 8.01)
+  published: 2026-09-22
+  quote: Under the arrangements, we agreed to pay Binance a monthly incentive fee representing a percentage of the
+    amount of USDC held through the Modular Smart Contract Wallet infrastructure service.
+- from: circle
+  to: blackrock
+  type: depends_on
+  detail: BlackRock manages the Circle Reserve Fund and, under a March 2025 MOU, is Circle's preferred reserve manager;
+    Circle keeps at least 90% of US-managed USDC fiat reserves (excluding bank deposits) in BlackRock products.
+  service: reserve_management
+  evidence: public
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000062/crcl-20251231.htm
+  source_title: Circle Internet Group, Inc. Form 10-K FY2025, Partnership with BlackRock
+  published: 2026-03-09
+  quote: we committed to maintaining at least 90% of our U.S.-managed fiat reserves for USDC (excluding bank deposits)
+    with BlackRock managed products, unless legal, regulatory, or operational requirements mandate otherwise.
+- from: circle
+  to: bny
+  type: depends_on
+  detail: BNY is custodian of the assets of the Circle Reserve Fund, which holds most USDC reserves.
+  service: custody
+  evidence: public
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000062/crcl-20251231.htm
+  source_title: Circle Internet Group, Inc. Form 10-K FY2025, Other Regulatory Requirements
+  published: 2026-03-09
+  quote: The assets within the Circle Reserve Fund are held in the custody of BNY.
+- from: visa
+  to: circle
+  type: depends_on
+  detail: Visa settles fiat-denominated VisaNet payments with issuers and acquirers in USDC over Solana and Ethereum,
+    receiving funds into a Visa treasury-managed Circle account.
+  service: payments
+  evidence: public
+  source_url: https://usa.visa.com/about-visa/newsroom/press-releases.releaseId.19881.html
+  source_title: Visa Expands Stablecoin Settlement Capabilities to Merchant Acquirers (Visa press release, 5 Sep
+    2023)
+  published: 2023-09-05
+  quote: Now, Crypto.com can send USDC cross-border over the Ethereum blockchain directly to a Visa treasury managed
+    Circle account which helps reduce the time and complexity of international wire transfers.
+- from: mastercard
+  to: circle
+  type: depends_on
+  detail: Since August 2025 Mastercard acquirers in Eastern Europe, the Middle East and Africa can take settlement
+    in USDC or EURC; this builds on a 2021 Circle and Mastercard USDC settlement pilot. Quote from a verbatim republication;
+    mastercard.com blocked automated access.
+  service: payments
+  evidence: reported
+  source_url: https://africa.com/happening/mastercard-expands-partnership-with-circle-to-transform-digital-settlement-for-merchants-and-acquirers-in-region
+  source_title: Mastercard expands partnership with Circle to transform digital settlement for merchants and acquirers
+    in region (Mastercard release, republished by Africa.com)
+  published: 2025-08-26
+  quote: This move will empower acquiring institutions to get their settlement in USDC or EURC – fully-reserved
+    stablecoins issued by regulated affiliates of Circle – which they can then use to settle with merchants
+- from: circle
+  to: circle-reserve-fund
+  type: depends_on
+  detail: About 84% of USDC reserves sit in the Circle Reserve Fund (USDXX), a Rule 2a-7 government money market
+    fund available only to Circle, holding short T-bills, overnight Treasury repo and cash.
+  service: reserve_management
+  evidence: public
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000248/crcl-20260630.htm
+  source_title: Circle Internet Group, Inc. Form 10-Q Q2 2026, Composition of USDC Reserves
+  published: 2026-08-05
+  quote: As of June 30, 2026, approximately 84% of USDC reserves are held in the Circle Reserve Fund. The remaining
+    amount is held in cash distributed across multiple banks.
+- from: circle
+  to: coinbase
+  type: depends_on
+  detail: Coinbase distributes USDC under the August 2023 Collaboration Agreement and receives payments tied to
+    USDC net reserve income, including half of the residual ecosystem income; Circle booked US$1.4 billion of Coinbase
+    distribution costs in 2025.
+  service: distribution
+  evidence: public
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000062/crcl-20251231.htm
+  source_title: Circle Internet Group, Inc. Form 10-K FY2025, Collaboration with Coinbase
+  published: 2026-03-09
+  quote: Under the Collaboration Agreement, Coinbase supports usage of our stablecoins by its customers across its
+    key products (including on- and off-ramps), and we make payments to Coinbase tied principally to net reserve
+    income from USDC.
+- from: circle
+  to: ethereum
+  type: depends_on
+  detail: Ethereum is one of 39 USDC Approved Blockchains on which Circle issues and redeems USDC.
+  service: blockchain
+  evidence: public
+  source_url: https://6778953.fs1.hubspotusercontent-na1.net/hubfs/6778953/USDCAttestationReports/2026/2026%20USDC_Examination%20Report%20August%2026.pdf
+  source_title: USDC Reserve Report and Independent Accountants' Report, August 2026
+  published: 2026-09-29
+  quote: USDC Approved Blockchains are Algorand, Aptos, Arbitrum One, Arc, Avalanche C-Chain, Base, Celo, Codex,
+    Cronos, EDGE Chain, Ethereum, Hedera, HyperEVM, Injective, Ink, Linea, Monad, Morph, NEAR, Noble, OP Mainnet,
+    Pharos, Plasma, Plume, Polkadot Asset Hub, Polygon PoS, Ripple, Sei, Solana, Sonic, Starknet, Stellar, Sui,
+    TRON, Unichain, Worldchain, XDC, X Layer, and ZKsync Era blockchains and are used by Circle to issue and redeem
+    USDC (with the exception of TRON for which only redemptions are supported).
+- from: circle
+  to: okx
+  type: depends_on
+  detail: OKX integrated 1:1 USD to USDC conversion for its customers under a July 2025 partnership, with on- and
+    off-ramps via mutual banking partners; a September 2026 expansion to spot, margin and futures with Circle-funded
+    rewards is reported only by secondary press.
+  service: distribution
+  evidence: public
+  source_url: https://www.circle.com/pressroom/circle-and-okx-partner-to-deepen-usdc-liquidity-worldwide
+  source_title: Circle and OKX partner to deepen USDC liquidity worldwide (Circle press release, 9 Jul 2025)
+  published: 2025-07-09
+  quote: Through this partnership, customers will be able to easily convert between USD into USDC and back on a
+    1:1 basis across OKX products and services.
+- from: circle
+  to: polygon
+  type: depends_on
+  detail: Polygon PoS is a USDC Approved Blockchain.
+  service: blockchain
+  evidence: public
+  source_url: https://6778953.fs1.hubspotusercontent-na1.net/hubfs/6778953/USDCAttestationReports/2026/2026%20USDC_Examination%20Report%20August%2026.pdf
+  source_title: USDC Reserve Report and Independent Accountants' Report, August 2026
+  published: 2026-09-29
+  quote: Plasma, Plume, Polkadot Asset Hub, Polygon PoS, Ripple, Sei, Solana
+- from: circle
+  to: solana
+  type: depends_on
+  detail: Solana is a USDC Approved Blockchain; Circle also holds 'tokens allowed but not issued' on Solana, and
+    Visa settles in USDC over Solana.
+  service: blockchain
+  evidence: public
+  source_url: https://6778953.fs1.hubspotusercontent-na1.net/hubfs/6778953/USDCAttestationReports/2026/2026%20USDC_Examination%20Report%20August%2026.pdf
+  source_title: USDC Reserve Report and Independent Accountants' Report, August 2026
+  published: 2026-09-29
+  quote: Tokens Allowed But Not Issued are defined as tokens that exist on the Algorand, Hedera, Polkadot Asset
+    Hub, and Solana blockchains and are not currently issued to a USDC Holder.
+- from: circle
+  to: bloom
+  type: participates_in
+  detail: Circle is a BLOOM member in the 'distribution and clearing of settlement assets' focus area, alongside
+    DBS, OCBC, Partior, Stripe and UOB.
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.mas.gov.sg/news/media-releases/2025/mas-launches-bloom-initiative-to-extend-settlement-capabilities
+  source_title: MAS Launches BLOOM Initiative to Extend Settlement Capabilities (MAS media release, 16 Oct 2025)
+  published: 2025-10-16
+  quote: Members working on this include Circle, DBS, OCBC, Partior, Stripe and UOB.
+- from: circle
+  to: project-orchid
+  type: participates_in
+  detail: Circle says its 2023 Grab Web3 Wallet pilot supported Project Orchid as a demonstration of purpose bound
+    money; the MAS Orchid page does not list Circle.
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.circle.com/pressroom/circle-and-grab-pilot-web3-experiences-in-singapore
+  source_title: Circle and Grab Pilot Web3 Experiences in Singapore (Circle press release, 14 Sep 2023)
+  published: 2023-09-14
+  quote: Launched as a pilot for the SG Pitstop Pack, Circle’s collaboration with Grab supports the Monetary Authority
+    of Singapore’s (MAS) Project Orchid initiative as a real-world demonstration of Purpose Bound Money.
+- from: straitsx
+  to: arbitrum
+  type: depends_on
+  detail: XSGD on Arbitrum held 21,673 XSGD at 31 Aug 2026.
+  service: blockchain
+  evidence: public
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  published: 2026-09-28
+  quote: XSGD (ARB) | 21,673
+- from: straitsx
+  to: avalanche
+  type: depends_on
+  detail: XSGD on Avalanche held 1,514,194 XSGD at 31 Aug 2026; Avalanche also carries the Alipay+ to GrabPay purpose-bound
+    money settlement.
+  service: blockchain
+  evidence: public
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  published: 2026-09-28
+  quote: XSGD (AVAX) | 1,514,194
+- from: straitsx
+  to: base
+  type: depends_on
+  detail: XSGD on Base, Coinbase's layer 2, held 5,652,269 XSGD at 31 Aug 2026, the second-largest share after Ethereum.
+  service: blockchain
+  evidence: public
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  published: 2026-09-28
+  quote: XSGD (BASE) | 5,652,269
+- from: straitsx
+  to: bitgo
+  type: depends_on
+  detail: BitGo, Inc. is the external custodian for customer tokens held by StraitsX Payment Services, so customer
+    assets may sit on devices outside Singapore.
+  service: custody
+  evidence: public
+  source_url: https://www.straitsx.com/legal/risk-warnings-regulatory-notices-disclosures
+  source_title: 'StraitsX: Risk Warnings, Notices & Disclosures (with effect from 18 July 2026)'
+  published: 2026-07-18
+  quote: Our current Custodial Safeguarding Person is BitGo, Inc.
+- from: straitsx
+  to: bnb-smart-chain
+  type: depends_on
+  detail: 84% of XUSD (38,983,843 of 46,182,310) is issued on BNB Smart Chain at 31 Aug 2026; XUSD has traded on
+    Binance against USDT since March 2025.
+  service: blockchain
+  evidence: public
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb483d1de79f8ca93f1c67_XUSD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XUSD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  published: 2026-09-28
+  quote: XUSD (BEP20) | 38,983,843
+- from: straitsx
+  to: cimb-singapore
+  type: depends_on
+  detail: CIMB Bank Berhad Singapore Branch is named as one of three banks holding the XSGD and XUSD reserve trust
+    accounts.
+  service: custody
+  evidence: public
+  source_url: https://www.straitsx.com/legal/risk-warnings-regulatory-notices-disclosures
+  source_title: 'StraitsX: Risk Warnings, Notices & Disclosures (with effect from 18 July 2026)'
+  published: 2026-07-18
+  quote: trust accounts maintained with CIMB Bank Berhad Singapore Branch (“CIMB”), DBS Bank Ltd (“DBS”) and Standard
+    Chartered Bank (Singapore) Ltd (“SCB”)
+- from: straitsx
+  to: circle
+  type: depends_on
+  detail: StraitsX offers USDC on its accounts and in OKX Pay; when USDC's banking partners failed in March 2023
+    it paused USD bank transfers on its dashboard.
+  service: distribution
+  evidence: public
+  source_url: https://www.straitsx.com/blog-post/an-update-on-our-usdc-services
+  source_title: An update on our USDC services
+  published: 2023-03-13
+  quote: StraitsX has temporarily paused USD deposits and withdrawals as part of our risk management procedures
+    and we continue to monitor the situation closely.
+- from: straitsx
+  to: coinbase
+  type: depends_on
+  detail: Coinbase lists XSGD (initial XSGD/USDC pair) since September 2025, XSGD is issued on Coinbase's Base chain,
+    and Coinbase Custody has supported XSGD since June 2022.
+  service: distribution
+  evidence: public
+  source_url: https://www.straitsx.com/blog-post/xsgd-live-on-coinbase
+  source_title: XSGD live on Coinbase
+  published: 2025-09-24
+  quote: XSGD is now available to millions of users on Coinbase and Coinbase Advanced, featuring an initial XSGD/USDC
+    trading pair for deep liquidity.
+- from: straitsx
+  to: dbs
+  type: depends_on
+  detail: DBS holds trust accounts for the XSGD and XUSD reserve assets and has provided cash management and custody
+    for them since at least July 2024.
+  service: custody
+  evidence: public
+  source_url: https://www.straitsx.com/legal/risk-warnings-regulatory-notices-disclosures
+  source_title: 'StraitsX: Risk Warnings, Notices & Disclosures (with effect from 18 July 2026)'
+  published: 2026-07-18
+  quote: STX XSGD and STX XUSD will be holding the Reserve Assets on behalf of XSGD and XUSD token-holders in trust
+    accounts maintained with CIMB Bank Berhad Singapore Branch (“CIMB”), DBS Bank Ltd (“DBS”) and Standard Chartered
+    Bank (Singapore) Ltd (“SCB”)
+- from: straitsx
+  to: ethereum
+  type: depends_on
+  detail: XSGD (11,472,891 of 22,194,718 in circulation) and XUSD (7,147,961 of 46,182,310) are issued on Ethereum
+    at 31 Aug 2026; Ethereum is the largest XSGD chain.
+  service: blockchain
+  evidence: public
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  published: 2026-09-28
+  quote: XSGD (ERC20) | 11,472,891
+- from: straitsx
+  to: hedera
+  type: depends_on
+  detail: XSGD on Hedera (HTS) held 50,000 XSGD at 31 Aug 2026.
+  service: blockchain
+  evidence: public
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  published: 2026-09-28
+  quote: XSGD (HTS) | 50,000
+- from: straitsx
+  to: platon
+  type: depends_on
+  detail: XSGD on PlatON held 25,590 XSGD at 31 Aug 2026.
+  service: blockchain
+  evidence: public
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  published: 2026-09-28
+  quote: XSGD (LAT) | 25,590
+- from: straitsx
+  to: polygon
+  type: depends_on
+  detail: XSGD on Polygon PoS held 2,130,641 XSGD at 31 Aug 2026; XUSD is also approved on Polygon (1 token outstanding).
+  service: blockchain
+  evidence: public
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  published: 2026-09-28
+  quote: XSGD (POS) | 2,130,641
+- from: straitsx
+  to: solana
+  type: depends_on
+  detail: XSGD (64,699) and XUSD (50,505) are issued on Solana at 31 Aug 2026.
+  service: blockchain
+  evidence: public
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  published: 2026-09-28
+  quote: XSGD (SOL) | 64,699
+- from: straitsx
+  to: standard-chartered-singapore
+  type: depends_on
+  detail: Standard Chartered Bank (Singapore) provides cash management and custody for the XSGD and XUSD reserve
+    assets under a partnership announced 18 February 2025.
+  service: custody
+  evidence: public
+  source_url: https://www.straitsx.com/blog-post/straitsx-partners-with-standard-chartered-to-strengthen-stablecoin-infrastructure
+  source_title: StraitsX partners with Standard Chartered to strengthen stablecoin infrastructure
+  published: 2025-02-18
+  quote: Through this collaboration, Standard Chartered will serve as one of StraitsX’s trusted banking partners,
+    providing robust cash management and custody services for the reserve assets backing StraitsX’s U.S. Dollar
+    and Singapore Dollar stablecoins, XUSD and XSGD.
+- from: grab
+  to: straitsx
+  type: depends_on
+  detail: Payments by Alipay+ users at GrabPay merchants in Singapore are cleared and settled in XSGD, using purpose-bound
+    money on Avalanche, live since November 2024; Grab and StraitsX also signed a Web3 wallet MOU in November 2025.
+  service: payments
+  evidence: public
+  source_url: https://www.straitsx.com/blog-post/straitsx-grab-and-ant-international-further-partnership-to-simplify-cross-border-payments
+  source_title: StraitsX, Grab, and Ant International Further Partnership to Simplify Cross-Border Payments
+  published: 2024-11-05
+  quote: The system utilizes the Avalanche network and StraitsX’s XSGD stablecoin to facilitate backend clearing
+    and settlement, bypassing traditional legacy banking delays.
+- from: straitsx
+  to: visa
+  type: depends_on
+  detail: StraitsX is a Visa issuing member and BIN sponsor for stablecoin-backed cards (OKX Card, RedotPay); it
+    reported more than US$6 billion annualised card GTV and extended Visa issuing to 100+ markets on 15 Oct 2026.
+  service: payments
+  evidence: public
+  source_url: https://www.straitsx.com/blog-post/how-straitsx-powers-okx-card-in-singapore
+  source_title: How StraitsX Powers OKX Card in Singapore
+  published: 2026-06-02
+  quote: The OKX Card program is enabled through StraitsX’s role as a Visa issuing member, supporting compliant
+    card issuance, transaction settlement, and scheme alignment under Visa.
+- from: straitsx
+  to: x-layer
+  type: depends_on
+  detail: XSGD is approved on X Layer, the EVM layer 2 published on OKX's web3 site, with 5 XSGD outstanding at
+    31 Aug 2026.
+  service: blockchain
+  evidence: public
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  published: 2026-09-28
+  quote: XSGD (XLAYER) | 5
+- from: straitsx
+  to: xrp-ledger
+  type: depends_on
+  detail: XSGD on the XRP Ledger held 10,000 XSGD at 31 Aug 2026.
+  service: blockchain
+  evidence: public
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  published: 2026-09-28
+  quote: XSGD (XRP) | 10,000
+- from: straitsx
+  to: zilliqa
+  type: depends_on
+  detail: XSGD on Zilliqa (ZRC-2), one of its two launch chains in 2020, held 1,252,756 XSGD at 31 Aug 2026.
+  service: blockchain
+  evidence: public
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  published: 2026-09-28
+  quote: XSGD (ZRC2) | 1,252,756
+- from: straitsx
+  to: bloom
+  type: participates_in
+  detail: StraitsX works with Ant International on BLOOM's programmable compliance controls workstream.
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.mas.gov.sg/news/media-releases/2025/mas-launches-bloom-initiative-to-extend-settlement-capabilities
+  source_title: MAS Launches BLOOM Initiative to Extend Settlement Capabilities
+  published: 2025-10-16
+  quote: Members working on this include Ant International and StraitsX.
+- from: straitsx
+  to: project-orchid
+  type: participates_in
+  detail: StraitsX ran Project Orchid purpose-bound money trials, including PBM commercial vouchers with Temasek
+    and Grab, and XSGD-backed PBM for Alipay+ payments at GrabPay merchants.
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.mas.gov.sg/schemes-and-initiatives/project-orchid
+  source_title: 'MAS: Project Orchid'
+  published: 2022-10-31
+  quote: Temasek, StraitsX and Grab will test the issuance of PBMs as commercial digital vouchers
+- from: okx
+  to: alibaba-cloud
+  type: depends_on
+  detail: OKX suspended withdrawals during the December 2022 Alibaba Cloud Hong Kong outage. Its current hosting
+    is not disclosed, so treat this as historical evidence of the dependency.
+  service: cloud
+  evidence: reported
+  source_url: https://technode.com/2022/12/26/alibaba-cloud-to-compensate-customers-affected-by-service-outage-in-hong-kong-region
+  source_title: Alibaba Cloud to compensate customers affected by service outage in Hong Kong region (TechNode,
+    26 Dec 2022)
+  published: 2022-12-26
+  quote: The firm said the incident was the longest large-scale outage in more than a decade of operation, affecting
+    multiple government and media websites including the Monetary Authority of Macao, takeaway platform mFood, and
+    cryptocurrency exchange OKX, which had to suspend withdrawals.
+- from: okx
+  to: bank-frick
+  type: depends_on
+  detail: Bank Frick (Liechtenstein) is named with Standard Chartered and DBS as OKX's main fiat on-ramp banks.
+  service: banking
+  evidence: reported
+  source_url: https://tr.tradingview.com/news/cointelegraph:bc864f047094b:0-circle-and-okx-launch-zero-fee-usdc-conversions-to-us-dollar
+  source_title: Circle and OKX launch zero-fee USDC conversions to US dollar (Cointelegraph via TradingView, 9 Jul
+    2025)
+  published: 2025-07-09
+  quote: OKX’s primary on-ramp solutions currently center around key partners like Standard Chartered Bank, DBS,
+    Bank Frick
+- from: okx
+  to: circle
+  type: depends_on
+  detail: OKX offers 1:1 USD to USDC conversion to its global customers through a Circle partnership; USDC is a
+    core quote and settlement asset on OKX (see the exposures section for OKX's USDC holdings).
+  service: payments
+  evidence: public
+  source_url: https://www.circle.com/pressroom/circle-and-okx-partner-to-deepen-usdc-liquidity-worldwide
+  source_title: Circle and OKX Partner to Deepen USDC Liquidity Worldwide (Circle, 9 Jul 2025)
+  published: 2025-07-09
+  quote: Through this partnership, customers will be able to easily convert between USD into USDC and back on a
+    1:1 basis across OKX products and services. Additionally, OKX will simplify on-and off-ramping via mutual banking
+    partners, making it easier for customers to use USDC for trading, payments, and more.
+- from: okx
+  to: dbs
+  type: depends_on
+  detail: DBS is OKX's banking partner for SGD deposits and withdrawals in Singapore (launched November 2024). OKX
+    also names DBS among its main fiat on-ramp partners globally.
+  service: banking
+  evidence: reported
+  source_url: https://fintechnews.sg/103954/digitalassets/okx-instant-deposits-singapore/
+  source_title: OKX Partners DBS to Enable Free, Instant SGD Deposits and Withdrawals (Fintech News Singapore, 19
+    Nov 2024)
+  published: 2024-11-19
+  quote: Crypto exchange OKX has partnered with DBS to offer Singaporean customers instant and free deposits and
+    withdrawals in Singapore dollars (SGD).
+- from: okx
+  to: fast
+  type: depends_on
+  detail: OKX Singapore customers withdraw SGD via FAST (through DBS).
+  service: payments
+  evidence: reported
+  source_url: https://fintechnews.sg/103954/digitalassets/okx-instant-deposits-singapore/
+  source_title: OKX Partners DBS to Enable Free, Instant SGD Deposits and Withdrawals (Fintech News Singapore, 19
+    Nov 2024)
+  published: 2024-11-19
+  quote: Customers can now deposit SGD into their OKX accounts using PayNow and withdraw funds via FAST, provided
+    their bank is one of the 27 institutions participating in the service.
+- from: okx
+  to: grabpay
+  type: depends_on
+  detail: OKX Pay acceptance in Singapore runs on GrabPay's merchant network (SGQR codes at GrabPay merchants).
+  service: payments
+  evidence: public
+  source_url: https://www.straitsx.com/blog-post/straitsx-okx-pay-launch-to-deliver-singapores-first-stablecoin-scan-to-pay-service
+  source_title: StraitsX powers OKX Pay launch with Grab to deliver Singapore's first stablecoin scan-to-pay service
+    (StraitsX, 30 Sep 2025)
+  published: 2025-09-30
+  quote: With OKX Pay, users of the OKX SG app can pay for everyday expenses, from morning coffee to dining out,
+    by simply scanning SGQR codes presented by GrabPay merchants.
+- from: okx
+  to: mastercard
+  type: depends_on
+  detail: 'The OKX Card (EU, launched January 2026) is issued by UK EMI Monavate and spends stablecoins including
+    USDC on the Mastercard network. The Singapore OKX Card is a different programme: StraitsX issues it on Visa.'
+  service: payments
+  evidence: public
+  source_url: https://www.monavate.com/post/modernising-money-made-real-okx-launches-in-europe-powered-by-monavate
+  source_title: 'Modernising money, made real: OKX Card launches in Europe - powered by Monavate (Monavate, 12 Feb
+    2026)'
+  published: 2026-02-12
+  quote: OKX’s European Card rollout enables customers to spend stablecoins - including USDC - anywhere Mastercard
+    is accepted, across the EU.
+- from: okx
+  to: paynow
+  type: depends_on
+  detail: OKX Singapore customers deposit SGD via PayNow (through DBS).
+  service: payments
+  evidence: reported
+  source_url: https://fintechnews.sg/103954/digitalassets/okx-instant-deposits-singapore/
+  source_title: OKX Partners DBS to Enable Free, Instant SGD Deposits and Withdrawals (Fintech News Singapore, 19
+    Nov 2024)
+  published: 2024-11-19
+  quote: Customers can now deposit SGD into their OKX accounts using PayNow and withdraw funds via FAST, provided
+    their bank is one of the 27 institutions participating in the service.
+- from: okx
+  to: standard-chartered
+  type: depends_on
+  detail: 'Standard Chartered (DIFC, DFSA-regulated) is the custodian for OKX''s off-exchange collateral programmes:
+    crypto and tokenised MMF collateral mirroring since April 2025 and BlackRock BUIDL collateral on OKX Middle
+    East since April 2026. It is also named as an OKX fiat on-ramp bank.'
+  service: custody
+  evidence: public
+  source_url: https://www.sc.com/en/press-release/okx-blackrock-and-standard-chartered-launch-joint-framework-to-establish-new-utility-for-tokenized-real-world-assets/
+  source_title: OKX, BlackRock and Standard Chartered launch joint framework to establish new utility for tokenized
+    real-world assets (Standard Chartered, 28 Apr 2026)
+  published: 2026-04-28
+  quote: Through this joint framework OKX VIP and institutional clients can post BUIDL as collateral held off-exchange
+    in regulated custody at Standard Chartered, while trading seamlessly on OKX Middle East, eliminating the need
+    to move assets between venues.
+- from: okx
+  to: straitsx
+  type: depends_on
+  detail: 'OKX Pay in Singapore settles USDT and USDC payments at GrabPay merchants through StraitsX''s payment
+    rails, paying merchants in SGD. StraitsX is also the licensed issuer, BIN sponsor and settlement provider for
+    the OKX Card in Singapore, on Visa (StraitsX, 2 Jun 2026: https://www.straitsx.com/blog-post/how-straitsx-powers-okx-card-in-singapore).'
+  service: payments
+  evidence: public
+  source_url: https://www.straitsx.com/blog-post/straitsx-okx-pay-launch-to-deliver-singapores-first-stablecoin-scan-to-pay-service
+  source_title: StraitsX powers OKX Pay launch with Grab to deliver Singapore's first stablecoin scan-to-pay service
+    (StraitsX, 30 Sep 2025)
+  published: 2025-09-30
+  quote: Transactions are settled instantly via USDT or USDC stablecoin balances using StraitsX’s regulated payment
+    infrastructure, while merchants receive Singapore dollars (SGD) directly into their bank accounts, with no need
+    to handle digital asset tokens (DPTs).
+- from: coinbase
+  to: aws
+  type: depends_on
+  detail: 'Coinbase runs on AWS: the International Exchange was built on AWS and the main platform moved to Amazon
+    EKS; an AWS us-east-1 (use1-az4) failure halted Coinbase trading on 7 to 8 May 2026. The case study is undated;
+    as_of is the date it was read.'
+  service: cloud
+  evidence: public
+  source_url: https://aws.amazon.com/solutions/case-studies/coinbase-cryptocurrency-exchange-case-study/
+  source_title: Coinbase Launches an Ultra-Low-Latency Cryptocurrency Exchange on AWS (AWS case study)
+  published: null
+  quote: The Coinbase International Exchange was built on AWS from the ground up, using Cloud Native principles,
+    powered by AWS managed services such as Amazon Aurora, a relational database service that provides scalable
+    performance and availability at a global scale.
+  as_of: '2026-10-19'
+- from: coinbase
+  to: base
+  type: depends_on
+  detail: Coinbase incubated Base, an Ethereum layer 2, earns sequencer fees on every Base transaction and builds
+    its self-custody Base App on it.
+  service: blockchain
+  evidence: public
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K for the year ended 31 December 2025, Item 1 Business
+  published: 2026-02-12
+  quote: Coinbase generates revenue from sequencer fees paid each time a transaction is processed on the Base blockchain.
+- from: coinbase
+  to: circle
+  type: depends_on
+  detail: Circle provides USDC creation and redemption and the operations behind Coinbase's USDC products; Coinbase
+    buys USDC from Circle and sells it to customers.
+  service: payments
+  evidence: public
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K for the year ended 31 December 2025, Item 1A Risk factors
+  published: 2026-02-12
+  quote: For example, Circle provides us with creation and redemption services for USDC, including the operational
+    capabilities required for our USDC customer-facing services.
+- from: blackrock
+  to: coinbase
+  type: depends_on
+  detail: Coinbase Custody Trust Company safekeeps the bitcoin of BlackRock's iShares Bitcoin Trust ETF (IBIT);
+    Anchorage is a standby custodian with no assets moved; BNY is cash custodian.
+  service: custody
+  evidence: public
+  source_url: https://www.sec.gov/Archives/edgar/data/1980994/000143774926026004/bit20260630c_10q.htm
+  source_title: iShares Bitcoin Trust ETF Form 10-Q for the quarter ended 30 June 2026
+  published: 2026-08-06
+  quote: Coinbase Custody Trust Company, LLC (the “Bitcoin Custodian”) is responsible for safekeeping the bitcoin
+    owned by the Trust.
+- from: coinbase-singapore
+  to: mastercard
+  type: depends_on
+  detail: Singapore customers fund crypto purchases with Visa or Mastercard cards; before March 2023 cards were
+    the only fiat route.
+  service: payments
+  evidence: public
+  source_url: https://www.kitco.com/news/off-the-wire/2023-03-14/coinbase-opens-local-bank-transfers-singapore-users-no-cost
+  source_title: Coinbase opens local bank transfers for Singapore users at no cost (Reuters, via Kitco)
+  published: 2023-03-15
+  quote: Previously, users could only purchase crypto via a Visa or Mastercard debit or credit card, or transfer
+    crypto in and out of their Coinbase account.
+- from: coinbase-singapore
+  to: standard-chartered-singapore
+  type: depends_on
+  detail: Standard Chartered handles Coinbase Singapore's SGD deposits and withdrawals (since March 2023); press
+    reports say the Nov 2025 Coinbase Business launch in Singapore also runs on Standard Chartered.
+  service: banking
+  evidence: public
+  source_url: https://www.kitco.com/news/off-the-wire/2023-03-14/coinbase-opens-local-bank-transfers-singapore-users-no-cost
+  source_title: Coinbase opens local bank transfers for Singapore users at no cost (Reuters, via Kitco)
+  published: 2023-03-15
+  quote: Transfers, in Singapore dollars, are facilitated by a traditional bank, Standard Chartered , and carry
+    no fee, the company said in a statement.
+- from: coinbase
+  to: visa
+  type: depends_on
+  detail: Coinbase uses Visa Direct for real-time deposits and cash-outs with Visa debit cards in the US and EU.
+  service: payments
+  evidence: public
+  source_url: https://usa.visa.com/about-visa/newsroom/press-releases.releaseId.20931.html
+  source_title: Coinbase to Integrate Visa Direct to Deliver Real-Time Account Funding for Customers (Visa press
+    release)
+  published: 2024-10-29
+  quote: By integrating with the Visa Direct network, Coinbase customers will be able to deposit funds into their
+    Coinbase account in real-time1 using eligible Visa debit cards.
+- from: coinbase
+  to: bloom
+  type: participates_in
+  detail: Coinbase is a member of the BLOOM agentic payments workstream with DBS (AI agents executing transactions
+    within preset limits).
+  service: market_infrastructure
+  evidence: public
+  source_url: https://www.mas.gov.sg/news/media-releases/2025/mas-launches-bloom-initiative-to-extend-settlement-capabilities
+  source_title: MAS Launches BLOOM Initiative to Extend Settlement Capabilities
+  published: 2025-10-16
+  quote: Members working on this include Coinbase and DBS.
+exposures:
+- entity: circle
+  dimension: reserve_composition
+  measure: fair_value
+  segment: U.S. Treasury Repurchase Agreements
+  target: us-treasury-repo
+  value: 49584.0
+  unit: USD m
+  share_of_total: 0.6755
+  period: '2026-08-31'
+  source_url: https://6778953.fs1.hubspotusercontent-na1.net/hubfs/6778953/USDCAttestationReports/2026/2026%20USDC_Examination%20Report%20August%2026.pdf
+  source_title: USDC Reserve Report and Independent Accountants' Report, August 2026
+  page: 4
+  quote: U.S. Treasury Repurchase Agreements3 49,584,000,000
+  note: Overnight repo inside the Circle Reserve Fund, overcollateralised by Treasuries; share is of total USDC
+    reserve assets of US$73,398,532,613.
+- entity: circle
+  dimension: reserve_composition
+  measure: fair_value
+  segment: TOTAL U.S. TREASURY SECURITIES (Circle Reserve Fund plus other USDC reserve assets)
+  target: us-treasuries
+  value: 13219.4
+  unit: USD m
+  share_of_total: 0.1801
+  period: '2026-08-31'
+  source_url: https://6778953.fs1.hubspotusercontent-na1.net/hubfs/6778953/USDCAttestationReports/2026/2026%20USDC_Examination%20Report%20August%2026.pdf
+  source_title: USDC Reserve Report and Independent Accountants' Report, August 2026
+  page: 4
+  quote: TOTAL U.S. TREASURY SECURITIES 11,918,146,195 | TOTAL U.S. TREASURY SECURITIES 1,301,292,779
+  note: Sum of T-bills in the Circle Reserve Fund (US$11,918.1m) and held directly (US$1,301.3m); all mature by
+    20 Oct 2026.
+- entity: circle
+  dimension: reserve_composition
+  measure: fair_value
+  segment: Cash held at regulated financial institutions
+  target: bank-deposits
+  value: 9591.1
+  unit: USD m
+  share_of_total: 0.1307
+  period: '2026-08-31'
+  source_url: https://6778953.fs1.hubspotusercontent-na1.net/hubfs/6778953/USDCAttestationReports/2026/2026%20USDC_Examination%20Report%20August%2026.pdf
+  source_title: USDC Reserve Report and Independent Accountants' Report, August 2026
+  page: 4
+  quote: Cash held at regulated financial institutions 9,591,096,978
+  note: Banks are not named; the 10-K says mainly G-SIBs. The 10-Q says FDIC insurance covered only US$1.8m across
+    seven insured banks at 30 Jun 2026.
+- entity: circle
+  dimension: reserve_composition
+  measure: fair_value
+  segment: TOTAL CIRCLE RESERVE FUND ASSETS
+  target: circle-reserve-fund
+  value: 62317.4
+  unit: USD m
+  share_of_total: 0.849
+  period: '2026-08-31'
+  source_url: https://6778953.fs1.hubspotusercontent-na1.net/hubfs/6778953/USDCAttestationReports/2026/2026%20USDC_Examination%20Report%20August%2026.pdf
+  source_title: USDC Reserve Report and Independent Accountants' Report, August 2026
+  page: 4
+  quote: TOTAL CIRCLE RESERVE FUND ASSETS 62,317,374,425
+  note: USDC in circulation was 73,320,757,305 on the same date.
+- entity: circle
+  dimension: reserve_composition
+  measure: fair_value
+  segment: Cash
+  target: bank-deposits
+  value: 11428.0
+  unit: USD m
+  share_of_total: 0.1558
+  period: '2026-06-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000248/crcl-20260630.htm
+  source_title: Circle Internet Group, Inc. Form 10-Q Q2 2026, Composition of USDC Reserves
+  page: null
+  quote: Cash | $ | 11,428 | 2.98 | % | 2.97 | % | $ | 8,233 | 3.45 | % | 3.45 | %
+  note: Share of Cash plus Circle Reserve Fund (US$73,345m).
+- entity: circle
+  dimension: counterparty
+  measure: repo_principal
+  segment: WELLS FARGO BANK NA; WELLS FARGO SECURITIES LLC | U.S. Treasury Repurchase Agreement
+  target: wells-fargo
+  value: 6969.0
+  unit: USD m
+  share_of_total: 0.1116
+  period: '2026-09-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/844779/000119312526416631/primary_doc.xml
+  source_title: BlackRock Funds, Form N-MFP3 for Circle Reserve Fund, report date 2026-09-30
+  page: null
+  quote: WELLS FARGO BANK NA | 6959000000.00 | 0.1114
+  note: Fund-level exposure, look-through to Circle. Share is percentage of fund net assets (0.1114 + 0.0002).
+- entity: circle
+  dimension: counterparty
+  measure: repo_principal
+  segment: GOLDMAN SACHS & CO LLC | U.S. Treasury Repurchase Agreement
+  target: goldman-sachs
+  value: 6190.0
+  unit: USD m
+  share_of_total: 0.0991
+  period: '2026-09-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/844779/000119312526416631/primary_doc.xml
+  source_title: BlackRock Funds, Form N-MFP3 for Circle Reserve Fund, report date 2026-09-30
+  page: null
+  quote: GOLDMAN SACHS &amp; CO LLC | 6090000000.00 | 0.0975
+  note: Two repo lines (US$6,090m and US$100m); share is the sum of their fund percentages.
+- entity: circle
+  dimension: counterparty
+  measure: repo_principal
+  segment: BARCLAYS BANK PLC | U.S. Treasury Repurchase Agreement
+  target: barclays
+  value: 6100.0
+  unit: USD m
+  share_of_total: 0.0977
+  period: '2026-09-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/844779/000119312526416631/primary_doc.xml
+  source_title: BlackRock Funds, Form N-MFP3 for Circle Reserve Fund, report date 2026-09-30
+  page: null
+  quote: BARCLAYS BANK PLC | 6100000000.00 | 0.0977
+  note: Fund-level exposure, look-through to Circle.
+- entity: circle
+  dimension: counterparty
+  measure: repo_principal
+  segment: BNP PARIBAS SA | U.S. Treasury Repurchase Agreement
+  target: bnp-paribas
+  value: 4500.0
+  unit: USD m
+  share_of_total: 0.072
+  period: '2026-09-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/844779/000119312526416631/primary_doc.xml
+  source_title: BlackRock Funds, Form N-MFP3 for Circle Reserve Fund, report date 2026-09-30
+  page: null
+  quote: BNP PARIBAS SA | 4500000000.00 | 0.0720
+  note: Fund-level exposure, look-through to Circle.
+- entity: circle
+  dimension: counterparty
+  measure: repo_principal
+  segment: CITIGROUP GLOBAL MARKETS INC | U.S. Treasury Repurchase Agreement
+  target: citibank
+  value: 3830.0
+  unit: USD m
+  share_of_total: 0.0614
+  period: '2026-09-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/844779/000119312526416631/primary_doc.xml
+  source_title: BlackRock Funds, Form N-MFP3 for Circle Reserve Fund, report date 2026-09-30
+  page: null
+  quote: CITIGROUP GLOBAL MARKETS INC | 3820000000.00 | 0.0612
+  note: Two repo lines (US$3,820m and US$10m). Existing endpoint citibank stands for the Citi group.
+- entity: circle
+  dimension: counterparty
+  measure: repo_principal
+  segment: MIZUHO SECURITIES USA LLC | U.S. Treasury Repurchase Agreement
+  target: mizuho
+  value: 3819.0
+  unit: USD m
+  share_of_total: 0.0611
+  period: '2026-09-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/844779/000119312526416631/primary_doc.xml
+  source_title: BlackRock Funds, Form N-MFP3 for Circle Reserve Fund, report date 2026-09-30
+  page: null
+  quote: MIZUHO SECURITIES USA LLC | 3819000000.00 | 0.0611
+  note: Fund-level exposure, look-through to Circle.
+- entity: circle
+  dimension: counterparty
+  measure: repo_principal
+  segment: JP MORGAN SECURITIES LLC | U.S. Treasury Repurchase Agreement
+  target: jpmorgan
+  value: 2984.0
+  unit: USD m
+  share_of_total: 0.0478
+  period: '2026-09-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/844779/000119312526416631/primary_doc.xml
+  source_title: BlackRock Funds, Form N-MFP3 for Circle Reserve Fund, report date 2026-09-30
+  page: null
+  quote: JP MORGAN SECURITIES LLC | 2984000000.00 | 0.0478
+  note: Fund-level exposure, look-through to Circle.
+- entity: circle
+  dimension: reserve_composition
+  measure: fair_value
+  segment: U.S. Treasury Debt (Circle Reserve Fund)
+  target: us-treasuries
+  value: 25361.6
+  unit: USD m
+  share_of_total: 0.4059
+  period: '2026-09-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/844779/000119312526416631/primary_doc.xml
+  source_title: BlackRock Funds, Form N-MFP3 for Circle Reserve Fund, report date 2026-09-30
+  page: null
+  quote: UNITED STATES TREASURY | U.S. Treasury Debt
+  note: Value and share are sums over the fund's Treasury debt lines in the filing (no single line states the total);
+    the Treasury share rose from about 19% of the fund at 31 Aug to 41% at 30 Sep, with repo falling to about 59%.
+- entity: circle
+  dimension: revenue
+  measure: reserve_income
+  segment: Reserve income
+  target: us-interest-rates
+  value: 1320.2
+  unit: USD m
+  share_of_total: 0.9461
+  period: '2026-06-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000248/crcl-20260630.htm
+  source_title: Circle Internet Group, Inc. Form 10-Q Q2 2026, Condensed Consolidated Statements of Operations
+  page: null
+  quote: Reserve income | $ | 667,733 | $ | 634,274 | $ | 1,320,241 | $ | 1,192,185
+  note: 'Six months to 30 Jun 2026; share of total revenue and reserve income of US$1,395.4m. FY2025: 2,636.8 of
+    2,746.6 (96%). The 10-K models +/-100 bp as +/-US$756m reserve income and +/-US$369m distribution and transaction
+    costs.'
+- entity: circle
+  dimension: counterparty
+  measure: distribution_costs
+  segment: distribution costs in connection with our agreements with Coinbase
+  target: coinbase
+  value: 655.3
+  unit: USD m
+  share_of_total: 0.8033
+  period: '2026-06-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/1876042/000187604226000248/crcl-20260630.htm
+  source_title: Circle Internet Group, Inc. Form 10-Q Q2 2026, Distribution costs
+  page: null
+  quote: during the six months ended June 30, 2026 and 2025, we incurred $655.3 million and $635.5 million respectively,
+    of distribution costs in connection with our agreements with Coinbase
+  note: 'Share of distribution and transaction costs (US$815.8m) for H1 2026; equal to 47% of total revenue and
+    reserve income. FY2025: US$1.4 billion.'
+- entity: circle
+  dimension: counterparty
+  measure: deposits
+  segment: USD Coin reserves at Silicon Valley Bank
+  target: silicon-valley-bank
+  value: 3300.0
+  unit: USD m
+  share_of_total: 0.0825
+  period: '2023-03-10'
+  source_url: https://www.kitco.com/news/off-the-wire/2023-03-11/crypto-firm-circle-reveals-33-bln-exposure-silicon-valley-bank
+  source_title: Crypto firm Circle reveals $3.3 bln exposure to Silicon Valley Bank (Reuters, 11 Mar 2023, via Kitco)
+  page: null
+  quote: U.S. cryptocurrency firm Circle has $3.3 billion of its $40 billion of USD Coin reserves at the collapsed
+    lender Silicon Valley Bank, the company said in a tweet on Friday.
+  note: Historical. All funds were later made available; USDC traded below par while banks were closed (10-K FY2025).
+- entity: straitsx
+  dimension: reserve_composition
+  measure: reserve_assets
+  segment: Cash
+  target: bank-deposits
+  value: 11621981
+  unit: SGD
+  share_of_total: 0.5234
+  period: '2026-08-31'
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  page: 5
+  quote: Cash 11,621,981
+  note: XSGD reserves S$22,205,851 against 22,194,718 XSGD in circulation (100.05%). Cash sits in trust accounts
+    at CIMB Singapore, DBS and Standard Chartered Singapore; the split by bank is not disclosed. Attested by KK
+    Yap & Associates, report dated 28 Sep 2026.
+- entity: straitsx
+  dimension: reserve_composition
+  measure: reserve_assets
+  segment: 'Bonds or notes denominated in SGD with no more than three months residual maturity issued by: the Government
+    or public entity of the country that the currency of XSGD is pegged to, i.e. Monetary Authority of Singapore
+    (MAS). or any of the above-mentioned bonds or notes that are held under a reverse repurchase agreement'
+  target: mas-bills
+  value: 10583870
+  unit: SGD
+  share_of_total: 0.4766
+  period: '2026-08-31'
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  page: 5
+  quote: Bonds or notes denominated in SGD with no more than three months 10,583,870
+  note: Includes MAS paper held under overnight reverse repo with AA- or better counterparties; the split between
+    outright holdings and repo is not given. Circulation grew from 14,708,419 XSGD at 31 Aug 2025.
+- entity: straitsx
+  dimension: reserve_composition
+  measure: reserve_assets
+  segment: Cash
+  target: bank-deposits
+  value: 46324677
+  unit: USD
+  share_of_total: 1.0
+  period: '2026-08-31'
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb483d1de79f8ca93f1c67_XUSD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XUSD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  page: 5
+  quote: Cash 46,324,677
+  note: XUSD reserves US$46,324,677, all cash, against 46,182,310 XUSD in circulation (100.31%). Same row as the
+    XSGD cash exposure to bank-deposits; the parent may merge them as figures[].
+- entity: straitsx
+  dimension: specific
+  measure: token_supply_share
+  segment: XUSD (BEP20)
+  target: bnb-smart-chain
+  value: 38983843
+  unit: XUSD
+  share_of_total: 0.8441
+  period: '2026-08-31'
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb483d1de79f8ca93f1c67_XUSD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XUSD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  page: 5
+  quote: XUSD (BEP20)2 38,983,843
+  note: Share of XUSD in circulation by chain; a concentration on Binance's chain and venue.
+- entity: straitsx
+  dimension: specific
+  measure: token_supply_share
+  segment: XSGD (ERC20)
+  target: ethereum
+  value: 11472891
+  unit: XSGD
+  share_of_total: 0.5169
+  period: '2026-08-31'
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  page: 5
+  quote: XSGD (ERC20)1 11,472,891
+  note: Share of XSGD in circulation by chain.
+- entity: straitsx
+  dimension: specific
+  measure: token_supply_share
+  segment: XSGD (BASE)
+  target: base
+  value: 5652269
+  unit: XSGD
+  share_of_total: 0.2547
+  period: '2026-08-31'
+  source_url: https://cdn.prod.website-files.com/6119d1f2b05f8e65b1739721/6abb46bca92eaa67297d7500_XSGD%20SCS%20Reserve%20Account%20Report%20(31%20August%202026).pdf
+  source_title: XSGD SCS Reserve Account Report as at 31 August 2026 (KK Yap & Associates)
+  page: 5
+  quote: XSGD (BASE)9 5,652,269
+  note: Share of XSGD in circulation by chain; Base was added with the Coinbase listing in September 2025.
+- entity: straitsx
+  dimension: revenue
+  measure: annualised_card_gtv
+  segment: annualised card GTV of more than US$6 billion across its stablecoin-backed card programs
+  target: visa
+  value: 6000
+  unit: USD m
+  share_of_total: null
+  period: '2026-10-15'
+  source_url: https://www.straitsx.com/blog-post/straitsx-partners-visa-to-expand-its-reach-to-over-100-markets-globally-on-stablecoin-backed-card-programs
+  source_title: StraitsX Partners Visa to Expand its Reach to over 100 Markets Globally on Stablecoin-Backed Card
+    Programs
+  page: null
+  quote: StraitsX reached an annualised card GTV of more than US$6 billion across its stablecoin-backed card programs.
+  note: Lower bound ("more than"); company claim, not audited. Card volume runs on Visa issuing membership, so it
+    is far larger than the stablecoins in circulation (about US$63m combined).
+- entity: okx
+  dimension: counterparty
+  measure: stablecoin_holdings
+  segment: USDC | OKX wallet assets
+  target: circle
+  value: 1875436302
+  unit: USDC
+  share_of_total: null
+  period: 2026-10-03
+  source_url: https://www.okx.com/en-sg/proof-of-reserves
+  source_title: OKX Proof of Reserves (48th report, Oct 2026)
+  page: null
+  quote: USDC | USDC | 101% | OKX account assets | 1,848,845,671 | OKX wallet assets | 1,875,436,302 | Exchange
+    | 1,704,487,774 | Third-party custody | 170,948,528
+  note: Customer and corporate USDC held by OKX entities globally, against 1,848,845,671 USDC of customer liabilities
+    (101% reserve ratio). 170,948,528 USDC sit with unnamed third-party custodians. Period from the page's createTime
+    1790956800000 (2026-10-03 00:00 SGT); the page shows only 'Oct 2026'. The page headline is $29.4B in primary
+    assets across 22 coins.
+- entity: okx
+  dimension: counterparty
+  measure: stablecoin_holdings
+  segment: USDT | OKX wallet assets
+  target: tether
+  value: 9213216367
+  unit: USDT
+  share_of_total: null
+  period: 2026-10-03
+  source_url: https://www.okx.com/en-sg/proof-of-reserves
+  source_title: OKX Proof of Reserves (48th report, Oct 2026)
+  page: null
+  quote: USDT | USDT | 105% | OKX account assets | 8,742,310,509 | OKX wallet assets | 9,213,216,367 | Exchange
+    | 9,072,760,887 | Third-party custody | 140,455,480
+  note: USDT is OKX's largest stablecoin holding, about 5x its USDC, so a Tether event hits OKX harder than a USDC
+    event. Same snapshot as the USDC row.
+- entity: okx
+  dimension: specific
+  measure: customer_transaction_volume
+  segment: U.S. retail and institutional customers, 2018 to early 2024
+  target: united-states
+  value: 1000000
+  unit: USD m
+  share_of_total: null
+  period: 2024-03-31
+  source_url: https://www.justice.gov/usao-sdny/pr/okx-pleads-guilty-violating-us-anti-money-laundering-laws-and-agrees-pay-penalties
+  source_title: OKX Pleads Guilty To Violating U.S. Anti-Money Laundering Laws And Agrees To Pay Penalties Totaling
+    More Than $504 Million (US Attorney's Office SDNY, 24 Feb 2025)
+  page: null
+  quote: From in or about 2018 through in or about at least early 2024, OKX served U.S. retail and institutional
+    customers that engaged in over one trillion dollars’ worth of transactions through OKX.
+  note: This is a lower bound ('over one trillion dollars') for unlicensed US business. DOJ also says over $5 billion
+    of suspicious transactions and criminal proceeds passed through OKX. The period end is approximate ('early 2024').
+- entity: coinbase
+  dimension: revenue
+  measure: stablecoin_revenue
+  segment: Stablecoin revenue
+  target: circle
+  value: 292.147
+  unit: USD m
+  share_of_total: 0.2395
+  period: '2026-06-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000088/coin-20260630.htm
+  source_title: Coinbase Global, Inc. Form 10-Q Q2 2026, Note 5 Revenue
+  page: null
+  quote: Stablecoin revenue(1) | 292,147 | 308,914 | 597,582 | 582,951
+  note: Three months to 30 Jun 2026; share of total revenue US$1,220.1m. From 1Q26 revenue on corporate stablecoin
+    balances moved to Other revenue.
+- entity: coinbase
+  dimension: revenue
+  measure: stablecoin_revenue
+  segment: Stablecoin revenue
+  target: circle
+  value: 1348.821
+  unit: USD m
+  share_of_total: 0.1878
+  period: '2025-12-31'
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K FY2025, Note 4 Revenue
+  page: null
+  quote: Stablecoin revenue(1) | 1,348,821 | 910,464 | 694,247
+  note: Share of total revenue US$7,181.3m. Stablecoin revenue comes primarily from the USDC arrangement with Circle
+    (50% of residual reserve income plus on-platform share).
+- entity: coinbase
+  dimension: counterparty
+  measure: share_of_total_revenue
+  segment: one counterparty
+  target: circle
+  value: 26
+  unit: '%'
+  share_of_total: 0.26
+  period: '2026-06-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000088/coin-20260630.htm
+  source_title: Coinbase Global, Inc. Form 10-Q Q2 2026, Note 5 Revenue
+  page: null
+  quote: During the three months ended June 30, 2026 and 2025, one counterparty accounted for 26% and 22% of total
+    revenue, respectively.
+  note: The filing does not name the counterparty; Circle is inferred (stablecoin revenue alone is 24% of the quarter).
+    FY2025 figure was 19%.
+- entity: coinbase
+  dimension: revenue
+  measure: transaction_revenue
+  segment: Total transaction revenue
+  target: crypto-assets
+  value: 599.156
+  unit: USD m
+  share_of_total: 0.4911
+  period: '2026-06-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000088/coin-20260630.htm
+  source_title: Coinbase Global, Inc. Form 10-Q Q2 2026, Note 5 Revenue
+  page: null
+  quote: Total transaction revenue | 599,156 | 764,270 | 1,354,981 | 2,026,478
+  note: Down 22% year on year; FY2025 transaction revenue was US$4,055.4m, 56.5% of total revenue.
+- entity: coinbase
+  dimension: revenue
+  measure: revenue_by_geography
+  segment: U.S.
+  target: united-states
+  value: 1037.166
+  unit: USD m
+  share_of_total: 0.8501
+  period: '2026-06-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000088/coin-20260630.htm
+  source_title: Coinbase Global, Inc. Form 10-Q Q2 2026, Note 5 Revenue by geographic location
+  page: null
+  quote: U.S.(1) | $ | 1,037,166 | $ | 1,291,616 | $ | 2,221,567 | $ | 2,997,268
+  note: No non-US country is above 10% of total revenue, so Singapore revenue is below 10%.
+- entity: coinbase
+  dimension: specific
+  measure: assets_on_platform
+  segment: Bitcoin
+  target: bitcoin
+  value: 170800
+  unit: USD m
+  share_of_total: 0.6947
+  period: '2026-06-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000088/coin-20260630.htm
+  source_title: Coinbase Global, Inc. Form 10-Q Q2 2026, MD&A Key business metrics, Assets on Platform
+  page: null
+  quote: Bitcoin | 2.9 | $ | 170,800 | 2.8 | $ | 300,641 | (43)
+  note: Customer and custody assets held by Coinbase (2.9m BTC), total AOP US$245.9bn; down from US$425.0bn a year
+    earlier.
+- entity: coinbase
+  dimension: specific
+  measure: assets_on_platform
+  segment: Ethereum
+  target: ethereum
+  value: 29714
+  unit: USD m
+  share_of_total: 0.1209
+  period: '2026-06-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000088/coin-20260630.htm
+  source_title: Coinbase Global, Inc. Form 10-Q Q2 2026, MD&A Key business metrics, Assets on Platform
+  page: null
+  quote: Ethereum | 18.9 | 29,714 | 16.3 | 40,530 | (27)
+  note: 18.9m ETH held for customers.
+- entity: coinbase
+  dimension: specific
+  measure: assets_on_platform
+  segment: USDC
+  target: circle
+  value: 8874
+  unit: USD m
+  share_of_total: 0.0361
+  period: '2026-06-30'
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000088/coin-20260630.htm
+  source_title: Coinbase Global, Inc. Form 10-Q Q2 2026, MD&A Key business metrics, Assets on Platform
+  page: null
+  quote: USDC | N/A | 8,874 | N/A | 7,485 | 19
+  note: USDC held for customers; a USDC depeg (as in March 2023) hits these balances and Coinbase's stablecoin revenue
+    together.
+- entity: coinbase
+  dimension: specific
+  measure: rate_sensitivity
+  segment: hypothetical 150 basis points change applied to USDC reserve balances
+  target: us-treasuries
+  value: 540.3
+  unit: USD m
+  share_of_total: null
+  period: '2025-12-31'
+  source_url: https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm
+  source_title: Coinbase Global, Inc. Form 10-K FY2025, Item 7A Market risk
+  page: null
+  quote: A hypothetical 150 basis points increase or decrease in average interest rates applied to daily USDC reserve
+    balances held by Circle for the years ended December 31, 2025 and 2024, would have resulted in an impact of
+    $540.3 million and $293.5 million, respectively, on stablecoin revenue.
+  note: Coinbase's stablecoin income tracks short US rates through Circle's Treasury and repo reserves.
+groups:
+- id: bloom
+  name: BLOOM (MAS settlement initiative)
+  kind: platform
+  members:
+  - mas
+  - dbs
+  - ocbc
+  - uob
+  - partior
+  detail: 'MAS initiative launched 16 October 2025 to extend Project Orchid to settlement in tokenised bank liabilities
+    and regulated stablecoins. Workstreams: settlement assets (Circle, DBS, OCBC, Partior, Stripe, UOB), programmable
+    compliance (Ant International, StraitsX), agentic payments (Coinbase, DBS). Circle, StraitsX and Coinbase link
+    to it by participates_in edges, so they are not repeated as members.'
+  source_url: https://www.mas.gov.sg/news/media-releases/2025/mas-launches-bloom-initiative-to-extend-settlement-capabilities
+  quote: Members working on this include Circle, DBS, OCBC, Partior, Stripe and UOB.
+- id: okxice
+  name: OKXICE
+  kind: consortium
+  members:
+  - okx
+  - ice
+  detail: Joint venture of OKX and Intercontinental Exchange set up after ICE's March 2026 investment. On 4 Oct
+    2026 it filed with the SEC for a tokenised venue for 24/7 trading of more than 60 US stocks. Andrew Cuomo is
+    co-chair. Reported as 50-50 and running on OKX's X Layer, both unverified on a primary page.
+  source_url: https://www.thestar.com.my/tech/tech-news/2026/10/05/okx-joint-venture-files-with-sec-to-launch-tokenized-trading-platform
+  quote: OKXICE, the joint venture between crypto exchange OKX and Intercontinental Exchange, filed with the Securities
+    and Exchange Commission on Sunday to launch a tokenized securities platform for around-the-clock trading of
+    US stocks.
+- id: global-dollar-network
+  name: Global Dollar Network (USDG)
+  kind: consortium
+  members:
+  - okx
+  detail: Paxos-led stablecoin network for USDG, which Paxos Digital Singapore (an MAS-licensed MPI) issues. OKX
+    joined as a core partner on 14 Jul 2025. Other partners include Anchorage Digital, Bullish, Kraken, Paxos, Robinhood
+    and Worldpay.
+  source_url: https://globaldollar.com/newsroom/okx-joins-global-dollar-network-alongside-leading-brands-including-worldpay-kraken-anchorage-digital-paxos-robinhood-and-30-additional-partners
+  quote: announces that OKX, a leading global exchange, has joined the network as a core partner.
+new_entities:
+  - {id: bank-frick, name: Bank Frick AG, kind: bank, country: liechtenstein, aliases: [Bank Frick]}
+  - {id: barclays, name: Barclays, kind: bank, country: united-kingdom, aliases: [Barclays Bank PLC]}
+  - {id: bnp-paribas, name: BNP Paribas, kind: bank, country: france, aliases: [BNP Paribas SA]}
+  - {id: bny, name: BNY, kind: bank, country: united-states, aliases: [Bank of New York Mellon, BNY Mellon]}
+  - {id: goldman-sachs, name: Goldman Sachs, kind: bank, country: united-states, aliases: [Goldman Sachs & Co LLC]}
+  - {id: mizuho, name: Mizuho, kind: bank, country: japan, aliases: [Mizuho Securities USA, Mizuho Financial Group]}
+  - {id: silicon-valley-bank, name: Silicon Valley Bank, kind: bank, country: united-states, aliases: [SVB]}
+  - {id: wells-fargo, name: Wells Fargo, kind: bank, country: united-states, aliases: [Wells Fargo Bank NA, Wells Fargo Securities]}
+  - {id: central-bank-of-ireland, name: Central Bank of Ireland, kind: central-bank, country: ireland, aliases: [CBI]}
+  - {id: global-dollar-network, name: Global Dollar Network, kind: consortium, country: null, aliases: [GDN, USDG network]}
+  - {id: okxice, name: OKXICE, kind: consortium, country: united-states, aliases: [OKX ICE joint venture]}
+  - {id: bahamas, name: The Bahamas, kind: country, aliases: [Bahamas]}
+  - {id: malta, name: Malta, kind: country, aliases: []}
+  - {id: united-arab-emirates, name: United Arab Emirates, kind: country, aliases: [UAE]}
+  - {id: aux-cayes-fintech, name: Aux Cayes Fintech Co. Ltd, kind: digital_asset_firm, country: seychelles, aliases: [Aux Cayes FinTech, OKEx]}
+  - {id: binance, name: Binance, kind: digital_asset_firm, country: null, aliases: [Binance.com, Binance Holdings]}
+  - {id: bitgo, name: 'BitGo, Inc.', kind: digital_asset_firm, country: united-states, aliases: [BitGo, BitGo Singapore]}
+  - {id: coinbase-singapore, name: Coinbase Singapore Pte. Ltd., kind: digital_asset_firm, country: singapore, aliases: [Coinbase Singapore]}
+  - {id: deribit, name: Deribit (Sentillia B.V.), kind: digital_asset_firm, country: netherlands, aliases: [Deribit, Deribit FZE, Sentillia]}
+  - {id: okcoin-usa, name: 'OKCoin USA, Inc.', kind: digital_asset_firm, country: united-states, aliases: [OKCoin, Okcoin USA, OKX US]}
+  - {id: okx-australia, name: OKX Australia Pty Ltd, kind: digital_asset_firm, country: australia, aliases: [OKX Australia]}
+  - {id: okx-australia-financial, name: OKX Australia Financial Pty Ltd, kind: digital_asset_firm, country: australia, aliases: [OKX Australia Financial]}
+  - {id: okx-bahamas, name: OKX Bahamas Fintech Company Limited, kind: digital_asset_firm, country: bahamas, aliases: [OKX Bahamas]}
+  - {id: okx-europe, name: OKX Europe Limited, kind: digital_asset_firm, country: malta, aliases: [OKX Europe, OKCoin Europe Ltd, OKCoin Europe, OKX Malta]}
+  - {id: okx-middle-east, name: OKX Middle East Fintech FZE, kind: digital_asset_firm, country: united-arab-emirates, aliases: [OKX Middle East, OKX UAE, OKX Dubai]}
+  - {id: okx-sg, name: OKX SG Pte. Ltd., kind: digital_asset_firm, country: singapore, aliases: [OKX SG, OKX Singapore]}
+  - {id: ripple, name: Ripple Labs Inc., kind: digital_asset_firm, country: united-states, aliases: [Ripple, RLUSD issuer]}
+  - {id: straitsx-payment-services, name: StraitsX Payment Services Pte. Ltd., kind: digital_asset_firm, country: singapore, aliases: [SPSPL, StraitsX Payment Services]}
+  - {id: ice, name: 'Intercontinental Exchange, Inc.', kind: exchange, country: united-states, aliases: [ICE, Intercontinental Exchange, NYSE parent]}
+  - {id: nyse, name: New York Stock Exchange, kind: exchange, country: united-states, aliases: [NYSE]}
+  - {id: sp-500, name: S&P 500, kind: index, country: united-states, aliases: [S&P 500 Index, SPX]}
+  - {id: blackrock, name: BlackRock, kind: investor, country: united-states, aliases: [BlackRock Inc, BlackRock Advisors, BlackRock, iShares]}
+  - {id: circle-reserve-fund, name: Circle Reserve Fund (USDXX), kind: investor, country: united-states, aliases: [USDXX, BlackRock Circle Reserve Fund]}
+  - {id: idg-capital, name: IDG Capital, kind: investor, country: china, aliases: [IDG-Accel China Capital, Chuang Xi Capital, Wide Palace]}
+  - {id: mufg-innovation-partners, name: 'MUFG Innovation Partners Co., Ltd.', kind: investor, country: japan, aliases: [MUIP, MUFG Innovation Partners]}
+  - {id: ntt-docomo, name: 'NTT DOCOMO, INC.', kind: investor, country: japan, aliases: [DOCOMO, NTT Docomo]}
+  - {id: oak-investment-partners, name: Oak Investment Partners, kind: investor, country: united-states, aliases: [Oak Investment]}
+  - {id: qrt, name: Qube Research & Technologies, kind: investor, country: united-kingdom, aliases: [QRT, Qube]}
+  - {id: tiger-global, name: Tiger Global Management LLC, kind: investor, country: united-states, aliases: [Tiger Global]}
+  - {id: fazz, name: Fazz (Fazz Financial Group), kind: payment_institution, country: indonesia, aliases: [Fazz Financial Group, Fazz Financial, Payfazz, Fazz Agen, Fazz Business]}
+  - {id: tazapay, name: Tazapay Pte. Ltd., kind: payment_institution, country: singapore, aliases: [Tazapay]}
+  - {id: uqpay, name: UQPAY, kind: payment_institution, country: singapore, aliases: [UQPAY Technology]}
+  - {id: brian-armstrong, name: Brian Armstrong, kind: person, country: united-states, aliases: []}
+  - {id: jeremy-allaire, name: Jeremy Allaire, kind: person, country: united-states, aliases: []}
+  - {id: arbitrum, name: Arbitrum One, kind: blockchain, country: null, aliases: [Arbitrum, Arbitrum One, ARB]}
+  - {id: arc, name: Arc (Circle blockchain), kind: blockchain, country: null, aliases: [Arc Network]}
+  - {id: avalanche, name: Avalanche C-Chain, kind: blockchain, country: null, aliases: [Avalanche, AVAX, Avalanche C-Chain]}
+  - {id: base, name: Base, kind: blockchain, country: null, aliases: [Base network, Base chain, Base L2]}
+  - {id: bitcoin, name: Bitcoin, kind: blockchain, country: null, aliases: [BTC]}
+  - {id: bloom, name: BLOOM (MAS settlement initiative), kind: platform, country: singapore, aliases: [MAS BLOOM, Project BLOOM, BLOOM initiative]}
+  - {id: bnb-smart-chain, name: BNB Smart Chain, kind: blockchain, country: null, aliases: [BSC, BEP-20, BNB Chain]}
+  - {id: ethereum, name: Ethereum, kind: blockchain, country: null, aliases: [ETH, ERC-20, Ether]}
+  - {id: hedera, name: Hedera, kind: blockchain, country: null, aliases: [Hedera Hashgraph, HTS, HBAR]}
+  - {id: platon, name: PlatON, kind: blockchain, country: null, aliases: [LAT]}
+  - {id: polygon, name: Polygon PoS, kind: blockchain, country: null, aliases: [Polygon, MATIC, POL]}
+  - {id: solana, name: Solana, kind: blockchain, country: null, aliases: [SOL]}
+  - {id: x-layer, name: X Layer (OKX layer 2), kind: blockchain, country: null, aliases: [XLayer, OKX X Layer]}
+  - {id: xrp-ledger, name: XRP Ledger, kind: blockchain, country: null, aliases: [XRPL, Ripple ledger]}
+  - {id: zilliqa, name: Zilliqa, kind: blockchain, country: singapore, aliases: [ZIL, ZRC-2]}
+  - {id: acpr, name: Autorité de Contrôle Prudentiel et de Résolution, kind: regulator, country: france, aliases: [ACPR]}
+  - {id: adgm-fsra, name: ADGM Financial Services Regulatory Authority, kind: regulator, country: united-arab-emirates, aliases: [FSRA, ADGM]}
+  - {id: asic, name: Australian Securities and Investments Commission, kind: regulator, country: australia, aliases: [ASIC]}
+  - {id: austrac, name: Australian Transaction Reports and Analysis Centre, kind: regulator, country: australia, aliases: [AUSTRAC]}
+  - {id: bermuda-monetary-authority, name: Bermuda Monetary Authority, kind: regulator, country: bermuda, aliases: [BMA]}
+  - {id: cssf, name: Commission de Surveillance du Secteur Financier, kind: regulator, country: luxembourg, aliases: [CSSF]}
+  - {id: dubai-vara, name: Virtual Assets Regulatory Authority (Dubai), kind: regulator, country: united-arab-emirates, aliases: [VARA]}
+  - {id: fincen, name: Financial Crimes Enforcement Network, kind: regulator, country: united-states, aliases: [FinCEN]}
+  - {id: mfsa, name: Malta Financial Services Authority, kind: regulator, country: malta, aliases: [MFSA]}
+  - {id: nydfs, name: New York State Department of Financial Services, kind: regulator, country: united-states, aliases: [NYDFS, DFS]}
+  - {id: occ, name: Office of the Comptroller of the Currency, kind: regulator, country: united-states, aliases: [OCC]}
+  - {id: securities-commission-bahamas, name: Securities Commission of The Bahamas, kind: regulator, country: bahamas, aliases: [SCB, Bahamas Securities Commission]}
+  - {id: uk-fca, name: Financial Conduct Authority, kind: regulator, country: united-kingdom, aliases: [FCA, UK FCA]}
+  - {id: us-cftc, name: U.S. Commodity Futures Trading Commission, kind: regulator, country: united-states, aliases: [CFTC]}
+  - {id: bank-deposits, name: Bank deposits, kind: sector, country: null, aliases: [cash at banks, cash reserves, reserve cash]}
+  - {id: crypto-assets, name: Crypto asset markets, kind: sector, country: null, aliases: [crypto market, crypto prices, crypto trading volume]}
+  - {id: mas-bills, name: MAS Bills and short-dated SGD government paper, kind: sector, country: singapore, aliases: [MAS Bills, MAS bills, SGS T-bills]}
+  - {id: us-interest-rates, name: US short-term interest rates, kind: sector, country: united-states, aliases: [Fed funds rate, FOMC]}
+  - {id: us-treasuries, name: US Treasury securities, kind: sector, country: united-states, aliases: [T-bills, Treasury bills, US Treasuries]}
+  - {id: us-treasury-repo, name: US Treasury repurchase agreements, kind: sector, country: united-states, aliases: [Treasury repo, overnight repo]}
+  - {id: straitsx-sgd-issuance, name: StraitsX SGD Issuance Pte. Ltd., kind: stablecoin_issuer, country: singapore, aliases: [StraitsX SGD, STX XSGD, XSGD issuer]}
+  - {id: straitsx-usd-issuance, name: StraitsX USD Issuance Pte. Ltd., kind: stablecoin_issuer, country: singapore, aliases: [StraitsX USD, STX XUSD, XUSD issuer]}
+  - {id: tether, name: Tether, kind: stablecoin_issuer, country: null, aliases: [Tether Limited, Tether Holdings, USDT issuer]}

@@ -1,5 +1,5 @@
-"""A monitor page's Trend view (structured-data-plan.md, F6): the subject's series over the 12
-months to the latest run, the developments marked on them, each run's note on why they moved,
+"""A monitor page's Trend view (docs/archive/structured-data-plan.md, F6): the subject's series over
+the 12 months to the latest run, the developments marked on them, each run's note on why they moved,
 and the standing questions' states per run."""
 
 import json
@@ -18,7 +18,7 @@ from intelmonitor.server.models import (
     State,
     SubjectRef,
 )
-from intelmonitor.server.queries import Queries, load_developments, subject, subject_ref
+from intelmonitor.server.queries import Queries, expand, load_developments, subject, subject_ref
 from intelmonitor.server.series import series_info
 from intelmonitor.server.widgets import MarkedDevelopment, documents_from, marked
 from intelmonitor.store.series import read_observations
@@ -112,18 +112,24 @@ def trend(q: Queries, subject_id: str) -> SubjectTrend:
         r["run_id"]: r
         for r in q.conn.execute("SELECT * FROM run_notes WHERE subject_id = ?", (subject_id,))
     }
+    scope = expand([subject_id])
     trend_runs: list[TrendRun] = []
     for run in runs:
         row = notes.get(run.id)
         note: RunNote | None = None
         if row is not None:
             cited: list[str] = json.loads(row["development_ids"])
-            devs = (q.devs if run.id == q.run.id else load_developments(q.conn, run)).by_id
+            devs = q.devs if run.id == q.run.id else load_developments(q.conn, run)
             note = RunNote(
                 headline=row["headline"],
                 body=row["body"],
                 series_id=row["series_id"],
-                developments=[_dated(devs[i], start, as_of) for i in cited if i in devs],
+                # Each at its priority for this subject, as its feed shows it.
+                developments=[
+                    _dated(devs.scoped(devs.by_id[i], scope), start, as_of)
+                    for i in cited
+                    if i in devs.by_id
+                ],
                 facts=[SeriesMove.model_validate(m) for m in json.loads(row["moves"])],
             )
         previous = run.previous_run_id

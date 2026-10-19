@@ -1,15 +1,9 @@
-/* A dashboard's developments list (components/developments), direction B of mocks/developments.html:
-   a filter bar that sticks under the top bar, facet popovers, and a sortable table in one panel. */
+/* Development feeds and the development page (components/developments, mocks/phase1/u1). */
 .fbar {
-  position: sticky;
-  top: 56px;
-  z-index: 20;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--s-2);
-  padding: 0 var(--s-6) var(--s-4);
-  background: var(--canvas);
 }
 .fsearch {
   width: 180px;
@@ -102,132 +96,6 @@
   color: var(--ink2);
 }
 
-/* The table panel. What changed puts its counts line and triage filter above the table. */
-.panel.dv-table {
-  container-type: inline-size;
-  display: block;
-  margin: 0 var(--s-6) var(--s-7);
-  padding: var(--s-2) var(--s-4) var(--s-3);
-}
-.dv-table > .lead-row {
-  padding-top: var(--s-1);
-}
-.dtable {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-  font-variant-numeric: tabular-nums;
-}
-/* Column heads stick under the top bar and the filter bar, whose height FilterBar keeps current. */
-.dtable th {
-  position: sticky;
-  top: calc(56px + var(--fbar-h, 48px));
-  z-index: 1;
-  background: var(--surface);
-  height: 36px;
-  padding: 0 var(--s-3) 0 0;
-  /* A collapsed border would not move with a sticky cell. */
-  box-shadow: inset 0 -1px 0 var(--line-strong);
-  text-align: left;
-  font: 500 var(--fs-meta) / var(--lh-meta) var(--font);
-  color: var(--ink2);
-  white-space: nowrap;
-}
-.dtable th:nth-child(2) {
-  font-size: var(--fs-body);
-  font-weight: 600;
-  color: var(--ink);
-}
-.th-sort {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  max-width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-}
-.th-sort::after {
-  content: "";
-  position: absolute;
-  inset: -10px -4px;
-}
-.th-sort:hover,
-.dtable th.sorted {
-  color: var(--ink);
-}
-.dtable td {
-  height: 34px;
-  padding: var(--s-2) var(--s-3) var(--s-2) 0;
-  border-top: 1px solid var(--line);
-  vertical-align: top;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-/* Titles wrap so the whole finding reads. */
-.dtable td.tt {
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-.dtable tr:first-child td {
-  border-top: 0;
-}
-.dtable tbody tr:hover td {
-  background: var(--canvas);
-}
-.dtable .tt a {
-  color: var(--ink);
-  font-weight: 500;
-  text-decoration: none;
-}
-.dtable .tt a:hover {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-.dtable td:nth-child(n + 3) {
-  font-size: var(--fs-meta);
-  color: var(--ink2);
-}
-/* Column widths from the mock at 1440px, set on the heads; the title takes the rest. Triage actions
-   need a wider date column. */
-.c-status {
-  width: 124px;
-}
-.c-category {
-  width: 100px;
-}
-.c-date {
-  width: 64px;
-}
-.triaged .c-date {
-  width: 104px;
-}
-.dtable .num {
-  padding-right: 0;
-  padding-left: var(--s-2);
-  text-align: right;
-}
-
-/* Triage rows: Mark read, Flag and Dismiss replace the date while the pointer is over the row or
-   focus is in it (WhatChanged's .triage-* pieces). */
-.dtable .triage-end {
-  display: flex;
-  justify-content: flex-end;
-}
-.dtable tr.triage:is(:hover, :focus-within) .triage-acts {
-  display: inline-flex;
-}
-.dtable tr.triage:is(:hover, :focus-within) .triage-date {
-  display: none;
-}
-.dtable .triage-acts {
-  margin: -6px 0;
-}
-
 /* A monitor page's Developments tab (components/monitor/SubjectDevelopments.tsx): What changed and
    the subject's list in one panel. */
 .mon-devs {
@@ -240,4 +108,447 @@
   .mon-devs {
     padding: 0 var(--s-4) var(--s-6);
   }
+}
+
+/* Labels (components/developments/labels.tsx): priority is the one filled badge; Updated, Adverse,
+   Unverified and Unconfirmed are words. */
+.upd {
+  font: 500 var(--fs-meta) / 18px var(--font);
+  color: var(--new);
+}
+.adv {
+  font-weight: 600;
+  color: var(--attn);
+}
+.unv {
+  font-weight: 600;
+  color: var(--watch);
+}
+
+/* Feed: the period control and facet buttons on one wrapping line, then rows in the list-row grammar
+   with titles and lines in full. The title link covers the row; "View sources" is the visible cue. */
+.feed-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  padding: var(--s-3) 0;
+}
+.frow-head {
+  display: grid;
+  grid-template-columns: var(--stat) minmax(0, 1fr) auto;
+  column-gap: var(--s-3);
+  margin: 0 calc(-1 * var(--s-2));
+  padding: 0 var(--s-2) var(--s-2);
+  border-bottom: 1px solid var(--line-strong);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  color: var(--ink2);
+}
+.frow-head > :last-child {
+  text-align: right;
+}
+.frows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.frow {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--stat) minmax(0, 1fr) auto;
+  column-gap: var(--s-3);
+  margin: 0 calc(-1 * var(--s-2));
+  padding: var(--s-3) var(--s-2);
+  border-top: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+}
+.frow:first-child {
+  border-top: 0;
+}
+.frow:hover {
+  background: var(--canvas);
+}
+.fstat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-1);
+}
+.fmain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ftitle {
+  color: var(--ink);
+  font-weight: 500;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.ftitle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.frow-static .ftitle::after {
+  content: none;
+}
+.frow.frow-static:hover {
+  background: none;
+}
+.frow:not(.frow-static):hover .ftitle {
+  text-decoration: underline;
+  text-decoration-color: var(--line-field);
+}
+.fwho {
+  max-width: 90ch;
+  color: var(--ink);
+}
+.fmeta {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}
+.fend {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s-1);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-body);
+  color: var(--ink2);
+  white-space: nowrap;
+}
+.fopen {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--accent);
+  font-weight: 500;
+}
+.frow.dismissed .ftitle {
+  color: var(--ink2);
+}
+.feed-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-4);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+.feed-foot:empty {
+  display: none;
+}
+.feed > .mon-empty {
+  padding: 0 0 var(--s-3);
+}
+.panel.dv-feed {
+  display: block;
+  margin: 0 var(--s-6) var(--s-7);
+  padding: 0 var(--s-4) var(--s-3);
+}
+@container main (width < 640px) {
+  .frow-head {
+    display: none;
+  }
+  .frow {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--s-1);
+  }
+  .fstat {
+    flex-direction: row;
+    align-items: center;
+  }
+  .fend {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .panel.dv-feed {
+    margin: 0 var(--s-4) var(--s-6);
+  }
+}
+
+/* Development popup (DevelopmentPopup.tsx): the New dashboard popup's size (globals.css dialog.sheet).
+   The head with the close button, then two columns that each scroll: who it impacts over
+   connections, and the sources. Under 1024 px the popup fills the screen less a 16 px margin and the
+   columns stack in one scroll. */
+.dp-top {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-3) var(--s-4) 20px;
+  border-bottom: 1px solid var(--line);
+}
+.dp-top .close {
+  flex-shrink: 0;
+}
+.dp-head {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin: 0;
+}
+.dp-wait {
+  min-height: 28px;
+  justify-content: center;
+  color: var(--ink2);
+}
+.dp-labels {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1) var(--s-2);
+  margin: 0;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink2);
+}
+.dp-jump {
+  font-weight: 500;
+}
+.dp-head h2 {
+  margin: 0;
+  max-width: 110ch;
+  font-size: var(--fs-hero);
+  line-height: var(--lh-hero);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+.dp-head h2:focus {
+  outline: none;
+}
+.dp-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+}
+.dp-cols {
+  flex-grow: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.dp-col {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--s-4) 20px var(--s-6);
+}
+.dp-col-src {
+  border-left: 1px solid var(--line);
+  padding-top: 0;
+}
+/* The left column is two boxes, as in the user's sketch: who it impacts over connections, each
+   scrolling on its own so both stay in view. */
+.dp-col.dp-col-left {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+.dp-col-left > .dp-sec {
+  flex: 3 1 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: var(--s-4) 20px var(--s-5);
+}
+.dp-col-left > .dp-graph {
+  flex: 2 1 0;
+  border-top: 1px solid var(--line);
+}
+.dp-sec + .dp-sec {
+  margin-top: var(--s-6);
+}
+.dp-sec > h3 {
+  margin: 0;
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--line-strong);
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  font-weight: 600;
+}
+.dp-graph > h3 {
+  margin-bottom: var(--s-3);
+}
+.dp-graph > .muted {
+  margin: 0;
+}
+/* The tabs stay at the top of the sources column as it scrolls. */
+.dp-src .src-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+}
+@media (max-width: 1023px) {
+  dialog.sheet.dp-pop {
+    width: calc(100vw - 32px);
+    height: calc(100dvh - 32px);
+    min-width: 0;
+    max-width: none;
+  }
+  dialog.dp-pop[open] {
+    overflow: auto;
+  }
+  .dp-cols {
+    display: block;
+  }
+  .dp-col,
+  .dp-col.dp-col-left,
+  .dp-col-left > .dp-sec {
+    overflow: visible;
+    padding: var(--s-4) var(--s-4) var(--s-5);
+  }
+  .dp-col.dp-col-left {
+    display: block;
+    padding: 0;
+  }
+  .dp-col-src {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 0;
+  }
+  .dp-top {
+    padding-left: var(--s-4);
+  }
+}
+.who-group h4 {
+  margin: var(--s-4) 0 var(--s-1);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  font-weight: 600;
+}
+.who-direct {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1) var(--s-2);
+  margin: 0;
+  padding: var(--s-2) 0;
+}
+.who-names {
+  font-weight: 600;
+}
+.who-names .subject-link,
+.imp-h .subject-link {
+  font-weight: 600;
+}
+.imp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-3) 0;
+  border-top: 1px solid var(--line);
+}
+.who-group h4 + .imp {
+  border-top: 0;
+  padding-top: var(--s-2);
+}
+.imp p {
+  margin: 0;
+  max-width: 80ch;
+}
+.imp-route {
+  font-weight: 500;
+}
+.imp-dir {
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ev-grade {
+  text-decoration: underline dotted var(--line-field);
+  text-underline-offset: 2px;
+  cursor: help;
+}
+.claim {
+  margin: 0;
+  font-weight: 600;
+}
+.snippet {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.snippet .n {
+  fill: var(--surface);
+  stroke: var(--line-strong);
+}
+.snippet .n.ent {
+  stroke: var(--ink2);
+}
+.snippet .n.dev {
+  fill: var(--rail);
+  stroke-dasharray: 3 2;
+}
+.snippet .e {
+  fill: none;
+  stroke: var(--ink3);
+  stroke-width: 1.25;
+}
+.snippet .t {
+  fill: var(--ink);
+  font: 500 12px var(--font);
+}
+.snippet .t.b {
+  font-weight: 600;
+}
+.snippet .l {
+  fill: var(--ink2);
+  font: 400 11px var(--font);
+}
+
+/* Source tabs: News and Social. Underlined like the monitor page tabs. */
+.src-tabs {
+  display: flex;
+  gap: var(--s-5);
+  box-shadow: inset 0 -1px var(--line);
+}
+.src-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--ink2);
+  font: 500 var(--fs-body) / var(--lh-body) var(--font);
+}
+.src-tabs button:hover {
+  color: var(--ink);
+}
+.src-tabs button[aria-selected="true"] {
+  border-bottom-color: var(--ink);
+  color: var(--ink);
+}
+.src-tabs .n {
+  color: var(--ink3);
+  font-variant-numeric: tabular-nums;
+}
+.src-panel > .source:first-child,
+.src-panel > .src-lead + .source {
+  border-top: 0;
+}
+.src-panel > .source {
+  padding-left: 0;
+}
+.src-panel > .muted,
+.src-lead {
+  margin: var(--s-3) 0 0;
+}
+.src-lead {
+  font-weight: 500;
 }

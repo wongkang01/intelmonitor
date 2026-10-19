@@ -1022,7 +1022,7 @@ new_entities:
   - {id: ocbc-hong-kong, name: OCBC Bank (Hong Kong) Limited, kind: bank, country: hong-kong, aliases: [OCBC Hong Kong, OCBC Wing Hang, Wing Hang Bank]}
   - {id: ocbc-china, name: OCBC Bank Limited (China), kind: bank, country: china, aliases: [OCBC China, OCBC Wing Hang China]}
   - {id: ocbc-macau, name: OCBC Bank (Macau) Limited, kind: bank, country: macau, aliases: [OCBC Macau]}
-  - {id: bank-of-ningbo, name: Bank of Ningbo Co., Ltd., kind: bank, country: china, aliases: [BON, Ningbo Bank]}
+  - {id: bank-of-ningbo, name: "Bank of Ningbo Co., Ltd.", kind: bank, country: china, aliases: [BON, Ningbo Bank]}
   - {id: uob-malaysia, name: United Overseas Bank (Malaysia) Bhd, kind: bank, country: malaysia, aliases: [UOB Malaysia]}
   - {id: uob-thailand, name: United Overseas Bank (Thai) Public Company Limited, kind: bank, country: thailand, aliases: [UOB Thailand, UOB Thai, UOBT]}
   - {id: uob-indonesia, name: PT Bank UOB Indonesia, kind: bank, country: indonesia, aliases: [UOB Indonesia]}

@@ -1,66 +1,65 @@
-# Developments list
+# Development feeds
 
-A dashboard's developments in the latest run, across all its subjects, as a sortable table at `/developments?dashboard=<id>` with Status, the full wrapped title, Category and Date.
-A filter bar narrows it by words and five facets, each a popover of values with counts, and switches between every development (`All N`) and What changed since the review (`New since review N`).
-Filters and the sort live in the URL, so a reload and the evidence drawer keep them.
-What changed adds the triage of a monitor page's Developments tab: a filter (All, Unread, Flagged, Dismissed) and per-row Mark read, Flag and Dismiss.
+A scope's developments in the latest run as a feed: High and adverse first, then other High, then Medium adverse, then other Medium, then the rest, newest first within each group.
+Priority and adverse are for the subjects in view, so a development adverse to OCBC only ranks as adverse on OCBC's page.
+A source gate (`api/intelmonitor/pipeline/corroboration.py`) decides which developments are shown: 2 or more distinct news outlets (counted by parent domain, so `markets.ft.com` and `ft.com` are one), or 1 reputable outlet (`REPUTABLE_DOMAINS` in `ingest/sources/search.py`), or any official, research or data source (the entity's own site counts as official), or 4 or more social posts (X and HardwareZone).
+The rest are unconfirmed and left out of every list, count and total by default: feeds, facet and period counts, `See all <n>`, alerts, dashboard widgets, the sidebar, the Related tab and its impacts, the graph, search, answer evidence, and the briefs written from the next run on.
+The developments page (`/developments?dashboard=<id>`) shows a dashboard's feed with a words filter; the dashboard shows its first 15 rows; a monitor page's Developments tab (`/monitors/<id>/developments`, section `Developments about <name>`) shows one subject's feed, and its Overview the top 5 rows without headings.
+Rows sit in one list under a column header, `Priority`, `Finding`, `Date` (hidden from the accessibility tree and below 640 px), in that order; each row's priority badge is in the Priority column.
+Each row has a status column (priority badge High, Medium or Low for the subjects in view, then New or Updated), the full wrapping title, one line on who it impacts (`Impacts DBS · By MAS · About Banking regulation · Could also affect UOB`), a facts line (`Unconfirmed` when it is, `High for OCBC` when the subjects in view disagree, `Adverse event` when it applies, the tone, the source counts, the category), and at the right the date and a visible `View sources ›` cue.
+The source counts read `3 outlets · 12 posts · 1 official source · 2 research papers · 1 data source`, each part left out when zero; outlets are distinct parent domains, not articles.
+The whole row opens the development's popup over the list (see [development-page](development-page.md)).
+Above the rows: the period control (Today, This week, This month, All time; This month is the default), the facet buttons Priority, Adverse event, Tone, Category and Source type, each a popover with All first and the values with counts, and the checkbox `Show unconfirmed <n>` while some unconfirmed developments match.
+The period, facets, words and `unconfirmed=true` live in the URL, so a reload and closing a development popup keep them.
+Dismissed rows are left out; `Show dismissed (N)` at the end brings them back, marked `Dismissed`.
 
 ## Sub-features
 
-- `dev-open`: the list opens from a dashboard's widgets, scoped to that dashboard.
-- `dev-facets`: Category, Materiality, Jurisdiction (with a find field), Date (single choice) and Source popovers narrow the list; the button names the pick.
-- `dev-words`: `Filter by words` narrows the list after a 250 ms pause and writes `q=`.
-- `dev-sort`: each column head sorts; a second click reverses it.
-- `dev-persist`: reload and a drawer round trip keep facets, words and sort.
-- `dev-empty`: no match shows `No developments match the filters. Clear filters`.
-- `dev-changed`: `New since review` lists What changed with the triage filter and row actions.
-- `dev-triage-keys`: row actions show once focus is in the row and work by keyboard; focus moves on when a row leaves the filter.
-- `dev-popover-keys`: popovers take focus, close on Esc, click outside or tabbing out.
-- `dev-bad-params`: hand-edited facet values the list cannot apply are ignored.
-- `dev-narrow`: at 1024 px the bar wraps, nothing scrolls sideways, heads stick under the bar.
+- `feed-open`: the dashboard shows the first 15 rows and `Show all <n>` opens the developments page with the same filters; the monitor page's Developments tab shows the subject's feed.
+- `feed-rows`: one ordered list under the `.frow-head` column header, High adverse rows first, then High, Medium adverse, Medium and the rest, newest first in each; a priority filter leaves only its rows.
+- `feed-gate`: unconfirmed developments are not listed or counted by default; `Show unconfirmed <n>` (`unconfirmed=true`) lists them among the others, each marked `Unconfirmed`, and adds them to the period and facet counts. The checkbox shows only while `n` is above 0 or it is on.
+- `feed-row`: priority badge, New badge or Updated word, full title, impact line, facts line, date and `View sources ›`.
+- `feed-period`: the period segments with counts; This month by default, `days=1|7|any` otherwise.
+- `feed-facets`: Priority, Adverse event (single choice), Tone, Category and Source type narrow the list; the button reads `Priority`, `Priority: High` or `Priority: 2 selected`; zero-count values are hidden.
+- `feed-words`: `Filter by words` on the developments page narrows after a 250 ms pause and writes `q=`.
+- `feed-open-row`: a row adds `development=<id>&scope=dashboard:<id>` (or `scope=subject:<id>` on a monitor page) to the list's URL.
+- `feed-back`: closing the popup (close, Esc, backdrop or browser Back) returns to the feed with the same URL and scroll.
+- `feed-empty`: `No developments in this period. Show this month` (the next wider period that has developments), `No developments yet.` when no period has any, and `No developments match these filters. Clear filters`, or `No developments match these filters in this period. Show this week · Clear filters` when a wider period has matches (the period counts follow the filters).
+- `feed-dismissed`: `Show dismissed (N)` and `Hide dismissed`.
+- `feed-new`: the foot line `New: first reported after <date>. Updated: new reports since then.` names the date New and Updated count from (the previous run's date by default).
+- `feed-bad-params`: hand-edited facet values the list cannot apply are ignored.
 
 ## How to get to it (user POV)
 
-- Dashboard `Singapore banks`: the `Developments` widget's link `241 in scope` opens `/developments?dashboard=singapore-banks`.
-- The `Since your last review` widget's title link and its `Show all` link open the same list with `&changed=1`.
-- Any other dashboard-wide Since or Developments widget does the same for its dashboard. Widgets set to one subject open that monitor page instead.
-- No sidebar or ⌘K entry opens the list.
+- Dashboard: the `Latest developments` feed, and its `Show all <n>` opening `/developments?dashboard=<id>` with its period and facets.
+- Monitor page: the `Developments` tab, or the Overview's `See all ... developments`.
+- No sidebar or ⌘K entry opens the developments page.
 
 ## Driving it with verify
 
 Preconditions:
 
-- `pnpm -C web verify doctor` is ok; the store holds Run 2 (24 Sep against 17 Sep).
-- `ab` below means `agent-browser --session im-verify` (or `--session $VERIFY_SESSION`). `@ref` is the ref `ab snapshot -i` prints for the named control; refs change after every re-render, so snapshot again before each click.
-- Counts below are from the store of 30 Sep 2026; read current ones with `pnpm -C web verify api "/developments?dashboard_id=singapore-banks"` (`in_scope`, `matching`, `facets`).
-- Triage writes to the live store. Toggle each action back at once (Mark unread, Flag again, Dismiss again) and read it back.
+- `pnpm -C web verify doctor` is ok and no run is computing (`run` check), since counts change while one runs.
+- `ab` below means `agent-browser --session im-verify` (or `--session $VERIFY_SESSION`). `@ref` is the ref `ab snapshot -i` prints for the named control; snapshot again before each click.
+- Read current counts with `pnpm -C web verify api "/developments?dashboard_id=<id>&days=30&dismissed=false"` (`matching`, `dismissed`, `since`, `facets`).
 
-- **Open from the widget.** `pnpm -C web verify open dashboard singapore-banks`, `ab snapshot -i`, `ab click @ref` for link `241 in scope`. URL is `/developments?dashboard=singapore-banks`, heading `Developments` level 1, filter bar buttons `All 241` and `New since review 28`, column head `241 developments`.
-- **Pick a facet value.** `ab click @ref` for button `Materiality` (the one with `[expanded=false]` in the bar, not the column head), then `ab click @ref` for checkbox `Significant 46`. URL gains `materiality=3`, the bar button reads `All 46`, rows count 46. `ab press Escape` closes the popover and the button reads `Materiality: Significant`.
-- **Find inside a facet.** `ab click @ref` for button `Jurisdiction`. Focus lands on searchbox `Find a jurisdiction` (`ab eval 'document.activeElement.getAttribute("aria-label")'`). `ab keyboard type "Sing"` leaves only checkbox `Singapore 25`; click it, then `ab press Escape`. URL gains `jurisdiction=sg`, button reads `Jurisdiction: Singapore`, `All 25`. Check the API agrees: `pnpm -C web verify api "/developments?dashboard_id=singapore-banks&materiality=3&jurisdiction=sg"` gives `matching` 25.
-- **Sort.** `ab click @ref` for button `Date` inside columnheader `Date`. URL gains `sort=date`; `ab eval '[...document.querySelectorAll(".dtable th")].map(t=>t.getAttribute("aria-sort")).join()'` shows `descending` on the last head, first row's date is the newest. Click again: `order=asc`, `ascending`, first row the oldest (`28 Jul`).
-- **Reload keeps it.** `ab reload`, `ab wait --load networkidle`. URL, both facet button names, row count and `aria-sort` are unchanged.
-- **Drawer keeps it.** `ab focus @ref` on the first row's title link, `ab press Enter`. URL gains `&evidence=<id>` after the list's parameters and focus is on heading `Evidence` (`document.activeElement.id` is `evidence-title`). `ab press Escape`: URL is back to the list's parameters exactly, and focus is back on that row's title link. See [evidence-drawer](evidence-drawer.md).
-- **Words.** `ab fill @ref "teaming"` on searchbox `Filter by words`, wait 1 s. URL gains `q=teaming`, one row. Compare `pnpm -C web verify api "/developments?dashboard_id=singapore-banks&q=teaming"` `matching`.
-- **Empty and Clear filters.** Fill `zzzqqq`. The table reads `No developments match the filters. Clear filters`. `ab click @ref` for button `Clear filters`: facet and `q` parameters go (sort stays), the searchbox is empty, `All 241` again.
-- **Popovers by keyboard.** `ab focus @ref` on button `Date`, `ab press Enter`: focus is on radio `Any time 241`. `ab press ArrowUp`: URL gains `days=90`, button reads `Date: Last 90 days`. `ab press Escape`: popover closes, focus returns to the button. Reopen and click `Clear` to drop `days` (the popover stays open). Focus button `Category`, `ab press Enter`: focus on the first checkbox (`Regulatory 145`). Press Tab once per value (7): focus reaches button `Materiality` and the Category popover is closed.
-- **Bad parameters.** `pnpm -C web verify open developments singapore-banks "category=bogus&materiality=9&jurisdiction=xx&days=abc&source=foo"`. All 241 rows show and the five facet buttons read plain `Category`, `Materiality`, `Jurisdiction`, `Date`, `Source`.
-- **What changed.** `ab click @ref` for button `New since review 28`. URL gains `changed=1`; the lead reads `28 new, 9 need attention` (`ab get text .mon-lead`); a group `Filter developments` has `All 80`, `Unread 28`, `Flagged 1`, `Dismissed 0`. Counts match `pnpm -C web verify api "/what-changed?dashboard_id=singapore-banks"`: 80 `unreviewed`, 28 of them unread and not dismissed.
-- **Triage by keyboard.** Click `Unread 28`. `ab focus @ref` on the first row's title link, then `ab press Tab` once: focus is on button `Mark read`. `ab press Enter`: the row leaves the Unread list, focus moves to `Mark read` on the row now in its place, and `Unread 27`, `New since review 27` update. Read back with `pnpm -C web verify api "/developments?dashboard_id=singapore-banks&q=<words from the title>"`: `read: true`.
-- **Undo triage.** Click the group's `All 80`, focus the same row's title link, Tab once to button `Mark unread`, Enter. Counts return to 28 and the API shows `read: false`. Flag and Dismiss are toggles (`aria-pressed`) undone the same way.
-- **1024 px.** `pnpm -C web verify open developments singapore-banks "days=30&category=regulatory&materiality=3&jurisdiction=sg&source=news"`, then `ab set viewport 1024 800` (`verify open` resets the viewport to 1440x900, so set it after). `ab eval` shows `main.scrollWidth - main.clientWidth` is 0 and group `Developments to list` ends at or before x 1024. With `changed=1`, the title head is at least 200 px, and after `document.querySelector("main").scrollBy(0,1200)` the heads' top equals `.fbar`'s bottom. Set the viewport back to 1440 900.
-- **Proof.** `pnpm -C web verify shot devs/<step>` before and after each action; the `.aria.txt` holds the facet button names and counts.
+- **Open.** `pnpm -C web verify open developments <dashboard>`. Heading `Developments` level 1; group `Period` with `This month <n>` pressed; buttons `Priority`, `Adverse event`, `Tone`, `Category`, `Source type`; the rows are one ordered list under the Priority, Finding and Date header, their badges in the API's order.
+- **Period.** `ab click @ref` for button `This week <n>`. URL gains `days=7`; rows equal the API's `matching` for `days=7&dismissed=false`. `This month` drops `days`.
+- **Facet.** `ab click @ref` for button `Priority`, then checkbox `High <n>`. URL gains `priority=High`, the button reads `Priority: High`, every row's badge is High. Check another value: the button reads `Priority: 2 selected`. Checkbox `All` clears it. `ab press Escape` closes the popover and focus returns to the button.
+- **Adverse event.** Button `Adverse event`, radio `Yes <n>` (or `No <n>`): URL gains `adverse=true` and the button reads `Adverse event: Yes`; every row's facts line shows `Adverse event`.
+- **Open a row and come back.** With filters set and the list scrolled, `ab click @ref` on a row's title link. The URL is the feed's URL plus `development=<id>&scope=dashboard%3A<id>`. Click `Close development`: the URL is the feed's URL exactly, filters, rows and scroll unchanged.
+- **Reload keeps it.** `ab reload`: URL, button names and rows unchanged.
+- **Unconfirmed.** Read `unconfirmed` from `verify api "/developments?subject_id=dbs&days=30&dismissed=false"`, then `verify open monitor-developments dbs`. With `n` above 0, `ab click @ref` on checkbox `Show unconfirmed <n>`: URL gains `unconfirmed=true`, `n` more rows appear in order, each with `Unconfirmed` in its facts line, and the `This month` count grows by `n`. Open one: the popup's labels read `Unconfirmed` and its sources start with `Unconfirmed: not enough independent sources yet.` Uncheck: the URL drops the parameter and the rows go.
+- **Words.** `ab fill @ref "<word>"` on searchbox `Filter by words`, wait 1 s: URL gains `q=`, rows match the API with `q=`.
+- **Empty.** Fill `zzzqqq`: `No developments match these filters. Clear filters`; the button clears facets and `q`, keeping the period. On `Today` with nothing that day: `No developments in this period. Show this week`. With `Adverse event: Yes` on `Today` when only the week has matches: `No developments match these filters in this period. Show this week · Clear filters`; `Show this week` keeps the filters.
+- **Monitor page.** `pnpm -C web verify open monitor-developments dbs [query]`. Section `Developments about DBS` with the same controls and headings, every row shown; rows open the popup with `scope=subject%3Adbs`. The Overview (`verify open monitor dbs`) shows `Top developments`: the first 5 confirmed rows in the same order, with badges and no headings.
+- **Bad parameters.** `pnpm -C web verify open developments <dashboard> "priority=Bogus&tone=x&adverse=maybe&category=bogus&source=foo&days=abc"`: buttons read plain `Priority` and so on, and `This month` is pressed.
+- **Proof.** `pnpm -C web verify shot phase1-U1/<step>`; the `.aria.txt` holds the button names and counts.
 
 ## Gotchas
 
-- The list belongs to a dashboard: a URL without `dashboard=<id>` shows `Open developments from a dashboard.` `verify open developments <dashboard>` always sets it.
-- Names repeat: `Category` and `Date` are both facet buttons and column sort buttons, and `All N` is both the bar's switch and the triage filter's first button. Pick by ref from `snapshot -i`; the facet button carries `[expanded=...]`.
-- `ab find role button --name "New since review 28"` fails while `--name "New since review"` works, and `find role checkbox --name "Significant"` did not match the facet checkbox. Prefer refs.
-- Titles that start with "All" match a naive `grep 'All '` on the snapshot.
-- The popover dialog does not appear in `snapshot -i`; its checkboxes do, listed right after the expanded button.
-- Filters use `history.replaceState`, so Back leaves the page instead of undoing a filter. Opening the drawer pushes a history entry; closing it replaces.
-- Words apply after 250 ms; wait about 1 s before reading the URL or rows.
-- A read row drops its New or Updated badge but keeps `Needs attention`.
-- Triage changes the same rows the monitor page, the Since widget and the alerts bell read, and marking read also marks the alert read. There is no Undo toast; toggle back.
-- The `New since review` count is the unread new or updated developments; the triage `All` count includes read ones. They differ on purpose.
-- Once the dashboard is marked reviewed with nothing new, What changed folds behind a `Run of 24 Sep ...` disclosure button; expand it before looking for rows.
+- The developments page belongs to a dashboard: without `dashboard=<id>` it shows `Open developments from a dashboard.`
+- Filters replace the history entry, so Back leaves the page instead of undoing a filter. Opening a development pushes an entry, so Back from it returns to the feed.
+- The popover dialog does not appear in `snapshot -i`; its checkboxes and radios do, listed right after the expanded button.
+- New and Updated count by published dates from the `since` date in the API response, not from the review; a read row drops its New or Updated mark.
+- Opening a row marks it read in the live store. Mark it unread afterwards with `pnpm -C web verify api PATCH /developments/<id>/triage '{"read": false}'` when the drive must leave no trace.

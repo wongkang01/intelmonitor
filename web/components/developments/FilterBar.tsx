@@ -1,13 +1,12 @@
-// The developments list's filter bar: a words filter, a button per facet whose popover lists the
-// facet's values with counts, and the switch between every development and What changed. One
-// popover is open at a time; Esc, a click outside or tabbing out of it closes it. The bar wraps when
-// it does not fit on one line and keeps its height on its parent as `--fbar-h`, for the table's
-// sticky column heads.
+// A feed's filter bar: an optional words filter, a button per facet whose popover lists All, then
+// the facet's values with counts, and "Show unconfirmed" when the source gate holds some back. One
+// popover is open at a time; Esc, a click outside or tabbing out of it closes it. The bar wraps
+// when it does not fit on one line.
 import { useEffect, useRef, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
-import { trackHeight, useDismiss } from "@/lib/dom";
-import { ANY_TIME, FACETS, selected, withFacet, type FacetId } from "@/lib/developments";
+import { useDismiss } from "@/lib/dom";
+import { FACETS, selected, showsUnconfirmed, withFacet, withUnconfirmed, type FacetId } from "@/lib/developments";
 import { ChevronDownIcon, SearchIcon } from "@/components/ui/icons";
 
 type FacetValue = Schema<"FacetValue">;
@@ -15,28 +14,26 @@ type FacetDef = (typeof FACETS)[number];
 
 const WORDS_DELAY_MS = 250;
 
-const trackBarHeight = (bar: HTMLDivElement | null) =>
-  bar?.parentElement ? trackHeight(bar, "--fbar-h", bar.parentElement) : undefined;
-
 export function FilterBar({
   params,
   facets,
-  counts,
-  changed,
+  unconfirmed,
+  words = false,
   onParams,
 }: {
   params: URLSearchParams;
   /** The facets' values and counts; absent until the first list loads. */
   facets: Schema<"DevelopmentFacets"> | undefined;
-  /** Developments matching the filters, and those of them new or updated since the review and unread. */
-  counts: { all: number; changed: number } | undefined;
-  changed: boolean;
+  /** Unconfirmed developments matching the filters; absent until the first list loads. */
+  unconfirmed: number | undefined;
+  /** Show the words filter. */
+  words?: boolean;
   onParams: (next: URLSearchParams) => void;
 }) {
   const [open, setOpen] = useState<FacetId | null>(null);
   return (
-    <div className="fbar" role="group" aria-label="Filters" ref={trackBarHeight}>
-      <Words params={params} onParams={onParams} />
+    <div className="fbar" role="group" aria-label="Filters">
+      {words && <Words params={params} onParams={onParams} />}
       {FACETS.map((f) => (
         <Facet
           key={f.id}
@@ -49,29 +46,20 @@ export function FilterBar({
           onChange={(values) => onParams(withFacet(params, f.id, values))}
         />
       ))}
-      <div className="seg push" role="group" aria-label="Developments to list">
-        {[
-          { label: "All", value: false, n: counts?.all },
-          { label: "New since review", value: true, n: counts?.changed },
-        ].map((v) => (
-          <button
-            key={v.label}
-            type="button"
-            aria-pressed={v.value === changed}
-            onClick={() => {
-              if (v.value === changed) return;
-              const next = new URLSearchParams(params);
-              if (v.value) next.set("changed", "1");
-              else next.delete("changed");
-              onParams(next);
-            }}
-          >
-            {v.label}
-            {v.n !== undefined && <span className="seg-n">{v.n}</span>}
-          </button>
-        ))}
-      </div>
+      <Unconfirmed count={unconfirmed} on={showsUnconfirmed(params)} onChange={(on) => onParams(withUnconfirmed(params, on))} />
     </div>
+  );
+}
+
+/** "Show unconfirmed" with how many match, shown while there are some or it is on. */
+function Unconfirmed({ count, on, onChange }: { count: number | undefined; on: boolean; onChange: (on: boolean) => void }) {
+  if (!on && !count) return null;
+  return (
+    <label className={`fopt${on ? " on" : ""}`}>
+      <input type="checkbox" checked={on} onChange={(e) => onChange(e.target.checked)} />
+      Show unconfirmed
+      {count !== undefined && <span className="n">{count}</span>}
+    </label>
   );
 }
 
@@ -107,8 +95,9 @@ function Words({ params, onParams }: { params: URLSearchParams; onParams: (next:
 }
 
 /**
- * A facet's button and popover. The button names the selection ("Materiality: Significant"); the
- * popover lists the values with counts as checkboxes, or radios for a single-choice facet.
+ * A facet's button and popover. The button names the selection ("Priority", "Priority: High",
+ * "Priority: 2 selected"); the popover lists All, then the values with counts as checkboxes, or
+ * radios for a single-choice facet.
  */
 function Facet({
   facet,
@@ -129,8 +118,6 @@ function Facet({
 }) {
   const { wrap, trigger } = useDismiss(open, onClose);
   const label = (v: string) => values?.find((x) => x.value === v)?.label ?? v;
-  // The date facet always has a value; Any time is no filter.
-  const set = chosen.filter((v) => v !== ANY_TIME);
   const id = `facet-${facet.id}`;
 
   return (
@@ -143,7 +130,7 @@ function Facet({
     >
       <button
         type="button"
-        className={`btn btn-sm fbtn${set.length ? " set" : ""}`}
+        className={`btn btn-sm fbtn${chosen.length ? " set" : ""}`}
         aria-expanded={open}
         aria-controls={open ? id : undefined}
         aria-haspopup="dialog"
@@ -151,48 +138,42 @@ function Facet({
         onClick={onToggle}
       >
         {facet.label}
-        {set.length > 0 && (
+        {chosen.length > 0 && (
           <>
-            :{" "}
-            <b>
-              {label(set[0])}
-              {set.length > 1 && ` +${set.length - 1}`}
-            </b>
+            : <b>{chosen.length === 1 ? label(chosen[0]) : `${chosen.length} selected`}</b>
           </>
         )}
         <ChevronDownIcon />
       </button>
-      {open && <FacetPopover id={id} facet={facet} values={values} chosen={chosen} cleared={set.length === 0} onChange={onChange} />}
+      {open && <FacetPopover id={id} facet={facet} values={values} chosen={chosen} onChange={onChange} />}
     </div>
   );
 }
 
-/** The open popover; focus moves into it, to its find field, its checked radio or its first value. */
+/** The open popover; focus moves to its checked value, or to All. Values with no matches are left out. */
 function FacetPopover({
   id,
   facet,
   values,
   chosen,
-  cleared,
   onChange,
 }: {
   id: string;
   facet: FacetDef;
   values: FacetValue[] | undefined;
   chosen: string[];
-  cleared: boolean;
   onChange: (values: string[]) => void;
 }) {
-  const [find, setFind] = useState("");
   const pop = useRef<HTMLDivElement>(null);
   const focused = useRef(false);
-  const shown = values?.filter((v) => v.label.toLowerCase().includes(find.trim().toLowerCase())) ?? [];
+  const shown = values?.filter((v) => v.count > 0 || chosen.includes(v.value)) ?? [];
+  const total = values && facet.single ? values.reduce((n, v) => n + v.count, 0) : undefined;
 
   // Once, as soon as there is something to focus: a popover opened while its values load gets
   // focus when they arrive.
   useEffect(() => {
     const box = pop.current;
-    const target = box?.querySelector<HTMLInputElement>("input[type=search], input[type=radio]:checked") ?? box?.querySelector("input");
+    const target = box?.querySelector<HTMLInputElement>("input:checked") ?? box?.querySelector("input");
     if (focused.current || !target) return;
     focused.current = true;
     target.focus();
@@ -200,15 +181,12 @@ function FacetPopover({
 
   return (
     <div className="fpop" id={id} role="dialog" aria-label={facet.label} ref={pop}>
-      {facet.find && (
-        <div className="fpop-head">
-          <label className="field">
-            <SearchIcon />
-            <input type="search" placeholder={facet.find} aria-label={facet.find} value={find} onChange={(e) => setFind(e.target.value)} />
-          </label>
-        </div>
-      )}
       <div className="fpop-body">
+        <label className={`fopt${chosen.length === 0 ? " on" : ""}`}>
+          <input type={facet.single ? "radio" : "checkbox"} name={id} checked={chosen.length === 0} onChange={() => onChange([])} />
+          <span className="grow">All</span>
+          {total !== undefined && <span className="n">{total}</span>}
+        </label>
         {shown.map((v) => {
           const on = chosen.includes(v.value);
           return (
@@ -224,12 +202,7 @@ function FacetPopover({
             </label>
           );
         })}
-        {values && shown.length === 0 && <p className="fpop-empty">{find ? "No match" : "Nothing to filter by"}</p>}
-      </div>
-      <div className="fpop-foot">
-        <button type="button" className="link" disabled={cleared} onClick={() => onChange([])}>
-          Clear
-        </button>
+        {values && shown.length === 0 && <p className="fpop-empty">Nothing to filter by</p>}
       </div>
     </div>
   );

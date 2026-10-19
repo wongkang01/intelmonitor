@@ -1,0 +1,295 @@
+[
+  {
+    "subject_id": "dbs",
+    "run_id": "2026-10-08",
+    "model": "claude-sonnet-5-5",
+    "ok": true,
+    "faults": [],
+    "brief": {
+      "bottom_line": "Quiet week for DBS itself; the S$1.298 billion 1MDB liquidator claim, which DBS rejects and has not provisioned for, remains the main open matter, and the share price moved with a peer sell-down.",
+      "direction": "unchanged",
+      "direction_reason": "No incident, loss or enforcement at DBS; the OCBC sell-down and smaller trading lots are market events, and the 1MDB claim is as before.",
+      "points": [
+        {
+          "claim": "OCBC shares fell 5.90% on 7 Oct after a Citi downgrade to sell; DBS shares fell 1.36% the same day, and UOB slipped 1.74%.",
+          "why_it_matters": "DBS moved with sector sentiment; the downgrade named OCBC and UOB, not DBS, so it is not a DBS specific signal.",
+          "development_ids": [
+            "679ece21a96862f6-0"
+          ]
+        },
+        {
+          "claim": "SGX's smaller board lots took effect on 5 Oct for 11 stocks including DBS, which led trades in lots of 10 shares, with about 5,000 such trades.",
+          "why_it_matters": "Smaller lots widen retail access to DBS shares, and SGX said liquidity stayed broadly stable after the debut.",
+          "development_ids": [
+            "f8ef5ef2e6db7991-0"
+          ]
+        }
+      ],
+      "indirect": [
+        "79f1050223a49042-0",
+        "38e31b8dc5541271-0"
+      ],
+      "coming_up": []
+    },
+    "judgement": {
+      "claims": [
+        {
+          "point": 1,
+          "supported": true,
+          "reason": "The cited development gives OCBC's 5.90% fall on 7 Oct, the Citi downgrade to sell and UOB's 1.74% slip. The series note gives DBS's 1.36% fall on 7 Oct. Citi downgraded OCBC and reiterated sell on UOB, with no DBS action, so calling the move sector sentiment rather than a DBS-specific signal is a reasonable reading."
+        },
+        {
+          "point": 2,
+          "supported": true,
+          "reason": "The cited development confirms that the reduced board lots took effect on 5 Oct for 11 stocks including DBS, that DBS led 10-share lot trades with about 5,000, and that SGX said liquidity stayed broadly stable. Wider retail access is a reasonable consequence."
+        }
+      ],
+      "top_high": [],
+      "consistent": true,
+      "consistency_reason": "Nothing this week was a material incident, loss or enforcement at DBS. The adverse items are Low-priority customer complaints, and the regulatory items are proposals or compliance work. So 'unchanged' fits. The bottom line correctly presents the 1MDB claim as carried over from before the window and ties the share move to the peer sell-down, which matches the series note (a 1.36% fall on 7 Oct, up 0.17% for the week).",
+      "stale_or_other": [],
+      "verdict": "This is a sound, accurately sourced brief. Both points are supported, it keeps OCBC's downgrade separate from DBS, and the 'unchanged' direction is justified. It could have briefly mentioned DBS's own AI-agent rollout, the main DBS-specific news this week."
+    }
+  },
+  {
+    "subject_id": "uob",
+    "run_id": "2026-10-08",
+    "model": "claude-sonnet-5-5",
+    "ok": true,
+    "faults": [],
+    "brief": {
+      "bottom_line": "No new problem at UOB this week; shares fell on 7 Oct with OCBC after Citi's downgrade, while the AI and data centre financings and rate sensitivity still frame the picture.",
+      "direction": "unchanged",
+      "direction_reason": "Only broker views and a share price fall this week; no incident, loss or enforcement at UOB.",
+      "points": [
+        {
+          "claim": "Citi downgraded OCBC to sell on 7 Oct and reiterated its sell on UOB; UOB shares fell 2.93% that day, its biggest daily move.",
+          "why_it_matters": "It is a share price and sentiment hit, not a change in UOB's finances; the link to OCBC's drop is timing only.",
+          "development_ids": [
+            "679ece21a96862f6-0"
+          ]
+        },
+        {
+          "claim": "RHB kept an overweight rating on Singapore banks on 7 Oct, ranked UOB second behind OCBC with a buy, and saw UOB as a likely beneficiary of rising rates.",
+          "why_it_matters": "Brokers are split on UOB, and the rate view matches Macquarie's earlier upgrade on rate sensitivity.",
+          "development_ids": [
+            "84f1a66d9fa57aca-2"
+          ]
+        }
+      ],
+      "indirect": [
+        "79f1050223a49042-0",
+        "fbf4123dfdfab3c4-0"
+      ],
+      "coming_up": []
+    },
+    "judgement": {
+      "claims": [
+        {
+          "point": 1,
+          "supported": true,
+          "reason": "679ece21a96862f6-0 reports Citi downgrading OCBC to sell on 7 Oct and reiterating its sell on UOB. The series event gives UOB's 2.93% fall on 7 Oct as its biggest daily move and says the link to OCBC is timing only. The 'why it matters' is a fair reading: a sentiment hit, not a change in UOB's finances."
+        },
+        {
+          "point": 2,
+          "supported": true,
+          "reason": "84f1a66d9fa57aca-2 supports the overweight call, UOB ranked second with a buy, and UOB as a likely beneficiary of rising rates. 'Brokers are split' follows from Citi's sell versus RHB's buy. The Macquarie rate-sensitivity upgrade appears in the previous week's bottom line."
+        }
+      ],
+      "top_high": [],
+      "consistent": true,
+      "consistency_reason": "This week's evidence is only broker views, a share price fall and indirect regulatory or macro items, with no incident, loss or enforcement at UOB. 'Unchanged' fits. The bottom line presents the earlier financings as background framing, not as this week's news.",
+      "stale_or_other": [],
+      "verdict": "This is an accurate, well-supported brief. It correctly treats the Citi and RHB broker views and the 7 Oct share fall as sentiment, not a change at UOB. It keeps OCBC's downgrade separate from UOB's own position and names the TLAC and One Raffles Place indirect items."
+    }
+  },
+  {
+    "subject_id": "ocbc",
+    "run_id": "2026-10-08",
+    "model": "claude-sonnet-5-5",
+    "ok": true,
+    "faults": [],
+    "brief": {
+      "bottom_line": "OCBC shares fell sharply on 7 Oct after a Citi downgrade, but no operating or regulatory event hit the bank itself; profitability after the 22% second quarter rise is unchanged.",
+      "direction": "unchanged",
+      "direction_reason": "The 7 Oct share fall followed an analyst downgrade, which is a market view; other items were strategy announcements and no event at the bank worsened or improved.",
+      "points": [
+        {
+          "claim": "OCBC shares fell 5.90% to SGD 30.30 on 7 Oct after Citi cut it to sell with a S$27.50 target, expecting flat third quarter earnings and margin contraction.",
+          "why_it_matters": "The sell-off is a sentiment hit on a stock after a big run; other brokers stayed positive, and RHB kept OCBC as top pick at S$33.70.",
+          "development_ids": [
+            "679ece21a96862f6-0",
+            "84f1a66d9fa57aca-2"
+          ]
+        },
+        {
+          "claim": "OCBC committed to over S$1 billion a year in technology for three years and plans to hire 600 more relationship managers to grow wealth management.",
+          "why_it_matters": "It signals continued investment in the wealth business that brokers cite as a driver of earnings, though it adds to costs.",
+          "development_ids": [
+            "ec3a873e80f597d3-1",
+            "ec3a873e80f597d3-2"
+          ]
+        }
+      ],
+      "indirect": [
+        "79f1050223a49042-0",
+        "c789cbb7c9be45da-0"
+      ],
+      "coming_up": []
+    },
+    "judgement": {
+      "claims": [
+        {
+          "point": 1,
+          "supported": true,
+          "reason": "The 5.90% fall to SGD 30.30, Citi's sell rating with a S$27.50 target, flat Q3 earnings and margin contraction all appear in 679ece21a96862f6-0. 'After a big run' matches the note that P/E expanded about 46% this year. 'Other brokers stayed positive' is backed by UOB Kay Hian keeping OCBC as its preferred buy and by RHB naming it top pick at S$33.70 (84f1a66d9fa57aca-2)."
+        },
+        {
+          "point": 2,
+          "supported": true,
+          "reason": "The S$1bn+ a year in technology for three years and the 600 extra relationship managers match ec3a873e80f597d3-1 and -2. UOB Kay Hian cites wealth management growth as a driver, and the added cost is a reasonable consequence."
+        }
+      ],
+      "top_high": [
+        {
+          "development_id": "679ece21a96862f6-0",
+          "covered": true,
+          "rightly_left_out": false,
+          "reason": "Point 1 and the bottom line cover the share fall and the Citi downgrade."
+        }
+      ],
+      "consistent": true,
+      "consistency_reason": "The share fall came from an analyst downgrade, which is a market view, and other brokers stayed positive. The other items are strategy announcements, and the regulatory and macro items (including TLAC and slow payments) reach the bank indirectly and are still proposals or powers, not changes already made. So 'unchanged' is justified. The 22% Q2 profit rise carries over from the previous week's brief.",
+      "stale_or_other": [],
+      "verdict": "This is an accurate, well-supported brief. It covers the only High development, sets the downgrade against the positive broker views, and rightly keeps the direction unchanged. Its claim that no regulatory event hit the bank is slightly broad given the TLAC bill, but it names that bill as an indirect impact."
+    }
+  },
+  {
+    "subject_id": "aws",
+    "run_id": "2026-10-08",
+    "model": "claude-sonnet-5-5",
+    "ok": false,
+    "faults": [
+      "point 1 unsupported: The claim is supported. The cited items cover posts on 3 Oct (162da), 5 and 7 Oct (ad688) and 5 Oct (the Bahrain post). All are unverified, and the 7 Oct post says no financial institutions are named. The 'why it matters' is the problem. It says the Bahrain claim would widen the known data loss. But the previous brief, and this brief's own bottom line, already say data held only in Bahrain cannot be restored. So the claim would not widen the loss, and the why contradicts the brief's own framing."
+    ],
+    "brief": {
+      "bottom_line": "No confirmed new incident since 1 Oct; the 15 Sep statement stands that data held only in the mec1-az2 zone of the UAE region, or only in Bahrain, cannot be restored.",
+      "direction": "unchanged",
+      "direction_reason": "Only unconfirmed social media outage claims and a product release appeared; nothing material beyond the 15 Sep statement.",
+      "points": [
+        {
+          "claim": "Social media posts on 3, 5 and 7 Oct claimed AWS outages, and one said all three Bahrain availability zones were destroyed; none is confirmed and none names a financial institution.",
+          "why_it_matters": "The Bahrain claim, if confirmed, would widen the known data loss, so it needs a check against AWS statements, though it is not established.",
+          "development_ids": [
+            "ad688d0574cdf549-0",
+            "1ba528787227accd-0",
+            "162da3069d9ae78a-0"
+          ]
+        },
+        {
+          "claim": "Vogels said AWS has released an open-source quantum-safe encryption toolkit and urged customers to adopt it, warning that stored encrypted data could be decrypted within about five years.",
+          "why_it_matters": "It gives financial customers a tool for long-term data protection, but adoption and effect are not yet shown.",
+          "development_ids": [
+            "c5fc3ff79cc1fcaa-1"
+          ]
+        }
+      ],
+      "indirect": [
+        "3e104fde8f4e31c5-0"
+      ],
+      "coming_up": []
+    },
+    "judgement": {
+      "claims": [
+        {
+          "point": 1,
+          "supported": false,
+          "reason": "The claim is supported. The cited items cover posts on 3 Oct (162da), 5 and 7 Oct (ad688) and 5 Oct (the Bahrain post). All are unverified, and the 7 Oct post says no financial institutions are named. The 'why it matters' is the problem. It says the Bahrain claim would widen the known data loss. But the previous brief, and this brief's own bottom line, already say data held only in Bahrain cannot be restored. So the claim would not widen the loss, and the why contradicts the brief's own framing."
+        },
+        {
+          "point": 2,
+          "supported": true,
+          "reason": "This matches c5fc3ff79cc1fcaa-1: an open-source quantum-safe toolkit, customers urged to adopt it, and the five-year warning. The why is a fair consequence, and it notes that adoption is not yet shown."
+        }
+      ],
+      "top_high": [],
+      "consistent": true,
+      "consistency_reason": "'Unchanged' fits the evidence. No confirmed incident hurt AWS this week. The outage claims are unverified, and the Singapore licensing law adds compliance cost but is not a material harm. The direction note says only social media claims and a product release appeared. That leaves out the Singapore Digital Infrastructure Bill, which the brief itself names as an indirect impact, and the Homer City filing, but neither changes the assessment. The Bahrain part of the bottom line comes from the previous brief, not the 15 Sep evidence, which covers only mec1-az2. Carrying it forward is acceptable.",
+      "stale_or_other": [],
+      "verdict": "The brief is broadly sound: the direction is right and the claims are accurate and hedged. Its main flaw is in point 1. It says the Bahrain claim would 'widen the known data loss', but its own bottom line already counts Bahrain data as unrecoverable. The direction note also leaves out the Singapore licensing law."
+    }
+  },
+  {
+    "subject_id": "singapore-equities",
+    "run_id": "2026-10-08",
+    "model": "claude-sonnet-5-5",
+    "ok": true,
+    "faults": [],
+    "brief": {
+      "bottom_line": "Policy support continues and the IPO pipeline is building, but SGX shares and bank stocks sold off this week and smaller stocks still trail the Straits Times Index.",
+      "direction": "unchanged",
+      "direction_reason": "New items are the board lot rollout, analyst commentary and price moves with no stated cause; the EQDP batch and market-making grant were in the previous brief.",
+      "points": [
+        {
+          "claim": "Reduced board lots began on 5 Oct for an initial 11 stocks including DBS, OCBC and UOB, cutting minimum trade size from 100 units to 10 for stocks priced $10 to $100.",
+          "why_it_matters": "It lowers the entry cost for retail investors; SGX says liquidity held, with eight of 11 stocks seeing higher average daily turnover on 5 Oct than 2 Oct.",
+          "development_ids": [
+            "f8ef5ef2e6db7991-0"
+          ]
+        },
+        {
+          "claim": "SGX shares fell 7.16% on 2 Oct, and the Straits Times Index fell 1.63% on 7 Oct as OCBC dropped 5.90% after a Citi downgrade to sell.",
+          "why_it_matters": "Record index levels now face a pullback led by the banks; no cause is given for the SGX fall, so it is a sentiment signal only.",
+          "development_ids": [
+            "679ece21a96862f6-0"
+          ]
+        },
+        {
+          "claim": "The listing pipeline is active: Deluge launched a Mainboard IPO at 60 cents to raise $23.4 million, and Mi Material filed to raise an indicative S$168.2 million.",
+          "why_it_matters": "These test whether the FY2026 listing rebound continues beyond the 21 listings already reported, and Mi Material is the larger deal.",
+          "development_ids": [
+            "2bb67eec335208c5-0",
+            "984eb7dc3dcb8b91-0"
+          ]
+        }
+      ],
+      "indirect": [],
+      "coming_up": [
+        "2026-10-16 Expected start of trading",
+        "2026-10-14 Initial offer period ends",
+        "2026-10-28 Expected start of trading"
+      ]
+    },
+    "judgement": {
+      "claims": [
+        {
+          "point": 1,
+          "supported": true,
+          "reason": "f8ef5ef2e6db7991-0 gives the 5 Oct start, the initial 11 stocks including DBS, OCBC and UOB, the cut from 100 units to 10 for stocks priced $10 to $100, and SGX's statement that eight of 11 stocks had higher average daily turnover on 5 Oct than on 2 Oct. The lower entry cost for retail investors follows reasonably from this."
+        },
+        {
+          "point": 2,
+          "supported": true,
+          "reason": "The SGX fall of 7.16% on 2 Oct and the STI fall of 1.63% on 7 Oct come from the series events. 679ece21a96862f6-0 supports OCBC's 5.90% drop and the Citi downgrade to sell. 'Record index levels' comes from the previous brief. 'Led by the banks' is a mild stretch, since UOB slipped only 1.74%, but it is a fair reading. The point correctly says no cause is given for the SGX fall."
+        },
+        {
+          "point": 3,
+          "supported": true,
+          "reason": "2bb67eec335208c5-0 supports Deluge's Mainboard IPO at 60 cents raising $23.4 million. 984eb7dc3dcb8b91-0 supports Mi Material's indicative S$168.2 million raise. The 21 FY2026 listings come from the earlier developments and the previous brief, and Mi Material is indeed the larger deal."
+        }
+      ],
+      "top_high": [
+        {
+          "development_id": "2109dda8276046f0-1",
+          "covered": false,
+          "rightly_left_out": true,
+          "reason": "The S$20 million GEMS market-making grant was announced on 29 Sep and was already in the previous week's brief. This week's sources add no new facts. The direction line notes it was covered before, and 'policy support continues' in the bottom line nods to it."
+        }
+      ],
+      "consistent": true,
+      "consistency_reason": "The bottom line matches the points and the evidence. Policy support and the IPO pipeline are in the evidence. The SGX and OCBC price falls are in the series events and 679ece21a96862f6-0. Smaller stocks trailing the STI comes from JPMorgan's Next 50 note. 'Unchanged' is the right direction, because the new items are price moves with no stated cause, analyst commentary and pipeline activity, and none of them is material harm to the subject.",
+      "stale_or_other": [],
+      "verdict": "This is a sound brief. All three points are supported, it correctly leaves out the market-making grant because last week's brief already covered it, and its direction of 'unchanged' fits the evidence. The only weak spot is that 'pullback led by the banks' overstates the case slightly, since UOB fell only 1.74%."
+    }
+  }
+]

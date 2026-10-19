@@ -244,18 +244,18 @@ A restrained palette: cool neutrals, one saturated blue, four status pairs.
 
 ### Hierarchy
 - **Title** (600, 28/34, -0.015em): page title only.
-- **Hero** (600, 22/28): the "Since your last review" lead line, and nothing else.
+- **Hero** (600, 22/28): the brief's state line on a monitor Overview, and the development popup's title. One per screen; the dashboard has none, so its watchlist and feed lead.
 - **Lead** (600, 15/20): monitor section headers, widget answers, popup, drawer and dialog titles.
 - **Body** (13/18): 400 for text; 500 for row titles, buttons and nav items; 600 for state words and popover titles.
 - **Meta** (12/16): 400 `ink2` for meta and dates; 500 for widget titles, badges, column and group labels.
 
-Row titles clamp at two lines.
+Row titles clamp at two lines, except feed rows, whose titles wrap in full.
 State text wraps before it truncates.
 Dates and counts use tabular figures and right-align in lists.
 Prose caps at 70ch.
 
 ### Named Rules
-**The One Hero Rule.** Only Since gets 22 px. Every other widget answers at 15 px.
+**The One Hero Rule.** At most one 22 px line per screen: the brief's state line on a monitor page, the title in a development popup. Every other section answers at 15 px.
 **The No-700 Rule.** 600 is the heaviest weight.
 **The Sentence Case Rule.** Sentence case everywhere, no uppercase labels.
 
@@ -266,8 +266,8 @@ In-page surfaces separate from the canvas by fill and one thin shadow; floating 
 
 ### Shadow Vocabulary
 - **Low** (`--shadow-low`, `0 1px 3px` at 11%): widgets, panels, the current sidebar item.
-- **Pop** (`--shadow-pop`, `0 6px 20px` at 12%) with a 1 px `line-strong` border: menus, the runs and alerts popovers, search results, the toast, the drawer, the lifted drag copy, and the floating Generate prompt.
-- **Modal** (`--shadow-modal`, `0 12px 32px` at 16%) with a 1 px `line-strong` border over `--scrim`: the popup, the Add widget sheet and the profile dialogs.
+- **Pop** (`--shadow-pop`, `0 6px 20px` at 12%) with a 1 px `line-strong` border: menus, facet popovers, search results, the toast, the drawer and the lifted drag copy.
+- **Modal** (`--shadow-modal`, `0 12px 32px` at 16%) with a 1 px `line-strong` border over `--scrim`: the New dashboard and Edit dashboard popup, the development popup and the profile dialogs.
 
 Selected segments, pressed toggles and page-head buttons have no shadow.
 
@@ -287,7 +287,6 @@ Selected segments, pressed toggles and page-head buttons have no shadow.
 
 ### Icon buttons (`.btn-icon`)
 - 28 px ghost square at the control radius, `ink2` glyph, `hover` fill and `ink` glyph on hover, 44 px hit area.
-- `.btn-icon.lg`: 32 px with the secondary border, widening to fit a count badge (the top bar bell).
 - Close is always the 28 px ghost icon button, never a grey circle.
 - Icons draw in `currentColor`; the host sets the color with a token.
 
@@ -302,6 +301,9 @@ Selected segments, pressed toggles and page-head buttons have no shadow.
 
 ### Badges (`.badge` with `.b-new`, `.b-watch`, `.b-attn`, `.b-stable`, `.b-neutral`)
 - 18 px tall, padding 0 6px, 4 px radius, 12/500, tinted fill in the status pair.
+- Development priority is the one filled badge on a development: High is `.b-attn`, Medium `.b-watch`, Low `.b-neutral` (`components/developments/labels.tsx`).
+- New is `.b-new`. Updated is a plain 12/500 word in `new` with no fill (`.upd`), so it never reads as a priority.
+- Adverse is the words `Adverse event` in 600 `attn` text, shown only when true, followed by the tone word ("Negative tone"). Unverified on a social post is 600 `watch` text.
 - Stable is green text with no fill and no padding.
 - Badges sit in the fixed `.stat` column (112 px), left-aligned, so row titles share one left edge.
 
@@ -311,33 +313,48 @@ Selected segments, pressed toggles and page-head buttons have no shadow.
 - `.row-title` is 500 and clamps at two lines; `.row-meta` is 12/16 `ink2` under it.
 - `.row.no-stat` drops the status column.
 - The same grammar serves development, watchlist, question, alert and run rows, the graph In view list and the gallery subject list.
+- Feed rows (`.frow`, `components/developments/FeedRow.tsx`) never clamp: the status column holds the priority badge with New or Updated under it, then the full title, one line on who it impacts, a 12 px facts line, and the date with a visible accent "View sources" cue in the end column. The whole row opens the development's popup.
+- Feeds group their rows under a heading per priority (`.fgroup`): `High priority 4` at 13/600 `ink` with the count, then on the same line, in 13/400 `ink`, what that priority means, over a 1 px `line-strong` rule. The Overview's top 5 rows carry only their badges, no headings.
 
 ### Widgets and panels
 - `surface`, 10 px radius, `--shadow-low`, no border, 12 px inset, 16 px grid gap.
 - Widget title 12/500 `ink2`, top-left, sentence case; meta right-aligned 12/400.
 - Monitor sections share one panel with a 15/600 header, a 1 px `line-strong` rule, and 32 px between sections.
+- The monitor Overview (`components/monitor/MonitorView.tsx`): a full-width summary band, the brief on the left (the direction, the 22 px state, concerns led by a bold label) and on the right, past a 1 px `line` rule, the top 3 Key data figures at 15/600, the next date in one line and `Open Data`; under 900 px the right column goes under the brief. Below it the top 5 developments this month, with `See all` to the Developments tab, beside the Related card (the subject's links as a graph), stacking when a column would be under 520 px. The head carries `Ask about <name>` on the right. The Developments tab holds the full feed and its filters. The Related tab (`components/monitor/Related.tsx`), shown only when something links to the subject, holds Could affect (grouped Exposure, Ownership and structure, Dependency), linked institutions and Shared with; the Related card's `See all links` opens it. Development titles inside running text are ink links with a quiet `line-field` underline (`.tlink`), not accent blue; source titles in evidence lines are ink2 and underlined.
+
+### Dashboard (`components/dashboard/DashboardView.tsx`)
+- One fixed layout: the page head (title, its subjects, `Edit dashboard`), then the Watchlist panel, a table of entity, new High count, the top development this month in full with its priority badge, and date, busiest first: up to 3 entities with news this month (4 when that is all), then `Show all N entities`, so the feed starts above the fold; then the feed panel beside a 300 px Upcoming dates panel, which drops below under 1100 px. Each upcoming date's label links to its development, with the development's title under it in 12 px `ink2`, since labels such as "Applications close" need it.
+- The feed head carries the new count in `new` 600 ("48 new since 1 Oct") as its right-aligned meta; 15 rows, then `Show all N` to the developments list.
+- No widget grid, sizes, edit mode or Add widget.
+
+### Sidebar
+- Dashboards, each with "28 new" in `ink3` (unread developments new since the last visit), then Entities with each group as a collapsible heading and its member count, then Topics. No Groups section.
+- Names wrap in full; the icon and any count stay on the first line. A new High development shows "1 High" in 500 `attn`; other counts are `ink3`.
 
 ### Top bar
 - 56 px, with the search field flexing from the left: 32 px, bordered, `ink3` placeholder, ⌘K as a `.kbd`.
-- Run status chip: 32 px, 1 px `line-strong` border, control radius, a static 6 px `stable` dot or a static half-filled `new` mark while running, a fixed minimum width. No spinner, pulse or halo.
-- Alerts: `.btn-icon.lg` with the bell and an unread count badge inside it.
-- Popovers: 400 px, 10 px radius, 44 px head, 48 px footer, rows in the list-row grammar.
+- "Updated 8 Oct" at the right in 12 px `ink2`: the date of the latest news covered, the one date the app shows for freshness.
 
 ### Modal surfaces (`components/ui/Modal.tsx`)
 - 14 px radius, 1 px `line-strong` border, `--shadow-modal`, `--scrim` backdrop.
 - 48 px header (`.sheet-head`) with a 15/600 title and the 28 px ghost close.
-- The New dashboard popup and the Add widget sheet cover about 80% of the screen; profile dialogs are 560 px.
+- The New dashboard and Edit dashboard popup and the development popup cover about 80% of the screen; profile dialogs are 560 px.
+- Tab and Shift+Tab wrap inside a modal; focus returns to the opener on close.
 
-### Generate prompt (the one floating input)
-- The New dashboard Generate tab keeps a floating prompt box instead of a docked field, because it is the page's single call to action.
-- 720 px wide, `surface`, 1 px `line-strong` ring plus `--shadow-pop`, 14 px radius (the sheet step, not a pill).
-- A round 32 px `accent` send button with a `surface` arrow; disabled shows `ink3` on `rail`.
-- On first open it is centered with the heading and three example prompts as plain text rows.
-- On the first send it slides to the bottom and stays floating there with the same treatment; under reduced motion it moves without animating.
-
-### Evidence drawer
-- Square, 520 px, 1 px `line-strong` left border plus `--shadow-pop`.
+### Development popup and evidence drawer
+- A development opens in a popup over the current page (`?development=<id>&scope=...`, `components/developments/DevelopmentPopup.tsx`), the New dashboard popup's size. No Back button: the 28 px close, Esc and a backdrop click return to the page underneath with its URL and scroll.
+- The header: the labels line, the title at 22 px, Not relevant and Dismiss, the close at the top right, over a 1 px `line` rule.
+- Below, two equal columns split by a `line` rule, each scrolling inside the popup: "Who it impacts" over "Connections" (the claim lines and the graph snippet) on the left; the sources down the right. Under 1024 px the popup fills the screen less 16 px and the columns stack.
+- Sources sit under two tabs at the top of their column, News (news, official and research) and Social, underlined like the monitor tabs and pinned while the column scrolls.
+- The answer drawer is square, 520 px, 1 px `line-strong` left border plus `--shadow-pop`.
 - Sources are blocks separated by `line` rules, not grey cards; the quoted span gets `mark`.
+
+### Onboarding and the subject picker (`components/shell/Setup.tsx`, `components/dashboard/EntityPicker.tsx`)
+- `/setup` is a page of its own, without the sidebar: a 56 px bar with the product name, `Step 1 of 2` and, when a role is already active (Add a role), a small secondary `Cancel`; then the step.
+- Step 1: the page head, then plain role rows split by hairlines, each a link with a chevron (no raised card on any row), then `Preloaded for your department` at 15/600 with the same rows.
+- Step 2: the picker beside a 400 px preview panel (stacked under 900 px), and a sticky footer with a secondary Back, the name, the count and the one primary button. The preview's feed rows are not links, and the panel scrolls inside itself when taller than the screen. Under 700 px the footer wraps, the name on its own line.
+- The picker: a 15/600 heading per group over a 1 px `line-strong` rule, `n of m` and an accent `Add all` or `Remove all`, rows in two columns split by `line`, the 30-day count right-aligned in 12 px `ink2` with only the word High in `attn`, zero in `ink3`. Groups outside the role's suggestion sit under `More to add` as rows with a chevron.
+- The New dashboard popup shows the same picker on `surface`, every group open.
 
 ### Toast (`components/ui/Toast.tsx`)
 - `ink` fill with `on-ink` text, 36 px, control radius, 1 px `on-ink-hover` edge, `--shadow-pop`.
@@ -364,5 +381,5 @@ Selected segments, pressed toggles and page-head buttons have no shadow.
 - **Don't** fill tiles, rows or buttons with status tints, or use color that means neither status nor the accent.
 - **Don't** use more than one primary button in a view.
 - **Don't** add side-stripe borders, gradient text, glass or blur effects.
-- **Don't** add continuously running motion: no spinners, pulse or shimmer, including in the run chip.
+- **Don't** add continuously running motion: no spinners, pulse or shimmer, including in loading states.
 - **Don't** repeat the AlphaSense failure: "dated, blank grid to start, feeds the analyst must read".

@@ -1,6 +1,7 @@
 """Custom standing questions: draft (Claude config plus a preview answer for every run), keep,
 edit, delete. Drafts are stored so the preview can be kept without answering again. A question
-can name series of its subject, whose facts its answers get (structured-data-plan.md, F7)."""
+can name series of its subject, whose facts its answers get (docs/archive/structured-data-plan.md,
+F7)."""
 
 import json
 import sqlite3

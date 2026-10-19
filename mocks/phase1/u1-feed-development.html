@@ -1,0 +1,673 @@
+<title>Feed and development mocks</title>
+<style>
+/* Layout: a mock page; the feed first, then each development view option framed over a faded feed. Frames reflow to one column on a phone. */
+:root{
+  --canvas:oklch(0.972 0.004 260);
+  --surface:oklch(0.993 0.002 260);
+  --rail:oklch(0.955 0.005 260);
+  --hover:oklch(0.925 0.006 260);
+  --line:oklch(0.93 0.005 260);
+  --line-strong:oklch(0.885 0.007 260);
+  --line-field:oklch(0.80 0.01 260);
+  --ink:oklch(0.23 0.012 260);
+  --ink2:oklch(0.47 0.014 260);
+  --ink3:oklch(0.56 0.012 260);
+  --accent:oklch(0.52 0.17 258);
+  --new:oklch(0.48 0.15 258);
+  --new-bg:oklch(0.955 0.022 250);
+  --attn:oklch(0.50 0.17 28);
+  --attn-bg:oklch(0.955 0.022 25);
+  --watch:oklch(0.47 0.105 62);
+  --watch-bg:oklch(0.965 0.035 80);
+  --good:oklch(0.47 0.10 155);
+  --mark:oklch(0.94 0.07 95);
+  --page:oklch(0.945 0.006 260);
+  --note:oklch(0.60 0.10 300);
+  --scrim:oklch(0.23 0.012 260 / 0.24);
+  --shadow-low:0 1px 3px oklch(0.23 0.012 260 / 0.11);
+  --shadow-pop:0 6px 20px oklch(0.23 0.012 260 / 0.12);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --stat:112px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --canvas:oklch(0.20 0.008 260);--surface:oklch(0.235 0.009 260);--rail:oklch(0.215 0.008 260);
+  --hover:oklch(0.29 0.01 260);--line:oklch(0.30 0.01 260);--line-strong:oklch(0.36 0.012 260);
+  --line-field:oklch(0.45 0.014 260);--ink:oklch(0.94 0.005 260);--ink2:oklch(0.76 0.01 260);
+  --ink3:oklch(0.66 0.01 260);--accent:oklch(0.70 0.14 258);--new:oklch(0.78 0.11 258);--new-bg:oklch(0.32 0.06 258);
+  --attn:oklch(0.76 0.13 28);--attn-bg:oklch(0.32 0.06 28);--watch:oklch(0.80 0.10 75);--watch-bg:oklch(0.32 0.05 75);
+  --good:oklch(0.76 0.11 155);--mark:oklch(0.42 0.07 95);--page:oklch(0.16 0.007 260);--note:oklch(0.75 0.09 300);
+  --scrim:oklch(0 0 0 / 0.35);--shadow-low:0 1px 3px oklch(0 0 0 / 0.4);--shadow-pop:0 6px 20px oklch(0 0 0 / 0.45);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --canvas:oklch(0.20 0.008 260);--surface:oklch(0.235 0.009 260);--rail:oklch(0.215 0.008 260);
+  --hover:oklch(0.29 0.01 260);--line:oklch(0.30 0.01 260);--line-strong:oklch(0.36 0.012 260);
+  --line-field:oklch(0.45 0.014 260);--ink:oklch(0.94 0.005 260);--ink2:oklch(0.76 0.01 260);
+  --ink3:oklch(0.66 0.01 260);--accent:oklch(0.70 0.14 258);--new:oklch(0.78 0.11 258);--new-bg:oklch(0.32 0.06 258);
+  --attn:oklch(0.76 0.13 28);--attn-bg:oklch(0.32 0.06 28);--watch:oklch(0.80 0.10 75);--watch-bg:oklch(0.32 0.05 75);
+  --good:oklch(0.76 0.11 155);--mark:oklch(0.42 0.07 95);--page:oklch(0.16 0.007 260);--note:oklch(0.75 0.09 300);
+  --scrim:oklch(0 0 0 / 0.35);--shadow-low:0 1px 3px oklch(0 0 0 / 0.4);--shadow-pop:0 6px 20px oklch(0 0 0 / 0.45);color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font:400 13px/18px var(--font);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,h5,p,ul,ol,blockquote,figure{margin:0;padding:0}
+ul,ol{list-style:none}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+button,select{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.meta{font-size:12px;line-height:16px;color:var(--ink2)}
+mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 1px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+/* Mock page around the screens */
+.doc{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:32px 64px;display:flex;flex-direction:column;gap:48px}
+.doc-head{display:flex;flex-direction:column;gap:8px;max-width:72ch}
+.doc-head h1{font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.015em}
+.doc-head p{color:var(--ink2)}
+.opt{display:flex;flex-direction:column;gap:16px;min-width:0}
+.opt>h2{font-size:22px;line-height:28px;font-weight:600;letter-spacing:-0.01em;text-wrap:balance}
+.opt>p{max-width:72ch;color:var(--ink2)}
+.mocknote{border:1px dashed var(--note);color:var(--note);border-radius:6px;padding:8px 10px;font-size:12px;line-height:16px;max-width:90ch}
+
+/* App frame */
+.app{background:var(--canvas);border:1px solid var(--line-strong);border-radius:10px;box-shadow:var(--shadow-low);overflow:hidden;min-width:0}
+.app-head{background:var(--surface);padding:16px 24px 12px;display:flex;flex-direction:column;gap:4px;border-bottom:1px solid var(--line-strong)}
+.crumbs{font-size:12px;line-height:16px;color:var(--ink2)}
+.title-row{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px}
+.title-row h3{font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.015em}
+.app-body{padding:24px;display:flex;flex-direction:column;gap:24px}
+.panel{background:var(--surface);border-radius:10px;box-shadow:var(--shadow-low);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.sec-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;padding-bottom:8px;border-bottom:1px solid var(--line-strong)}
+.sec-h h4{font-size:15px;line-height:20px;font-weight:600}
+
+/* Controls */
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--hover);text-decoration:none}
+.btn-sm{height:28px;padding:0 10px}
+.btn-ghost{border-color:transparent;background:none}
+.btn-icon{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:6px;color:var(--ink2)}
+.btn-icon:hover{background:var(--hover);color:var(--ink)}
+.seg{display:inline-flex;background:var(--rail);border-radius:6px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{height:24px;padding:0 10px;border-radius:5px;font-size:12px;font-weight:500;color:var(--ink2);border:1px solid transparent;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface);border-color:var(--line-strong);color:var(--ink)}
+.seg button .n{color:var(--ink3);margin-left:4px}
+.select{height:28px;border:1px solid var(--line-field);border-radius:6px;background:var(--surface);padding:0 8px;font-size:12px}
+.filters{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.fgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fgroup>.lab{font-size:12px;font-weight:500;color:var(--ink2)}
+
+/* Labels: priority is the only filled badge; adverse, tone and change are words */
+.badge{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:4px;font-size:12px;line-height:16px;font-weight:500;white-space:nowrap}
+.p-high{background:var(--attn-bg);color:var(--attn)}
+.p-med{background:var(--watch-bg);color:var(--watch)}
+.p-low{background:var(--rail);color:var(--ink2)}
+.b-new{background:var(--new-bg);color:var(--new)}
+.b-upd{background:var(--rail);color:var(--ink2)}
+.adv{color:var(--attn);font-weight:600}
+.unv{color:var(--watch);font-weight:600}
+.dot{color:var(--ink3);padding:0 4px}
+
+/* Feed rows: status column, full title, why line, facts, and a visible open cue */
+.feed{display:flex;flex-direction:column}
+.frow{display:grid;grid-template-columns:var(--stat) minmax(0,1fr) auto;gap:4px 16px;padding:12px 8px;margin:0 -8px;border-top:1px solid var(--line);border-radius:6px;cursor:pointer;color:inherit}
+.frow:hover{background:var(--hover);text-decoration:none}
+.frow:first-child{border-top:0}
+.fstat{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding-top:1px}
+.fmain{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ftitle{font-weight:500;color:var(--ink);text-wrap:pretty}
+.fwhy{color:var(--ink2);max-width:90ch}
+.fwhy b{font-weight:500;color:var(--ink)}
+.fmeta{font-size:12px;line-height:16px;color:var(--ink2)}
+.fend{display:flex;align-items:flex-start}
+.open{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 8px;border-radius:6px;color:var(--accent);font-weight:500;white-space:nowrap}
+.frow:hover .open{background:var(--surface)}
+.chev{width:12px;height:12px;flex:none}
+.more{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding-top:8px;border-top:1px solid var(--line)}
+.gap{border:1px dashed var(--note);color:var(--note);border-radius:4px;padding:0 6px;font-size:12px}
+/* Stage: a faded feed behind a 520px drawer */
+.stage{position:relative;display:grid;grid-template-columns:minmax(0,1fr) min(520px,100%);min-height:640px;background:var(--canvas)}
+.backdrop{position:relative;padding:24px;opacity:.55;pointer-events:none;overflow:hidden}
+.backdrop::after{content:"";position:absolute;inset:0;background:var(--scrim)}
+.drawer{background:var(--surface);border-left:1px solid var(--line-strong);box-shadow:var(--shadow-pop);display:flex;flex-direction:column;min-width:0}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;height:48px;padding:0 12px 0 20px;border-bottom:1px solid var(--line-strong)}
+.sheet-head h3{font-size:15px;line-height:20px;font-weight:600}
+.dbody{padding:16px 20px 24px;display:flex;flex-direction:column;gap:20px}
+.dhead{display:flex;flex-direction:column;gap:8px}
+.labels{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:12px;line-height:16px;color:var(--ink2)}
+.dtitle{font-size:15px;line-height:20px;font-weight:600;text-wrap:pretty}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.dsec{display:flex;flex-direction:column;gap:12px}
+.dsec>h4{font-size:15px;line-height:20px;font-weight:600;padding-bottom:8px;border-bottom:1px solid var(--line-strong)}
+.dsec h5{font-size:13px;line-height:18px;font-weight:600}
+.direct{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.direct a{font-weight:600}
+.imp{display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid var(--line)}
+.imp:first-of-type{border-top:0;padding-top:0}
+.imp-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
+.imp-h a{font-weight:600}
+.route{font-weight:500}
+.dir{font-size:12px;font-weight:500;color:var(--ink2)}
+.dir.neg{color:var(--attn)}
+.why{max-width:70ch}
+.ev{font-size:12px;line-height:16px;color:var(--ink2)}
+.ev a{font-weight:500}
+.old{color:var(--watch);font-weight:500}
+.good{color:var(--good);font-weight:500}
+
+/* Graph snippet */
+.snip{width:100%;max-width:480px;height:auto;display:block;overflow:visible}
+.snip .n{fill:var(--surface);stroke:var(--line-strong)}
+.snip .n.ent{stroke:var(--ink2)}
+.snip .n.dev{fill:var(--rail);stroke-dasharray:3 2}
+.snip .e{stroke:var(--ink3);stroke-width:1.25}
+.snip .t{fill:var(--ink);font:500 12px var(--font)}
+.snip .t.b{font-weight:600}
+.snip .l{fill:var(--ink2);font:400 11px var(--font)}
+
+/* Sources, as in today's drawer */
+.source{display:flex;flex-direction:column;gap:6px;padding-top:12px;border-top:1px solid var(--line)}
+.source:first-of-type{border-top:0;padding-top:0}
+.source>a{font-weight:500}
+.finding{display:flex;flex-direction:column;gap:4px}
+.finding blockquote{border-left:2px solid var(--line-strong);padding-left:10px;color:var(--ink2);max-width:72ch}
+/* Option B: full page, impacts beside one graph */
+.dpage-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px 24px}
+.dpage-head .dhead{flex:1 1 520px;min-width:0}
+.dpage-head .dtitle{font-size:22px;line-height:28px;letter-spacing:-0.01em}
+.dgrid{display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:24px;align-items:start}
+.side{position:sticky;top:16px}
+.erow{display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 16px;padding:12px 0;border-top:1px solid var(--line)}
+.erow:first-of-type{border-top:0;padding-top:0}
+.erow>a{font-weight:600}
+.erow>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fan{width:100%;height:auto;display:block}
+.fan .n{fill:var(--surface);stroke:var(--line-strong)}
+.fan .n.ent{stroke:var(--ink2)}
+.fan .n.dev{fill:var(--rail);stroke-dasharray:3 2}
+.fan .e{stroke:var(--ink3);stroke-width:1.25;fill:none}
+.fan .t{fill:var(--ink);font:500 12px var(--font)}
+.fan .t.b{font-weight:600}
+.fan .l{fill:var(--ink2);font:400 11px var(--font)}
+.claim{font-weight:600}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12px;line-height:16px}
+th{font-weight:500;color:var(--ink2);text-align:left;padding:6px 8px 6px 0;border-bottom:1px solid var(--line-strong);white-space:nowrap}
+td{padding:6px 8px 6px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td.r,th.r{text-align:right}
+/* Option C: one line per affected entity, expands in place */
+.elist{display:flex;flex-direction:column;border-top:1px solid var(--line-strong)}
+.eline{border-bottom:1px solid var(--line)}
+.eline>summary,.eline.static{display:grid;grid-template-columns:16px 76px minmax(0,1fr) auto;align-items:baseline;gap:8px;padding:10px 4px;list-style:none;cursor:pointer;border-radius:6px}
+.eline.static{cursor:default}
+.eline>summary::-webkit-details-marker{display:none}
+.eline>summary:hover{background:var(--hover)}
+.eline>summary .chev{transition:transform .12s;color:var(--ink2);align-self:center}
+.eline[open]>summary .chev{transform:rotate(90deg)}
+.eline .who{font-weight:600}
+.eline .what{min-width:0}
+.ebody{display:flex;flex-direction:column;gap:8px;padding:0 4px 14px 28px}
+.passage{border-left:2px solid var(--line-strong);padding-left:10px;color:var(--ink2);font-size:12px;line-height:16px;max-width:72ch}
+.dfoot{position:sticky;bottom:0;display:flex;gap:8px;justify-content:flex-end;padding:10px 20px;border-top:1px solid var(--line-strong);background:var(--surface);margin-top:auto}
+@media (max-width:1100px){.dgrid{grid-template-columns:minmax(0,1fr)}.side{position:static}}
+@media (max-width:900px){
+  .stage{grid-template-columns:minmax(0,1fr);min-height:0}
+  .backdrop{display:none}
+  .drawer{border-left:0;box-shadow:none}
+}
+@media (max-width:720px){
+  .frow{grid-template-columns:minmax(0,1fr)}
+  .fstat{flex-direction:row;flex-wrap:wrap}
+  .app-body{padding:16px}
+  .app-head{padding:12px 16px}
+  .title-row h3{font-size:22px;line-height:28px}
+}
+</style>
+
+<main class="doc">
+<header class="doc-head">
+  <h1>Feed and development view</h1>
+  <p>U1 mocks. The feed is the Singapore banks dashboard from the 24 September run. The development views use item I's impact output.</p>
+</header>
+
+<section class="opt" id="feed">
+<h2>Feed row and filters</h2>
+<div class="app">
+  <div class="app-head">
+    <p class="crumbs">Dashboards</p>
+    <div class="title-row"><h3>Singapore banks</h3><span class="meta">DBS, OCBC, UOB<span class="dot">·</span>Updated 24 Sep</span></div>
+  </div>
+  <div class="app-body">
+    <div class="panel">
+      <div class="sec-h"><h4>Developments</h4><span class="meta num">24 this month, sorted by priority</span></div>
+      <div class="filters" role="group" aria-label="Filters">
+        <div class="fgroup"><span class="lab">Date</span>
+          <div class="seg"><button aria-pressed="false">Today<span class="n">0</span></button><button aria-pressed="false">This week<span class="n">11</span></button><button aria-pressed="true">This month<span class="n">24</span></button></div></div>
+        <div class="fgroup"><span class="lab">Priority</span>
+          <div class="seg"><button aria-pressed="true">High<span class="n">5</span></button><button aria-pressed="true">Medium<span class="n">10</span></button><button aria-pressed="true">Low<span class="n">9</span></button></div></div>
+        <div class="fgroup"><span class="lab">Adverse</span>
+          <div class="seg"><button aria-pressed="true">All</button><button aria-pressed="false">Adverse only<span class="n">3</span></button></div></div>
+        <div class="fgroup"><span class="lab">Tone</span>
+          <div class="seg"><button aria-pressed="true">Negative<span class="n">4</span></button><button aria-pressed="true">Neutral<span class="n">6</span></button><button aria-pressed="true">Positive<span class="n">15</span></button></div></div>
+        <div class="fgroup"><label class="lab" for="f-cat">Category</label>
+          <select class="select" id="f-cat"><option>All categories</option><option>Strategy (8)</option><option>Financial (5)</option><option>Market (4)</option><option>Other (3)</option><option>Regulatory (2)</option><option>Incident (1)</option><option>Policy (1)</option></select></div>
+        <div class="fgroup"><span class="lab">Source</span>
+          <div class="seg"><button aria-pressed="true">News<span class="n">23</span></button><button aria-pressed="true">Official<span class="n">1</span></button><button aria-pressed="true">Analyst<span class="n">0</span></button><button aria-pressed="true">Social<span class="n">0</span></button></div></div>
+      </div>
+      <ol class="feed">
+        <li><a class="frow" href="#opt-a">
+          <div class="fstat"><span class="badge p-high">High</span><span class="badge b-new">New</span></div>
+          <div class="fmain">
+            <p class="ftitle">UOB was part of a syndicate, alongside Citigroup, ING, Natixis CIB and Qatar National Bank, providing a US$3.1 billion GPU credit facility for Indosat's AI infrastructure platform ZanKore.</p>
+            <p class="fwhy">It shows UOB building a growing lending theme in a fast-moving sector, which adds concentration and underwriting questions as the book expands.</p>
+            <p class="fmeta">UOB<span class="dot">·</span>Not adverse, positive tone<span class="dot">·</span>News, 1 source<span class="dot">·</span>Strategy<span class="dot">·</span><span class="num">22 Sep</span></p>
+          </div>
+          <div class="fend"><span class="open">View sources<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        </a></li>
+        <li><a class="frow" href="#opt-a">
+          <div class="fstat"><span class="badge p-high">High</span></div>
+          <div class="fmain">
+            <p class="ftitle">Liquidators are suing DBS Bank for an estimated S$1.298 billion (US$1.03 billion) in damages linked to the 1MDB scandal, as reported on 9 September 2026.</p>
+            <p class="fwhy"><span class="gap">No why line stored for this row</span></p>
+            <p class="fmeta">DBS<span class="dot">·</span><span class="adv">Adverse</span>, negative tone<span class="dot">·</span>News, 1 source<span class="dot">·</span>Regulatory<span class="dot">·</span><span class="num">9 Sep</span></p>
+          </div>
+          <div class="fend"><span class="open">View sources<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        </a></li>
+        <li><a class="frow" href="#opt-a">
+          <div class="fstat"><span class="badge p-high">High</span></div>
+          <div class="fmain">
+            <p class="ftitle">BI and MAS appointed banks including DBS Bank, OCBC and their Indonesian units as Appointed Cross Currency Dealers to operationalise the Rupiah-Singapore Dollar local currency transaction framework.</p>
+            <p class="fwhy"><span class="gap">No why line stored for this row</span></p>
+            <p class="fmeta">OCBC, DBS<span class="dot">·</span>Not adverse, positive tone<span class="dot">·</span>Official, MAS<span class="dot">·</span>Regulatory<span class="dot">·</span><span class="num">31 Aug</span></p>
+          </div>
+          <div class="fend"><span class="open">View sources<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        </a></li>
+        <li><a class="frow" href="#opt-a">
+          <div class="fstat"><span class="badge p-med">Medium</span><span class="badge b-upd">Updated</span></div>
+          <div class="fmain">
+            <p class="ftitle">Following the Fed's 25 basis point hike on Sep 16, analysts told The Business Times that higher Singapore dollar rates should lift net interest margins at DBS, OCBC and UOB, with the larger benefit in 2027.</p>
+            <p class="fwhy">This is a forecast, not a reported result, and it eases margin pressure only if Singapore rates follow the Fed; Macquarie sees UOB gaining most.</p>
+            <p class="fmeta">DBS, OCBC, UOB<span class="dot">·</span>Not adverse, positive tone<span class="dot">·</span>News, 6 sources<span class="dot">·</span>Policy<span class="dot">·</span><span class="num">17 to 20 Sep</span></p>
+          </div>
+          <div class="fend"><span class="open">View sources<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        </a></li>
+        <li><a class="frow" href="#opt-a">
+          <div class="fstat"><span class="badge p-med">Medium</span><span class="badge b-new">New</span></div>
+          <div class="fmain">
+            <p class="ftitle">Macquarie estimates a 10% fall in UOB's US and Greater China CRE collateral values would add $181 million in provisions, while UOB holds $345 million of excess provisions in its US branch.</p>
+            <p class="fwhy">The estimate suggests the US property exposure is covered by existing provisions under that scenario, though it remains one analyst's estimate.</p>
+            <p class="fmeta">UOB<span class="dot">·</span>Not adverse, neutral tone<span class="dot">·</span>News, 1 source<span class="dot">·</span>Financial<span class="dot">·</span><span class="num">18 Sep</span></p>
+          </div>
+          <div class="fend"><span class="open">View sources<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        </a></li>
+      </ol>
+      <div class="more"><button class="btn btn-sm">Show 19 more</button><span class="meta">New and Updated mean since your last visit, 17 Sep</span></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec-h"><h4>Could also affect these banks</h4><span class="meta">News about something they lend to or depend on</span></div>
+      <ol class="feed">
+        <li><a class="frow" href="#opt-a">
+          <div class="fstat"><span class="badge p-med">Medium</span></div>
+          <div class="fmain">
+            <p class="ftitle">Macquarie expects Sora to rise about 70 basis points from its Q2 2026 low of 1.06 per cent by the second half of 2027, raising floating-rate loan and mortgage costs in Singapore.</p>
+            <p class="fwhy"><b>UOB, DBS, OCBC</b> via their Singapore loans, <span class="num">49.8%, 44.4% and 43.5%</span> of total. Mixed for all three: higher margins, more borrower stress.</p>
+            <p class="fmeta">About Singapore<span class="dot">·</span>News, 1 source<span class="dot">·</span>Market<span class="dot">·</span><span class="num">17 Sep</span></p>
+          </div>
+          <div class="fend"><span class="open">View sources<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        </a></li>
+        <li><a class="frow" href="#ex-m365">
+          <div class="fstat"><span class="badge p-high">High</span></div>
+          <div class="fmain">
+            <p class="ftitle">Microsoft began investigating a widespread Microsoft 365 outage on 31 August 2026, centred on Exchange Online and also hitting Teams, Graph, Purview, OneDrive, SharePoint, Copilot and Defender XDR, with authentication failures.</p>
+            <p class="fwhy"><b>DBS</b> depends on Microsoft 365 for cloud services. Negative for DBS, likely limited to internal productivity. The link dates from 2016.</p>
+            <p class="fmeta">About Microsoft 365<span class="dot">·</span>News, 2 sources<span class="dot">·</span>Incident<span class="dot">·</span><span class="num">31 Aug to 4 Sep</span></p>
+          </div>
+          <div class="fend"><span class="open">View sources<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        </a></li>
+      </ol>
+    </div>
+  </div>
+</div>
+<p class="mocknote">Why lines come from item B's brief points and item I's impacts. Two rows have neither, so they show the gap instead of a made-up line. No stored source is typed analyst or social in this window, so those filters read 0.</p>
+</section>
+
+<section class="opt" id="opt-a">
+<h2>Option A: side drawer, stacked sections</h2>
+<div class="app stage">
+  <div class="backdrop" aria-hidden="true">
+    <div class="panel">
+      <div class="sec-h"><h4>Could also affect these banks</h4></div>
+      <div class="frow"><div class="fstat"><span class="badge p-med">Medium</span></div><div class="fmain"><p class="ftitle">Macquarie expects Sora to rise about 70 basis points from its Q2 2026 low of 1.06 per cent by the second half of 2027, raising floating-rate loan and mortgage costs in Singapore.</p></div><div></div></div>
+      <div class="frow"><div class="fstat"><span class="badge p-high">High</span></div><div class="fmain"><p class="ftitle">Microsoft began investigating a widespread Microsoft 365 outage on 31 August 2026, centred on Exchange Online and also hitting Teams, Graph, Purview, OneDrive, SharePoint, Copilot and Defender XDR, with authentication failures.</p></div><div></div></div>
+    </div>
+  </div>
+  <aside class="drawer" aria-label="Development">
+    <div class="sheet-head"><h3>Development</h3><button class="btn-icon" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+    <div class="dbody">
+      <div class="dhead">
+        <p class="labels"><span class="badge p-med">Medium</span><span>Not adverse, negative tone</span><span class="dot">·</span><span>News, 1 source</span></p>
+        <h4 class="dtitle">Macquarie expects Sora to rise about 70 basis points from its Q2 2026 low of 1.06 per cent by the second half of 2027, raising floating-rate loan and mortgage costs in Singapore.</h4>
+        <p class="meta">Market<span class="dot">·</span><span class="num">17 Sep 2026</span></p>
+        <div class="actions"><button class="btn btn-sm">Not relevant</button><button class="btn btn-sm">Dismiss</button></div>
+      </div>
+
+      <section class="dsec">
+        <h4>Why this matters</h4>
+        <h5>About</h5>
+        <p class="direct"><a href="#">Singapore</a><span class="badge p-med">Medium</span><span class="meta">Not adverse, negative tone</span></p>
+        <h5>Could also affect</h5>
+
+        <div class="imp">
+          <p class="imp-h"><a href="#">UOB</a><span class="route">via its Singapore loans, <span class="num">49.8%</span> of total</span><span class="dir">Mixed</span></p>
+          <p class="why">Nearly half of UOB's loans are in Singapore, and a Sora rise lifts loan yields and margins, which the Business Times says UOB is most likely to feel. Higher rates also raise the risk of stress among borrowers.</p>
+          <svg class="snip" viewBox="0 0 480 48" role="img" aria-label="UOB lends to Singapore, 49.8% of its loans. The Sora forecast is about Singapore.">
+            <line class="e" x1="60" y1="34" x2="232" y2="34"/><text class="l" x="146" y="26" text-anchor="middle">lends to, 49.8% of loans</text>
+            <line class="e" x1="324" y1="34" x2="372" y2="34"/><text class="l" x="348" y="26" text-anchor="middle">about</text>
+            <rect class="n ent" x="0.5" y="22" width="59" height="24" rx="6"/><text class="t b" x="30" y="38" text-anchor="middle">UOB</text>
+            <rect class="n" x="232" y="22" width="92" height="24" rx="6"/><text class="t" x="278" y="38" text-anchor="middle">Singapore</text>
+            <rect class="n dev" x="372" y="22" width="107" height="24" rx="6"/><text class="t" x="425.5" y="38" text-anchor="middle">Sora forecast</text>
+          </svg>
+          <p class="ev">Public: <a href="https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf">UOB half-year financial statements, p. 12</a>, S$179,903m of loans<span class="dot">·</span>Figures at 30 Jun 2026<span class="dot">·</span>Checked 7 Oct 2026</p>
+        </div>
+
+        <div class="imp">
+          <p class="imp-h"><a href="#">DBS</a><span class="route">via its Singapore loans, <span class="num">44.4%</span> of total</span><span class="dir">Mixed</span></p>
+          <p class="why">With 44.4% of loans in Singapore, a higher Sora should help DBS income, and Morningstar still sees it as a net beneficiary of higher rates. The gain is partly offset by its US dollar book, which is negatively sensitive to higher rates, and by borrower stress risk.</p>
+          <svg class="snip" viewBox="0 0 480 48" role="img" aria-label="DBS lends to Singapore, 44.4% of its loans. The Sora forecast is about Singapore.">
+            <line class="e" x1="60" y1="34" x2="232" y2="34"/><text class="l" x="146" y="26" text-anchor="middle">lends to, 44.4% of loans</text>
+            <line class="e" x1="324" y1="34" x2="372" y2="34"/><text class="l" x="348" y="26" text-anchor="middle">about</text>
+            <rect class="n ent" x="0.5" y="22" width="59" height="24" rx="6"/><text class="t b" x="30" y="38" text-anchor="middle">DBS</text>
+            <rect class="n" x="232" y="22" width="92" height="24" rx="6"/><text class="t" x="278" y="38" text-anchor="middle">Singapore</text>
+            <rect class="n dev" x="372" y="22" width="107" height="24" rx="6"/><text class="t" x="425.5" y="38" text-anchor="middle">Sora forecast</text>
+          </svg>
+          <p class="ev">Public: <a href="https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf">DBS 2Q26 performance summary, p. 20</a>, S$210,852m of loans<span class="dot">·</span>Figures at 30 Jun 2026<span class="dot">·</span>Checked 7 Oct 2026</p>
+        </div>
+
+        <div class="imp">
+          <p class="imp-h"><a href="#">OCBC</a><span class="route">via its Singapore loans, <span class="num">43.5%</span> of total</span><span class="dir">Mixed</span></p>
+          <p class="why">OCBC has 43.5% of loans in Singapore, so a higher Sora should lift loan pricing and margins after a quarter of slightly lower NII. The passages give a smaller share of Singapore dollar loans for OCBC than for UOB, and higher rates can raise borrower stress, so the net effect is modest.</p>
+          <svg class="snip" viewBox="0 0 480 48" role="img" aria-label="OCBC lends to Singapore, 43.5% of its loans. The Sora forecast is about Singapore.">
+            <line class="e" x1="60" y1="34" x2="232" y2="34"/><text class="l" x="146" y="26" text-anchor="middle">lends to, 43.5% of loans</text>
+            <line class="e" x1="324" y1="34" x2="372" y2="34"/><text class="l" x="348" y="26" text-anchor="middle">about</text>
+            <rect class="n ent" x="0.5" y="22" width="59" height="24" rx="6"/><text class="t b" x="30" y="38" text-anchor="middle">OCBC</text>
+            <rect class="n" x="232" y="22" width="92" height="24" rx="6"/><text class="t" x="278" y="38" text-anchor="middle">Singapore</text>
+            <rect class="n dev" x="372" y="22" width="107" height="24" rx="6"/><text class="t" x="425.5" y="38" text-anchor="middle">Sora forecast</text>
+          </svg>
+          <p class="ev">Public: <a href="https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf">OCBC 1H2026 media release, p. 14</a>, S$158,688m of loans<span class="dot">·</span>Figures at 30 Jun 2026<span class="dot">·</span>Checked 7 Oct 2026</p>
+        </div>
+      </section>
+
+      <section class="dsec">
+        <h4>1 source</h4>
+        <article class="source">
+          <a href="https://www.businesstimes.com.sg/companies-markets/fed-hike-throws-singapore-banks-margin-lifeline-uob-most-likely-feel-impact">Fed hike throws Singapore banks a margin lifeline; UOB most likely to feel impact</a>
+          <p class="meta"><span class="num">17 Sep 2026</span><span class="dot">·</span>News<span class="dot">·</span>businesstimes.com.sg</p>
+          <div class="finding"><blockquote>…Jayden Vantarakis, head of Asean equity research at Macquarie Capital, told BT that Macquarie now expects three 25 basis point Fed hikes by the first quarter of 2027, up from two previously. <mark>It expects Sora to rise about 70 basis points from its second quarter 2026 average low of 1.06 per cent by the second half of 2027.</mark>…</blockquote></div>
+          <div class="finding"><blockquote>…<mark>In Singapore, higher global rates could eventually mean more expensive floating rate loans and mortgages as Sora rises, while real estate investment trusts could face higher financing costs, said Gunawan Wijaya, portfolio manager at CGS International Securities Singapore.</mark> Still, he said the Straits Times Index (STI) had so far held up relatively well…</blockquote></div>
+        </article>
+      </section>
+    </div>
+  </aside>
+</div>
+</section>
+
+<section class="opt" id="opt-b">
+<h2>Option B: full page, graph beside the impacts</h2>
+<div class="app">
+  <div class="app-head">
+    <p class="crumbs"><a href="#feed">Singapore banks</a> <span class="dot">›</span> Development</p>
+    <div class="dpage-head">
+      <div class="dhead">
+        <p class="labels"><span class="badge p-med">Medium</span><span>Not adverse, negative tone</span><span class="dot">·</span><span>News, 1 source</span><span class="dot">·</span><span>Market</span><span class="dot">·</span><span class="num">17 Sep 2026</span></p>
+        <h3 class="dtitle">Macquarie expects Sora to rise about 70 basis points from its Q2 2026 low of 1.06 per cent by the second half of 2027, raising floating-rate loan and mortgage costs in Singapore.</h3>
+      </div>
+      <div class="actions"><button class="btn">Not relevant</button><button class="btn">Dismiss</button></div>
+    </div>
+  </div>
+  <div class="app-body">
+    <div class="dgrid">
+      <div class="panel">
+        <section class="dsec">
+          <h4>Why this matters</h4>
+          <div class="erow"><a href="#">Singapore</a><div><p class="direct"><span class="route">The development is about Singapore</span><span class="badge p-med">Medium</span><span class="meta">Not adverse, negative tone</span></p></div></div>
+          <div class="erow"><a href="#">UOB</a><div>
+            <p class="imp-h"><span class="route">via its Singapore loans, <span class="num">49.8%</span> of total</span><span class="dir">Mixed</span></p>
+            <p class="why">Nearly half of UOB's loans are in Singapore, and a Sora rise lifts loan yields and margins, which the Business Times says UOB is most likely to feel. Higher rates also raise the risk of stress among borrowers.</p>
+          </div></div>
+          <div class="erow"><a href="#">DBS</a><div>
+            <p class="imp-h"><span class="route">via its Singapore loans, <span class="num">44.4%</span> of total</span><span class="dir">Mixed</span></p>
+            <p class="why">With 44.4% of loans in Singapore, a higher Sora should help DBS income, and Morningstar still sees it as a net beneficiary of higher rates. The gain is partly offset by its US dollar book, which is negatively sensitive to higher rates, and by borrower stress risk.</p>
+          </div></div>
+          <div class="erow"><a href="#">OCBC</a><div>
+            <p class="imp-h"><span class="route">via its Singapore loans, <span class="num">43.5%</span> of total</span><span class="dir">Mixed</span></p>
+            <p class="why">OCBC has 43.5% of loans in Singapore, so a higher Sora should lift loan pricing and margins after a quarter of slightly lower NII. The passages give a smaller share of Singapore dollar loans for OCBC than for UOB, and higher rates can raise borrower stress, so the net effect is modest.</p>
+          </div></div>
+        </section>
+        <section class="dsec">
+          <h4>1 source</h4>
+          <article class="source">
+            <a href="https://www.businesstimes.com.sg/companies-markets/fed-hike-throws-singapore-banks-margin-lifeline-uob-most-likely-feel-impact">Fed hike throws Singapore banks a margin lifeline; UOB most likely to feel impact</a>
+            <p class="meta"><span class="num">17 Sep 2026</span><span class="dot">·</span>News<span class="dot">·</span>businesstimes.com.sg</p>
+            <div class="finding"><blockquote>…Jayden Vantarakis, head of Asean equity research at Macquarie Capital, told BT that Macquarie now expects three 25 basis point Fed hikes by the first quarter of 2027, up from two previously. <mark>It expects Sora to rise about 70 basis points from its second quarter 2026 average low of 1.06 per cent by the second half of 2027.</mark>…</blockquote></div>
+            <div class="finding"><blockquote>…<mark>In Singapore, higher global rates could eventually mean more expensive floating rate loans and mortgages as Sora rises, while real estate investment trusts could face higher financing costs, said Gunawan Wijaya, portfolio manager at CGS International Securities Singapore.</mark> Still, he said the Straits Times Index (STI) had so far held up relatively well…</blockquote></div>
+          </article>
+        </section>
+      </div>
+
+      <aside class="panel side" aria-label="How it reaches the banks">
+        <p class="claim">All three banks lend over 40% of their loans in Singapore</p>
+        <svg class="fan" viewBox="0 0 420 200" role="img" aria-label="The Sora forecast is about Singapore. UOB lends 49.8%, DBS 44.4% and OCBC 43.5% of their loans in Singapore.">
+          <line class="e" x1="100" y1="100" x2="150" y2="100"/><text class="l" x="125" y="92" text-anchor="middle">about</text>
+          <path class="e" d="M240 100H262V32H360"/><text class="l" x="311" y="25" text-anchor="middle">49.8% of loans</text>
+          <path class="e" d="M240 100H360"/><text class="l" x="311" y="93" text-anchor="middle">44.4% of loans</text>
+          <path class="e" d="M262 100V168H360"/><text class="l" x="311" y="161" text-anchor="middle">43.5% of loans</text>
+          <rect class="n dev" x="0.5" y="88" width="99" height="24" rx="6"/><text class="t" x="50" y="104" text-anchor="middle">Sora forecast</text>
+          <rect class="n" x="150" y="88" width="90" height="24" rx="6"/><text class="t" x="195" y="104" text-anchor="middle">Singapore</text>
+          <rect class="n ent" x="360" y="20" width="59" height="24" rx="6"/><text class="t b" x="389.5" y="36" text-anchor="middle">UOB</text>
+          <rect class="n ent" x="360" y="88" width="59" height="24" rx="6"/><text class="t b" x="389.5" y="104" text-anchor="middle">DBS</text>
+          <rect class="n ent" x="360" y="156" width="59" height="24" rx="6"/><text class="t b" x="389.5" y="172" text-anchor="middle">OCBC</text>
+        </svg>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Bank</th><th class="r">Singapore loans</th><th class="r">Share</th><th>Source</th><th>Checked</th></tr></thead>
+          <tbody>
+            <tr><td>UOB</td><td class="r num">S$179,903m</td><td class="r num">49.8%</td><td><a href="https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf">Half-year statements, p. 12</a></td><td class="num">7 Oct</td></tr>
+            <tr><td>DBS</td><td class="r num">S$210,852m</td><td class="r num">44.4%</td><td><a href="https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf">2Q26 summary, p. 20</a></td><td class="num">7 Oct</td></tr>
+            <tr><td>OCBC</td><td class="r num">S$158,688m</td><td class="r num">43.5%</td><td><a href="https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf">1H2026 release, p. 14</a></td><td class="num">7 Oct</td></tr>
+          </tbody>
+        </table></div>
+        <p class="ev">All public sources. Figures at 30 Jun 2026.</p>
+      </aside>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="opt" id="opt-c">
+<h2>Option C: drawer, one line per affected entity</h2>
+<div class="app stage">
+  <div class="backdrop" aria-hidden="true">
+    <div class="panel">
+      <div class="sec-h"><h4>Could also affect these banks</h4></div>
+      <div class="frow"><div class="fstat"><span class="badge p-med">Medium</span></div><div class="fmain"><p class="ftitle">Macquarie expects Sora to rise about 70 basis points from its Q2 2026 low of 1.06 per cent by the second half of 2027, raising floating-rate loan and mortgage costs in Singapore.</p></div><div></div></div>
+      <div class="frow"><div class="fstat"><span class="badge p-high">High</span></div><div class="fmain"><p class="ftitle">Microsoft began investigating a widespread Microsoft 365 outage on 31 August 2026, centred on Exchange Online and also hitting Teams, Graph, Purview, OneDrive, SharePoint, Copilot and Defender XDR, with authentication failures.</p></div><div></div></div>
+    </div>
+  </div>
+  <aside class="drawer" aria-label="Development">
+    <div class="sheet-head"><h3>Development</h3><button class="btn-icon" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+    <div class="dbody">
+      <div class="dhead">
+        <p class="labels"><span class="badge p-med">Medium</span><span>Not adverse, negative tone</span><span class="dot">·</span><span>News, 1 source</span><span class="dot">·</span><span class="num">17 Sep 2026</span></p>
+        <h4 class="dtitle">Macquarie expects Sora to rise about 70 basis points from its Q2 2026 low of 1.06 per cent by the second half of 2027, raising floating-rate loan and mortgage costs in Singapore.</h4>
+      </div>
+
+      <section class="dsec">
+        <h4>Why this matters</h4>
+        <div class="elist">
+          <div class="eline static"><span></span><span class="who">Singapore</span><span class="what">The development is about it</span><span class="badge p-med">Medium</span></div>
+          <details class="eline" open>
+            <summary><svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="who">UOB</span><span class="what">via its Singapore loans, <span class="num">49.8%</span> of total</span><span class="dir">Mixed</span></summary>
+            <div class="ebody">
+              <p class="why">Nearly half of UOB's loans are in Singapore, and a Sora rise lifts loan yields and margins, which the Business Times says UOB is most likely to feel. Higher rates also raise the risk of stress among borrowers.</p>
+              <p class="passage">UOB maintained full-year NIM guidance of 1.75 to 1.80 per cent at its second-quarter results. Higher rates, however, also raise the risk of stress among borrowers.</p>
+              <svg class="snip" viewBox="0 0 480 48" role="img" aria-label="UOB lends to Singapore, 49.8% of its loans. The Sora forecast is about Singapore.">
+                <line class="e" x1="60" y1="34" x2="232" y2="34"/><text class="l" x="146" y="26" text-anchor="middle">lends to, 49.8% of loans</text>
+                <line class="e" x1="324" y1="34" x2="372" y2="34"/><text class="l" x="348" y="26" text-anchor="middle">about</text>
+                <rect class="n ent" x="0.5" y="22" width="59" height="24" rx="6"/><text class="t b" x="30" y="38" text-anchor="middle">UOB</text>
+                <rect class="n" x="232" y="22" width="92" height="24" rx="6"/><text class="t" x="278" y="38" text-anchor="middle">Singapore</text>
+                <rect class="n dev" x="372" y="22" width="107" height="24" rx="6"/><text class="t" x="425.5" y="38" text-anchor="middle">Sora forecast</text>
+              </svg>
+              <p class="ev">Public: <a href="https://www.uobgroup.com/investor-relations/assets/pdfs/investor/financial/2026/condensed-financial-statements-2q-2026.pdf">UOB half-year financial statements, p. 12</a>, S$179,903m of loans<span class="dot">·</span>Figures at 30 Jun 2026<span class="dot">·</span>Checked 7 Oct 2026</p>
+            </div>
+          </details>
+          <details class="eline">
+            <summary><svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="who">DBS</span><span class="what">via its Singapore loans, <span class="num">44.4%</span> of total</span><span class="dir">Mixed</span></summary>
+            <div class="ebody">
+              <p class="why">With 44.4% of loans in Singapore, a higher Sora should help DBS income, and Morningstar still sees it as a net beneficiary of higher rates. The gain is partly offset by its US dollar book, which is negatively sensitive to higher rates, and by borrower stress risk.</p>
+              <p class="passage">For DBS, the impact is less straightforward. The lender said in August that its US dollar book remained negatively sensitive to higher rates, with annualised NII falling about S$4 million for every one basis point rise in US dollar rates.</p>
+              <p class="ev">Public: <a href="https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2026/2Q26_performance_summary.pdf">DBS 2Q26 performance summary, p. 20</a>, S$210,852m of loans<span class="dot">·</span>Figures at 30 Jun 2026<span class="dot">·</span>Checked 7 Oct 2026</p>
+            </div>
+          </details>
+          <details class="eline">
+            <summary><svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="who">OCBC</span><span class="what">via its Singapore loans, <span class="num">43.5%</span> of total</span><span class="dir">Mixed</span></summary>
+            <div class="ebody">
+              <p class="why">OCBC has 43.5% of loans in Singapore, so a higher Sora should lift loan pricing and margins after a quarter of slightly lower NII. The passages give a smaller share of Singapore dollar loans for OCBC than for UOB, and higher rates can raise borrower stress, so the net effect is modest.</p>
+              <p class="passage">OCBC’s NII slipped 1 per cent to S$2.26 billion, while UOB’s fell 2 per cent to S$2.3 billion. Their quarterly net profits nevertheless rose 9 per cent to S$3.08 billion, 22 per cent to S$2.22 billion and 10 per cent to S$1.48 billion, respectively.</p>
+              <p class="ev">Public: <a href="https://links.sgx.com/1.0.0/corporate-announcements/R4E7198WNRDXMGOU/898994_OCBC_1H2026_Media_Release_and_Financial_Highlights.pdf">OCBC 1H2026 media release, p. 14</a>, S$158,688m of loans<span class="dot">·</span>Figures at 30 Jun 2026<span class="dot">·</span>Checked 7 Oct 2026</p>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section class="dsec">
+        <h4>1 source</h4>
+        <article class="source">
+          <a href="https://www.businesstimes.com.sg/companies-markets/fed-hike-throws-singapore-banks-margin-lifeline-uob-most-likely-feel-impact">Fed hike throws Singapore banks a margin lifeline; UOB most likely to feel impact</a>
+          <p class="meta"><span class="num">17 Sep 2026</span><span class="dot">·</span>News<span class="dot">·</span>businesstimes.com.sg</p>
+          <div class="finding"><blockquote>…Jayden Vantarakis, head of Asean equity research at Macquarie Capital, told BT that Macquarie now expects three 25 basis point Fed hikes by the first quarter of 2027, up from two previously. <mark>It expects Sora to rise about 70 basis points from its second quarter 2026 average low of 1.06 per cent by the second half of 2027.</mark>…</blockquote></div>
+          <div class="finding"><blockquote>…<mark>In Singapore, higher global rates could eventually mean more expensive floating rate loans and mortgages as Sora rises, while real estate investment trusts could face higher financing costs, said Gunawan Wijaya, portfolio manager at CGS International Securities Singapore.</mark> Still, he said the Straits Times Index (STI) had so far held up relatively well…</blockquote></div>
+        </article>
+      </section>
+    </div>
+    <div class="dfoot"><button class="btn btn-sm">Not relevant</button><button class="btn btn-sm">Dismiss</button></div>
+  </aside>
+</div>
+</section>
+
+<section class="opt" id="ex-m365">
+<h2>Vendor route: Microsoft 365 outage, in option A's layout</h2>
+<div class="app stage">
+  <div class="backdrop" aria-hidden="true">
+    <div class="panel">
+      <div class="sec-h"><h4>Could also affect these banks</h4></div>
+      <div class="frow"><div class="fstat"><span class="badge p-high">High</span></div><div class="fmain"><p class="ftitle">Microsoft began investigating a widespread Microsoft 365 outage on 31 August 2026, centred on Exchange Online and also hitting Teams, Graph, Purview, OneDrive, SharePoint, Copilot and Defender XDR, with authentication failures.</p></div><div></div></div>
+    </div>
+  </div>
+  <aside class="drawer" aria-label="Development">
+    <div class="sheet-head"><h3>Development</h3><button class="btn-icon" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+    <div class="dbody">
+      <div class="dhead">
+        <p class="labels"><span class="badge p-high">High</span><span><span class="adv">Adverse</span>, negative tone</span><span class="dot">·</span><span>News, 2 sources</span></p>
+        <h4 class="dtitle">Microsoft began investigating a widespread Microsoft 365 outage on 31 August 2026, centred on Exchange Online and also hitting Teams, Graph, Purview, OneDrive, SharePoint, Copilot and Defender XDR, with authentication failures.</h4>
+        <p class="meta">Incident<span class="dot">·</span><span class="num">31 Aug to 4 Sep 2026</span></p>
+        <div class="actions"><button class="btn btn-sm">Not relevant</button><button class="btn btn-sm">Dismiss</button></div>
+      </div>
+      <section class="dsec">
+        <h4>Why this matters</h4>
+        <h5>About</h5>
+        <p class="direct"><a href="#">Microsoft 365</a><span class="badge p-high">High</span><span class="meta"><span class="adv">Adverse</span>, negative tone</span></p>
+        <p class="direct"><a href="#">Technology outages</a><span class="badge p-high">High</span><span class="meta"><span class="adv">Adverse</span>, negative tone</span></p>
+        <p class="direct"><a href="#">Third-party risk</a><span class="badge p-high">High</span><span class="meta"><span class="adv">Adverse</span>, negative tone</span></p>
+        <h5>Could also affect</h5>
+        <div class="imp">
+          <p class="imp-h"><a href="#">DBS</a><span class="route">depends on Microsoft 365 for cloud services</span><span class="dir neg">Negative</span></p>
+          <p class="why">The evidence shows DBS moved its workforce to Office 365 in 2016, so a multi-day Microsoft 365 outage with authentication failures and Exchange Online disruption plausibly hit its staff email and collaboration. The evidence is old and does not show which services DBS uses today or any impact on DBS, so the effect is uncertain and likely limited to internal productivity.</p>
+          <svg class="snip" viewBox="0 0 480 48" role="img" aria-label="DBS depends on Microsoft 365 for cloud services. The outage is about Microsoft 365.">
+            <line class="e" x1="60" y1="34" x2="232" y2="34"/><text class="l" x="146" y="26" text-anchor="middle">depends on, cloud services</text>
+            <line class="e" x1="344" y1="34" x2="392" y2="34"/><text class="l" x="368" y="26" text-anchor="middle">about</text>
+            <rect class="n ent" x="0.5" y="22" width="59" height="24" rx="6"/><text class="t b" x="30" y="38" text-anchor="middle">DBS</text>
+            <rect class="n" x="232" y="22" width="112" height="24" rx="6"/><text class="t" x="288" y="38" text-anchor="middle">Microsoft 365</text>
+            <rect class="n dev" x="392" y="22" width="87" height="24" rx="6"/><text class="t" x="435.5" y="38" text-anchor="middle">Outage</text>
+          </svg>
+          <p class="ev">Public: <a href="https://www.dbs.com/newsroom/DBS_first_Singapore_bank_to_adopt_cloud_based_productivity_technology_in_the_workplace">DBS newsroom, first Singapore bank to adopt cloud-based productivity technology</a>, no size disclosed<span class="dot">·</span><span class="old">Holds from 27 Jun 2016, over 10 years old</span><span class="dot">·</span>Checked 7 Oct 2026</p>
+        </div>
+      </section>
+      <section class="dsec">
+        <h4>2 sources</h4>
+        <article class="source">
+          <a href="https://www.bleepingcomputer.com/news/microsoft/microsoft-exchange-online-outage-causes-email-failures-auth-issues/">Massive Microsoft 365 outage causes auth issues, service failures</a>
+          <p class="meta"><span class="num">31 Aug 2026</span><span class="dot">·</span>News<span class="dot">·</span>bleepingcomputer.com</p>
+          <div class="finding"><blockquote><mark>Microsoft is investigating a widespread outage causing authentication issues, connection problems, service delays and failures, and various other issues for Microsoft 365 customers.</mark> It first acknowledged the incident (tracked under EX1464935 in the admin center) at 5:30 PM UTC, when it began investigating a stream of reports from users on social media…</blockquote></div>
+          <div class="finding"><p>By 2 September 2026 Microsoft had restored all services except Exchange Online, where users still could not download email attachments through any connection method.</p><blockquote>…<mark>Update September 02, 14:35 EDT: According to Microsoft, all services besides Exchange Online have now been restored.</mark> "<mark>Users can't download email message attachments through any Exchange Online connection method,"</mark> the company said in the latest Service Health Status update…</blockquote></div>
+          <div class="finding"><p>On 3 September 2026 Microsoft said the multi-day Microsoft 365 outage had been mitigated and all affected services, including Exchange Online, were restored.</p><blockquote>…<mark>Update September 03, 14:35 EDT: Microsoft says that the outage has been mitigated and all affected services have been restored.</mark>…</blockquote></div>
+        </article>
+        <article class="source">
+          <a href="https://www.bleepingcomputer.com/news/microsoft/exchange-online-outage-causes-email-delays-server-busy-errors/">Exchange Online outage causes email delays, 'Server busy' errors</a>
+          <p class="meta"><span class="num">4 Sep 2026</span><span class="dot">·</span>News<span class="dot">·</span>bleepingcomputer.com</p>
+          <div class="finding"><p>Microsoft said on 4 September 2026 that the EX1467029 Exchange Online issue was resolved for new emails, while it continued monitoring queues and final validations.</p><blockquote>…<mark>Update September 04, 10:26 EDT: Microsoft says that the EX1467029 issue has been resolved for new emails.</mark>…</blockquote></div>
+        </article>
+      </section>
+    </div>
+  </aside>
+</div>
+</section>
+
+<section class="opt" id="ex-social">
+<h2>Social source: Mastercard outage, in option A's layout</h2>
+<div class="app stage">
+  <div class="backdrop" aria-hidden="true">
+    <div class="panel">
+      <div class="sec-h"><h4>Developments</h4></div>
+      <div class="frow"><div class="fstat"><span class="badge p-high">High</span></div><div class="fmain"><p class="ftitle">On 15 August 2026 a global Mastercard issue caused card payments to be declined for Australian customers, including Commonwealth Bank customers; Mastercard attributed it to a scheduled system update and said it was resolved.</p></div><div></div></div>
+    </div>
+  </div>
+  <aside class="drawer" aria-label="Development">
+    <div class="sheet-head"><h3>Development</h3><button class="btn-icon" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+    <div class="dbody">
+      <div class="dhead">
+        <p class="labels"><span class="badge p-high">High</span><span><span class="adv">Adverse</span>, negative tone</span><span class="dot">·</span><span>News, 2 sources</span><span class="dot">·</span><span>Social, 1 post</span></p>
+        <h4 class="dtitle">On 15 August 2026 a global Mastercard issue caused card payments to be declined for Australian customers, including Commonwealth Bank customers; Mastercard attributed it to a scheduled system update and said it was resolved.</h4>
+        <p class="meta">Incident<span class="dot">·</span><span class="num">15 Aug 2026</span></p>
+        <div class="actions"><button class="btn btn-sm">Not relevant</button><button class="btn btn-sm">Dismiss</button></div>
+      </div>
+      <section class="dsec">
+        <h4>Why this matters</h4>
+        <h5>About</h5>
+        <p class="direct"><a href="#">Mastercard</a><span class="badge p-high">High</span><span class="meta"><span class="adv">Adverse</span>, negative tone</span></p>
+        <p class="direct"><a href="#">Australia</a><span class="badge p-med">Medium</span><span class="meta"><span class="adv">Adverse</span>, negative tone</span></p>
+        <p class="direct"><a href="#">Technology outages</a><span class="badge p-med">Medium</span><span class="meta"><span class="adv">Adverse</span>, negative tone</span></p>
+        <p class="direct"><a href="#">Third-party risk</a><span class="badge p-med">Medium</span><span class="meta"><span class="adv">Adverse</span>, negative tone</span></p>
+      </section>
+      <section class="dsec">
+        <h4>3 sources</h4>
+        <article class="source">
+          <a href="https://www.straitstimes.com/asia/australianz/mastercard-payments-being-declined-in-australia-bank-says">Mastercard payments being declined in Australia, bank says</a>
+          <p class="meta"><span class="num">15 Aug 2026, 4:21 pm</span><span class="dot">·</span>News<span class="dot">·</span>straitstimes.com</p>
+          <div class="finding"><blockquote>…<mark>Some Mastercard card payments were declined for Australian customers in the afternoon of Aug 15 because of a global issue, Commonwealth Bank of Australia said.</mark> “<mark>Mastercard card payments are being restored following a global Mastercard issue,”</mark> Commonwealth said in a statement…</blockquote></div>
+        </article>
+        <article class="source">
+          <a href="https://forums.hardwarezone.com.sg/threads/today-got-some-payment-issue.7218587/">today got some payment issue</a>
+          <p class="meta"><span class="num">15 Aug 2026, 5:37 pm</span><span class="dot">·</span>Social, forum<span class="dot">·</span>forums.hardwarezone.com.sg<span class="dot">·</span><span class="good">Confirmed by news</span></p>
+          <div class="finding"><blockquote><mark>Those with DBS and Mastercard got issue</mark> … <mark>FB says DBS experienced an industry wide payment issue affecting DBS Mastercard credit cards</mark>…</blockquote></div>
+        </article>
+        <article class="source">
+          <a href="https://www.thestar.com.my/aseanplus/aseanplus-news/2026/08/15/mastercard-payments-being-declined-in-australia-but-the-problem-being-resolved-bank-says">Mastercard payments being declined in Australia, but the problem being resolved, bank says</a>
+          <p class="meta"><span class="num">15 Aug 2026, 10:58 pm</span><span class="dot">·</span>News<span class="dot">·</span>thestar.com.my</p>
+          <div class="finding"><blockquote>…<mark>Later, Mastercard said the problems were because of a global issue that has since been resolved, according to the company.</mark> "A scheduled system update caused Mastercard transactions to be declined for a period of time earlier today," a Mastercard spokesperson said…</blockquote></div>
+        </article>
+      </section>
+      <section class="dsec">
+        <h4>Before news confirms a post</h4>
+        <article class="source">
+          <a href="https://x.com/i/status/2106039808779047313">your @digibank internet and mobile banking is always down</a>
+          <p class="meta"><span class="num">2 Oct 2026, 11:13 pm</span><span class="dot">·</span>Social, X<span class="dot">·</span><span class="unv">Unverified</span>, no news or official report yet</p>
+          <div class="finding"><blockquote>your @digibank internet and mobile banking is always down.... :( now down... last week multiple times down... don;t ask contact details... its down ... its down... and there was no notice.</blockquote></div>
+        </article>
+        <p class="meta">When posts come before the first news report, this line also says by how much, for example "Posts came 40 min before the first news report".</p>
+      </section>
+    </div>
+  </aside>
+</div>
+<p class="mocknote">The forum thread and the X post are real, from item X's scratch store. No run has merged social posts into developments yet, so the thread is shown where it would land. In this case news came first, 1 hr 16 min before the thread, so there is no lead time to show; no stored development has posts ahead of news yet. The 40 min wording is the plan's example. The last block is a mock aid and would not appear in the drawer.</p>
+</section>
+
+</main>

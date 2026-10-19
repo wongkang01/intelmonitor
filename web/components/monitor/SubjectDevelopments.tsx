@@ -1,34 +1,71 @@
-// A monitor page's Developments tab: What changed since the last review with its triage, then the
-// subject's developments in the latest run, in the API's order (needing attention first). An entity
-// in a group with other members switches the list to Peers (`?scope=peers`): the developments of
-// those members, never ones tagged to the entity itself, each row naming the peer it is about.
-import { useState } from "react";
+// A subject's developments: the top 5 this month on its Overview, and the full feed with the period
+// and facet filters on its Developments tab (components/developments/Feed.tsx). Both leave out
+// unconfirmed developments; only the tab can show them.
+import { Link } from "@tanstack/react-router";
 
 import type { Schema } from "@/lib/api/client";
-import { usePeers } from "@/lib/api/peers";
 import { useDevelopments, useMonitorPage } from "@/lib/api/queries";
+import { listQuery } from "@/lib/developments";
+import { plural } from "@/lib/format";
 import { useHashScroll } from "@/lib/dom";
-import { plural, shortDate } from "@/lib/format";
-import { DevelopmentRow } from "@/components/widgets/parts";
+import { Feed, HrefLink } from "@/components/developments/Feed";
+import { FeedHeader, FeedRow } from "@/components/developments/FeedRow";
+import { ChevronIcon } from "@/components/ui/icons";
 
 import { MonitorHead } from "./MonitorView";
 import { Section } from "./parts";
-import { WhatChanged } from "./WhatChanged";
 
-export type DevelopmentScope = "subject" | "peers";
+// Rows on the Overview before "See all".
+const TOP = 5;
 
-// Rows before Show all.
-const FIRST_ROWS = 30;
+/**
+ * The Overview's "Top developments": this month's first 5 confirmed ones, High and adverse for the
+ * subject first, then other High, Medium adverse, other Medium and the rest, newest first within
+ * each (the API's order). Each has its priority badge; a link to the Developments tab follows. The
+ * query is the tab's default one, so the tab opens from cache.
+ */
+export function TopDevelopments({ subject }: { subject: Schema<"SubjectRef"> }) {
+  const list = useDevelopments(listQuery({ subject_id: [subject.id] }, new URLSearchParams()));
+  const rows = list.data?.developments.filter((d) => !d.dismissed) ?? [];
+  const allTime = list.data?.facets.date.find((v) => v.value === "any")?.count ?? 0;
+  return (
+    <Section id="developments" title="Top developments">
+      {list.isError ? (
+        <p className="mon-empty">These developments could not be loaded.</p>
+      ) : !list.data ? null : rows.length === 0 ? (
+        <p className="mon-empty">No developments this month.</p>
+      ) : (
+        <>
+          <FeedHeader />
+          <ol className="frows">
+            {rows.slice(0, TOP).map((d) => (
+              <FeedRow key={d.id} development={d} scope={{ subject: subject.id }} />
+            ))}
+          </ol>
+        </>
+      )}
+      {list.data && allTime > 0 && (
+        <div className="feed-foot">
+          {rows.length > 0 ? (
+            <Link to="/monitors/$id/developments" params={{ id: subject.id }} className="link top-all">
+              {rows.length > TOP ? `See all ${plural(rows.length, "development")} this month` : "See all developments"}
+              <ChevronIcon />
+            </Link>
+          ) : (
+            // Nothing this month: open the tab on all time, where the older ones are.
+            <HrefLink href={`/monitors/${encodeURIComponent(subject.id)}/developments?days=any`} className="link top-all">
+              See earlier developments
+              <ChevronIcon />
+            </HrefLink>
+          )}
+        </div>
+      )}
+    </Section>
+  );
+}
 
-export function SubjectDevelopments({
-  id,
-  scope,
-  onScope,
-}: {
-  id: string;
-  scope: DevelopmentScope;
-  onScope: (scope: DevelopmentScope) => void;
-}) {
+/** The Developments tab: the subject's full feed in the same order, with the filters and Show unconfirmed. */
+export function DevelopmentsTab({ id }: { id: string }) {
   const page = useMonitorPage(id);
   useHashScroll();
   const p = page.data;
@@ -39,96 +76,11 @@ export function SubjectDevelopments({
       <MonitorHead page={p} view="developments" />
       <div className="mon-devs">
         <div className="panel">
-          <WhatChanged wc={p.what_changed} subjectId={p.subject.id} />
-          <Developments subject={p.subject} asOf={p.run.as_of} scope={scope} onScope={onScope} />
+          <Section id="developments" title={`Developments about ${p.subject.name}`}>
+            <Feed scope={{ subject_id: [p.subject.id] }} view={{ subject: p.subject.id }} />
+          </Section>
         </div>
       </div>
     </>
-  );
-}
-
-function Developments({
-  subject,
-  asOf,
-  scope,
-  onScope,
-}: {
-  subject: Schema<"SubjectDetail">;
-  asOf: string;
-  scope: DevelopmentScope;
-  onScope: (scope: DevelopmentScope) => void;
-}) {
-  const peers = usePeers(subject);
-  const hasPeers = peers !== undefined && peers.length > 0;
-  // A Peers link to a subject without peers shows its own list.
-  const shown = scope === "peers" && hasPeers ? "peers" : "subject";
-  const own = useDevelopments({ subject_id: [subject.id] });
-  const theirs = useDevelopments({ peers_of: subject.id }, hasPeers);
-  const list = shown === "peers" ? theirs : own;
-  const [all, setAll] = useState(false);
-  const peerIds = new Set(peers?.map((s) => s.id));
-  const rows = list.data?.developments ?? [];
-  const visible = all ? rows : rows.slice(0, FIRST_ROWS);
-  const attention = rows.filter((d) => d.needs_attention).length;
-  const scopes = [
-    { id: "subject", label: subject.name, count: own.data?.in_scope },
-    { id: "peers", label: "Peers", count: theirs.data?.in_scope },
-  ] as const;
-
-  return (
-    <Section id="developments" title="Developments" meta={`Run of ${shortDate(asOf)}`}>
-      <div className="lead-row">
-        <p className="mon-lead">
-          {list.data &&
-            [
-              plural(list.data.in_scope, "development"),
-              attention > 0 && `${attention} need attention`,
-            ]
-              .filter(Boolean)
-              .join(", ")}
-        </p>
-        {hasPeers && (
-          <div className="seg" role="group" aria-label="Scope">
-            {scopes.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                aria-pressed={s.id === shown}
-                onClick={() => {
-                  setAll(false);
-                  onScope(s.id);
-                }}
-              >
-                {s.label}
-                {s.count !== undefined && <span className="seg-n">{s.count}</span>}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      {list.isError ? (
-        <p className="mon-empty">These developments could not be loaded.</p>
-      ) : !list.data ? null : rows.length === 0 ? (
-        <p className="mon-empty">{shown === "peers" ? `No developments for ${subject.name}'s peers in this run.` : `No developments for ${subject.name} in this run.`}</p>
-      ) : (
-        <div className="rows">
-          {visible.map((d) => (
-            <DevelopmentRow
-              key={d.id}
-              development={d}
-              // Peers name the peer each row is about; the subject's own rows name the others it touches.
-              subjects={shown === "peers" ? d.subjects.filter((s) => peerIds.has(s.id)) : d.subjects.filter((s) => s.id !== subject.id)}
-            />
-          ))}
-        </div>
-      )}
-      {rows.length > FIRST_ROWS && (
-        <p className="mon-more">
-          <button type="button" className="link" aria-expanded={all} onClick={() => setAll((a) => !a)}>
-            {all ? "Show fewer" : `Show all ${rows.length}`}
-          </button>
-        </p>
-      )}
-    </Section>
   );
 }

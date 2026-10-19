@@ -4,6 +4,7 @@ import json
 from collections import deque
 from datetime import date, timedelta
 
+from intelmonitor.pipeline.subjects import all_subjects
 from intelmonitor.server.models import Graph, GraphEdge, GraphNode, LinkType, NodeType
 from intelmonitor.server.queries import NotFoundError, Queries
 
@@ -20,14 +21,22 @@ def neighbourhood(
     window_days: int | None,
 ) -> Graph:
     """Nodes within `hops` links of `center`, walking links in either direction. Development
-    nodes outside the time window, or of excluded types, are neither shown nor walked through."""
+    nodes outside the time window, unconfirmed (pipeline/corroboration.py), or of excluded types,
+    are neither shown nor walked through. Subjects no longer in the seed, which a run before the
+    change still holds, are left out; relationship endpoints always stay."""
     run = q.run
     since = run.as_of - timedelta(days=window_days) if window_days else None
+    seeded = all_subjects()
     nodes: dict[str, GraphNode] = {}
     for r in q.conn.execute("SELECT * FROM graph_nodes WHERE run_id = ?", (run.id,)):
+        if r["type"] in ("topic", "group", "entity") and r["id"] not in seeded:
+            continue
         data = json.loads(r["data"])
         published = date.fromisoformat(data["last_published"]) if "last_published" in data else None
-        if r["type"] == "development" and since and published and published <= since:
+        if r["type"] == "development" and (
+            (since and published and published <= since)
+            or r["id"].removeprefix("dev:") not in q.devs.by_id
+        ):
             continue
         nodes[r["id"]] = GraphNode(
             id=r["id"],
@@ -44,20 +53,26 @@ def neighbourhood(
     if center not in nodes or nodes[center].type == "development":
         raise NotFoundError(f"subject {center}")
 
-    edges = [
-        GraphEdge(
-            source=r["from_id"],
-            target=r["to_id"],
-            type=r["type"],
-            origin=r["source"],
-            confidence=r["confidence"],
+    edges: list[GraphEdge] = []
+    for r in q.conn.execute("SELECT * FROM graph_edges WHERE run_id = ?", (run.id,)):
+        if r["type"] not in link_types or r["from_id"] not in nodes or r["to_id"] not in nodes:
+            continue
+        detail = json.loads(r["detail"])
+        edges.append(
+            GraphEdge(
+                source=r["from_id"],
+                target=r["to_id"],
+                type=r["type"],
+                label=r["label"],
+                origin=r["source"],
+                confidence=r["confidence"],
+                relationship_id=detail.get("relationship_id"),
+                route=detail.get("route"),
+            )
         )
-        for r in q.conn.execute("SELECT * FROM graph_edges WHERE run_id = ?", (run.id,))
-        if r["type"] in link_types and r["from_id"] in nodes and r["to_id"] in nodes
-    ]
-    # A subject is highlighted when a new or updated development in the window affects it.
+    # A subject is highlighted when a new or updated development in the window reaches it.
     for e in edges:
-        if e.type == "AFFECTS" and nodes[e.source].has_new:
+        if e.type in ("AFFECTS", "IMPACTS") and nodes[e.source].has_new:
             nodes[e.target].has_new = True
 
     adjacent: dict[str, list[str]] = {}

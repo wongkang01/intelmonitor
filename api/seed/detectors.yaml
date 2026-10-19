@@ -1,4 +1,4 @@
-# Detectors (structured-data-plan.md, F3): rules over series whose firings become developments.
+# Detectors (docs/archive/structured-data-plan.md, F3): rules over series whose firings become developments.
 # Each firing is written as a source document in the "data" collection with a sentence written by
 # code, and one finding tagged to the series' primary subjects; clustering, answers, triage, alerts
 # and search then treat it like any other development.
@@ -21,27 +21,11 @@
 #              `beyond` from the previous period
 #
 # Any detector may add `when`, below or at_least: it is evaluated only at points where the series'
-# value, in its own unit (supply in the coin's peg currency), meets that level.
+# value, in its own unit, meets that level.
 #
 # The thresholds are placeholders to agree with the pilot analysts.
 
 detectors:
-  - id: fed-funds-change
-    name: Fed funds rate change
-    kind: move
-    series: fred.fed_funds
-    window: previous
-    beyond: 0.1
-    category: market
-    materiality: notable
-  - id: ecb-deposit-change
-    name: ECB deposit rate change
-    kind: move
-    series: fred.ecb_deposit
-    window: previous
-    beyond: 0.1
-    category: market
-    materiality: notable
   - id: ltd-above-90
     name: Loan-to-deposit ratio above 90%
     kind: threshold
@@ -49,61 +33,12 @@ detectors:
     above: 90
     category: financial
     materiality: significant
-  - id: vix-above-30
-    name: VIX above 30
-    kind: threshold
-    series: fred.vix
-    above: 30
-    category: market
-    materiality: notable
-  - id: hy-spread-above-5
-    name: US high-yield spread above 5 points
-    kind: threshold
-    series: fred.us_hy_spread
-    above: 5
-    category: market
-    materiality: notable
-  - id: depeg
-    name: Stablecoin off its peg by more than 0.5% for 24 hours
-    kind: deviation
-    series: "derived.*.peg"
-    beyond: 0.5
-    for_hours: 24
-    category: market
-    materiality: significant
   - id: fx-weekly-2pct
     name: SGD exchange rate moves more than 2% in a week
     kind: move
     series: "fx.sgd.*"
     window: 1w
     beyond: 2
-    category: market
-    materiality: notable
-  - id: us10y-weekly-3sd
-    name: US 10-year yield moves more than 3 standard deviations in a week
-    kind: move
-    series: fred.us10y
-    window: 1w
-    sigmas: 3
-    category: market
-    materiality: notable
-  # Small coins' supply swings more, so under 1bn the weekly move must pass 20%.
-  - id: stablecoin-supply-weekly-10pct
-    name: Stablecoin supply moves more than 10% in a week
-    kind: move
-    series: "llama.*.supply"
-    window: 1w
-    beyond: 10
-    when: {at_least: 1000000000}
-    category: market
-    materiality: notable
-  - id: stablecoin-supply-weekly-20pct-small
-    name: Stablecoin supply under 1bn moves more than 20% in a week
-    kind: move
-    series: "llama.*.supply"
-    window: 1w
-    beyond: 20
-    when: {below: 1000000000}
     category: market
     materiality: notable
   - id: npl-sector-up
@@ -123,7 +58,7 @@ detectors:
     materiality: notable
 
   # Share prices and markets (Yahoo Finance, FRED). Sizes from the backtest in
-  # structured-data-plan.md, F8.
+  # docs/archive/structured-data-plan.md, F8.
   - id: share-daily-drop
     name: Share price falls more than 3 standard deviations in a day
     kind: move
@@ -143,21 +78,11 @@ detectors:
     direction: down
     category: market
     materiality: notable
-  - id: share-trails-klci
-    name: Share price trails the KLCI by more than 5 points in a week
+  - id: share-trails-hsi
+    name: Share price trails the Hang Seng Index by more than 5 points in a week
     kind: move
-    series: "eq.bursa.*"
-    benchmark: idx.klci
-    window: 1w
-    beyond: 5
-    direction: down
-    category: market
-    materiality: notable
-  - id: share-trails-set50
-    name: Share price trails the SET50 by more than 5 points in a week
-    kind: move
-    series: "eq.set.*"
-    benchmark: idx.set50
+    series: "eq.hkex.*"
+    benchmark: idx.hsi
     window: 1w
     beyond: 5
     direction: down
@@ -170,14 +95,6 @@ detectors:
     window: 1w
     sigmas: 3
     direction: down
-    category: market
-    materiality: notable
-  - id: brent-weekly-3sd
-    name: Brent crude moves more than 3 standard deviations in a week
-    kind: move
-    series: fred.brent
-    window: 1w
-    sigmas: 3
     category: market
     materiality: notable
   - id: asia-spread-weekly-3sd
@@ -196,5 +113,45 @@ detectors:
     window: 1w
     sigmas: 3
     direction: up
+    category: market
+    materiality: notable
+
+  # Global rates and risk sentiment (FRED), tagged to Fixed income and FX.
+  - id: fed-funds-change
+    name: Fed funds rate change
+    kind: move
+    series: fred.fed_funds
+    window: previous
+    beyond: 0.1
+    category: market
+    materiality: notable
+  - id: ecb-deposit-change
+    name: ECB deposit rate change
+    kind: move
+    series: fred.ecb_deposit
+    window: previous
+    beyond: 0.1
+    category: market
+    materiality: notable
+  - id: us10y-weekly-3sd
+    name: US 10-year yield moves more than 3 standard deviations in a week
+    kind: move
+    series: fred.us10y
+    window: 1w
+    sigmas: 3
+    category: market
+    materiality: notable
+  - id: hy-spread-above-5
+    name: US high-yield spread above 5 points
+    kind: threshold
+    series: fred.us_hy_spread
+    above: 5
+    category: market
+    materiality: notable
+  - id: vix-above-30
+    name: VIX above 30
+    kind: threshold
+    series: fred.vix
+    above: 30
     category: market
     materiality: notable

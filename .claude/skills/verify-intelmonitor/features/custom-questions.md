@@ -1,5 +1,7 @@
 # Custom focus areas
 
+Parked for the testing sessions (phase1-plan.md section 5): no screen offers a custom question any more, since the dashboard has no widgets and the monitor page no focus areas. The API and the stored questions remain; the recipes below need the parked UI back and are kept until the sessions decide (D3).
+
 An analyst writes their own standing question about a subject, optionally picks up to three of the subject's series, and `Draft focus area` asks Claude to word it and answer it for every run.
 The preview shows the drafted question, label, subject, lookback and series, one answer per run with state changes, and what the latest answer cites; `Keep` adds it, `Discard` drops it.
 A kept question sits in the subject's Focus areas with a `Custom` badge, opens its evidence like any answer, can be edited or deleted, and can be shown as a Focus area widget, which at Medium draws its first series' line beside the answer.
@@ -17,7 +19,7 @@ At most 10 custom questions can be kept.
 
 ## How to get to it (user POV)
 
-- Monitor page, `region "Focus areas"`, `button "Add a focus area"`.
+- Monitor page: none since U2 removed focus areas from the Overview.
 - Add widget sheet or New dashboard Build gallery, last offer `region "Custom focus area"`; Keep there adds the widget at the picked size.
 - `button "Edit <label>"` on a kept question's monitor row.
 - Dashboard edit mode, a Focus area widget's settings: pick a `(custom)` option in `combobox "Focus area"`, then `button "Edit custom focus area"`.

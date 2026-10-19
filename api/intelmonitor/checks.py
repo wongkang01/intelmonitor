@@ -1,22 +1,22 @@
 """`im check`: checks the walkthrough runs in scratch stores, with no model calls and no network.
 
 `im check series` replays a backfill and a daily fetch from cached responses only
-(structured-data-plan.md, F1): no request may reach a source, the fetch after the backfill adds
-and revises nothing, and the replayed observations match the app's store.
+(docs/archive/structured-data-plan.md, F1): no request may reach a source, the fetch after the
+backfill adds and revises nothing, and the replayed observations match the app's store.
 
 `im check past-run` recomputes Run 1 in a copy of the app's store, which holds a week of later
 documents, detections and observations, replaying only recorded model calls: nothing it stores may
-use what became known after its date, and it must match the stored run.
+use what became known after its date, and it must match the stored run: developments and their
+sources, indicators, changes, indirect impacts, notes and briefs.
 
-`im check depeg` fires the peg rule and the depeg detector on fixture prices. No stored price
-breaches a peg (structured-data-plan.md, F2 and F3), so the walkthrough runs this to see both
-firing paths: USDC more than 0.5% below its peg for 48 hours makes the Peg answer Needs attention
-whatever the model says, and the depeg detector's event becomes a development of its own at the
-rule's materiality.
+`im check detector` fires a detector on fixture values. No stored loan-to-deposit ratio is near
+its threshold (docs/archive/structured-data-plan.md, F3), so the walkthrough runs this to see the
+firing path: the ratio rising above 90% becomes a development of its own at the rule's
+materiality, tagged to the series' primary subject, Singapore: a system-wide figure is not tagged
+to each bank (phase1-decisions.md, S3).
 """
 
 import json
-import re
 import sqlite3
 import tempfile
 from collections.abc import Generator, Mapping
@@ -24,21 +24,17 @@ from contextlib import closing, contextmanager
 from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 
+from claude_agent_sdk import EffortLevel
 from pydantic import BaseModel, Field
 
 from intelmonitor.ingest.http import CachedHttp
 from intelmonitor.ingest.series.collect import DEFAULT_FLOOR, SeriesFetchResult, fetch_series
-from intelmonitor.ingest.series.derive import derive
-from intelmonitor.pipeline.answers import SubjectAnswers, answer_subject, load_run_developments
 from intelmonitor.pipeline.detectors import store_detections
 from intelmonitor.pipeline.developments import build_developments
-from intelmonitor.pipeline.facts import FixedState, SeriesFact, subject_facts
 from intelmonitor.pipeline.inference import Inference, JevAnswers, JevQuestion
-from intelmonitor.pipeline.notes import SeriesMove
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS
 from intelmonitor.pipeline.run import compute_run, run_dates
-from intelmonitor.pipeline.subjects import all_subjects, questions_for
-from intelmonitor.seed import Deviation, load_series
+from intelmonitor.seed import load_series
 from intelmonitor.store.db import connect, set_meta
 from intelmonitor.store.series import (
     Observation,
@@ -59,19 +55,19 @@ PER_100_DAY = date(2026, 9, 18)
 MAX_DIFFERENCES = 20
 
 AS_OF = date(2026, 9, 10)
-SUBJECT = "circle"
-PRICE, PEG = "cg.usdc.price", "derived.usdc.peg"
-# 60 days at the peg, then three days 0.70%, 0.85% and 0.75% below it: a 48-hour spell.
-BREACH = [0.9930, 0.9915, 0.9925]
+LDR = "mas.ltd.overall"
+# Eleven months at 89%, then 90.4% for July 2026: one crossing of the 90% threshold, and a move too
+# small for the release rule.
+LDR_VALUES = [89.0] * 11 + [90.4]
 
 
 class ModelCallError(RuntimeError):
     pass
 
 
-class CannedAnswers(Inference):
-    """Answers every question Stable with no sources, as a model that missed the depeg would, so
-    only a rule can raise the Peg state. Any other model call fails the check."""
+class NoModelCalls(Inference):
+    """Fails the check on any model call: a development made only of a detection takes its rule's
+    level without one."""
 
     async def jev(
         self,
@@ -91,24 +87,9 @@ class CannedAnswers(Inference):
         schema: type[T],
         system: str,
         model: str | None = None,
+        effort: EffortLevel | None = None,
     ) -> T:
-        if schema is not SubjectAnswers:
-            raise ModelCallError(f"the check made a Claude call: {stage} {input_ref}")
-        ids = re.findall(r"^- question_id: (\S+)$", prompt, re.MULTILINE)
-        return schema.model_validate(
-            {
-                "answers": [
-                    {
-                        "question_id": i,
-                        "summary": "No peg deviation or redemption pressure reported.",
-                        "state": "stable",
-                        "development_ids": [],
-                        "series_ids": [],
-                    }
-                    for i in ids
-                ]
-            }
-        )
+        raise ModelCallError(f"the check made a Claude call: {stage} {input_ref}")
 
 
 class CheckedDevelopment(BaseModel):
@@ -116,87 +97,75 @@ class CheckedDevelopment(BaseModel):
     materiality_label: str
     materiality_rule: str | None = Field(description="The detector whose rule set the level")
     needs_attention: bool
+    subjects: list[str] = Field(description="Its subject ids, sorted")
     sources: int
 
 
-class CheckedAnswer(BaseModel):
-    question_id: str
-    state: str
-    summary: str
-    state_rules: list[str]
-
-
-class DepegCheck(BaseModel):
+class DetectorCheck(BaseModel):
     as_of: date
-    prices: list[Observation] = Field(description="The fixture: USDC's daily price in USD")
+    values: list[Observation] = Field(description="The fixture: the monthly ratio in %")
     detections: list[str] = Field(description="The detection documents' sentences")
     developments: list[CheckedDevelopment]
-    fixed_states: list[FixedState]
-    peg: CheckedAnswer = Field(description="The stored Peg answer, after the rules")
 
 
-def _prices() -> list[Observation]:
-    days = [AS_OF - timedelta(days=n) for n in reversed(range(63))]
-    values = [1.0] * (len(days) - len(BREACH)) + BREACH
+def _month_end(year: int, month: int) -> date:
+    """The last day of a month; months past 12 run into the following years."""
+    return date(year + month // 12, month % 12 + 1, 1) - timedelta(days=1)
+
+
+def _ldr_values() -> list[Observation]:
+    """Month ends from August 2025 to July 2026, each published at the end of the next month."""
     return [
-        Observation(period=d, value=v, available_at=datetime.combine(d, time(), UTC))
-        for d, v in zip(days, values, strict=True)
+        Observation(
+            period=_month_end(2025, 8 + i),
+            value=v,
+            available_at=datetime.combine(_month_end(2025, 9 + i), time(), UTC),
+        )
+        for i, v in enumerate(LDR_VALUES)
     ]
 
 
-async def depeg_check() -> DepegCheck:
-    """Runs the detectors, the development merge and the answer step over the fixture prices in a
-    scratch store."""
+async def detector_check() -> DetectorCheck:
+    """Runs the detectors and the development merge over the fixture values in a scratch store."""
     with _scratch() as conn:
-        return await _depeg_check(conn)
+        return await _detector_check(conn)
 
 
-async def _depeg_check(conn: sqlite3.Connection) -> DepegCheck:
+async def _detector_check(conn: sqlite3.Connection) -> DetectorCheck:
     seed = load_series()
     sync_catalogue(conn, seed)
     set_meta(conn, "t0", AS_OF.isoformat())
     by_id = {s.id: s for s in seed.series}
-    peg_source = by_id[PEG].source
-    assert isinstance(peg_source, Deviation)
-    fetched = datetime.now(UTC)
-    prices = _prices()
-    save_observations(conn, PRICE, by_id[PRICE].decimals, prices, fetched)
-    save_observations(conn, PEG, by_id[PEG].decimals, derive(peg_source, [prices]), fetched)
+    values = _ldr_values()
+    save_observations(conn, LDR, by_id[LDR].decimals, values, datetime.now(UTC))
 
     run_id = AS_OF.isoformat()
-    inf = CannedAnswers(conn, run_id)
     store_detections(conn, AS_OF)
-    await build_developments(inf, conn, run_id, AS_OF)
-    subject = all_subjects()[SUBJECT]
-    devs = load_run_developments(conn, run_id)
-    await answer_subject(inf, conn, run_id, AS_OF, subject, devs, {}, None)
-
-    facts = subject_facts(conn, SUBJECT, questions_for(subject), AS_OF)
-    peg = conn.execute(
-        "SELECT * FROM question_answers WHERE run_id = ? AND subject_id = ? AND question_id = ?",
-        (run_id, SUBJECT, "issuer.peg"),
-    ).fetchone()
-    return DepegCheck(
+    await build_developments(NoModelCalls(conn, run_id), conn, run_id, AS_OF)
+    rows = conn.execute(
+        "SELECT d.*, (SELECT json_group_array(subject_id) FROM (SELECT subject_id "
+        "FROM development_subjects s WHERE s.run_id = d.run_id AND s.development_id = d.id "
+        "ORDER BY subject_id)) AS subjects, "
+        "(SELECT count(DISTINCT document_id) FROM development_sources s "
+        "WHERE s.run_id = d.run_id AND s.development_id = d.id) AS sources "
+        "FROM developments d WHERE d.run_id = ? ORDER BY d.id",
+        (run_id,),
+    ).fetchall()
+    return DetectorCheck(
         as_of=AS_OF,
-        prices=prices,
+        values=values,
         detections=[r["text"].split("\n")[0] for r in _documents(conn)],
         developments=[
             CheckedDevelopment(
-                title=d.title,
-                materiality_label=MATERIALITY_LEVELS[d.level],
-                materiality_rule=_stored(conn, run_id, d.id)["materiality_rule"],
-                needs_attention=bool(_stored(conn, run_id, d.id)["needs_attention"]),
-                sources=d.sources,
+                title=r["title"],
+                materiality_label=MATERIALITY_LEVELS[int(r["materiality_level"])],
+                materiality_rule=r["materiality_rule"],
+                needs_attention=bool(r["needs_attention"]),
+                subjects=json.loads(r["subjects"]),
+                sources=r["sources"],
             )
-            for d in devs
+            for r in rows
         ],
-        fixed_states=facts.fixed_states,
-        peg=CheckedAnswer(
-            question_id=peg["question_id"],
-            state=peg["state"],
-            summary=peg["summary"],
-            state_rules=json.loads(peg["state_rules"]),
-        ),
     )
 
 
@@ -204,12 +173,6 @@ def _documents(conn: sqlite3.Connection) -> list[sqlite3.Row]:
     return conn.execute(
         "SELECT text FROM source_documents WHERE collection = 'data' ORDER BY published_at"
     ).fetchall()
-
-
-def _stored(conn: sqlite3.Connection, run_id: str, development_id: str) -> sqlite3.Row:
-    return conn.execute(
-        "SELECT * FROM developments WHERE run_id = ? AND id = ?", (run_id, development_id)
-    ).fetchone()
 
 
 def _quiet(_: str) -> None:
@@ -330,8 +293,6 @@ class LateRows(BaseModel):
 
     sources: int = Field(description="Development sources published after the date")
     indicators: int = Field(description="Run indicators on observations available after it")
-    facts: int = Field(description="Observations stated in the answers' facts")
-    notes: int = Field(description="Observations stated in the notes' facts")
 
 
 class PastRunCheck(BaseModel):
@@ -342,8 +303,6 @@ class PastRunCheck(BaseModel):
     later_detections: int = Field(description="Detections in the store known after the date")
     detections: int = Field(description="Detections among the run's development sources")
     developments: int
-    answers: int
-    notes: int
     indicators: int
     late: LateRows
     differences: list[str] = Field(
@@ -352,38 +311,29 @@ class PastRunCheck(BaseModel):
 
 
 def _run_rows(conn: sqlite3.Connection, run_id: str) -> dict[str, set[tuple[object, ...]]]:
-    """What a run stored, row by row, to compare a recomputed run with the stored one."""
+    """What a run stored, row by row, to compare a recomputed run with the stored one. Standing
+    answers and their facts are parked (pipeline/run.py); a brief's write time is not compared."""
     queries = {
         "developments": "SELECT id, title, category, event_date, materiality_level, "
         "materiality_rule, needs_attention FROM developments WHERE run_id = ?",
         "sources": "SELECT development_id, finding_id FROM development_sources WHERE run_id = ?",
-        "answers": "SELECT subject_id, question_id, state, summary, development_ids, series_ids, "
-        "state_rules FROM question_answers WHERE run_id = ?",
-        "notes": "SELECT subject_id, headline, body, development_ids, series_id FROM run_notes "
-        "WHERE run_id = ?",
         "indicators": "SELECT series_id, period, value, state FROM run_indicators WHERE run_id = ?",
-        "facts": "SELECT subject_id, series_id, fact FROM run_facts WHERE run_id = ?",
         "changes": "SELECT base_run_id, kind, subject_id, ref_id, detail FROM run_changes "
         "WHERE run_id = ?",
+        "impacts": "SELECT development_id, subject_id, rank, direction, route, why, confidence, "
+        "relationship_ids, weight, region, evidence, finding_ids, passages "
+        "FROM development_impacts WHERE run_id = ?",
+        "notes": "SELECT subject_id, since, headline, body, development_ids, series_id, moves "
+        "FROM run_notes WHERE run_id = ?",
+        "briefs": "SELECT subject_id, text, direction, direction_basis, developments_in_scope, "
+        "needs_attention, adverse, model, direction_reason, direction_flagged, concerns, "
+        "coming_up, latest_news, problems FROM run_summaries WHERE run_id = ?",
     }
     return {name: {tuple(r) for r in conn.execute(q, (run_id,))} for name, q in queries.items()}
 
 
 def _late(conn: sqlite3.Connection, run_id: str, as_of: date) -> LateRows:
     day = as_of.isoformat()
-
-    def known_late(observations: list[Observation | None]) -> int:
-        return sum(o is not None and o.available_at.date() > as_of for o in observations)
-
-    facts = [
-        SeriesFact.model_validate_json(r["fact"])
-        for r in conn.execute("SELECT fact FROM run_facts WHERE run_id = ?", (run_id,))
-    ]
-    moves = [
-        SeriesMove.model_validate(m)
-        for r in conn.execute("SELECT moves FROM run_notes WHERE run_id = ?", (run_id,))
-        for m in json.loads(r["moves"])
-    ]
     return LateRows(
         sources=conn.execute(
             "SELECT count(*) FROM development_sources s JOIN source_documents d "
@@ -396,8 +346,6 @@ def _late(conn: sqlite3.Connection, run_id: str, as_of: date) -> LateRows:
             "WHERE i.run_id = ? AND substr(o.available_at, 1, 10) > ?",
             (run_id, day),
         ).fetchone()[0],
-        facts=sum(known_late([f.latest, f.low, f.high]) for f in facts),
-        notes=sum(known_late([m.latest, m.start, m.widest]) for m in moves),
     )
 
 
@@ -441,8 +389,6 @@ async def _past_run_check(conn: sqlite3.Connection) -> PastRunCheck:
             (run_id,),
         ).fetchone()[0],
         developments=len(recomputed["developments"]),
-        answers=len(recomputed["answers"]),
-        notes=len(recomputed["notes"]),
         indicators=len(recomputed["indicators"]),
         late=_late(conn, run_id, as_of),
         differences=differences,

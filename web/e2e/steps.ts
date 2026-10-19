@@ -1,32 +1,21 @@
-// The walkthrough's steps, in order: poc-plan.md, Verification > E2E. The test runs them as
-// test.step titles and the reporter lists them in index.html, including any that never ran.
+// The walkthrough's steps, in order: the Phase 1 app (phase1-plan.md wave 4) as a first-time user
+// meets it, then two scripted pipeline checks. The test runs them as test.step titles and the
+// reporter lists them in index.html, including any that never ran.
 export const STEPS = [
-  "Since your last review shows Run 2 changes, Show all lists them",
-  "Evidence highlights the quote in its source",
-  "Edit mode: drag, remove, reload keeps the layout",
-  "New dashboard, Build",
-  "New dashboard, Generate",
-  "Monitor page from ⌘K: add a note, delete and Undo, then mark reviewed and Undo on the Developments tab",
-  "Triage: row actions by keyboard, filters, follow, alerts read on open",
-  "Custom focus area with answer and citations",
-  "Connections tab, then the graph view: developments under their themes, drag a node without opening it, 2 hops, click a node, its page opens",
-  "Sidebar: drag and Move up reorder dashboards, colors stay",
-  "⌘K full text: a development and a document open their evidence, snippets are body text",
-  "Correct the AI: mark an answer wrong and Undo, remove a tag and Undo",
-  "Help: ? opens it, Replay tour walks the five coach marks, Esc skips and puts the page back",
-  "Developments list: facets, sort and words survive reload and the drawer, What changed triage in the table",
-  "Developments list: popovers follow the keyboard, bad parameters are ignored, at 1024 px the bar wraps and titles keep room",
-  "Series: per-100 quotes stored per unit, indicators as of Run 1 see nothing later, gaps never compare with zero",
+  "Onboarding: pick a role, trim the suggested picks, the preview follows, Create dashboard opens it",
+  "Dashboard: the busiest entities on the watchlist with Show all, the feed under priority headings with New marked, upcoming dates, one Updated date, no parked controls",
+  "Feed: Show all opens the developments list; This week and High narrow the feed and survive a reload",
+  "Development popup from a feed row: labels, who it impacts, connections, sources; Esc returns to the same feed and it reads as read; the old page link opens the popup",
+  "Dismiss and Undo in the development popup, read back from the API",
+  "Edit dashboard: add an entity and Save; the watchlist follows",
+  "New dashboard from the sidebar: Add all on a group names it, Create opens it",
+  "Sidebar: groups as headings under Entities open an entity page; topics and new High marks; dashboard new counts",
+  "Entity page: the brief, the top 5 developments and the Related card; See all links opens the Related tab with Could affect and Shared with; See all opens the Developments tab under priority headings; the Data tab in plain words",
+  "⌘K search opens an entity and a development",
+  "Profile menu: switch to FMD and its dashboard opens; ? opens Help with the labels",
+  "At 1024 px nothing scrolls sideways and titles wrap in full",
   "Series fetch from cached responses: a backfill and the daily fetch after it reach no source, the fetch adds nothing and the values match the store",
-  "Past-date run: Run 1 recomputed from recorded calls in a store a week ahead uses nothing known later and matches the stored run",
-  "Facts in answers: answers cite their series' facts and name FX rates by the SGD's side, a past date's facts see nothing later, XSGD pairs same-day rates",
-  "Detectors: the Fed funds rise fires into a Run 2 development that alerts for a followed subject, the data as its evidence",
-  "Peg rule and depeg detector on fixture prices: 48 hours off the peg makes Peg Needs attention and the detection a Significant development",
-  "Indicators on monitor pages: a bank's system-wide rows as of the run, the Fed funds rise reads Watch and opens its development, the line's readout",
-  "Indicator widget: a subject alone shows its peg, the gallery suggests the peg first, supply added at Large marks developments on its lane",
-  "Data as a source: an answer's cited series show their sentence, flags in words and a chart over their span with the cited period highlighted",
-  "Data tab: weekly runs from 30 Jul, each run's note numbered on the chart with the facts it was given, question states per run, no note before the first document",
-  "Custom focus area with a series: the picker names SGD per ringgit, answers cite its facts over the question's lookback, the widget at Medium shows its line",
+  "Detector on fixture values: the loan-to-deposit rule fires into one High development",
 ] as const;
 
 /** Where each run writes its artifacts; playwright.config.ts sets it once per run. */

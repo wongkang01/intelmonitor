@@ -1,0 +1,34 @@
+{
+ "group": "brief_judge",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "claims": [
+   {
+    "point": 1,
+    "supported": true,
+    "reason": "15318a0fa093f5ba-0 says analysts expect higher Singapore dollar rates after the Fed's 16 Sep 25bp hike to lift margins at DBS, OCBC and UOB, with the larger benefit in 2027. A supporting bullet says central bank watchers doubt MAS will tighten in October. The brief correctly treats this as a forecast, and the Fed hike is dated, not presented as this week's news."
+   },
+   {
+    "point": 2,
+    "supported": true,
+    "reason": "d0333fbecae99d56-3 confirms the 100-to-10 lot change for stocks priced above S$10 and up to S$100 from 5 Oct. It also confirms DBS was in the first cohort of 11, led trading with about 5,000 trades, and that SGX said liquidity stayed broadly stable. Wider retail access is a reasonable consequence, not a new fact."
+   }
+  ],
+  "top_high": [],
+  "consistent": true,
+  "consistency_reason": "Unchanged fits a week of analyst views, a market-structure change, DBS's own AI disclosures and regulatory proposals or guidance with future effect, with no material loss or enforcement. 'Shares little changed' matches the series note. 'No new incident' slightly overstates things: there is a Low-priority, unverified X allegation of an unauthorised \u20b914,301 credit card payment that is still unresolved. Given that it is a single, unverified, Low-priority claim, it does not change the assessment.",
+  "stale_or_other": [],
+  "verdict": "This is an accurate brief and its points are well supported. The direction and bottom line are sound, and the 1MDB matter is properly dated as earlier. The only flaw is the flat 'no new incident' wording, which passes over the Low-priority customer allegation made on X this week."
+ },
+ "usage": {
+  "cost_usd": 0.114556,
+  "input_tokens": 11216,
+  "output_tokens": 1326,
+  "duration_ms": 14300,
+  "turns": 2
+ }
+}

@@ -5,7 +5,8 @@ MAS tables, FRED, DefiLlama and Yahoo Finance return full history in one call, s
 rereads history from the floor and picks up revisions anywhere in it. CoinGecko returns the last
 365 days. MAS exchange and interest rates are the per-day sources: a fetch asks for each weekday
 since the oldest of the series' latest periods (at least the last RECENT_DAYS days); a longer span,
-as in a backfill or for a series with no data yet, takes the whole table in one call.
+as in a backfill or for a series with no data yet, takes the whole table in one call. Manual series
+reread api/seed/collected/market-figures.yaml, with no network call, and store each figure's source.
 """
 
 import sqlite3
@@ -18,7 +19,7 @@ from pydantic import BaseModel
 
 from intelmonitor.config import get_settings
 from intelmonitor.ingest.http import CachedHttp
-from intelmonitor.ingest.series import coingecko, defillama, fred, mas_stats, yahoo
+from intelmonitor.ingest.series import coingecko, defillama, fred, manual, mas_stats, yahoo
 from intelmonitor.ingest.series.derive import derive
 from intelmonitor.ingest.series.models import Fetched, Window
 from intelmonitor.seed import (
@@ -26,6 +27,7 @@ from intelmonitor.seed import (
     DefiLlamaSource,
     DerivedSource,
     FredSource,
+    ManualSource,
     MasSource,
     YahooSource,
     derived_inputs,
@@ -36,6 +38,7 @@ from intelmonitor.store.series import (
     latest_periods,
     read_observations,
     save_observations,
+    save_sources,
     sync_catalogue,
 )
 
@@ -124,6 +127,8 @@ def fetch_series(
             )
             result.added[series_id] += saved.added
             result.revised[series_id] += saved.revised
+        for series_id, sources in fetched.sources.items():
+            save_sources(conn, series_id, sources)
         result.failures.update(fetched.failures)
         for reason, n in Counter(fetched.failures.values()).items():
             log(f"{name}: {n} series failed: {reason}")
@@ -135,6 +140,7 @@ def fetch_series(
     cg = {s.id: s.source for s in seed.series if isinstance(s.source, CoinGeckoSource)}
     llama = {s.id: s.source for s in seed.series if isinstance(s.source, DefiLlamaSource)}
     stocks = {s.id: s.source for s in seed.series if isinstance(s.source, YahooSource)}
+    collected = [s for s in seed.series if isinstance(s.source, ManualSource)]
 
     # MAS daily tables from the oldest daily series' latest period, or the floor when one is empty.
     start = floor
@@ -158,6 +164,8 @@ def fetch_series(
         store("defillama", defillama.fetch(http, settings, llama, window))
     if stocks:
         store("yahoo", yahoo.fetch(http, settings, stocks, window))
+    if collected:
+        store("manual", manual.fetch(collected, window))
 
     # Derived series in seed order; each is saved at once, since a later one may use it.
     derived_failures: Counter[str] = Counter()

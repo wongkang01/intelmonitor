@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from typing import Literal
 
+from intelmonitor.pipeline.corroboration import shown_developments
 from intelmonitor.pipeline.diff import DevelopmentChange
 from intelmonitor.store.db import get_meta, set_meta
 
@@ -17,7 +18,9 @@ Trigger = Literal["cli", "manual"]
 
 @dataclass(frozen=True)
 class Outcome:
-    """What one execution found, relative to the previous run (the latest earlier as-of date)."""
+    """What one execution found, relative to the previous run (the latest earlier as-of date).
+    Developments the source gate holds back as unconfirmed (pipeline/corroboration.py) are not
+    counted."""
 
     developments: int
     first_run: bool
@@ -32,21 +35,20 @@ def outcome(
     changes: dict[str, DevelopmentChange],
     first_run: bool,
 ) -> Outcome:
+    shown = shown_developments(conn, run_id)
     attention = {
         r["id"]
         for r in conn.execute(
             "SELECT id FROM developments WHERE run_id = ? AND needs_attention = 1", (run_id,)
         )
     }
-    total = conn.execute(
-        "SELECT count(*) FROM developments WHERE run_id = ?", (run_id,)
-    ).fetchone()[0]
+    changed = {i: c for i, c in changes.items() if i in shown}
     return Outcome(
-        developments=total,
+        developments=len(shown),
         first_run=first_run,
-        new_count=sum(c.kind == "new_development" for c in changes.values()),
-        updated_count=sum(c.kind == "updated_development" for c in changes.values()),
-        needs_attention_count=len(attention & changes.keys()),
+        new_count=sum(c.kind == "new_development" for c in changed.values()),
+        updated_count=sum(c.kind == "updated_development" for c in changed.values()),
+        needs_attention_count=len(attention & changed.keys()),
     )
 
 

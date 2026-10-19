@@ -1,4 +1,4 @@
-// The Indicator widget (structured-data-plan.md, F5; mocks/indicators.html, F5 B "State first"):
+// The Indicator widget (docs/archive/structured-data-plan.md, F5; mocks/indicators.html, F5 B "State first"):
 // the series' status is the answer and code writes the sentence. S adds the source; M puts a
 // 12-month line beside the sentence; L puts the line under it with its scale, and the subject's
 // Needs attention and Watch developments on a lane under the line, the latest two as rows.

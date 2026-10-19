@@ -5,6 +5,12 @@ from those calls, so rerunning after a failure resumes where it stopped.
 
 Recomputing a complete run keeps it complete while it runs: each step swaps its tables in one
 transaction, so the app keeps serving the run instead of falling back to an older one.
+
+Order (phase1-plan.md, section 5): sync the relationship store, detectors, screen, extract, merge
+and priority, indirect impact, upcoming dates, indicators and notes, diff, briefs, graph.
+
+Standing answers no longer run (phase1-plan.md, item P). Their module stays; a recomputed run drops
+what they wrote for it before.
 """
 
 import sqlite3
@@ -13,12 +19,12 @@ from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta
 
 from intelmonitor.pipeline import runlog
-from intelmonitor.pipeline.answers import answer_subjects
 from intelmonitor.pipeline.detectors import store_detections
 from intelmonitor.pipeline.developments import build_developments
 from intelmonitor.pipeline.diff import development_changes, previous_run, store_changes
 from intelmonitor.pipeline.extract import extract_documents
 from intelmonitor.pipeline.graph import store_graph
+from intelmonitor.pipeline.impact import store_impacts
 from intelmonitor.pipeline.indicators import store_run_indicators
 from intelmonitor.pipeline.inference import Inference
 from intelmonitor.pipeline.notes import write_notes
@@ -26,8 +32,12 @@ from intelmonitor.pipeline.params import RUN_SPACING_DAYS
 from intelmonitor.pipeline.screen import screen_documents
 from intelmonitor.pipeline.summaries import write_summaries
 from intelmonitor.pipeline.upcoming import store_upcoming
+from intelmonitor.relationships import sync_relationships
 from intelmonitor.store.db import connect, get_meta
 from intelmonitor.store.documents import list_documents
+
+# What the parked stages wrote per run: standing answers and their facts.
+PARKED_TABLES = ("question_answers", "run_facts")
 
 
 def run_dates(conn: sqlite3.Connection) -> tuple[date, date]:
@@ -52,6 +62,8 @@ async def compute_run(
     must replay a recorded one (`Inference`)."""
     conn = conn or connect()
     run_id = as_of.isoformat()
+    # The relationship store first: it commits any open transaction, so before the run's writes.
+    synced = sync_relationships(conn)
     # Detectors write their events as data documents first, so the run takes them like the rest.
     detected = store_detections(conn, as_of)
     docs = [d for d in list_documents(conn) if d.published_at.date() <= as_of]
@@ -82,6 +94,7 @@ async def compute_run(
         )
 
     try:
+        step(f"relationships: {len(synced.relationships)} links, {len(synced.endpoints)} endpoints")
         step(
             f"detectors: {detected.events} events in the corpus window "
             f"{dict(detected.by_detector)}, {detected.added} new documents"
@@ -98,7 +111,13 @@ async def compute_run(
         devs, merge = await build_developments(inf, conn, run_id, as_of)
         step(
             f"{merge.developments} developments from {merge.findings} findings "
-            f"({merge.merged_pairs}/{merge.pairs} candidate pairs merged)"
+            f"({merge.merged_pairs}/{merge.pairs} candidate pairs merged), {merge.high} High"
+        )
+        impact = await store_impacts(inf, conn, run_id)
+        step(
+            f"impact: {impact.developments} developments at Medium or above, {impact.judged} "
+            f"with {impact.candidates} candidates; {impact.calls} Claude calls, "
+            f"{impact.cached} cached, {impact.refused} refused; {impact.impacts} indirect impacts"
         )
         upcoming = store_upcoming(conn, run_id, as_of, devs)
         base_id = previous_run(conn, run_id)
@@ -106,16 +125,19 @@ async def compute_run(
         previous_as_of = date.fromisoformat(base_id) if base_id else None
         states = store_run_indicators(conn, run_id, as_of, previous_as_of)
         step(f"{upcoming} upcoming dates; indicators {dict(states)}")
-        step(f"answer questions (base run {base_id})")
-        unsupported = await answer_subjects(inf, conn, run_id, as_of, changes, base_id)
-        step(f"answers still quoting numbers outside their facts or FX pairs: {unsupported}")
-        notes, broken = await write_notes(inf, conn, run_id, as_of, base_id)
-        step(f"{notes} notes on why series moved, {broken} still breaking their number rules")
-        summaries, broken = await write_summaries(inf, conn, run_id, as_of, base_id, changes)
-        step(f"{summaries} subject summaries, {broken} still breaking their rules")
+        noted, unnoted, notes_refused = await write_notes(inf, conn, run_id, as_of, base_id)
+        step(f"{noted} notes, {unnoted} still breaking their rules, {notes_refused} refused")
+        # Standing answers no longer run (item P). What they wrote for this run before goes.
+        for table in PARKED_TABLES:
+            conn.execute(f"DELETE FROM {table} WHERE run_id = ?", (run_id,))
+        conn.commit()
         if base_id:
             step(f"{store_changes(conn, run_id, base_id, changes)} changes vs {base_id}")
         conn.execute("UPDATE runs SET previous_run_id = ? WHERE id = ?", (base_id, run_id))
+        briefs, unbriefed, briefs_refused = await write_summaries(
+            inf, conn, run_id, as_of, base_id, changes
+        )
+        step(f"{briefs} briefs, {unbriefed} still breaking their rules, {briefs_refused} refused")
         nodes, edges = await store_graph(inf, conn, run_id, changes)
         step(f"graph {nodes} nodes, {edges} edges")
     except Exception as error:

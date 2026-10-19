@@ -10,10 +10,35 @@ from pydantic import BaseModel, Field, model_validator
 
 from intelmonitor.config import SEED_DIR
 
-EntityKind = Literal["bank", "central_bank", "stablecoin_issuer", "country"]
+EntityKind = Literal[
+    "bank",
+    "central_bank",
+    "regulator",
+    "agency",
+    "market_infrastructure",
+    "payment_system",
+    "tech_provider",
+    "asset_manager",
+    "insurer",
+    "stablecoin_issuer",
+    "digital_asset_firm",
+    "country",
+    "sector",
+]
 SubjectType = Literal["topic", "group", "entity"]
-# Topic glyphs the web app draws from its icon library.
-TopicIcon = Literal["landmark", "coins", "globe"]
+# Topic glyphs the web app draws from its icon library (lucide names).
+TopicIcon = Literal[
+    "landmark",
+    "server",
+    "shield",
+    "network",
+    "scale",
+    "trending-up",
+    "briefcase",
+    "banknote",
+    "umbrella",
+    "building-2",
+]
 
 
 class Topic(BaseModel):
@@ -37,8 +62,14 @@ class Entity(BaseModel):
     kind: EntityKind
     aliases: list[str]
     domains: list[str]
+    # What counts as news about it (or what does not), for screening, when its name alone is too
+    # broad or close to another subject's.
+    covers: str | None = None
     logo: str | None = None  # small icon served by the web app, e.g. /logos/ocbc.svg
     logo_full: str | None = None  # full logo for the monitor page, e.g. /logos/full/ocbc.svg
+    # The country entity a bank is based in. Its loans there carry no indirect impact: news that
+    # matters to a bank at home names it (pipeline/impact.py).
+    home: str | None = None
 
 
 class SubjectsSeed(BaseModel):
@@ -62,11 +93,15 @@ class SubjectsSeed(BaseModel):
             grouped.update(group.members)
         if missing := entity_ids - grouped:
             raise ValueError(f"entities without a group: {sorted(missing)}")
+        countries = {e.id for e in self.entities if e.kind == "country"}
+        for e in self.entities:
+            if e.home is not None and e.home not in countries:
+                raise ValueError(f"entity {e.id}: home {e.home} is not a country entity")
         return self
 
 
 class AppliesTo(BaseModel):
-    type: SubjectType
+    type: Literal["topic", "entity"]  # groups are not monitored, so they get no questions
     subject: str | None = None
     kind: EntityKind | None = None
 
@@ -142,9 +177,9 @@ def linked_series(q: QuestionDef, mapped: list[str]) -> list[str]:
 # operation over series declared above it.
 
 MasTable = Literal["i18", "i12a", "i5b", "fx", "sora"]
-Frequency = Literal["daily", "monthly", "quarterly"]
+Frequency = Literal["daily", "monthly", "quarterly", "yearly"]
 BadDirection = Literal["up", "down", "none"]
-SourceName = Literal["mas", "fred", "coingecko", "defillama", "yahoo", "derived"]
+SourceName = Literal["mas", "fred", "coingecko", "defillama", "yahoo", "manual", "derived"]
 
 
 class MasSource(BaseModel):
@@ -182,6 +217,17 @@ class YahooSource(BaseModel):
     symbol: str  # Yahoo's ticker, e.g. U11.SI or ^STI
 
 
+class ManualSource(BaseModel):
+    """Figures collected by hand into api/seed/collected/market-figures.yaml under the series' own
+    id, read with no network call (ingest/series/manual.py). Each figure keeps its source."""
+
+    kind: Literal["manual"]
+    label: str  # the publication in a few words, e.g. "SGX monthly statistics"
+    # Days after the period end a figure is usually published; negative for one published before
+    # its period ends (the BIS survey of April, released in September, as a yearly figure).
+    lag_days: int
+
+
 class Deviation(BaseModel):
     kind: Literal["deviation"]
     input: str
@@ -199,7 +245,9 @@ class Share(BaseModel):
     total: str
 
 
-FetchSource = MasSource | FredSource | CoinGeckoSource | DefiLlamaSource | YahooSource
+FetchSource = (
+    MasSource | FredSource | CoinGeckoSource | DefiLlamaSource | YahooSource | ManualSource
+)
 DerivedSource = Deviation | Product | Share
 SeriesSource = Annotated[FetchSource | DerivedSource, Field(discriminator="kind")]
 
@@ -232,6 +280,9 @@ class SeriesDef(BaseModel):
     listed: bool = True  # False: an input to a derived series, kept off the Indicators
     unit: str
     frequency: Frequency
+    # A running total since January (funds raised year to date): only a change against the same
+    # period a year earlier compares like with like, so the shorter windows are left out.
+    year_to_date: bool = False
     decimals: int
     bad_direction: BadDirection
     source_url: str
@@ -272,6 +323,8 @@ def source_label(s: SeriesDef, by_id: dict[str, SeriesDef]) -> str:
             return _PROVIDER[s.source.kind]
         case YahooSource():
             return f"Yahoo Finance {s.source.symbol}"
+        case ManualSource():
+            return s.source.label
         case Deviation() | Product() | Share():
             return ", ".join(dict.fromkeys(providers(s, by_id)))
 
@@ -280,6 +333,8 @@ def providers(s: SeriesDef, by_id: dict[str, SeriesDef]) -> list[str]:
     """The APIs a series' values come from, following derived series to their inputs."""
     if isinstance(s.source, DerivedSource):
         return [p for i in derived_inputs(s.source) for p in providers(by_id[i], by_id)]
+    if isinstance(s.source, ManualSource):
+        return [s.source.label]
     return [_PROVIDER[s.source.kind]]
 
 
@@ -293,12 +348,17 @@ class SeriesSeed(BaseModel):
     def _check(self) -> Self:
         subjects = load_subjects()
         subject_ids = {s.id for s in [*subjects.topics, *subjects.groups, *subjects.entities]}
+        group_ids = {g.id for g in subjects.groups}
         seen: set[str] = set()
         for s in self.series:
             if s.id in seen:
                 raise ValueError(f"series {s.id} is declared twice")
             if unknown := set(s.subjects.primary + s.subjects.context) - subject_ids:
                 raise ValueError(f"series {s.id} has unknown subjects {sorted(unknown)}")
+            # Groups are not monitored (phase1-decisions.md, S3): a detector firing on a series is
+            # tagged to its primary subjects, and a group has no page to show context on.
+            if grouped := set(s.subjects.primary + s.subjects.context) & group_ids:
+                raise ValueError(f"series {s.id} names groups {sorted(grouped)}; name subjects")
             if isinstance(s.source, DerivedSource):
                 if missing := set(derived_inputs(s.source)) - seen:
                     raise ValueError(
@@ -335,6 +395,7 @@ _MOVE_WINDOWS: dict[Frequency, set[MoveWindow]] = {
     "daily": {"previous", "1w", "1m", "3m", "1y"},
     "monthly": {"previous", "1m", "3m", "1y"},
     "quarterly": {"previous", "3m", "1y"},
+    "yearly": {"previous", "1y"},
 }
 
 
@@ -452,6 +513,8 @@ class DetectorsSeed(BaseModel):
                     raise ValueError(f"detector {d.id}: {s.id} is daily, not a release")
                 if isinstance(d, MoveDetector) and d.window not in _MOVE_WINDOWS[s.frequency]:
                     raise ValueError(f"detector {d.id}: {d.window} is too short for {s.id}")
+                if s.year_to_date and not (isinstance(d, MoveDetector) and d.window == "1y"):
+                    raise ValueError(f"detector {d.id}: {s.id} is year to date; only 1y compares")
                 if isinstance(d, MoveDetector) and d.benchmark is not None:
                     bench = next((b for b in catalogue if b.id == d.benchmark), None)
                     if bench is None or bench.frequency != s.frequency:

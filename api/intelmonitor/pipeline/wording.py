@@ -8,6 +8,7 @@ from datetime import date
 from intelmonitor.seed import Deviation, Frequency, SeriesDef
 
 _FX_UNIT = re.compile(r"SGD per ([A-Z]{3})")
+_SCALED_UNIT = re.compile(r"([A-Z]{3}) (m|bn)")
 
 
 def num(v: float, decimals: int) -> str:
@@ -15,7 +16,8 @@ def num(v: float, decimals: int) -> str:
 
 
 def value(s: SeriesDef, v: float) -> str:
-    """A value in the series' unit: 70.3%, USD 73.21bn, SGD 1,234m, 0.3128 SGD per MYR."""
+    """A value in the series' unit: 70.3%, USD 73.21bn, SGD 1,234m, HKD 4,512bn, 0.3128 SGD per
+    MYR."""
     match s.unit:
         case "%":
             return f"{v:.{s.decimals}f}%"
@@ -23,6 +25,8 @@ def value(s: SeriesDef, v: float) -> str:
             return num(v, s.decimals)
         case "SGD m":
             return f"SGD {v:,.0f}m"
+        case _ if m := _SCALED_UNIT.fullmatch(s.unit):  # as published: HKD 4,512bn
+            return f"{m.group(1)} {num(v, s.decimals)}{m.group(2)}"
         case "USD" | "SGD" if abs(v) >= 1e9:
             return f"{s.unit} {v / 1e9:,.2f}bn"
         case "USD" | "SGD" if abs(v) >= 1e6:
@@ -45,6 +49,8 @@ def period(d: date, frequency: Frequency) -> str:
             return f"{d:%b %Y}"
         case "quarterly":
             return f"Q{(d.month - 1) // 3 + 1} {d.year}"
+        case "yearly":
+            return str(d.year)
 
 
 def fx_currency(s: SeriesDef) -> str | None:

@@ -1,0 +1,34 @@
+{
+ "group": "brief_judge",
+ "model": "claude-opus-5-5",
+ "models_used": [
+  "claude-haiku-4-5-20251001",
+  "claude-opus-5-5"
+ ],
+ "output": {
+  "claims": [
+   {
+    "point": 1,
+    "supported": true,
+    "reason": "d0333fbecae99d56-3 says UOB is among the first 11 SGX stocks to move from 100-share to 10-share lots from 5 Oct, and that SGX found liquidity broadly stable on day one. A lower entry cost for retail holders follows reasonably from that."
+   },
+   {
+    "point": 2,
+    "supported": true,
+    "reason": "15318a0fa093f5ba-0 supports every part of the point: the 16 Sep Fed hike, the expected lift to SGD rates and margins with most of it in 2027, Macquarie naming UOB the biggest gainer because of its SGD loan share, and the caution about MAS tightening in October."
+   }
+  ],
+  "top_high": [],
+  "consistent": true,
+  "consistency_reason": "This week's direct developments are analyst views, a market-wide board lot change, a branch booking launch and a broker note, so nothing material happened at UOB. Unchanged is the right direction. The bottom line correctly says the 2.93% share fall on 7 Oct has no explaining development, as the series note says. The 22 and 23 Sep financings reference matches the previous brief. The foreign currency loan-to-deposit ratio was released 30 Sep and the previous brief already covered it.",
+  "stale_or_other": [],
+  "verdict": "The brief is accurate and consistent. Both points are supported, the direction is right and there are no stale items. It could have mentioned One Raffles Place, where UOB holds an 18.46% beneficial interest and the asset is now in exclusive due diligence. Since that deal is still uncertain, leaving it out does not change the assessment."
+ },
+ "usage": {
+  "cost_usd": 0.117591,
+  "input_tokens": 12031,
+  "output_tokens": 1126,
+  "duration_ms": 12386,
+  "turns": 2
+ }
+}

@@ -22,8 +22,8 @@ Checked with the keys in `.env` on 2026-09-27.
 Everything is system-wide or market-wide.
 There are no per-bank figures: bank pages show the Singapore banking system as context, labelled as such.
 
-Gaps: no BNM, PBoC or HKMA policy rate and no SORA in these APIs.
-SORA is in the MAS API catalogue under a separate subscription; the HKMA open API (already a document source, no key) may carry HKMA rates.
+Gaps: no BNM, PBoC or HKMA policy rate in these APIs.
+SORA came later from the MAS domestic interest rates API, a separate subscription (F8); the HKMA open API (already a document source, no key) may carry HKMA rates.
 Both are follow-ups, not part of this plan.
 
 ## Data model
@@ -455,6 +455,36 @@ Built:
   Four standing answers still say "lookback" ("South China Sea items fall outside lookback"); their prompt is unchanged, since changing it asks every run's answers again.
 - The walkthrough's last step drafts that question on Malaysia with the picker, checks the request, no pair in the question, label or answers, the preview's Series and cited rows, the evidence's facts over the question's 14-day window known by the run date and the drawer's block, the edit dialog's picker, and the widget's line at M and none at S; it writes `custom-series.json`.
 
+### F8. Market data: share prices, equity indices, oil and Asian credit
+
+Bank-level data the supervisor personas asked for (user-insights-2025.md, section 8): until now every series on a bank's page was system-wide.
+All free; SORA needs its own MAS API key (`MAS_SORA_KEY`).
+
+Built:
+
+- Source `yahoo` (`ingest/series/yahoo.py`): Yahoo Finance's chart API, one call per symbol for daily closes from the floor, keyed by the UTC hour like FRED.
+  A close is dated by the exchange's local day and known at its regular close, so a backfilled run never sees a later close; a session still trading is dropped.
+  Closes are not dividend-adjusted, since adjusted history shifts with every dividend and would show as revisions; an ex-dividend day is a few percent, under the rules below.
+  The endpoint is unofficial; a licensed feed (Bloomberg) would replace it in production.
+- Series: share prices of DBS, OCBC, UOB, Maybank, CIMB, Bangkok Bank and Circle (`eq.<exchange>.<subject>`, primary to the entity); the STI, KLCI, Jakarta Composite, Hang Seng and Shanghai Composite (`idx.*`, primary to the country or central bank, context for its banks).
+  Yahoo has no daily history for the SET Index, PSEi or VN-Index, so Thailand uses the SET50 ETF listed in Bangkok (TDEX.BK) and the Philippines and Vietnam the US-listed country ETFs (EPHE, VNM, in USD).
+  From FRED: Brent crude, the ICE BofA Asia emerging markets corporate spread (context for every bank) and the broad US dollar index.
+  From MAS's daily domestic interest rates table (`sora` in `mas_stats.py`, a per-day table like exchange rates): SORA and 3-month compounded SORA, primary to MAS and context for the Singapore banks.
+  A SORA value is known at 9am SGT on its row's `published_date`, the next business day, so Friday's is known on Monday.
+- A move rule can take a `benchmark`: the change is the series' percent change less the benchmark's over the same dates, so a bank falling with its market does not fire, and the statement reads "UOB share price down 5.01% on the week to SGD 41.13 ..., while the Straits Times Index rose 1.23%: 6.24 points below the index."
+- Stale after: CoinGecko and DefiLlama 1 day, exchanges 10 days (Golden Week closes Shanghai for up to 9).
+- Rules and how often they fired on the history from Jul 2021 to Oct 2026:
+  - `share-daily-drop`: a share falls more than 3 standard deviations of its daily moves; 7 to 21 times per bank, about 2 a year.
+    A fixed 5% fired 52 times on Circle, listed in 2025 and far more volatile than the banks, and twice on DBS; measuring each share against its own moves treats them alike.
+  - `share-trails-sti`, `share-trails-klci`, `share-trails-set50`: a share trails its home index by more than 5 points in a week; 1 to 6 times per bank, 16 for Bangkok Bank.
+  - `index-weekly-3sd-drop`: an index falls more than 3 standard deviations in a week; 2 to 14 per index.
+  - `brent-weekly-3sd` (16, 10 of them in 2026) and `asia-spread-weekly-3sd` (2).
+  - `sora-weekly-3sd-up`: SORA rises more than 3 standard deviations in a week; 10, 8 of them in the 2022 hiking cycle.
+- Monitor pages: Indicators lists rows a detector flagged first, under "Flagged", worst first.
+- `im check series` replays the new sources too: 82 series, 80,176 observations, no difference from the store.
+
+Not built: trading volume, bank fundamentals from results decks and Pillar 3, sanctions lists and MAS enforcement actions.
+
 ## Sequence
 
 1. Build F1, then F2 and F3, which need no new UI beyond a data source item in the evidence drawer.
@@ -487,6 +517,6 @@ Built (step 4):
 ## Open questions
 
 - Thresholds for each detector, to agree with pilot analysts.
-- Whether to subscribe to the MAS SORA API and use the HKMA open API for rates, closing the policy-rate gaps.
+- Whether to use the HKMA open API for HKMA rates, closing the last policy-rate gap after SORA.
 - How far back to backfill runs for the answer-state strip; series need no backfill, but question states only exist for computed runs.
   For now weekly runs go back to 30 Jul, the first week with documents (F6).

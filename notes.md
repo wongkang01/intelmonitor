@@ -1,4 +1,4 @@
-people want to be trace what they have missed  compared to a new file everyday
+people want to be trace what they have missed compared to a new file everyday
 
 customizable is good
 

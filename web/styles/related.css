@@ -1,0 +1,169 @@
+/* The Overview's Related card (components/monitor/RelatedGraph.tsx) and its canvas
+   (components/graph/RelatedCanvas.tsx): filters, the graph with each node's count and its popover,
+   then the legend. */
+
+/* Canvas colors. RelatedCanvas reads these at mount, so change them here, never in TSX. Red means
+   news that could hurt the subject, blue other news, an outline none. */
+.rg {
+  --g-center: var(--ink);
+  --g-harm: var(--attn);
+  --g-harm-bg: var(--attn-bg);
+  --g-news: var(--new);
+  --g-news-bg: var(--new-bg);
+  --g-none: var(--line-field);
+  --g-none-bg: var(--surface);
+  --g-edge: var(--line-field);
+  --g-gap: var(--surface);
+  --g-dim: var(--line);
+  --g-label: var(--ink);
+  --g-detail: var(--ink2);
+}
+
+.rg-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  padding-top: var(--s-3);
+}
+
+.rg-canvas {
+  position: relative;
+  height: 500px;
+  margin-top: var(--s-2);
+}
+/* At phone width the graph is as wide as the card is narrow, so the stage shrinks with it. */
+@container main (width < 640px) {
+  .rg-canvas {
+    height: 360px;
+  }
+}
+.rg-stage {
+  position: absolute;
+  inset: 0;
+}
+.rg-stage[data-hovered] {
+  cursor: pointer;
+}
+.rg-stage[data-dragging] {
+  cursor: grabbing;
+}
+
+/* Each node's count, centred in it; RelatedCanvas positions them per frame. */
+.rg-badges {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.rg-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font: 700 11px / 14px var(--font);
+  font-variant-numeric: tabular-nums;
+}
+.rg-badge.harm {
+  color: var(--attn);
+}
+.rg-badge.news {
+  color: var(--new);
+}
+.rg-badge[data-dim] {
+  opacity: 0.3;
+}
+
+/* A node's popover, beside its node and inside the stage. */
+.rg-pop-anchor {
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  width: min(340px, calc(100% - 16px));
+}
+.rg-pop {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-widget);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.rg-pop-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+}
+.rg-pop-head h3 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font: 600 var(--fs-body) / var(--lh-body) var(--font);
+}
+/* The heading takes focus when the popover opens and needs no ring, as drawer headings. */
+.rg-pop-head h3:focus {
+  outline: none;
+}
+.rg-pop .meta {
+  margin: 2px 0 0;
+}
+.rg-rows {
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.rg-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: var(--s-2);
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+}
+.rg-row:hover .rg-title {
+  color: var(--accent);
+}
+.rg-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.rg-row .num {
+  color: var(--ink2);
+  font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rg-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  padding: var(--s-2) 0 0;
+  list-style: none;
+  color: var(--ink2);
+  font: 500 var(--fs-meta) / var(--lh-meta) var(--font);
+}
+.rg-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.rg-swatch {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid;
+  border-radius: 50%;
+}
+.rg-swatch.harm {
+  border-color: var(--attn);
+  background: var(--attn-bg);
+}
+.rg-swatch.news {
+  border-color: var(--new);
+  background: var(--new-bg);
+}

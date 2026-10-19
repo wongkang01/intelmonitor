@@ -1,7 +1,7 @@
-// The Trend view's chart (structured-data-plan.md, F6; mocks/trend-series.html, B "Brief"): one
+// The Trend view's chart (docs/archive/structured-data-plan.md, F6; mocks/trend-series.html, B "Brief"): one
 // series on a fixed time axis ending on the window's last day, so a monthly or quarterly line
 // stops at its last release. The stretch before the first document is shaded and named, the
-// selected run's week is banded, the subject's Needs attention and Watch developments are ticks at
+// selected week is banded, the subject's High and Medium developments are ticks at
 // their event dates along the bottom, and the note's cited developments are numbered markers on
 // the line. The pointer snaps a crosshair to the nearest observation with its value, date and
 // the developments marked that day.
@@ -32,7 +32,7 @@ const DAY_MS = 86_400_000;
 const PEG_SPAN = 0.6;
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const BADGE_LABEL: Record<Marked["badge"], string> = { needs_attention: "Needs attention", watch: "Watch" };
+const BADGE_LABEL: Record<Marked["badge"], string> = { needs_attention: "High", watch: "Medium" };
 
 const iso = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -185,7 +185,7 @@ export function TrendChart({
             )}
             {shade !== null && documentsFrom < to && shade - left > 180 && (
               <text className="tr-ax" x={shade - 6} y={TOP - 6} textAnchor="end">
-                No documents before {shortDate(documentsFrom)}
+                No news before {shortDate(documentsFrom)}
               </text>
             )}
             {scale.ticks.map((t) => (

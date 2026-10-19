@@ -1,5 +1,5 @@
 """`im report`: artifacts/pipeline/<timestamp>/report.md, the checks and numbers from the
-Verification section of poc-plan.md, read from the store."""
+Verification section of docs/archive/poc-plan.md, read from the store."""
 
 import json
 import random
@@ -9,14 +9,16 @@ from collections.abc import Iterable, Sequence
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+from pydantic import BaseModel
+
 from intelmonitor.config import ARTIFACTS_DIR
 from intelmonitor.ingest.series.collect import FetchSummary
 from intelmonitor.pipeline.answers import load_run_developments
-from intelmonitor.pipeline.extract import Extraction, locate_quote
+from intelmonitor.pipeline.extract import locate_quote
 from intelmonitor.pipeline.facts import SeriesFact
 from intelmonitor.pipeline.notes import stored_note_problems
 from intelmonitor.pipeline.params import MATERIALITY_LEVELS, ROUTE_HIGH, ROUTE_LOW
-from intelmonitor.pipeline.subjects import all_subjects, questions_for
+from intelmonitor.pipeline.subjects import monitored_subjects, questions_for
 from intelmonitor.store.db import connect, get_meta
 
 SPOT_CHECK_FINDINGS = 10
@@ -38,7 +40,7 @@ def _runs(conn: sqlite3.Connection) -> list[sqlite3.Row]:
 
 def _checks(conn: sqlite3.Connection, runs: list[sqlite3.Row]) -> list[str]:
     out = ["## Checks", ""]
-    subjects = all_subjects()
+    subjects = monitored_subjects()
     rows: list[tuple[str, str, str]] = []
     for run in runs:
         have = {
@@ -103,14 +105,22 @@ def _checks(conn: sqlite3.Connection, runs: list[sqlite3.Row]) -> list[str]:
         ("answer", f"subject:{r['subject_id']}")
         for r in conn.execute("SELECT DISTINCT subject_id FROM question_answers")
     ]
-    # Developments made only of detections take their rule's materiality without a Jev call.
+    # Developments made only of detections take their rule's level without a Jev call, and those
+    # with no subject they happened to or that did them are not scored. Runs computed before
+    # per-subject priority scored materiality once per development.
     for r in conn.execute(
         "SELECT d.id, count(s.finding_id) AS n FROM developments d JOIN development_sources s "
-        "ON s.run_id = d.run_id AND s.development_id = d.id GROUP BY d.run_id, d.id "
+        "ON s.run_id = d.run_id AND s.development_id = d.id WHERE EXISTS (SELECT 1 FROM "
+        "development_subjects x WHERE x.run_id = d.run_id AND x.development_id = d.id) "
+        "GROUP BY d.run_id, d.id "
         "HAVING sum(s.document_id NOT IN (SELECT document_id FROM detections)) > 0"
     ):
-        needed.append(("materiality", f"dev:{r['id']}:{r['n']}"))
-    missing_records = [n for n in needed if n not in refs]
+        needed.append(("priority", f"dev:{r['id']}:{r['n']}"))
+    missing_records = [
+        (stage, ref)
+        for stage, ref in needed
+        if (stage, ref) not in refs and not (stage == "priority" and ("materiality", ref) in refs)
+    ]
     rows.append(
         (
             "Inference records exist for every call",
@@ -163,7 +173,7 @@ def _documents(conn: sqlite3.Connection, runs: list[sqlite3.Row]) -> list[str]:
     }
     rows = [
         [s.id, s.type, doc_counts[s.id], *(dev_counts[run["id"]][s.id] for run in runs)]
-        for s in all_subjects().values()
+        for s in monitored_subjects().values()
     ]
     out.append(
         _table(
@@ -226,6 +236,17 @@ def _screening(conn: sqlite3.Connection) -> list[str]:
     ]
 
 
+class _ProposedFinding(BaseModel):
+    quotes: list[str]
+
+
+class _Proposals(BaseModel):
+    """What the counts need from a recorded extraction, in the current schema or an earlier one:
+    documents no longer extracted keep their last record."""
+
+    findings: list[_ProposedFinding]
+
+
 def _extraction(conn: sqlite3.Connection) -> list[str]:
     proposed = quotes = 0
     seen: set[str] = set()
@@ -236,7 +257,7 @@ def _extraction(conn: sqlite3.Connection) -> list[str]:
         if r["input_ref"] in seen:
             continue
         seen.add(r["input_ref"])
-        ex = Extraction.model_validate_json(r["output"])
+        ex = _Proposals.model_validate_json(r["output"])
         proposed += len(ex.findings)
         quotes += sum(len(f.quotes) for f in ex.findings)
     kept = conn.execute("SELECT count(*), sum(json_array_length(quotes)) FROM findings").fetchone()

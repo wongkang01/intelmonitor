@@ -1,25 +1,25 @@
 // A monitor page's Data tab: the Indicators section (flagged rows first), then the trend
-// (structured-data-plan.md, F6; mocks/trend-series.html, B "Brief"): the selected run's note on why
+// (docs/archive/structured-data-plan.md, F6; mocks/trend-series.html, B "Brief"): the selected run's note on why
 // the subject's series moved leads, its citations numbered on the chart of the 12 months to the
-// latest run, with the facts the note was given beside it. Standing questions' states per run and
-// the cited developments follow. "Before <first document>" shows the series where no document, run
-// or note exists.
+// latest run, with the facts the note was given beside it, and the cited developments below. Each
+// week is one weekly update; "Before <first document>" shows the series where no document or note
+// exists.
 import { Link } from "@tanstack/react-router";
 import { Fragment, useState } from "react";
 
 import type { Schema } from "@/lib/api/client";
 import { useIndicators, useMonitorPage, useTrend } from "@/lib/api/queries";
 import { trackRailHeight, useHashScroll } from "@/lib/dom";
-import { day, longDate, monthsBefore, plural, seriesChange, seriesPeriod, seriesValue, shortDate, STATE_LABEL, STATE_TONE } from "@/lib/format";
+import { capitalize, longDate, monthsBefore, plural, seriesChange, seriesPeriod, seriesValue, shortDate } from "@/lib/format";
 import { evidenceLink } from "@/components/shell/Evidence";
+import { PriorityBadge, sourceCountText } from "@/components/developments/labels";
 
 import { Indicators } from "./Indicators";
 import { MonitorHead } from "./MonitorView";
-import { Section, StateChange } from "./parts";
+import { Section } from "./parts";
 import { TrendChart } from "./TrendChart";
 
 type Trend = Schema<"SubjectTrend">;
-type TrendRun = Schema<"TrendRun">;
 type Move = Schema<"SeriesMove">;
 type SeriesInfo = Schema<"SeriesInfo">;
 type Dated = Schema<"DatedDevelopment">;
@@ -83,7 +83,6 @@ function Brief({ t }: { t: Trend }) {
   const from = months === 12 ? t.start : monthsBefore(end, months);
   const band: [string, string] = run ? [run.since, run.run.as_of] : [t.start, t.documents_from];
   const cited = note?.developments ?? [];
-  const firstRun = t.runs[0]?.run.as_of;
 
   return (
     <div className="tr-brief">
@@ -93,11 +92,11 @@ function Brief({ t }: { t: Trend }) {
           title="Why it moved"
           meta={
             run
-              ? `Run of ${shortDate(run.run.as_of)}${index > 0 ? ` against ${shortDate(t.runs[index - 1].run.as_of)}` : ", the first"}`
-              : "No run: before collection started"
+              ? `Week to ${shortDate(run.run.as_of)}`
+              : `Before ${shortDate(t.documents_from)}`
           }
         >
-          <div className="seg tr-runs" role="group" aria-label="Run">
+          <div className="seg tr-runs" role="group" aria-label="Week">
             {[...t.runs].reverse().map((r) => (
               <button key={r.run.id} type="button" aria-pressed={r.run.id === selected} onClick={() => setSelected(r.run.id)}>
                 {shortDate(r.run.as_of)}
@@ -116,15 +115,14 @@ function Brief({ t }: { t: Trend }) {
                 <NoteBody body={note.body} cited={cited} />
               </>
             ) : (
-              <p className="tr-lead">No note for this run.</p>
+              <p className="tr-lead">No note for this week.</p>
             )
           ) : (
             <>
-              <p className="tr-lead">No documents before {shortDate(t.documents_from)}</p>
-              <p className="tr-prose">Collection started on {longDate(t.documents_from)}, so no run or note covers these weeks.</p>
+              <p className="tr-lead">No news before {shortDate(t.documents_from)}</p>
+              <p className="tr-prose">News collection started on {longDate(t.documents_from)}, so nothing explains these weeks.</p>
             </>
           )}
-          {run && <StateChanges t={t} index={index} />}
           <div className="tr-bar">
             {t.series.length === 1 ? (
               <b className="tr-name">{s.name}</b>
@@ -156,23 +154,16 @@ function Brief({ t }: { t: Trend }) {
             )}
             <span className="tr-legend">
               <span>
-                <i className="watch" />
-                Watch
+                <i className="attn" />
+                High
               </span>
               <span>
-                <i className="attn" />
-                Needs attention
+                <i className="watch" />
+                Medium
               </span>
             </span>
           </div>
           <TrendChart series={series} from={from} to={end} documentsFrom={t.documents_from} band={band} marks={t.developments} cited={cited} />
-        </Section>
-        <Section
-          id="runs"
-          title="Focus areas by run"
-          meta={firstRun ? `${plural(t.runs.length, "run")}; none before ${shortDate(firstRun)}` : "No runs"}
-        >
-          <QuestionsByRun t={t} index={index} />
         </Section>
         {note && (
           <Section id="cited" title="Cited" meta={plural(cited.length, "development")}>
@@ -181,7 +172,7 @@ function Brief({ t }: { t: Trend }) {
         )}
       </div>
       <aside className="panel tr-rail" aria-label="Facts" ref={trackRailHeight}>
-        <Section id="facts" title="Facts" meta={run ? "Given to the note" : "Computed"}>
+        <Section id="facts" title="Facts" meta={run ? "Behind the note" : "Computed"}>
           <dl className="tr-facts">
             {(run ? noteFacts(s, note?.facts.find((m) => m.series_id === s.id)) : preFacts(series, t.documents_from)).map(([term, value]) => (
               <div key={term}>
@@ -223,127 +214,23 @@ function NoteBody({ body, cited }: { body: string; cited: Dated[] }) {
   );
 }
 
-/** The questions whose state changed against the previous run, or the first run's non-stable ones. */
-function StateChanges({ t, index }: { t: Trend; index: number }) {
-  const changed = t.questions.filter((q) => {
-    const now = q.states[index];
-    if (!now) return false;
-    return index > 0 ? q.states[index - 1] !== null && q.states[index - 1] !== now : now !== "stable";
-  });
-  if (changed.length === 0) return null;
-  return (
-    <p className="tr-changes">
-      {changed.map((q, i) => (
-        <Fragment key={q.question_id}>
-          {i > 0 && " · "}
-          <b>{q.label}</b> <StateChange state={q.states[index]!} from={index > 0 ? q.states[index - 1] : null} />
-        </Fragment>
-      ))}
-    </p>
-  );
-}
-
-/**
- * One row per question: its state in each run as a mark (the selected run outlined), the
- * selected run's state in words and its answer. A week between runs without one reads No run.
- */
-function QuestionsByRun({ t, index }: { t: Trend; index: number }) {
-  const slots = runSlots(t.runs);
-  const shown = index >= 0 ? t.runs[index] : null;
-  if (t.questions.length === 0) return <p className="mon-empty">No focus areas.</p>;
-  return (
-    <>
-      <table className="tr-qt">
-        <thead>
-          <tr>
-            <th scope="col">Focus area</th>
-            <th scope="col">
-              {t.runs.length > 0 && `${shortDate(t.runs[0].run.as_of)} to ${shortDate(t.runs[t.runs.length - 1].run.as_of)}`}
-            </th>
-            <th scope="col">{shown ? shortDate(shown.run.as_of) : "State"}</th>
-            <th scope="col">Answer{shown && `, ${shortDate(shown.run.as_of)}`}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {t.questions.map((q) => {
-            const state = index >= 0 ? q.states[index] : null;
-            const summary = index >= 0 ? q.summaries[index] : null;
-            return (
-              <tr key={q.question_id}>
-                <th scope="row">{q.label}</th>
-                <td>
-                  <span className="tr-strip">
-                    {slots.map((slot) => {
-                      if (slot.run === null) return <s key={slot.week} className="none" title={`${shortDate(slot.week)}: No run`} />;
-                      const i = t.runs.indexOf(slot.run);
-                      const st = q.states[i];
-                      const words = st ? STATE_LABEL[st] : "No answer";
-                      return (
-                        <s key={slot.week} className={`${st ?? "none"}${i === index ? " sel" : ""}`} title={`${shortDate(slot.week)}: ${words}`}>
-                          <span className="sr-only">
-                            {shortDate(slot.week)}: {words}
-                          </span>
-                        </s>
-                      );
-                    })}
-                  </span>
-                </td>
-                <td className={state ? `tr-state c-${STATE_TONE[state]}` : "tr-state none"}>{state ? STATE_LABEL[state] : index >= 0 ? "No answer" : "No run"}</td>
-                <td className="tr-answer">
-                  <span title={summary ?? undefined}>{summary ?? ""}</span>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <p className="tr-legend tr-states">
-        {(["stable", "new", "watch", "needs_attention"] as const).map((st) => (
-          <span key={st}>
-            <i className={st} />
-            {STATE_LABEL[st]}
-          </span>
-        ))}
-        <span>
-          <i className="none" />
-          No run
-        </span>
-      </p>
-    </>
-  );
-}
-
-/** Weekly slots from the first run to the last: each run, and a week with none as No run. */
-function runSlots(runs: TrendRun[]): { week: string; run: TrendRun | null }[] {
-  const out: { week: string; run: TrendRun | null }[] = [];
-  runs.forEach((r, i) => {
-    const previous = runs[i - 1];
-    if (previous) {
-      for (let t = day(previous.run.as_of).getTime() + 7 * 86_400_000; t < day(r.run.as_of).getTime() - 86_400_000; t += 7 * 86_400_000) {
-        const d = new Date(t);
-        out.push({ week: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`, run: null });
-      }
-    }
-    out.push({ week: r.run.as_of, run: r });
-  });
-  return out;
-}
-
 function Cited({ cited }: { cited: Dated[] }) {
   return (
     <div className="rows">
       {cited.map(({ development: d, on }, i) => (
         <div key={d.id} className="row dev tr-cited">
           <span className="tr-n">{i + 1}</span>
-          <span className="stat">{d.needs_attention && <span className="badge b-attn">Needs attention</span>}</span>
+          <span className="stat">
+            <PriorityBadge priority={d.priority} />
+          </span>
           <span>
-            <span className="row-title">
-              <Link {...evidenceLink.development(d.id)} className="stretch">
+            <span className="row-title full">
+              <Link {...evidenceLink.development(d.id)} className="stretch tlink">
                 {d.title}
               </Link>
             </span>
             <span className="row-meta">
-              {[d.category, plural(d.source_count, "source"), d.first_published !== on && `reported ${shortDate(d.first_published)}`]
+              {[capitalize(d.category), sourceCountText(d), d.first_published !== on && `reported ${shortDate(d.first_published)}`]
                 .filter(Boolean)
                 .join(" · ")}
             </span>
@@ -366,6 +253,9 @@ function noteFacts(s: SeriesInfo, m: Move | undefined): [string, string][] {
     if (!m.start) rows.push(["Known before", `None by ${shortDate(m.since)}`]);
     else if (s.frequency !== "daily" && !m.released) rows.push(["New release", `None since ${shortDate(m.since)}`]);
     else if (s.frequency === "daily") rows.push([`Change since ${shortDate(m.start.period)}`, seriesChange(s, m.start.value, m.latest.value)]);
+    // A year-to-date total was compared with the same period a year earlier.
+    else if (s.year_to_date && !m.base) rows.push(["Year earlier", "None"]);
+    else if (s.year_to_date && m.base) rows.push([`Change on ${at(m.base.period)}`, seriesChange(s, m.base.value, m.latest.value)]);
     else rows.push([`Change on ${at(m.start.period)}`, seriesChange(s, m.start.value, m.latest.value)]);
   }
   if (m.largest_day) rows.push(["Largest day", `${seriesChange(s, m.largest_day.from_value, m.largest_day.value).split(" (")[0]} on ${shortDate(m.largest_day.period)}`]);
@@ -375,7 +265,7 @@ function noteFacts(s: SeriesInfo, m: Move | undefined): [string, string][] {
       m.record.whole_history ? `History began, ${at(m.record.since)}` : longDate(m.record.since),
     ]);
   }
-  if (m.rule) rows.push(["Needs attention at", `${m.rule.beyond}% off for ${m.rule.for_hours} h`]);
+  if (m.rule) rows.push(["Flagged at", `${m.rule.beyond}% off for ${m.rule.for_hours} h`]);
   return rows;
 }
 

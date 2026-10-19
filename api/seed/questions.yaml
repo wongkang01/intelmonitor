@@ -1,5 +1,6 @@
-# Built-in standing questions. Each set applies to one subject type, optionally narrowed to one
-# topic (subject) or one entity kind (kind). Labels are shown in widgets.
+# Built-in standing questions. Each set applies to topics or entities, optionally narrowed to one
+# topic (subject) or one entity kind (kind); groups are not monitored, so none applies to a group.
+# Labels are shown in widgets.
 # lookback_days: how far back an answer reads developments, counted from the run date.
 # Runs are weekly, so news-flow questions look back 7 days and state questions 30.
 # series: patterns over series ids (`*` spans dots) choosing, among the series mapped to the subject
@@ -23,27 +24,6 @@ sets:
       - {id: banking-regulation.stage, label: Stage, lookback_days: 30, question: "Is each item a signal, consultation, proposal, enacted rule or enforcement?"}
       - {id: banking-regulation.enforcement, label: Enforcement, lookback_days: 30, question: "Were any enforcement actions or penalties announced against banks?"}
 
-  - applies_to: {type: topic, subject: geopolitics}
-    questions:
-      - {id: geopolitics.escalation, label: Escalation, lookback_days: 14, question: "Which flashpoints are escalating, and which are cooling?"}
-      - {id: geopolitics.sanctions-trade, label: Sanctions and trade, lookback_days: 14, question: "Were new sanctions, tariffs or export controls announced that touch tracked entities or countries?"}
-      - {id: geopolitics.financial-channels, label: Financial channels, lookback_days: 14, question: "Are there effects on capital flows, FX, payments or trade finance?", series: ["fx.sgd.*", fred.us10y, fred.us_hy_spread, fred.vix]}
-
-  - applies_to: {type: topic, subject: stablecoins}
-    questions:
-      - {id: stablecoins.stage, label: Stage, lookback_days: 30, question: "Where is stablecoin regulation in each jurisdiction: signal, consultation, proposed, enacted or enforced?"}
-      - {id: stablecoins.reserves-peg, label: Reserves and peg, lookback_days: 30, question: "Were there depegs, reserve concerns or attestation findings?", series: ["derived.*.peg", llama.total.supply], rules: [&depeg {kind: deviation, series: "derived.*.peg", beyond: 0.5, for_hours: 24, state: needs_attention}]}
-      - {id: stablecoins.bank-involvement, label: Bank involvement, lookback_days: 30, question: "Are banks issuing, custodying, settling or partnering on stablecoins or tokenised deposits?"}
-
-  - applies_to: {type: group}
-    questions:
-      - {id: group.common-issues, label: Common issues, lookback_days: 7, question: "Is the same issue showing up at several members?"}
-      - {id: group.exposure, label: Exposure, lookback_days: 7, question: "Which members are most and least exposed to new developments?"}
-      - {id: group.outliers, label: Outliers, lookback_days: 14, question: "Is any member behaving differently from its peers?"}
-      - {id: group.topics, label: Topics, lookback_days: 14, question: "Which tracked topics are affecting this group most right now?"}
-      - {id: group.peer-moves, label: Peer moves, lookback_days: 30, question: "Did any member make a move its peers are likely to follow?"}
-      - {id: group.contagion, label: Contagion, lookback_days: 14, question: "Could an issue at one member spread to others?"}
-
   - applies_to: {type: entity, kind: bank}
     questions:
       - {id: bank.incidents, label: Incidents, lookback_days: 7, question: "Have any material operational or technology incidents occurred?"}
@@ -63,15 +43,6 @@ sets:
       - {id: central-bank.digital-money, label: Digital money, lookback_days: 30, question: "Any moves on CBDCs, stablecoins or tokenisation?"}
       - {id: central-bank.signals, label: Signals, lookback_days: 14, question: "What did leadership signal in speeches or statements?"}
       - {id: central-bank.cross-border, label: Cross-border, lookback_days: 30, question: "Any new cooperation agreements or joint statements?"}
-
-  - applies_to: {type: entity, kind: stablecoin_issuer}
-    questions:
-      - {id: issuer.reserves, label: Reserves, lookback_days: 30, question: "What do the latest attestations or disclosures say about reserves?"}
-      - {id: issuer.peg, label: Peg, lookback_days: 14, question: "Has the peg held, and were there redemption pressures?", series: ["derived.*.peg", "llama.*.supply"], rules: [*depeg]}
-      - {id: issuer.licensing, label: Licensing, lookback_days: 30, question: "Did the issuer gain, lose or apply for any licence?"}
-      - {id: issuer.banking-partners, label: Banking partners, lookback_days: 30, question: "Any changes to banking, custody or settlement partners?"}
-      - {id: issuer.incidents, label: Incidents, lookback_days: 7, question: "Any hacks, freezes, outages or legal actions?"}
-      - {id: issuer.strategy, label: Strategy, lookback_days: 30, question: "Any new chains, markets, products or partnerships?", series: ["derived.*.share.*"]}
 
   - applies_to: {type: entity, kind: country}
     questions:

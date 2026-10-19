@@ -14,7 +14,7 @@ from datetime import UTC, date, datetime, time, timedelta
 from pydantic import BaseModel, ValidationError
 
 from intelmonitor.ingest.http import CachedHttp, FetchError
-from intelmonitor.store.series import Observation
+from intelmonitor.store.series import Observation, ObservationSource
 
 
 @dataclass(frozen=True)
@@ -33,6 +33,10 @@ class Window:
 class Fetched:
     observations: dict[str, list[Observation]] = field(default_factory=dict[str, list[Observation]])
     failures: dict[str, str] = field(default_factory=dict[str, str])  # series id: reason
+    # Per-figure sources, from sources that give one (manual series)
+    sources: dict[str, list[ObservationSource]] = field(
+        default_factory=dict[str, list[ObservationSource]]
+    )
 
     def fail(self, series_ids: Iterable[str], reason: str) -> None:
         for series_id in series_ids:

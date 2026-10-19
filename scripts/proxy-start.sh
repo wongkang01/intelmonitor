@@ -3,7 +3,7 @@
 # servers answer at https://intelmonitor.{web,api}.localhost with no port.
 # macOS lets unprivileged processes bind 443, but Portless always asks for sudo
 # below port 1024; a preload that reports uid 0 skips that gate.
-# Usage: scripts/proxy-start.sh, then start the dev servers as in poc-plan.md.
+# Usage: scripts/proxy-start.sh, then start the dev servers as in docs/archive/poc-plan.md.
 set -euo pipefail
 
 shim="$(mktemp -d)/uid.mjs"

@@ -1,15 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { ConnectionsView } from "@/components/monitor/Connections";
-import { monitorPageOptions } from "@/lib/api/queries";
-
-// A monitor page's Connections tab (groups and entities), opened from the tabs in its head.
+// The Connections tab is gone (prd.md section 12); old links land on the Overview.
 export const Route = createFileRoute("/monitors/$id/connections")({
-  loader: ({ context: { queryClient }, params }) => void queryClient.prefetchQuery(monitorPageOptions(params.id)),
-  component: ConnectionsPage,
+  beforeLoad: ({ params }) => {
+    throw redirect({ to: "/monitors/$id", params, replace: true });
+  },
 });
-
-function ConnectionsPage() {
-  const { id } = Route.useParams();
-  return <ConnectionsView key={id} id={id} />;
-}

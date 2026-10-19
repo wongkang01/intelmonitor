@@ -203,22 +203,30 @@ const firstDashboard = async () => {
 const TARGETS = {
   home: async () => "/",
   dashboard: async (q: string) => `/dashboards/${await dashboardId(q)}`,
-  // A monitor page's tabs: Overview, Developments (subject or peers), Data, Connections.
+  // A monitor page's tabs: Overview, Developments (the query sets its feed's period and facets),
+  // Related and Data; the graph view is reachable by URL only.
   monitor: async (q: string) => `/monitors/${await subjectId(q)}`,
-  "monitor-developments": async (q: string, scope = "") =>
-    `/monitors/${await subjectId(q)}/developments${scope === "peers" ? "?scope=peers" : ""}`,
+  "monitor-developments": async (q: string, query = "") =>
+    `/monitors/${await subjectId(q)}/developments${query ? `?${query.replace(/^\?/, "")}` : ""}`,
+  related: async (q: string) => `/monitors/${await subjectId(q)}/related`,
   data: async (q: string) => `/monitors/${await subjectId(q)}/data`,
-  connections: async (q: string) => `/monitors/${await subjectId(q)}/connections`,
   graph: async (q: string) => `/monitors/${await subjectId(q)}/graph`,
-  // The list belongs to a dashboard; the query adds facets, sort, q= or changed=1.
+  // The feed belongs to a dashboard; the query adds the period (days=), facets or q=.
   developments: async (dashboard: string, query = "") => {
     const params = new URLSearchParams(query.replace(/^\?/, ""));
     params.set("dashboard", await dashboardId(dashboard));
     return `/developments?${params}`;
   },
-  // The drawer opens over any page; over a dashboard unless one is named.
-  evidence: async (id: string, dashboard = "") =>
-    `/dashboards/${dashboard ? await dashboardId(dashboard) : await firstDashboard()}?evidence=${encodeURIComponent(id)}`,
+  // A development's popup over a dashboard: the one named (its priority for that dashboard), else the default.
+  development: async (id: string, dashboard = "") => {
+    const popup = `development=${encodeURIComponent(id)}`;
+    if (!dashboard) return `/?${popup}`;
+    const d = await dashboardId(dashboard);
+    return `/dashboards/${d}?${popup}&scope=dashboard:${d}`;
+  },
+  // The answer drawer opens over any page; over a dashboard unless one is named.
+  answer: async (param: string, dashboard = "") =>
+    `/dashboards/${dashboard ? await dashboardId(dashboard) : await firstDashboard()}?answer=${encodeURIComponent(param)}`,
 } satisfies Record<string, (...args: string[]) => Promise<string>>;
 
 type Target = keyof typeof TARGETS;
@@ -294,7 +302,8 @@ function store([action = "", arg = ""]: string[]) {
     return print({ saved: path.relative(ROOT, file) });
   }
   if (action === "restore") {
-    const file = path.resolve(arg);
+    // `store save` prints the path from the repo root; pnpm -C web runs this from web/.
+    const file = [path.resolve(arg), path.resolve(ROOT, arg)].find((f) => existsSync(f)) ?? path.resolve(arg);
     if (!existsSync(file)) throw new Fix(`no snapshot at ${arg}`, "ls data/verify-snapshots");
     // Keep what is replaced, so a restore can be undone.
     const replaced = path.join(SNAPSHOTS, `replaced-${Date.now()}.db`);
@@ -322,14 +331,14 @@ const HELP = `pnpm -C web verify <command>
   url <target> [arg]          page URL for a target
   open <target> [arg]         open it in the harness browser (session ${SESSION}, 1440x900)
       targets: home, dashboard <dashboard>, monitor <subject>,
-               monitor-developments <subject> [peers], data <subject>,
-               connections <subject>, graph <subject>, developments <dashboard> [query],
-               evidence <development-id> [dashboard]
+               monitor-developments <subject> [query], related <subject>, data <subject>,
+               graph <subject>, developments <dashboard> [query],
+               development <development-id> [dashboard], answer <subject:question> [dashboard]
       <dashboard> and <subject> are an id or a name that matches one item
   shot <run>/<name>           screenshot + ARIA snapshot to artifacts/verify/<run>/
   record start <run>/<name> | record stop
   api [METHOD] <path> [json]  call the API, e.g. /subjects, DELETE /reviews/132
-  check <name>                uv run im check <series|past-run|depeg>
+  check <name>                uv run im check <series|past-run|detector>
   store save [label] | store restore <file>
   cleanup                     close the harness browser; evidence stays
 

@@ -41,7 +41,7 @@ Jev does the high-volume decisions, Claude writes the findings and answers, and 
 - Mark reviewed and notes.
 - Sidebar with New dashboard at the top of the Dashboards list, and a profile menu at the bottom.
 - Structured data: MAS statistics APIs (exchange rates; bank asset quality, liquidity and exposure), FRED, CoinGecko and DefiLlama, as measured series.
-  They give facts in answers, developments from detectors, an Indicators section and a Trend tab on monitor pages, an Indicator widget, and series on custom questions.
+  They give facts in answers, developments from detectors, an Indicators section and Trend content on monitor pages' Data tab, an Indicator widget, and series on custom questions.
   See `structured-data-plan.md`.
 
 **Out of scope for the POC**
@@ -208,6 +208,7 @@ All figures are system-wide aggregates for commercial banks in Singapore, not pe
 | `MAS_BANK_ASSET_QUALITY_API_KEY` | I.12A Commercial Banks, Non-Performing Loans by Sector | Quarterly | `/server/monthly_statistical_bulletin/table_i_12a_commercial_banks_non_performing_loans_by_sector_npl/views/table_i_12a_commercial_banks_non_performing_loans_by_sector_npl` |
 | `MAS_BANK_LIQUIDITY_API_KEY` | I.18 Commercial Banks, Non-Bank Loan to Deposit Ratios | Monthly | `/server/monthly_statistical_bulletin/table_i_18_commercial_banks_non_bank_loan_to_deposit_ratios_ltd/views/table_i_18_commercial_banks_non_bank_loan_to_deposit_ratios_ltd` |
 | `MAS_BANK_EXPOSURE_API_KEY` | I.5B Commercial Banks, Loans and Advances to Non-Residents by Industry | Monthly | `/server/monthly_statistical_bulletin/table_i_5b_commercial_banks_loans_and_advances_to_non_residents_by_industry/views/table_i_5b_commercial_banks_loans_and_advances_to_non_residents_by_industry` |
+| `MAS_SORA_KEY` | Domestic Interest Rates, Daily (SORA, compounded SORA) | Daily | `/server/monthly_statistical_bulletin_non610mssql/domestic_interest_rates_daily/views/domestic_interest_rates_daily` |
 
 Results come back oldest first, so recent data needs `$orderby` (for example `year DESC,month DESC`) with `$count`.
 The exchange rate API requires at least one filter, such as `end_of_day=YYYY-MM-DD`.
@@ -243,7 +244,8 @@ flowchart TD
     K --> G
     F --> G[Claude answers per subject per run]
     G --> N[Claude note per subject<br/>why its series moved]
-    N --> H[Diff with the previous run]
+    N --> U[Claude summary per subject<br/>direction by code]
+    U --> H[Diff with the previous run]
 ```
 
 1. **Ingest.** Fetch, cache, parse, dedup. Store `SourceDocument` rows with source, collection, URL, title, published date, text, hash and classification.
@@ -282,6 +284,13 @@ A run then adds four steps:
   Rules such as "0.5% off the peg for 24 hours" fix a state whatever the model says.
 - **Notes** (F6): one Claude call per subject with series writes why they moved in the week, citing the week's developments.
 
+**Summaries.** After the notes, one Claude call per subject writes the paragraph at the top of its monitor page (`pipeline/summaries.py`), on `claude-sonnet-5-5` while every other step keeps the configured model.
+It reads only the run's stored rows: the focus area answers with their previous states, the subject's new or updated developments that need attention or are adverse, the detector events on its series, and its Trend note's headline.
+The paragraph has at most 60 words, no dashes, and only numbers its inputs give, or it is asked again once.
+Code sets the direction: the run is more adverse, less adverse or unchanged against the previous run on a score of 2 per focus area at Needs attention, 1 per focus area at Watch and 1 per adverse development needing attention, so a focus area moving between Watch and Needs attention moves it.
+`run_summaries` keeps the text, the direction and its basis in words, and the counts of the subject's developments, those needing attention and those adverse, as its Developments tab lists them.
+`im summarize` rewrites summaries of complete runs without recomputing anything else.
+
 A backfilled run never sees the future: observations carry `available_at`, and a run as of D reads each one only if it was known by the end of D, at its value before any later revision.
 
 **Logging.** Every Jev and Claude call writes an `InferenceRecord`: stage, model and version, input reference, output, confidence, tokens or cost, run id.
@@ -308,7 +317,7 @@ mocks/              design mocks
 ```
 
 - **Store:** one SQLite file. Tables: subjects, subject_links, standing_questions, source_documents, document_tags, runs, findings, developments, development_subjects, development_sources, question_answers, upcoming_dates, analyst_actions, dashboards, graph_nodes, graph_edges, inference_records.
-  Series add series, series_subjects, observations, observation_revisions, detections, and per run run_indicators, run_facts and run_notes.
+  Series add series, series_subjects, observations, observation_revisions, detections, and per run run_indicators, run_facts, run_notes and run_summaries.
 - **API:** FastAPI. Pydantic models are the source of truth, and `openapi-typescript` generates the web client types from the OpenAPI schema, so the two sides can't drift.
 - **Dashboard spec:** a list of widgets with `type`, `size`, `order` and typed `settings` (subject, question). One schema per widget type drives the gallery, manual edits and the Generate agent.
 - **Generate agent:** Claude Agent SDK with in-process tools `add_widget`, `update_widget`, `remove_widget`, `reorder` and `list_subjects`. Tool arguments are validated against the widget schemas. The server maps the agent's stream to AG-UI events (`TEXT_MESSAGE_*`, `TOOL_CALL_*`, `STATE_DELTA`, and a `CUSTOM` "changes" event naming the message that lists the run's changes) over SSE. A prompt whose request fails before the agent starts (a dropped connection, Chrome's network-change abort, a 502 to 504 while the API restarts) is sent again after 1, 2 and 4 seconds; once the agent has written or edited anything it is not.
@@ -321,6 +330,7 @@ mocks/              design mocks
 - `uv run im ingest` fetches the series, then fetches and parses the corpus.
 - `uv run im series fetch` fetches every series up to today; `uv run im series backfill --from 2021-07-01` fills their history once.
 - `uv run im run --as-of <date>` computes one run. `uv run im run --both` computes Run 1 and Run 2.
+- `uv run im summarize --as-of <date>` or `--all` rewrites the subject summaries of complete runs; `--subject <id>` limits it to some subjects.
 - `uv run im report` writes the pipeline report (see Verification).
 - `uv run im check series`, `im check past-run` and `im check depeg` print the JSON checks the E2E walkthrough runs in scratch stores (see Verification).
 
@@ -338,8 +348,11 @@ The app only shows data from the API; there is no sample data in the web code.
   Indicator shows one series' state and value, its 12-month line at M, and its marked developments at L.
 - **New dashboard popup:** 80% of the screen, Build selected by default.
   Build uses the gallery sheet layout (mock variant B). Generate starts with a centered input that slides to the bottom as widgets arrive.
-- **Monitor pages:** What changed, Indicators (for subjects with series), Standing questions (built-in and custom, plus "Add a question"), Links, Mark reviewed and Add note.
-  Subjects with series also get a Trend tab: each run's note on why the series moved, the series over 12 months with developments marked, and question states per run.
+- **Monitor pages:** a head with Mark reviewed and Follow over four tabs.
+  Overview: the run's summary, focus areas (built-in and custom, plus "Add a focus area"), Key data, Needs attention, a small Connections graph and notes.
+  Developments: What changed with triage, then the subject's or its peers' developments.
+  Data, for subjects with series: Indicators, then each run's note on why the series moved, the series over 12 months with developments marked, and question states per run.
+  Connections, for groups and entities: the graph, a peers table or common issues and outliers, and related subjects.
 - **Evidence drawer, graph view, ⌘K search:** as in `ui-ux.md`. The drawer lists cited series and detections as data sources, each with its chart.
 
 ## Phases
@@ -359,7 +372,7 @@ Commit at the end of each phase.
 | 7. Graph view | Obsidian-style graph from any monitor page | Opens at 1 hop, expands to 2, filters work, new developments highlighted, developments grouped by theme, nodes drag without opening, clicking a node opens its page, layout stops when settled |
 | 8. Custom questions | Add, preview, keep, edit, delete | A custom question shows an answer with citations for both runs and a change badge |
 | 9. E2E | Full walkthrough test | The E2E run passes and writes its artifact (see Verification) |
-| 10. Structured data | F1 to F7 of `structured-data-plan.md`: series store, facts, detectors, Indicators, Indicator widget, data sources in the drawer, Trend tab, custom questions with series | The E2E walkthrough's structured data steps pass |
+| 10. Structured data | F1 to F7 of `structured-data-plan.md`: series store, facts, detectors, Indicators, Indicator widget, data sources in the drawer, Data tab, custom questions with series | The E2E walkthrough's structured data steps pass |
 
 ## Verification
 
@@ -381,9 +394,9 @@ It covers:
 3. Edit mode: drag a widget, remove one, reload, check the layout persisted.
 4. New dashboard, Build: pick a subject, add three widgets, rearrange, create, check it appears in the sidebar.
 5. New dashboard, Generate: send a prompt whose first request is dropped, check it is sent again and widgets arrive with a summary counting them, Undo, send again, Keep, create.
-6. Open a monitor page from ⌘K, mark reviewed, add a note, delete it and Undo; the Undo toast waits while hovered and otherwise lasts 8 s; on a short window, the rail's foot scrolls into view.
+6. Open a monitor page from ⌘K, add a note, delete it and Undo (the Undo toast waits while hovered and otherwise lasts 8 s), then mark reviewed and Undo on the Developments tab.
 7. Add a custom question, keep it, check the answer and citations.
-8. Open the graph view, expand to 2 hops, click a node, check its page opens.
+8. Open the Connections tab, then the full graph view, expand to 2 hops, click a node, check its page opens.
 9. Drag a sidebar dashboard to the top, move another with Move up, reload, check the order persisted and colors did not change.
 
 For structured data (`structured-data-plan.md`), it also covers:
@@ -397,7 +410,7 @@ For structured data (`structured-data-plan.md`), it also covers:
 16. The Indicators section on a bank page and the Fed's page.
 17. The Indicator widget: set by subject, then added from the gallery at Large with developments on its lane.
 18. The drawer's data source item: the sentence, flags in words and the chart with the cited period.
-19. The Trend tab: each run's note with numbered citations on the chart, question states per run, and no note before the first document.
+19. The Data tab: each run's note with numbered citations on the chart, question states per run, and no note before the first document.
 20. A custom question with a series: the picker, answers citing its facts, and the widget's line at M.
 
 Each structured data step also writes its data as JSON next to the screenshots (for example `series-fetch.json`, `past-run.json`, `trend.json`), so a run can be compared with the next.

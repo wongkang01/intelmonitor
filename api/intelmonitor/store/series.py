@@ -1,11 +1,12 @@
-"""Series, their subjects, observations and revisions (structured-data-plan.md, Data model)."""
+"""Series, their subjects, observations and revisions (docs/archive/structured-data-plan.md, Data
+model)."""
 
 import sqlite3
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from intelmonitor.seed import DerivedSource, SeriesSeed
 
@@ -17,6 +18,16 @@ class Observation(BaseModel):
     value: float
     preliminary: bool = False
     available_at: datetime  # UTC; when the value could first have been known
+
+
+class ObservationSource(BaseModel):
+    """Where one hand-collected figure comes from (a manual series)."""
+
+    period: date
+    url: str
+    title: str = Field(description="The publication")
+    quote: str | None = Field(description="The verbatim sentence or table row")
+    chart_reading: bool = Field(description="The value was read from a chart")
 
 
 class Revision(BaseModel):
@@ -121,6 +132,37 @@ def save_observations(
             stored[period] = (old[0], o.preliminary)
     conn.commit()
     return Saved(added, revised)
+
+
+def save_sources(
+    conn: sqlite3.Connection, series_id: str, sources: Iterable[ObservationSource]
+) -> None:
+    """Replaces a series' observation sources with those of its latest fetch."""
+    conn.execute("DELETE FROM observation_sources WHERE series_id = ?", (series_id,))
+    conn.executemany(
+        "INSERT INTO observation_sources (series_id, period, url, title, quote, chart_reading) "
+        "VALUES (?, ?, ?, ?, ?, ?)",
+        [
+            (series_id, o.period.isoformat(), o.url, o.title, o.quote, o.chart_reading)
+            for o in sources
+        ],
+    )
+    conn.commit()
+
+
+def read_sources(conn: sqlite3.Connection, series_id: str) -> dict[date, ObservationSource]:
+    """A series' observation sources by period; empty for a series fetched from an API."""
+    return {
+        o.period: o
+        for o in (
+            ObservationSource.model_validate(dict(r))
+            for r in conn.execute(
+                "SELECT period, url, title, quote, chart_reading FROM observation_sources "
+                "WHERE series_id = ?",
+                (series_id,),
+            )
+        )
+    }
 
 
 def read_observations(
